@@ -1,0 +1,72 @@
+#!/bin/bash
+
+cat << EOF
+###############################################################################
+IMPORTANT: Please read below information
+###############################################################################
+Setting up Satlab requires special previllages, you need access to
+serviceaccount and keys to access docker images and other configuration files.
+This script will authenticate the user to access the required artifacts.
+
+The following the are steps this script executes:
+
+1. Authenticate user using GCloud SDK(uses gcloud-sdk docker contaienr),
+   when prompted please use your google.com account
+2. Get required service account and keys from cloud application.
+3. Authorizes docker deamon to download docker images from private registry.
+4. Finally reboots the chromebox. (You must restart the chromebox inorder to
+   finish the satlab setup)
+###############################################################################
+EOF
+while true; do
+    read -p "Do you want to continue with Satlab setup(y/n)?" yn
+    case $yn in
+        [Yy]* ) break;;
+        [Nn]* ) exit;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
+
+GCLOUD="docker run --rm -ti -a stdout -v satlab-keys:/tmp/keys -v gcloud:/root/.config/gcloud google/cloud-sdk"
+
+echo "******* SATLAB Setup Starting..... *********"
+echo
+echo "Authenticating the user, please follow the instrunctions... ###"
+echo
+${GCLOUD} gcloud auth login
+if [ "$?" -ne 0 ]; then
+  echo "Failed to authenticate the user, you must use your @google.com account. Please try again!"
+  exit
+fi
+
+echo "Downloading artifacts..."
+${GCLOUD} gsutil cp gs://cros-satlab-images/satlab-prototype_key.json /tmp/keys
+if [ "$?" -ne 0 ]; then
+  echo "Failed to download, please try again!"
+  exit
+fi
+echo "Authorizing service account..."
+${GCLOUD} gcloud auth activate-service-account satlab-prototype@chromeos-service-accounts-dev.iam.gserviceaccount.com --key-file=/tmp/keys/satlab-prototype_key.json
+
+if [ "$?" -ne 0 ]; then
+  echo "Failed to authorize service account, please try again!"
+  exit
+fi
+output=$(docker run --rm -ti -v satlab-keys:/tmp/keys -a stdout -v gcloud:/root/.config/gcloud google/cloud-sdk gcloud auth print-access-token)
+echo $output | docker login -u oauth2accesstoken --password-stdin https://gcr.io/satlab-images/
+if [ "$?" -ne 0 ]; then
+  echo "Failed to authenticate docker, please try again!"
+  exit
+fi
+
+echo "Configuring Satlab Privileges successful, please reboot"
+echo
+while true; do
+    read -p "Do you want to reboot now(y/n)?" yn
+    case $yn in
+        [Yy]* ) reboot;;
+        [Nn]* ) echo "You MUST restart to apply start Satlab"
+                exit;;
+        * ) echo "Please answer yes or no.";;
+      esac
+done
