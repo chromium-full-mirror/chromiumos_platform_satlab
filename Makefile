@@ -5,11 +5,11 @@
 SUBDIRS := os-dependent/chromeos/upstart-scripts
 
 all:
-        for dir in $(SUBDIRS); do \
-                $(MAKE) -C $$dir all || exit 1; \
-        done
+	for dir in $(SUBDIRS); do \
+		$(MAKE) -C $$dir all || exit 1; \
+	done
 
 install:
-        for dir in $(SUBDIRS); do \
-                $(MAKE) -C $$dir install; \
-        done
+	for dir in $(SUBDIRS); do \
+		$(MAKE) -C $$dir install; \
+	done
