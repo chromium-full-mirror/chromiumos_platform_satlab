@@ -27,7 +27,7 @@ while true; do
     esac
 done
 
-GCLOUD="docker run --rm -ti -a stdout -v satlab-keys:/tmp/keys -v gcloud:/root/.config/gcloud google/cloud-sdk"
+GCLOUD="docker run --rm -ti -a stdout -v satlab-keys:/tmp/keys -v gcloud:/root/.config/gcloud google/cloud-sdk:slim"
 
 echo "******* SATLAB Setup Starting..... *********"
 echo
@@ -52,7 +52,7 @@ if [ "$?" -ne 0 ]; then
   echo "Failed to authorize service account, please try again!"
   exit
 fi
-output=$(docker run --rm -ti -v satlab-keys:/tmp/keys -a stdout -v gcloud:/root/.config/gcloud google/cloud-sdk gcloud auth print-access-token)
+output=$(docker run --rm -v satlab-keys:/tmp/keys -a stdout -v gcloud:/root/.config/gcloud google/cloud-sdk:slim gcloud auth print-access-token)
 echo $output | docker login -u oauth2accesstoken --password-stdin https://gcr.io/satlab-images/
 if [ "$?" -ne 0 ]; then
   echo "Failed to authenticate docker, please try again!"

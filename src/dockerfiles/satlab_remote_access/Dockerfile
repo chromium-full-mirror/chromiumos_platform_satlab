@@ -12,5 +12,5 @@ FROM ${REGISTRY_URI}/remote_access:autopush
 ###########################################################
 
 COPY src/dockerfiles/satlab_remote_access/satlab_setup /usr/local/bin
-RUN chmod u+x /usr/local/bin/satlab_setup
+RUN chmod uog+x /usr/local/bin/satlab_setup
 WORKDIR /var/log
