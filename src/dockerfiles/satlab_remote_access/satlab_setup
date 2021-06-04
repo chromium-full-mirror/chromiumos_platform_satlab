@@ -1,4 +1,7 @@
 #!/bin/bash
+# Copyright 2021 The Chromium OS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
 
 cat << EOF
 ###############################################################################
@@ -27,7 +30,11 @@ while true; do
     esac
 done
 
-GCLOUD="docker run --rm -ti -a stdout -v satlab-keys:/tmp/keys -v gcloud:/root/.config/gcloud google/cloud-sdk:slim"
+SATLAB_SERIVCE_ACCOUNT=satlab-prototype@chromeos-service-accounts-dev.iam.gserviceaccount.com
+
+KEYS_FOLDER=/home/satlab/keys
+CACHE_SERVER_FOLDER=/home/satlab/cache_server
+GCLOUD="docker run --rm -ti -a stdout -v satlab_keys:${KEYS_FOLDER} -v cache_server:${CACHE_SERVER_FOLDER} -v gcloud:/root/.config/gcloud google/cloud-sdk:slim"
 
 echo "******* SATLAB Setup Starting..... *********"
 echo
@@ -38,21 +45,29 @@ if [ "$?" -ne 0 ]; then
   echo "Failed to authenticate the user, you must use your @google.com account. Please try again!"
   exit
 fi
-
 echo "Downloading artifacts..."
-${GCLOUD} gsutil cp gs://cros-satlab-images/satlab-prototype_key.json /tmp/keys
+${GCLOUD} gsutil cp gs://satlab-keys/satlab_service_account.json ${KEYS_FOLDER}
 if [ "$?" -ne 0 ]; then
-  echo "Failed to download, please try again!"
+  echo "Failed to download service account key, please try again!"
   exit
 fi
-echo "Authorizing service account..."
-${GCLOUD} gcloud auth activate-service-account satlab-prototype@chromeos-service-accounts-dev.iam.gserviceaccount.com --key-file=/tmp/keys/satlab-prototype_key.json
 
+${GCLOUD} gsutil cp gs://satlab-keys/.boto ${CACHE_SERVER_FOLDER}
+if [ "$?" -ne 0 ]; then
+  echo "Failed to download .boto file, please try again!"
+  exit
+fi
+
+# TODO(prasadv): Remove this once conf_creator is added.
+${GCLOUD} gsutil cp gs://cros-satlab-images/gs_cache.conf ${CACHE_SERVER_FOLDER}
+
+echo "Authorizing service account..."
+${GCLOUD} gcloud auth activate-service-account ${SATLAB_SERIVCE_ACCOUNT} --key-file=${KEYS_FOLDER}/satlab_service_account.json
 if [ "$?" -ne 0 ]; then
   echo "Failed to authorize service account, please try again!"
   exit
 fi
-output=$(docker run --rm -v satlab-keys:/tmp/keys -a stdout -v gcloud:/root/.config/gcloud google/cloud-sdk:slim gcloud auth print-access-token)
+output=$(docker run --rm -v satlab_keys:${KEYS_FOLDER} -a stdout -v gcloud:/root/.config/gcloud google/cloud-sdk:slim gcloud auth print-access-token)
 echo $output | docker login -u oauth2accesstoken --password-stdin https://gcr.io/satlab-images/
 if [ "$?" -ne 0 ]; then
   echo "Failed to authenticate docker, please try again!"

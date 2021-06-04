@@ -1,0 +1,98 @@
+# Copyright 2021 The Chromium OS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+version: "3"
+services:
+  ##############################################################################drone
+  drone:
+    container_name: drone
+    image: &drone_image ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/drone:${SATLAB_DRONE:-release}
+    environment:
+      - DOCKER_DRONE_QUEEN_SERVICE=drone-queen-prod.appspot.com
+      - DOCKER_DRONE_SWARMING_SERVER_URL=https://chromeos-swarming.appspot.com
+      - DOCKER_DRONE_ADMIN_SERVICE=chromeos-skylab-bot-fleet.appspot.com
+      - DOCKER_DRONE_INVENTORY_ENVIRONMENT=prod
+      - DOCKER_DRONE_TKO_INSTANCES=google.com:chromeos-lab:us-central1:tko
+      - DOCKER_DRONE_AGENT_DUT_CAPACITY=10
+      - DOCKER_DRONE_LOG_PROJECT=drone-queen-prod
+      - DOCKER_DRONE_IMAGE=*drone_image
+      - DOCKER_DRONE_INVENTORY_SERVICE=cros-lab-inventory.appspot.com
+      - DOCKER_DRONE_UFS_SERVICE=ufs.api.cr.dev
+      # TKO Proxy env variables.
+      - DOCKER_DRONE_TKO_INSTANCES=google.com:chromeos-lab:us-central1:cros-staging-tko
+    privileged: true
+    network_mode: "host"
+    hostname: ${DRONE_HOSTNAME:-satlab-drone}
+    restart: always
+    dns:
+      - 192.168.100.51
+    depends_on:
+      - dns
+  ##############################################################################dns
+  dns:
+    container_name: dns
+    image: ${REGISTRY_URI:-gcr.io/chromeos-partner-moblab}/moblab-dns:${DNS:-release}
+    restart: unless-stopped
+    volumes:
+        - logs:/var/log/
+        - /etc/hosts:/etc/hosts:rw
+    networks:
+      satlab:
+        ipv4_address: 192.168.100.51
+  ##############################################################################gsa_server
+  gsa_server:
+    container_name: gsa_server
+    image: ${CACHE_SERVER_REGISTRY:-gcr.io/chromeos-cacheserver-images}/gsa_server:${GSA_SERVER:-release}
+    environment:
+      - BOTO_CONFIG=/home/chromeos-test/boto_key/.boto
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - images:/home/chromeos-test/images
+      - cache_server:/home/chromeos-test/boto_key
+    command: ['python', '-m', 'gs_archive_server', '-p', '8887', '-c', '192.168.100.3:8082', '-b', '0.0.0.0']
+    networks:
+      satlab:
+        ipv4_address: 192.168.100.2
+    dns:
+      - 192.168.100.51
+    depends_on:
+      - dns
+  ##############################################################################ngix
+  nginx:
+    container_name: nginx
+    image: ${CACHE_SERVER_REGISTRY:-gcr.io/chromeos-cacheserver-images}/nginx:${NGINX:-release}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - cache_server:/etc/nginx/conf.d
+      - /var/logs/nginx:/var/log/nginx
+      - cache:/var/cache/nginx
+    ports:
+      - "8082:8082"
+    command: ['nginx', '-g', 'daemon off;']
+    networks:
+      satlab:
+        ipv4_address: 192.168.100.3
+    dns:
+      - 192.168.100.51
+    extra_hosts:
+        - "cacheserver:192.168.100.1"
+    depends_on:
+      - dns
+      - gsa_server
+  ##############################################################################volumes
+volumes:
+    logs: {}
+    images: {}
+    cache: {}
+    cache_server:
+      external: True
+    satlab_keys:
+      external: True
+  ##############################################################################networks
+networks:
+  satlab:
+    ipam:
+      driver: default
+      config:
+        - subnet: "192.168.100.0/24"
