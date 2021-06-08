@@ -24,5 +24,5 @@ compose: export DOCKER_BUILDKIT=1
 compose:
 	docker build ${EXTRA_ARGS} --label "version=${BUILD_VERSION}" \
 		-t ${REGISTRY_URI}/satlab-compose:${LABEL} \
-		-f dockerfiles/compose/Dockerfile dockerfiles/compose
+		-f dockerfiles/compose/Dockerfile .
 	docker push ${REGISTRY_URI}/satlab-compose:${LABEL}

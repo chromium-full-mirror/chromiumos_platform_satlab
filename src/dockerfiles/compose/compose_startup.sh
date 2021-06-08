@@ -12,7 +12,7 @@ echo "Enviroment variable REGISTRY_URI is ${REGISTRY_URI}"
 echo "Enviroment variable SATLAB_REGISTRY_URI is ${SATLAB_REGISTRY_URI}"
 
 DRONE_HOSTNAME="satlab"
-MACADDR=$(cat /sys/class/net/eth0/address | sha256sum | cut -c 1-24)
+MACADDR=$(echo "$(get_host_identifier)" | awk '{print tolower($0)}')
 export DRONE_HOSTNAME="${DRONE_HOSTNAME}-${MACADDR}"
 echo "Drone Name: ${DRONE_HOSTNAME}"
 
