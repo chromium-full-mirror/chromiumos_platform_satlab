@@ -19,8 +19,6 @@ services:
       - DOCKER_DRONE_IMAGE=*drone_image
       - DOCKER_DRONE_INVENTORY_SERVICE=cros-lab-inventory.appspot.com
       - DOCKER_DRONE_UFS_SERVICE=ufs.api.cr.dev
-      # TKO Proxy env variables.
-      - DOCKER_DRONE_TKO_INSTANCES=google.com:chromeos-lab:us-central1:cros-staging-tko
     privileged: true
     network_mode: "host"
     hostname: ${DRONE_HOSTNAME:-satlab-drone}

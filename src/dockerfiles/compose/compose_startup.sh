@@ -11,11 +11,6 @@ echo "Enviroment variable LABEL is ${LABEL}"
 echo "Enviroment variable REGISTRY_URI is ${REGISTRY_URI}"
 echo "Enviroment variable SATLAB_REGISTRY_URI is ${SATLAB_REGISTRY_URI}"
 
-DRONE_HOSTNAME="satlab"
-MACADDR=$(echo "$(get_host_identifier)" | awk '{print tolower($0)}')
-export DRONE_HOSTNAME="${DRONE_HOSTNAME}-${MACADDR}"
-echo "Drone Name: ${DRONE_HOSTNAME}"
-
 echo "Merging main.env and override.env into .env"
 egrep -oh '^[^#]+' main.env override.env | egrep . | awk -F= '{a[$1]=$2}END{for(i in a) print i "=" a[i]}' > .env
 
@@ -39,9 +34,14 @@ else
     # This is in case the device was not shutdown cleanly there might be
     # restarted containers (restarted by dockerd)
     docker-compose down -t 1
-
-    docker-compose pull dns drone gsa_server nginx
-    docker-compose up -d dns drone gsa_server nginx
+    docker-compose pull dns
+    docker-compose up -d dns
+    DRONE_HOSTNAME="satlab"
+    MACADDR=$(echo "$(get_host_identifier)" | awk '{print tolower($0)}')
+    export DRONE_HOSTNAME="${DRONE_HOSTNAME}-${MACADDR}"
+    echo "Drone Name: ${DRONE_HOSTNAME}"
+    docker-compose pull drone gsa_server nginx
+    docker-compose up -d drone gsa_server nginx
 
     docker-compose pull
     docker-compose up -d
