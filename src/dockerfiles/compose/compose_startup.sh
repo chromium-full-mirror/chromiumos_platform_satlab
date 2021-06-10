@@ -43,6 +43,10 @@ else
     docker-compose pull drone gsa_server nginx
     docker-compose up -d drone gsa_server nginx
 
+    # set permission for ssp volume to create lxc containers
+    # b/190623503
+    docker exec drone chmod 0777 /usr/local/autotest/containers/ssp_volume
+
     docker-compose pull
     docker-compose up -d
     docker system prune -f
