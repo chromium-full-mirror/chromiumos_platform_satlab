@@ -38,7 +38,8 @@ services:
     restart: unless-stopped
     volumes:
         - logs:/var/log/
-        - /etc/hosts:/etc/hosts:rw
+        - dut_hosts:/etc/dut_hosts:rw
+    command: ['/usr/sbin/dnsmasq', '--no-daemon', '-u', 'moblab', '-g', 'moblab', '-H', '/etc/dut_hosts/hosts']
     networks:
       satlab:
         ipv4_address: 192.168.100.51
@@ -87,6 +88,7 @@ volumes:
     logs: {}
     images: {}
     cache: {}
+    dut_hosts: {}
     cache_server:
       external: True
     satlab_keys:
