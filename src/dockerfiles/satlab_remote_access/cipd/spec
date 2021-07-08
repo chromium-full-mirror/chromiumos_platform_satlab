@@ -1,0 +1,7 @@
+$ServiceURL https://chrome-infra-packages.appspot.com/
+
+# This is the CIPD client itself
+infra/tools/cipd/${os}-${arch}  latest
+
+# TODO(gregorynisbet): Switch this to prod.
+infra/shivas/linux-amd64 latest
