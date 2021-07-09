@@ -3,6 +3,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# get_host_identifier gets the serial number for the satlab as a whole.
+#
+# sample output:
+#   1XXXXXXX1341333A
+
 set -eu
 
 exec python3 /usr/local/bin/host_command.py "$0"
