@@ -1,0 +1,27 @@
+#!/bin/sh
+# Copyright 2021 The Chromium OS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# Write the contents of the host files inside the DNS container as a
+# diagnostic step.
+
+# Die prints lines to stderr and then exits abnormally.
+die() {
+        printf "%s\n" "$@" 1>&2
+        exit 1
+}
+
+# Check for the existence of the tools we depend on up front.
+type docker 1>/dev/null 2>/dev/null || die 'no docker tool'
+
+# Run a harmless command on the dns container to check for its presence
+docker exec -it dns /bin/date || die 'dns container failed to run date command'
+
+# Print diagnostic information about the hosts files inside the container
+printf "%s\n" "/etc/hosts in dns container"
+docker exec -it dns /bin/cat /etc/hosts
+printf "%s\n"
+printf "%s\n" "/etc/dut_hosts/hosts in dns container"
+docker exec -it dns /bin/cat /etc/dut_hosts/hosts
+exit 0
