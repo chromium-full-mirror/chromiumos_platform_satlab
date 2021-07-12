@@ -1,0 +1,24 @@
+#!/bin/sh
+# Copyright 2021 The Chromium OS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# Restart the DNS process inside the DNS container by killing the
+# dnsmasq process. The dnsmasq process inside the dns container will
+# automatically restart.
+
+die() {
+        printf "%s\n" "$@" 1>&2
+        exit 1
+}
+
+# Check for existence of external dependencies.
+type docker 1>/dev/null 2>/dev/null || die 'no docker tool'
+
+# Check for common problems with docker container
+docker info 1>/dev/null 2>/dev/null || die 'docker info failed'
+docker container inspect dns 1>/dev/null 2>/dev/null || die 'no container named "dns"'
+docker container exec dns /bin/sh -c 'test -x /usr/bin/killall' 1>/dev/null 2>/dev/null \
+        || die '/usr/bin/killall executable not present in docker container'
+
+docker exec dns /usr/bin/killall -HUP dnsmasq || die 'failed to stop dnsmasq'

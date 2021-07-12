@@ -19,8 +19,10 @@ WORKDIR /
 RUN /sbin/apk add git
 COPY src/dockerfiles/satlab_remote_access/tools/satlab_setup /usr/local/bin
 COPY src/dockerfiles/satlab_remote_access/tools/get_dns_hosts /usr/local/bin
+COPY src/dockerfiles/satlab_remote_access/tools/restart_dns_process /usr/local/bin
 RUN /bin/chmod uog+rx /usr/local/bin/satlab_setup
 RUN /bin/chmod uog+rx /usr/local/bin/get_dns_hosts
+RUN /bin/chmod uog+rx /usr/local/bin/restart_dns_process
 
 # Set up CIPD and run CIPD ensure.
 WORKDIR /root
