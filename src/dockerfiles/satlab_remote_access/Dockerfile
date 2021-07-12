@@ -3,11 +3,11 @@
 # found in the LICENSE file.
 
 ARG REGISTRY_URI=gcr.io/chromeos-partner-moblab
-ARG LABEL=autopush
+ARG COMMON_CORE_LABEL=autopush
 
 ###########################################################
 
-FROM ${REGISTRY_URI}/remote_access:autopush
+FROM ${REGISTRY_URI}/remote_access:${COMMON_CORE_LABEL}
 
 ###########################################################
 

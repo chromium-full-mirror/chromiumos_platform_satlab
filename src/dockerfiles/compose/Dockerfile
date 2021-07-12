@@ -4,27 +4,15 @@
 
 ARG BASE_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/base-containers
 ARG REGISTRY_URI=gcr.io/chromeos-partner-moblab`
-ARG SATLAB_REGISTRY_URI=gcr.io/satlab-images
-ARG LABEL=autopush
-ARG SSH_PORT
+ARG COMMON_CORE_LABEL=autopush
 ###########################################################
 
 # TODO(prasadv): Read tag from Moblab Labels
-FROM ${REGISTRY_URI}/moblab_common:autopush as common
+FROM ${REGISTRY_URI}/moblab_common:${COMMON_CORE_LABEL} as common
 
 ###########################################################
 
 FROM ${BASE_REGISTRY_URI}/docker/compose:alpine-1.27.4
-
-# If the args left empty the script will leave the values in .env as is.
-ARG DRONE_VER
-ARG GSA_SERVER_VER
-ARG NGINX_VER
-
-ENV LABEL="${LABEL}"
-ENV REGISTRY_URI="${REGISTRY_URI}"
-ENV SATLAB_REGISTRY_URI="${SATLAB_REGISTRY_URI}"
-ENV SSH_PORT="${SSH_PORT}"
 
 RUN apk add --no-cache --upgrade \
     openssh-client \
@@ -40,6 +28,25 @@ RUN apk add --no-cache --upgrade \
     libffi-dev \
     py-pip \
     libstdc++
+
+# If the args left empty the script will leave the values in .env as is.
+ARG DRONE_VER
+ARG GSA_SERVER_VER
+ARG NGINX_VER
+
+# These are re-defined because ARG has a different scope
+# before and after the FROM instruction.
+ARG BASE_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/base-containers
+ARG REGISTRY_URI=gcr.io/chromeos-partner-moblab`
+ARG SATLAB_REGISTRY_URI=gcr.io/satlab-images
+ARG LABEL=autopush
+ARG COMMON_CORE_LABEL=autopush
+ARG BUILD_VERSION
+ENV LABEL="${LABEL}"
+ENV COMMON_CORE_LABEL="${COMMON_CORE_LABEL}"
+ENV REGISTRY_URI="${REGISTRY_URI}"
+ENV SATLAB_REGISTRY_URI="${SATLAB_REGISTRY_URI}"
+ENV BUILD_VERSION="${BUILD_VERSION}"
 
 COPY dockerfiles/compose/requirements.txt ./
 RUN pip3 install --upgrade pip && pip3 install --no-cache-dir -r requirements.txt

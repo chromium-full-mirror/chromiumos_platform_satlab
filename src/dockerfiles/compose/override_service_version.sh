@@ -13,5 +13,5 @@ VERSION=${2}
 echo "service: ${SERVICE} version: ${VERSION}"
 if [ ${VERSION} ]
 then
-    sed -i.bak s/${SERVICE}=autopush/${SERVICE}=${VERSION}/g main.env
+    sed -i.bak s/${SERVICE}=stable/${SERVICE}=${VERSION}/g main.env
 fi
