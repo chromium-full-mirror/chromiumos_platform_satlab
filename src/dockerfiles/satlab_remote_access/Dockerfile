@@ -17,7 +17,7 @@ FROM ${REGISTRY_URI}/remote_access:autopush
 
 WORKDIR /
 RUN /sbin/apk add git
-COPY src/dockerfiles/satlab_remote_access/satlab_setup /usr/local/bin
+COPY src/dockerfiles/satlab_remote_access/tools/satlab_setup /usr/local/bin
 RUN /bin/chmod uog+rx /usr/local/bin/satlab_setup
 
 # Set up CIPD and run CIPD ensure.
