@@ -5,6 +5,12 @@
 version: "3"
 services:
   ##############################################################################drone
+  conf_creator:
+    container_name: conf-creator
+    image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/conf_creator:${CONF_CREATOR:-release}
+    volumes:
+      - nginx_configs:/mnt/conf/nginx:rw
+  ##############################################################################drone
   drone:
     container_name: drone
     image: &drone_image ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/drone:${SATLAB_DRONE:-release}
@@ -68,12 +74,12 @@ services:
     image: ${CACHE_SERVER_REGISTRY:-gcr.io/chromeos-cacheserver-images}/nginx:${NGINX:-release}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
-      - cache_server:/etc/nginx/conf.d
       - /var/logs/nginx:/var/log/nginx
       - cache:/var/cache/nginx
+      - nginx_configs:/mnt/conf/nginx:ro
     ports:
       - "8082:8082"
-    command: ['nginx', '-g', 'daemon off;']
+    command: ['nginx', '-g', 'daemon off;', '-c', '/mnt/conf/nginx/nginx.conf']
     networks:
       satlab:
         ipv4_address: 192.168.100.3
@@ -82,6 +88,7 @@ services:
     extra_hosts:
         - "cacheserver:192.168.100.1"
     depends_on:
+      - conf_creator
       - dns
       - gsa_server
   ##############################################################################volumes
@@ -90,6 +97,7 @@ volumes:
     images: {}
     cache: {}
     dut_hosts: {}
+    nginx_configs: {}
     cache_server:
       external: True
     satlab_keys:

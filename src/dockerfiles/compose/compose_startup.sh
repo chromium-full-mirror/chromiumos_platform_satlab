@@ -36,6 +36,8 @@ else
     # This is in case the device was not shutdown cleanly there might be
     # restarted containers (restarted by dockerd)
     docker-compose down -t 1
+    docker-compose pull conf_creator
+    docker-compose up -d conf_creator
     docker-compose pull dns
     docker-compose up -d dns
     DRONE_HOSTNAME="satlab"
