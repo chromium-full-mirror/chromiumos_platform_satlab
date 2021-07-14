@@ -18,6 +18,12 @@ import subprocess
 import sys
 import time
 
+# Log in a dedicated file under /var/log/moblab.
+# TODO(gregorynisbet): Consider other logging strategies
+# besides a single file.
+LOG_ROOT = '/var/log/moblab'
+LOG_PATH = '%s/add-dut.log' % LOG_ROOT
+
 parser = argparse.ArgumentParser(description='Add a DUT')
 parser.add_argument('--hostname', type=str)
 parser.add_argument('--non-interactive', action='store_true', default=False)
@@ -32,23 +38,17 @@ def initialize_logging():
   and then crash if we cannot write a startup message.
   """
   try:
-    logging.basicConfig(
-        filename='/var/log/moblab/add-dut.log',
-        filemode='a',
-        level=logging.DEBUG)
+    logging.basicConfig(filename=LOG_PATH, filemode='a', level=logging.DEBUG)
     start_time = time.time()
     logging.debug('add-dut invoked at %s (%s)', start_time,
                   datetime.datetime.fromtimestamp(start_time))
   except FileNotFoundError as e:
-    eprint(
-        'Failed to initialize logging. Cannot write to /var/log/moblab/add-dut.log'
-    )
+    eprint('Failed to initialize logging. Cannot write to %s', LOG_PATH)
     eprint(e)
     sys.exit(1)
   except PermissionError as e:
-    eprint(
-        'Failed to initialize logging. No permission to write to /var/log/moblab/add-dut.log'
-    )
+    eprint('Failed to initialize logging. No permission to write to %s',
+           LOG_PATH)
     eprint(e)
     sys.exit(1)
 
