@@ -41,11 +41,13 @@ ARG BASE_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/base-containers
 ARG REGISTRY_URI=gcr.io/chromeos-partner-moblab`
 ARG SATLAB_REGISTRY_URI=gcr.io/satlab-images
 ARG LABEL=autopush
+ARG WATCHTOWER_CMD="--interval 3600 --monitor-only"
 ARG COMMON_CORE_LABEL=autopush
 ARG BUILD_VERSION
 ENV LABEL="${LABEL}"
 ENV COMMON_CORE_LABEL="${COMMON_CORE_LABEL}"
 ENV REGISTRY_URI="${REGISTRY_URI}"
+ENV WATCHTOWER_CMD="${WATCHTOWER_CMD}"
 ENV SATLAB_REGISTRY_URI="${SATLAB_REGISTRY_URI}"
 ENV BUILD_VERSION="${BUILD_VERSION}"
 
@@ -59,6 +61,7 @@ RUN rm -rf /wheels
 
 WORKDIR /
 COPY dockerfiles/compose/docker-compose.yaml .
+COPY dockerfiles/compose/docker-compose.watchtower.yaml .
 COPY dockerfiles/compose/.env main.env
 COPY dockerfiles/compose/compose_startup.sh .
 RUN chmod u+x compose_startup.sh

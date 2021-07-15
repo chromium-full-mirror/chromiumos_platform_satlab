@@ -17,5 +17,6 @@ export CACHE_SERVER_REGISTRY := gcr.io/chromeos-cacheserver-images
 # pushed to prod and update this flag accordingly.
 # By default we use "stable" tag.
 export BUILD_VERSION := stable
+WATCHTOWER_CMD := --enable-lifecycle-hooks --interval 60 --include-restarting
 SSH_PORT := 22
 include common.mk

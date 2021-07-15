@@ -32,14 +32,22 @@ if [ "${1}" == "down" ]
 then
     docker-compose down -t 1
     docker-compose rm -s -f
+
+    docker-compose -f ./docker-compose.watchtower.yaml down -t 1
 else
     # This is in case the device was not shutdown cleanly there might be
     # restarted containers (restarted by dockerd)
     docker-compose down -t 1
+    docker-compose -f ./docker-compose.watchtower.yaml down -t 1
+
     docker-compose pull conf_creator
     docker-compose up -d conf_creator
     docker-compose pull satlab_secrets
     docker-compose up -d satlab_secrets
+
+    docker-compose -f ./docker-compose.watchtower.yaml pull
+    docker-compose -f ./docker-compose.watchtower.yaml up -d
+
     docker-compose pull dns
     docker-compose up -d dns
     DRONE_HOSTNAME="satlab"
