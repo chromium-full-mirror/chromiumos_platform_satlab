@@ -7,22 +7,22 @@ cat << EOF
 ###############################################################################
 IMPORTANT: Please read below information
 ###############################################################################
-Setting up Satlab requires special previllages, you need access to
+Setting up Satlab requires special privileges, you need access to
 serviceaccount and keys to access docker images and other configuration files.
 This script will authenticate the user to access the required artifacts.
 
 The following the are steps this script executes:
 
-1. Authenticate user using GCloud SDK(uses gcloud-sdk docker contaienr),
+1. Authenticate user using GCloud SDK(uses gcloud-sdk docker container),
    when prompted please use your google.com account
 2. Get required service account and keys from cloud application.
-3. Authorizes docker deamon to download docker images from private registry.
+3. Authorizes docker daemon to download docker images from private registry.
 4. Finally reboots the chromebox. (You must restart the chromebox inorder to
    finish the satlab setup)
 ###############################################################################
 EOF
 while true; do
-    read -p "Do you want to continue with Satlab setup(y/n)?" yn
+    read -p "Do you want to continue with the Satlab setup(y/n)?" yn
     case $yn in
         [Yy]* ) break;;
         [Nn]* ) exit;;
@@ -33,12 +33,11 @@ done
 SATLAB_SERIVCE_ACCOUNT=satlab-prototype@chromeos-service-accounts-dev.iam.gserviceaccount.com
 
 KEYS_FOLDER=/home/satlab/keys
-CACHE_SERVER_FOLDER=/home/satlab/cache_server
-GCLOUD="docker run --rm -ti -a stdout -v satlab_keys:${KEYS_FOLDER} -v cache_server:${CACHE_SERVER_FOLDER} -v gcloud:/root/.config/gcloud google/cloud-sdk:slim"
+GCLOUD="docker run --rm -ti -a stdout -v satlab_keys:${KEYS_FOLDER} -v gcloud:/root/.config/gcloud google/cloud-sdk:slim"
 
 echo "******* SATLAB Setup Starting..... *********"
 echo
-echo "Authenticating the user, please follow the instrunctions... ###"
+echo "Authenticating the user, please follow the instructions... ###"
 echo
 ${GCLOUD} gcloud auth login
 if [ "$?" -ne 0 ]; then
@@ -51,15 +50,6 @@ if [ "$?" -ne 0 ]; then
   echo "Failed to download service account key, please try again!"
   exit
 fi
-
-${GCLOUD} gsutil cp gs://satlab-keys/.boto ${CACHE_SERVER_FOLDER}
-if [ "$?" -ne 0 ]; then
-  echo "Failed to download .boto file, please try again!"
-  exit
-fi
-
-# TODO(prasadv): Remove this once conf_creator is added.
-${GCLOUD} gsutil cp gs://cros-satlab-images/gs_cache.conf ${CACHE_SERVER_FOLDER}
 
 echo "Authorizing service account..."
 ${GCLOUD} gcloud auth activate-service-account ${SATLAB_SERIVCE_ACCOUNT} --key-file=${KEYS_FOLDER}/satlab_service_account.json

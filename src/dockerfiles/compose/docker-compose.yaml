@@ -34,10 +34,12 @@ services:
     restart: always
     volumes:
       - ssp:/usr/local/autotest/containers/ssp_volume:rw
+      - service_accounts:/creds/service_accounts:rw
     dns:
       - 192.168.100.51
     depends_on:
       - dns
+      - satlab_secrets
   ##############################################################################dns
   dns:
     container_name: dns
@@ -59,7 +61,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - images:/home/chromeos-test/images
-      - cache_server:/home/chromeos-test/boto_key
+      - boto_file:/home/chromeos-test/boto_key
     command: ['python', '-m', 'gs_archive_server', '-p', '8887', '-c', '192.168.100.3:8082', '-b', '0.0.0.0']
     networks:
       satlab:
@@ -68,6 +70,7 @@ services:
       - 192.168.100.51
     depends_on:
       - dns
+      - satlab_secrets
   ##############################################################################ngix
   nginx:
     container_name: nginx
@@ -91,6 +94,13 @@ services:
       - conf_creator
       - dns
       - gsa_server
+  ##############################################################################satlab-secrets
+  satlab_secrets:
+    container_name: satlab_secrets
+    image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/satlab_secrets:${SATLAB_SECRETS:-release}
+    volumes:
+      - service_accounts:/creds/service_accounts
+      - boto_file:/boto_file
   ##############################################################################volumes
 volumes:
     logs: {}
@@ -98,8 +108,8 @@ volumes:
     cache: {}
     dut_hosts: {}
     nginx_configs: {}
-    cache_server:
-      external: True
+    service_accounts: {}
+    boto_file: {}
     satlab_keys:
       external: True
     ssp: {}

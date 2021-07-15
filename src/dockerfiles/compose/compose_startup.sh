@@ -38,6 +38,8 @@ else
     docker-compose down -t 1
     docker-compose pull conf_creator
     docker-compose up -d conf_creator
+    docker-compose pull satlab_secrets
+    docker-compose up -d satlab_secrets
     docker-compose pull dns
     docker-compose up -d dns
     DRONE_HOSTNAME="satlab"
