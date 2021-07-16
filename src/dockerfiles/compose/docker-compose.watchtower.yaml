@@ -9,7 +9,10 @@ services:
     container_name: watchtower
     image: ${REGISTRY_URI:-gcr.io/chromeos-partner-moblab}/watchtower:${WATCHTOWER:-release}
     restart: unless-stopped
+    environment:
+      - DOCKER_CONFIG=/config
     volumes:
+      - docker_config:/config
       - /var/run/docker.sock:/var/run/docker.sock
 
     command: ${WATCHTOWER_CMD}
@@ -18,3 +21,7 @@ services:
       nofile:
         soft: 10000
         hard: 16384
+
+volumes:
+  docker_config:
+    external: True
