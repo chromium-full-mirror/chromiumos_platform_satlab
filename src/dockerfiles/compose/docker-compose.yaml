@@ -8,6 +8,8 @@ services:
   conf_creator:
     container_name: conf-creator
     image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/conf_creator:${CONF_CREATOR:-release}
+    labels:
+      - "skip.while.pruning.docker.system=yes"
     volumes:
       - nginx_configs:/mnt/conf/nginx:rw
   ##############################################################################drone
@@ -98,6 +100,8 @@ services:
   satlab_secrets:
     container_name: satlab_secrets
     image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/satlab_secrets:${SATLAB_SECRETS:-release}
+    labels:
+      - "skip.while.pruning.docker.system=yes"
     volumes:
       - service_accounts:/creds/service_accounts
       - boto_file:/boto_file

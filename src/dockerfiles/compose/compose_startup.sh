@@ -64,6 +64,7 @@ else
 
     docker-compose pull
     docker-compose up -d
-    docker system prune -f
+    # Use labels to filter out containers that shouldn't be pruned.
+    docker system prune --filter "label!=skip.while.pruning.docker.system=yes" -f
     docker-compose logs -f
 fi
