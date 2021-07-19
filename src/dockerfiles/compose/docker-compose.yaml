@@ -43,7 +43,7 @@ services:
   ##############################################################################dns
   dns:
     container_name: dns
-    image: ${REGISTRY_URI:-gcr.io/chromeos-partner-moblab}/moblab-dns:${DNS:-release}
+    image: ${COMMON_CORE_URI:-gcr.io/chromeos-partner-moblab}/moblab-dns:${DNS:-release}
     restart: unless-stopped
     volumes:
         - logs:/var/log/
@@ -55,7 +55,7 @@ services:
   ##############################################################################gsa_server
   gsa_server:
     container_name: gsa_server
-    image: ${CACHE_SERVER_REGISTRY:-gcr.io/chromeos-cacheserver-images}/gsa_server:${GSA_SERVER:-release}
+    image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/gsa_server:${GSA_SERVER:-release}
     environment:
       - BOTO_CONFIG=/home/chromeos-test/boto_key/.boto
     volumes:
@@ -74,7 +74,7 @@ services:
   ##############################################################################ngix
   nginx:
     container_name: nginx
-    image: ${CACHE_SERVER_REGISTRY:-gcr.io/chromeos-cacheserver-images}/nginx:${NGINX:-release}
+    image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/nginx:${NGINX:-release}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - /var/logs/nginx:/var/log/nginx

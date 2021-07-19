@@ -9,6 +9,7 @@ set -x
 
 echo "Enviroment variable LABEL is ${LABEL}"
 echo "Enviroment variable COMMON_CORE_LABEL is ${COMMON_CORE_LABEL}"
+echo "Enviroment variable COMMON_CORE_URI is ${COMMON_CORE_URI}"
 echo "Enviroment variable REGISTRY_URI is ${REGISTRY_URI}"
 echo "Enviroment variable SATLAB_REGISTRY_URI is ${SATLAB_REGISTRY_URI}"
 echo "Enviroment variable BUILD_VERSION is ${BUILD_VERSION}"

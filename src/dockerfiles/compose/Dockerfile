@@ -3,12 +3,13 @@
 # found in the LICENSE file.
 
 ARG BASE_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/base-containers
-ARG REGISTRY_URI=gcr.io/chromeos-partner-moblab`
+ARG REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab
 ARG COMMON_CORE_LABEL=autopush
+ARG COMMON_CORE_URI=gcr.io/chromeos-partner-moblab`
 ###########################################################
 
 # TODO(prasadv): Read tag from Moblab Labels
-FROM ${REGISTRY_URI}/moblab_common:${COMMON_CORE_LABEL} as common
+FROM ${COMMON_CORE_URI}/moblab_common:${COMMON_CORE_LABEL} as common
 
 ###########################################################
 
@@ -38,16 +39,18 @@ ARG CONF_CREATOR_VER
 # These are re-defined because ARG has a different scope
 # before and after the FROM instruction.
 ARG BASE_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/base-containers
-ARG REGISTRY_URI=gcr.io/chromeos-partner-moblab`
+ARG REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab
 ARG SATLAB_REGISTRY_URI=gcr.io/satlab-images
 ARG LABEL=autopush
 # Append --include-stopped --revive-stopped to let watchtower monitor
 # stopped containers (eg: conf_creator, satlab_secrets).
 ARG WATCHTOWER_CMD="--include-stopped --revive-stopped --interval 3600 --monitor-only"
 ARG COMMON_CORE_LABEL=autopush
+ARG COMMON_CORE_URI=gcr.io/chromeos-partner-moblab`
 ARG BUILD_VERSION
 ENV LABEL="${LABEL}"
 ENV COMMON_CORE_LABEL="${COMMON_CORE_LABEL}"
+ENV COMMON_CORE_URI="${COMMON_CORE_URI}"
 ENV REGISTRY_URI="${REGISTRY_URI}"
 ENV WATCHTOWER_CMD="${WATCHTOWER_CMD}"
 ENV SATLAB_REGISTRY_URI="${SATLAB_REGISTRY_URI}"

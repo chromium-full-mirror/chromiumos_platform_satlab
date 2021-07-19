@@ -2,12 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-ARG REGISTRY_URI=gcr.io/chromeos-partner-moblab
+ARG REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab
 ARG COMMON_CORE_LABEL=autopush
-
+ARG COMMON_CORE_URI=gcr.io/chromeos-partner-moblab
 ###########################################################
 
-FROM ${REGISTRY_URI}/remote_access:${COMMON_CORE_LABEL}
+FROM ${COMMON_CORE_URI}/remote_access:${COMMON_CORE_LABEL}
 
 ###########################################################
 

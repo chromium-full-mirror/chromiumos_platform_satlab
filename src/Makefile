@@ -6,9 +6,9 @@ export LABEL := ${USER}
 # for these common containers such as R-2.10.0
 # By default we use autopush tag for these base images.
 export COMMON_CORE_LABEL := autopush
-export REGISTRY := gcr.io/chromeos-partner-moblab
+export COMMON_CORE_REGISTRY := gcr.io/chromeos-partner-moblab
+export REGISTRY := us-docker.pkg.dev/chromeos-partner-moblab/satlab
 export SATLAB_REGISTRY := gcr.io/satlab-images
-export CACHE_SERVER_REGISTRY := gcr.io/chromeos-cacheserver-images
 # Please Note: This make file does not build any core Satlab containers(
 # drone, gsa_server, nginx). These are build separately and we just
 # use these images in the compose. BUILD_VERSION here is the version
