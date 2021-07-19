@@ -11,6 +11,8 @@
 # TODO(gregorynisbet): Remove this command once we can verify that the labstation-less
 # deployment works in a satlab dev environment (i.e. servod container has landed).
 
+set -x
+
 # Always run shivas in the os namespace.
 SHIVAS_NAMESPACE=os; export SHIVAS_NAMESPACE
 
@@ -49,14 +51,14 @@ hostname="satlab-${host_identifier}-${hostname_suffix}"
 
 
 # Try to add the asset.
-if /usr/local/bin/shivas get asset -name "$asset_tag" 1>/dev/null; then
+if test -n "$(/usr/local/bin/shivas get -json asset "$asset_tag")"; then
         : "do nothing"
 else
         /usr/local/bin/shivas add asset -name "$asset_tag" -rack pv-rack -zone satlab -model "$model" -board "$board" -type labstation 1>&2
 fi
 
 # Try to add the labstation.
-if /usr/local/bin/shivas get labstation -name "$hostname" 1>/dev/null; then
+if test -n "$(/usr/local/bin/shivas get dut "$hostname")"; then
         /usr/local/bin/shivas add labstation -name "$hostname" -asset "$asset_tag" -pools satlab 1>&2
 fi
 

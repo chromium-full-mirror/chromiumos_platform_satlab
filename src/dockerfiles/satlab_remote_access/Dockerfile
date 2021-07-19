@@ -23,6 +23,7 @@ COPY src/dockerfiles/satlab_remote_access/tools/get_dns_hosts /usr/local/bin
 COPY src/dockerfiles/satlab_remote_access/tools/restart_dns_process /usr/local/bin
 COPY src/dockerfiles/satlab_remote_access/tools/shivas_ensure_rack /usr/local/bin
 COPY src/dockerfiles/satlab_remote_access/tools/shivas_ensure_labstation /usr/local/bin
+COPY src/dockerfiles/satlab_remote_access/tools/remove-dut /usr/local/bin
 COPY src/dockerfiles/satlab_remote_access/tools/add-dut /usr/local/bin
 RUN /bin/chmod uog+rx /usr/local/bin/*
 

@@ -1,0 +1,181 @@
+#!/usr/bin/python3
+
+# Copyright 2021 The Chromium OS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+"""This removes a DUT and possibly the underlying asset for a satlab.
+
+Remove-dut runs in the satlab-remote-access container and automates the
+task of removing a DUT.
+
+Example usage:
+
+$ remove-dut host1
+
+$ remove-dut --remove-asset host2
+
+Note:
+
+The underlying command that this file uses, shivas, will prompt the user
+to make sure that they want to delete the DUT in question. This wrapper
+command exposes the prompt to the user without changing it.
+"""
+
+import argparse
+import datetime
+import json
+import logging
+import subprocess
+import sys
+import time
+# we must use Dict[str, str] and not dict[str, str] for 3.8 compatibility.
+from typing import Any, Dict, List, Optional
+
+# Log in a dedicated file under /var/log/moblab.
+# TODO(gregorynisbet): Consider other logging strategies
+# besides a single file.
+LOG_ROOT: str = '/var/log/moblab'
+LOG_PATH: str = '%s/remove-dut.log' % LOG_ROOT
+
+parser: argparse.ArgumentParser = argparse.ArgumentParser(
+    description='Remove a DUT')
+parser.add_argument('--remove-asset', action='store_true', default=False)
+# hostname-suffix is a positional argument.
+# Argparse does not do translation from - to _ in this context,
+# so the field name must contain an underscore.
+parser.add_argument('hostname_suffix', type=str)
+
+
+def initialize_logging() -> None:
+  """Configure logging rooted at /var/log/moblab.
+
+  /var/log is mounted from the DHB.
+  We log immediately, write a debug message immediately,
+  and then crash if we cannot write a startup message.
+  """
+  try:
+    logging.basicConfig(filename=LOG_PATH, filemode='a', level=logging.DEBUG)
+    start_time: float = time.time()
+    logging.debug('remove-dut invoked at %s (%s)', start_time,
+                  datetime.datetime.fromtimestamp(start_time))
+  except FileNotFoundError as e:
+    eprint('Failed to initialize logging. Cannot write to %s', LOG_PATH)
+    eprint(e)
+    sys.exit(1)
+  except PermissionError as e:
+    eprint('Failed to initialize logging. No permission to write to %s',
+           LOG_PATH)
+    eprint(e)
+    sys.exit(1)
+
+
+def eprint(*args, **kwargs) -> None:
+  """Write a message to stderr."""
+  return print(*args, file=sys.stderr, **kwargs)
+
+
+def check_output_without_trailing_whitespace(args: List[str]) -> str:
+  """Grab stdout, parse it as utf-8, and remove trailing whitespace."""
+  out: bytes = subprocess.check_output(args)
+  parsed: str = str(out, 'utf-8')
+  return parsed.rstrip()
+
+
+class Cmd:
+  """Cmd contains wrappers around low-level commands."""
+
+  @staticmethod
+  def get_host_identifier() -> str:
+    """Get the name of the host identifier."""
+    return check_output_without_trailing_whitespace(
+        ['/usr/local/bin/get_host_identifier'])
+
+  @staticmethod
+  def get_dut(hostname: str) -> List[Dict[Any, Any]]:
+    """Get information about a DUT as JSON."""
+    out: bytes = subprocess.check_output([
+        '/usr/local/bin/shivas', 'get', 'dut', '-namespace', 'os', '-json',
+        hostname
+    ])
+    parsed = json.loads(out)
+    return parsed
+
+  @staticmethod
+  def remove_dut(hostname: str) -> None:
+    """Delete a DUT but not the underlying asset."""
+    subprocess.check_call([
+        '/usr/local/bin/shivas',
+        'delete',
+        'dut',
+        '-namespace',
+        'os',
+        hostname,
+    ])
+
+  @staticmethod
+  def remove_asset(asset_tag: str) -> None:
+    """Remove an asset by its asset tag."""
+    subprocess.check_call([
+        '/usr/local/bin/shivas',
+        'delete',
+        'asset',
+        '-namespace',
+        'os',
+        asset_tag,
+    ])
+
+
+def get_asset_tag(dut: List[Dict[Any, Any]]) -> str:
+  """Extract the asset tag from a JSON object describing a DUT."""
+  if not dut:
+    raise RuntimeError('dut info unexpectedly empty')
+  if len(dut) > 1:
+    raise RuntimeError('dut info contains {len(dut)} elements (>1)')
+  raw_machines = dut[0].get('machines')
+  if not isinstance(raw_machines, list):
+    raise RuntimeError(f'machines is unexpectedly not a list ({raw_machines})')
+  machines: Any = dut[0]['machines']
+  if not machines:
+    raise RuntimeError('machines unexpectedly empty')
+  if len(machines) > 1:
+    raise RuntimeError(f'machine names contains {len(dut)} elements (>1)')
+  raw_machine: Any = machines[0]
+  if not isinstance(raw_machine, str):
+    raise RuntimeError(f'machine is unexpectedly not a string {raw_machine}')
+  machine: str = raw_machine
+  return machine
+
+
+def remove_dut(hostname_suffix: str, remove_asset: bool) -> None:
+  """Remove a DUT and potentially remove its underlying asset."""
+  identifier: str = Cmd.get_host_identifier()
+  hostname: str = f'satlab-{identifier}-{hostname_suffix}'
+  dut: List[Dict[Any, Any]] = Cmd.get_dut(hostname=hostname)
+  asset_tag: Optional[str] = None
+  if remove_asset:
+    asset_tag = get_asset_tag(dut)
+  Cmd.remove_dut(hostname=hostname)
+  if asset_tag is not None:
+    Cmd.remove_asset(asset_tag=asset_tag)
+
+
+def main() -> int:
+  """Remove a DUT."""
+  initialize_logging()
+  args: Dict[str, Any] = vars(parser.parse_args())
+  try:
+    remove_dut(
+        hostname_suffix=args['hostname_suffix'],
+        remove_asset=args['remove_asset'],
+    )
+  except FileNotFoundError as e:
+    eprint(e)
+    return 1
+  except subprocess.CalledProcessError as e:
+    eprint(e)
+    return 1
+  return 0
+
+
+if __name__ == '__main__':
+  sys.exit(main())
