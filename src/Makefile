@@ -1,5 +1,5 @@
 export LABEL := ${USER}
-# We use som moblab containers as base images to build Satlab specific
+# We use few moblab containers as base images to build Satlab specific
 # containers(satlab-remote-access and satlab compose). These common
 # containers include dns, remote-access, moblab-common.
 # When Satlab images are pushed to prod, release version tag is used

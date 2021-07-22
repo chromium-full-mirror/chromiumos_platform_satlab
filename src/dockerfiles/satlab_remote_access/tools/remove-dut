@@ -31,10 +31,10 @@ import time
 # we must use Dict[str, str] and not dict[str, str] for 3.8 compatibility.
 from typing import Any, Dict, List, Optional
 
-# Log in a dedicated file under /var/log/moblab.
+# Log in a dedicated file under /var/log/satlab.
 # TODO(gregorynisbet): Consider other logging strategies
 # besides a single file.
-LOG_ROOT: str = '/var/log/moblab'
+LOG_ROOT: str = '/var/log/satlab'
 LOG_PATH: str = '%s/remove-dut.log' % LOG_ROOT
 
 parser: argparse.ArgumentParser = argparse.ArgumentParser(
@@ -47,7 +47,7 @@ parser.add_argument('hostname_suffix', type=str)
 
 
 def initialize_logging() -> None:
-  """Configure logging rooted at /var/log/moblab.
+  """Configure logging rooted at /var/log/satlab.
 
   /var/log is mounted from the DHB.
   We log immediately, write a debug message immediately,

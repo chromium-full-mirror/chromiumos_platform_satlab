@@ -18,10 +18,10 @@ import subprocess
 import sys
 import time
 
-# Log in a dedicated file under /var/log/moblab.
+# Log in a dedicated file under /var/log/satlab.
 # TODO(gregorynisbet): Consider other logging strategies
 # besides a single file.
-LOG_ROOT = '/var/log/moblab'
+LOG_ROOT = '/var/log/satlab'
 LOG_PATH = '%s/add-dut.log' % LOG_ROOT
 
 parser = argparse.ArgumentParser(description='Add a DUT')
@@ -31,7 +31,7 @@ parser.add_argument('--debug', action='store_true', default=False)
 
 
 def initialize_logging():
-  """Configure logging rooted at /var/log/moblab.
+  """Configure logging rooted at /var/log/satlab.
 
   /var/log is mounted from the DHB.
   We log immediately, write a debug message immediately,
