@@ -37,6 +37,9 @@ from typing import Any, Dict, List, Optional
 LOG_ROOT: str = '/var/log/satlab'
 LOG_PATH: str = '%s/remove-dut.log' % LOG_ROOT
 
+# MUST_LOG controls whether logging errors are fatal or not.
+MUST_LOG : bool = False
+
 parser: argparse.ArgumentParser = argparse.ArgumentParser(
     description='Remove a DUT')
 parser.add_argument('--remove-asset', action='store_true', default=False)
@@ -53,20 +56,32 @@ def initialize_logging() -> None:
   We log immediately, write a debug message immediately,
   and then crash if we cannot write a startup message.
   """
+
+  def recover():
+    """Reset the logger in the event of an error."""
+    eprint('Resetting logger.')
+    logging.basicConfig(level=logging.DEBUG, force=True)
+
   try:
     logging.basicConfig(filename=LOG_PATH, filemode='a', level=logging.DEBUG)
     start_time: float = time.time()
     logging.debug('remove-dut invoked at %s (%s)', start_time,
                   datetime.datetime.fromtimestamp(start_time))
   except FileNotFoundError as e:
-    eprint('Failed to initialize logging. Cannot write to %s', LOG_PATH)
-    eprint(e)
-    sys.exit(1)
+    eprint('Failed to initialize logging. Cannot write to %s' % LOG_PATH)
+    if MUST_LOG:
+      eprint(e)
+      sys.exit(1)
+    else:
+      recover()
   except PermissionError as e:
-    eprint('Failed to initialize logging. No permission to write to %s',
+    eprint('Failed to initialize logging. No permission to write to %s' %
            LOG_PATH)
-    eprint(e)
-    sys.exit(1)
+    if MUST_LOG:
+      eprint(e)
+      sys.exit(1)
+    else:
+      recover()
 
 
 def eprint(*args, **kwargs) -> None:
