@@ -7,7 +7,7 @@ services:
 
   watchtower:
     container_name: watchtower
-    image: ${REGISTRY_URI:-gcr.io/chromeos-partner-moblab}/watchtower:${WATCHTOWER:-release}
+    image: ${COMMON_CORE_REGISTRY:-gcr.io/chromeos-partner-moblab}/watchtower:${WATCHTOWER:-release}
     restart: unless-stopped
     environment:
       - DOCKER_CONFIG=/config
