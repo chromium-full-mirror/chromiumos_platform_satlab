@@ -23,15 +23,20 @@ COPY src/dockerfiles/satlab_remote_access/tools/get_dns_hosts /usr/local/bin
 COPY src/dockerfiles/satlab_remote_access/tools/restart_dns_process /usr/local/bin
 COPY src/dockerfiles/satlab_remote_access/tools/remove-dut /usr/local/bin
 COPY src/dockerfiles/satlab_remote_access/tools/add-dut /usr/local/bin
-RUN /bin/chmod uog+rx /usr/local/bin/*
 
 # Set up CIPD and run CIPD ensure.
-WORKDIR /root
+WORKDIR /
+RUN /bin/mkdir -p /cipd && /bin/chmod a+x /cipd && /bin/chmod a+r /cipd
 RUN # increment this number to bypass the cache: 2
-RUN /usr/bin/git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
-COPY src/dockerfiles/satlab_remote_access/cipd/spec /root/spec
-RUN /root/depot_tools/cipd ensure -ensure-file spec -root /root/download -ensure-file-output /root/cipd_package_info.txt
-# Add links to executables stored in /root/download
-RUN ln -s -t /usr/local/bin /root/download/*
+RUN /usr/bin/git -C /root clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+COPY src/dockerfiles/satlab_remote_access/cipd/spec /cipd/spec
+RUN /root/depot_tools/cipd ensure -ensure-file /cipd/spec -root /cipd -ensure-file-output /cipd/cipd_package_info.txt
+# The only non-hidden files in /root/download are executables managed by CIPD. Make them executable by users.
+RUN /bin/chmod ugo+rx /cipd/*
+# Add links to executables stored in /cipd.
+RUN ln -s -t /usr/local/bin /cipd/*
+
+# Make everything in /usr/local/bin executable for good measure.
+RUN /bin/chmod ugo+rx /usr/local/bin/*
 
 WORKDIR /var/log
