@@ -1,3 +1,7 @@
+# Disable builtin rules so that running make with debug output via
+# make -d is more informative.
+MAKEFLAGS += --no-builtin-rules
+
 export LABEL := ${USER}
 # We use few moblab containers as base images to build Satlab specific
 # containers(satlab-remote-access and satlab compose). These common
