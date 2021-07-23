@@ -25,6 +25,8 @@ import argparse
 import datetime
 import json
 import logging
+import os
+import pathlib
 import subprocess
 import sys
 import time
@@ -38,11 +40,17 @@ LOG_ROOT: str = '/var/log/satlab'
 LOG_PATH: str = '%s/remove-dut.log' % LOG_ROOT
 
 # MUST_LOG controls whether logging errors are fatal or not.
-MUST_LOG : bool = False
+MUST_LOG: bool = False
+
+# Path for caching the credential used to invoke shivas.
+CREDENTIAL_PATH: str = f'{os.getenv("HOME")}/.credentials/service-account.json'
 
 parser: argparse.ArgumentParser = argparse.ArgumentParser(
     description='Remove a DUT')
 parser.add_argument('--remove-asset', action='store_true', default=False)
+# This argument controls whether to use the drone credential
+parser.add_argument(
+    '--use-drone-credential', action='store_true', default=False)
 # hostname-suffix is a positional argument.
 # Argparse does not do translation from - to _ in this context,
 # so the field name must contain an underscore.
@@ -96,6 +104,28 @@ def check_output_without_trailing_whitespace(args: List[str]) -> str:
   return parsed.rstrip()
 
 
+def make_shivas_command(credential: Optional[str], verbs: List[str],
+                        arguments: List[str]) -> List[str]:
+  """Create a shivas command with a path to the appropriate credential.
+
+  Args:
+    credential: path to cached credential
+    verbs:      the shivas subcommands (e.g. ["delete", "dut"])
+    arguments:  the rest of the arguments to the shivas subcommand.
+
+  Returns:
+    combined shivas command
+  """
+  out: List[str] = []
+  out.append('/usr/local/bin/shivas')
+  out.extend(verbs)
+  if credential is not None:
+    out.append('-service-account-json')
+    out.append(credential)
+  out.extend(arguments)
+  return out
+
+
 class Cmd:
   """Cmd contains wrappers around low-level commands."""
 
@@ -106,38 +136,66 @@ class Cmd:
         ['/usr/local/bin/get_host_identifier'])
 
   @staticmethod
-  def get_dut(hostname: str) -> List[Dict[Any, Any]]:
+  def get_dut(hostname: str, credential: Optional[str]) -> List[Dict[Any, Any]]:
     """Get information about a DUT as JSON."""
-    out: bytes = subprocess.check_output([
-        '/usr/local/bin/shivas', 'get', 'dut', '-namespace', 'os', '-json',
-        hostname
-    ])
+    out: bytes = subprocess.check_output(
+        make_shivas_command(
+            credential=credential,
+            verbs=['get', 'dut'],
+            arguments=['-json', '-namespace', 'os', hostname],
+        ))
     parsed = json.loads(out)
     return parsed
 
   @staticmethod
-  def remove_dut(hostname: str) -> None:
+  def remove_dut(hostname: str, credential: Optional[str]) -> None:
     """Delete a DUT but not the underlying asset."""
-    subprocess.check_call([
-        '/usr/local/bin/shivas',
-        'delete',
-        'dut',
-        '-namespace',
-        'os',
-        hostname,
-    ])
+    subprocess.check_call(
+        make_shivas_command(
+            credential=credential,
+            verbs=['delete', 'dut'],
+            arguments=['-namespace', 'os', hostname]))
 
   @staticmethod
-  def remove_asset(asset_tag: str) -> None:
+  def remove_asset(asset_tag: str, credential: Optional[str]) -> None:
     """Remove an asset by its asset tag."""
-    subprocess.check_call([
-        '/usr/local/bin/shivas',
-        'delete',
-        'asset',
-        '-namespace',
-        'os',
-        asset_tag,
+    subprocess.check_call(
+        make_shivas_command(
+            credential=credential,
+            verbs=['delete', 'asset'],
+            arguments=['-namespace', 'os', asset_tag],
+        ))
+
+  @staticmethod
+  def get_service_account_json() -> Any:
+    """Get the service account json credentials as a JSON object."""
+    out: bytes = subprocess.check_output([
+        '/usr/local/bin/docker',
+        'exec',
+        '-it',
+        'drone',
+        '/bin/cat',
+        '/creds/service_accounts/skylab-drone.json',
     ])
+    return json.loads(out)
+
+
+def ensure_service_account(path: str, contents: bytes) -> int:
+  """Write the service account contents to the path if no file exists at the path.
+
+  Args:
+    path:      path to use for the local copy of the service account.
+    contents:  the service account credential serialized as bytes.
+
+  Returns:
+    The number of bytes written to the file, zero bytes if nothing was written.
+  """
+  if pathlib.Path(path).is_file():
+    return 0
+  os.makedirs(os.path.dirname(path), exist_ok=True)
+  with open(path, 'wb') as fh:
+    fh.write(contents)
+  return len(contents)
 
 
 def get_asset_tag(dut: List[Dict[Any, Any]]) -> str:
@@ -161,27 +219,37 @@ def get_asset_tag(dut: List[Dict[Any, Any]]) -> str:
   return machine
 
 
-def remove_dut(hostname_suffix: str, remove_asset: bool) -> None:
+def remove_dut(hostname_suffix: str, remove_asset: bool,
+               credential: Optional[str]) -> None:
   """Remove a DUT and potentially remove its underlying asset."""
   identifier: str = Cmd.get_host_identifier()
   hostname: str = f'satlab-{identifier}-{hostname_suffix}'
-  dut: List[Dict[Any, Any]] = Cmd.get_dut(hostname=hostname)
+  if credential is not None:
+    ensure_service_account(
+        path=credential,
+        contents=bytes(json.dumps(Cmd.get_service_account_json()), 'utf-8'),
+    )
+  dut: List[Dict[Any, Any]] = Cmd.get_dut(
+      hostname=hostname, credential=credential)
   asset_tag: Optional[str] = None
   if remove_asset:
     asset_tag = get_asset_tag(dut)
-  Cmd.remove_dut(hostname=hostname)
+  Cmd.remove_dut(hostname=hostname, credential=credential)
   if asset_tag is not None:
-    Cmd.remove_asset(asset_tag=asset_tag)
+    Cmd.remove_asset(asset_tag=asset_tag, credential=credential)
 
 
 def main() -> int:
   """Remove a DUT."""
   initialize_logging()
   args: Dict[str, Any] = vars(parser.parse_args())
+  credential: Optional[str] = (
+      CREDENTIAL_PATH if args['use_drone_credential'] else None)
   try:
     remove_dut(
         hostname_suffix=args['hostname_suffix'],
         remove_asset=args['remove_asset'],
+        credential=credential,
     )
   except FileNotFoundError as e:
     eprint(e)
