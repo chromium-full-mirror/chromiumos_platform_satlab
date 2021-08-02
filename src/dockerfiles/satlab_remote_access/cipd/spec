@@ -5,3 +5,6 @@ infra/tools/cipd/${os}-${arch}  latest
 
 # TODO(gregorynisbet): Switch this to prod.
 infra/shivas/linux-amd64 latest
+
+# TODO(gregorynisbet): Switch this to prod.
+infra/cros/cmd/satlab/linux-amd64 latest
