@@ -1,0 +1,91 @@
+substitutions:
+  _BASE_REGISTRY_URI: us-docker.pkg.dev/chromeos-partner-moblab/base-containers
+  _REGISTRY_URI: us-docker.pkg.dev/chromeos-partner-moblab/satlab
+  _SSH_PORT: "22"
+  __LABEL: autopush
+  _WATCHTOWER_CMD: --enable-lifecycle-hooks --interval 60 --include-restarting
+  _COMMON_CORE_LABEL: autopush
+  _COMMON_CORE_URI: gcr.io/chromeos-partner-moblab
+  _SATLAB_REGISTRY_URI: gcr.io/satlab-images
+  __BUILD_VERSION: "stable"
+  # These labels/tags are part of satlab-compose
+  _CONF_CREATOR: ""
+  _GSA_SERVER: ""
+  _NGINX: ""
+  _SATLAB_DRONE: ""
+  _SATLAB_SECRETS: ""
+steps:
+  - id: docker-compose
+    name: "gcr.io/cloud-builders/docker"
+    args: ["pull", "${_BASE_REGISTRY_URI}/docker/compose:alpine-1.27.4"]
+    waitFor: ['-']
+  - id: moblab-common
+    name: "gcr.io/cloud-builders/docker"
+    args: ["pull", "${_COMMON_CORE_URI}/moblab_common:${_COMMON_CORE_LABEL}"]
+    waitFor: ['-']
+  - id: remote-access
+    name: "gcr.io/cloud-builders/docker"
+    args: ["pull", "${_COMMON_CORE_URI}/remote_access:${_COMMON_CORE_LABEL}"]
+    waitFor: ['-']
+  - id: compose
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "--build-arg", "CONF_CREATOR_VER=${_CONF_CREATOR}",
+        "--build-arg", "GSA_SERVER_VER=${_GSA_SERVER}",
+        "--build-arg", "NGINX_VER=${_NGINX}",
+        "--build-arg", "SATLAB_DRONE_VER=${_SATLAB_DRONE}",
+        "--build-arg", "SATLAB_SECRETS_VER=${_SATLAB_SECRETS}",
+        "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
+        "--build-arg", "SATLAB_REGISTRY_URI=${_SATLAB_REGISTRY_URI}",
+        "--build-arg", "LABEL=${__LABEL}",
+        "--build-arg", "COMMON_CORE_LABEL=${_COMMON_CORE_LABEL}",
+        "--build-arg", "COMMON_CORE_URI=${_COMMON_CORE_URI}",
+        "--build-arg", "BASE_REGISTRY_URI=${_BASE_REGISTRY_URI}",
+        "--build-arg", "BUILD_VERSION=${__BUILD_VERSION}",
+        "--label=version=${__BUILD_VERSION}",
+        "-t", "${_REGISTRY_URI}/satlab-compose:${__LABEL}",
+        "-f", "dockerfiles/compose/Dockerfile",
+        "."
+      ]
+    env:
+      - "DOCKER_BUILDKIT=1"
+      - "WATCHTOWER_CMD=${_WATCHTOWER_CMD}"
+    waitFor:
+     - "docker-compose"
+     - "moblab-common"
+
+  - id: satlab-remote-access
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
+        "--build-arg", "SATLAB_REGISTRY_URI=${_SATLAB_REGISTRY_URI}",
+        "--build-arg", "LABEL=${__LABEL}",
+        "--build-arg", "COMMON_CORE_LABEL=${_COMMON_CORE_LABEL}",
+        "--build-arg", "COMMON_CORE_URI=${_COMMON_CORE_URI}",
+        "--build-arg", "BASE_REGISTRY_URI=${_BASE_REGISTRY_URI}",
+        "--build-arg", "BUILD_VERSION=${__BUILD_VERSION}",
+        "-t", "${_REGISTRY_URI}/satlab-remote-access:${__LABEL}",
+        "-f", "dockerfiles/satlab_remote_access/Dockerfile",
+        "."
+      ]
+    env:
+      - "DOCKER_BUILDKIT=1"
+      - "SSH_PORT=${_SSH_PORT}"
+    waitFor:
+     - "remote-access"
+images:
+  [
+    "${_REGISTRY_URI}/satlab-compose:${__LABEL}",
+    "${_REGISTRY_URI}/satlab-remote-access:${__LABEL}",
+  ]
+
+options:
+  # Use higher CPU machines so the caching and build steps are faster.
+  machineType: "N1_HIGHCPU_32"
+  substitution_option: "ALLOW_LOOSE"
+
+timeout: 18000s
