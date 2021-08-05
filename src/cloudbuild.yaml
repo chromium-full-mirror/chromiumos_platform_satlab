@@ -29,6 +29,7 @@ steps:
     waitFor: ['-']
   - id: compose
     name: "gcr.io/cloud-builders/docker"
+    dir: src
     args:
       [
         "build",
@@ -58,6 +59,7 @@ steps:
 
   - id: satlab-remote-access
     name: "gcr.io/cloud-builders/docker"
+    dir: src
     args:
       [
         "build",
