@@ -57,7 +57,6 @@ ENV WATCHTOWER_CMD="${WATCHTOWER_CMD}"
 ENV SATLAB_REGISTRY_URI="${SATLAB_REGISTRY_URI}"
 ENV BUILD_VERSION="${BUILD_VERSION}"
 
-
 COPY dockerfiles/compose/requirements.txt ./
 RUN pip3 install --upgrade pip && pip3 install --no-cache-dir -r requirements.txt
 
