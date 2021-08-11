@@ -23,7 +23,7 @@ satlab-remote-access:
 # Build satlab remote access locally only
 local-satlab-remote-access:
 	docker build ${EXTRA_ARGS} -t local-satlab-remote-access:${LABEL} \
-		-f dockerfiles/satlab_remote_access/Dockerfile ../
+		-f dockerfiles/satlab_remote_access/Dockerfile .
 
 compose: export DOCKER_BUILDKIT := 1
 compose:

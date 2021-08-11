@@ -13,6 +13,7 @@ FROM ${COMMON_CORE_URI}/remote_access:${COMMON_CORE_LABEL}
 
 # All paths to the host environment are relative paths.
 # All paths to the host environment are relative to the project root.
+# In particular, paths to source files should begin with dockerfile/... NOT src/dockerfile/....
 # All paths that are intended to be interpreted inside the container are absolute.
 
 # Add external package dependencies and add local tools to /usr/local/bin.
