@@ -22,6 +22,7 @@ RUN /sbin/apk add git
 
 COPY dockerfiles/satlab_remote_access/tools/satlab_setup /usr/local/bin
 COPY dockerfiles/satlab_remote_access/tools/get_dns_hosts /usr/local/bin
+COPY dockerfiles/satlab_remote_access/tools/force-update-cipd /usr/local/bin
 
 # Set up CIPD and run CIPD ensure.
 WORKDIR /
