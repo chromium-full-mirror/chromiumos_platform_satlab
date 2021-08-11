@@ -70,7 +70,7 @@ steps:
         "--build-arg", "COMMON_CORE_URI=${_COMMON_CORE_URI}",
         "--build-arg", "BASE_REGISTRY_URI=${_BASE_REGISTRY_URI}",
         "--build-arg", "BUILD_VERSION=${__BUILD_VERSION}",
-        "-t", "${_REGISTRY_URI}/satlab-remote-access:${__LABEL}",
+        "-t", "${_REGISTRY_URI}/satlab_remote_access:${__LABEL}",
         "-f", "dockerfiles/satlab_remote_access/Dockerfile",
         "."
       ]
@@ -82,7 +82,7 @@ steps:
 images:
   [
     "${_REGISTRY_URI}/satlab-compose:${__LABEL}",
-    "${_REGISTRY_URI}/satlab-remote-access:${__LABEL}",
+    "${_REGISTRY_URI}/satlab_remote_access:${__LABEL}",
   ]
 
 options:
