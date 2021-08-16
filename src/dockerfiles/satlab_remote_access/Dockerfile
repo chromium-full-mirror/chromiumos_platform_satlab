@@ -34,6 +34,8 @@ RUN /root/depot_tools/cipd ensure -ensure-file /cipd/spec -root /cipd -ensure-fi
 RUN /bin/chmod ugo+rx /cipd/shivas /cipd/satlab
 # Add links to executables stored in /cipd.
 RUN ln -s -t /usr/local/bin /cipd/shivas /cipd/satlab
+# Add symlink to cipd executable itself.
+RUN ln -s -t /usr/local/bin /cipd/cipd
 
 # Make everything in /usr/local/bin executable for good measure.
 RUN /bin/chmod ugo+rx /usr/local/bin/*
