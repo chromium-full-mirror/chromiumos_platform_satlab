@@ -37,6 +37,7 @@ services:
     volumes:
       - ssp:/usr/local/autotest/containers/ssp_volume:rw
       - service_accounts:/creds/service_accounts:rw
+      - /var/run/docker.sock:/var/run/docker.sock:rw
     dns:
       - 192.168.100.51
     depends_on:
