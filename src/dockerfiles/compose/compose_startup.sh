@@ -61,6 +61,10 @@ else
     # set permission for ssp volume to create lxc containers
     # b/190623503
     docker exec drone chmod 0777 /usr/local/autotest/containers/ssp_volume
+    # Drone uses chromeos-test user for running tasks, need this to set
+    # access to chromeos-test user to access docker.sock in order to launch
+    # servod.
+    docker exec drone chmod 666 /var/run/docker.sock
 
     docker-compose pull
     docker-compose up -d
