@@ -16,8 +16,7 @@ The following the are steps this script executes:
 1. Authenticate user using GCloud SDK(uses gcloud-sdk docker container),
    when prompted please use your google.com account
 2. Get required service account and keys from cloud application.
-3. Authorizes docker daemon to download docker images from private registry.
-4. Finally reboots the chromebox. (You must restart the chromebox inorder to
+3. Finally reboots the chromebox. (You must restart the chromebox inorder to
    finish the satlab setup)
 ###############################################################################
 EOF
@@ -31,7 +30,6 @@ while true; do
 done
 
 SATLAB_SERIVCE_ACCOUNT=satlab-prototype@chromeos-service-accounts-dev.iam.gserviceaccount.com
-
 KEYS_FOLDER=/home/satlab/keys
 GCLOUD="docker run --rm -ti -a stdout -v satlab_keys:${KEYS_FOLDER} -v gcloud:/root/.config/gcloud google/cloud-sdk:slim"
 
@@ -48,19 +46,6 @@ echo "Downloading artifacts..."
 ${GCLOUD} gsutil cp gs://satlab-keys/satlab_service_account.json ${KEYS_FOLDER}
 if [ "$?" -ne 0 ]; then
   echo "Failed to download service account key, please try again!"
-  exit
-fi
-
-echo "Authorizing service account..."
-${GCLOUD} gcloud auth activate-service-account ${SATLAB_SERIVCE_ACCOUNT} --key-file=${KEYS_FOLDER}/satlab_service_account.json
-if [ "$?" -ne 0 ]; then
-  echo "Failed to authorize service account, please try again!"
-  exit
-fi
-output=$(docker run --rm -v satlab_keys:${KEYS_FOLDER} -a stdout -v gcloud:/root/.config/gcloud google/cloud-sdk:slim gcloud auth print-access-token)
-echo $output | docker login -u oauth2accesstoken --password-stdin https://gcr.io/satlab-images/
-if [ "$?" -ne 0 ]; then
-  echo "Failed to authenticate docker, please try again!"
   exit
 fi
 

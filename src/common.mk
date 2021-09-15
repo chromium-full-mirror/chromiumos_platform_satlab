@@ -9,6 +9,7 @@ EXTRA_ARGS+= --build-arg LABEL="${LABEL}"
 EXTRA_ARGS+= --build-arg COMMON_CORE_LABEL="${COMMON_CORE_LABEL}"
 EXTRA_ARGS+= --build-arg COMMON_CORE_URI="${COMMON_CORE_REGISTRY}"
 EXTRA_ARGS+= --build-arg BUILD_VERSION="${BUILD_VERSION}"
+EXTRA_ARGS+= --build-arg WATCHTOWER_CMD="${WATCHTOWER_CMD}"
 
 all:	compose \
 		satlab-remote-access

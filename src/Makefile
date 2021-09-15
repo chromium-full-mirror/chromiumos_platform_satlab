@@ -21,6 +21,6 @@ export SATLAB_REGISTRY := gcr.io/satlab-images
 # pushed to prod and update this flag accordingly.
 # By default we use "stable" tag.
 export BUILD_VERSION := stable
-WATCHTOWER_CMD := --enable-lifecycle-hooks --interval 60 --include-restarting
+WATCHTOWER_CMD := --include-stopped --revive-stopped --interval 120 --monitor-only
 SSH_PORT := 22
 include common.mk

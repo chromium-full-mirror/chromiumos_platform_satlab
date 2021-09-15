@@ -22,11 +22,18 @@ echo "Command is ${1}"
 # Stop any old style docker containers that are named default_
 /usr/local/bin/docker stop $(/usr/local/bin/docker ps --filter name="default_" --format "{{.ID}}")
 
-output=$(docker run --rm -v satlab_keys:/home/satlab/keys -a stdout -v gcloud:/root/.config/gcloud google/cloud-sdk:slim gcloud auth print-access-token)
-echo $output | docker login -u oauth2accesstoken --password-stdin https://gcr.io/satlab-images/
-if [ "$?" -ne 0 ]; then
-  echo "Failed to authenticate docker, please try again!"
-  exit
+# TODO(prasadv): Find an alternative to support user suppiled service_account key.
+SERVICE_ACCOUNT_KEY=/home/satlab/keys/satlab_service_account.json
+if [ -s "${SERVICE_ACCOUNT_KEY}" ]
+then 
+  cat ${SERVICE_ACCOUNT_KEY} | docker login -u _json_key --password-stdin https://gcr.io/satlab-images/
+  if [ "$?" -ne 0 ]; then
+    echo "Failed to authenticate docker, please try again!"
+    exit
+  fi
+else
+   echo "Service account key missing, you need service account key to access Satlab images."
+   exit
 fi
 
 if [ "${1}" == "down" ]
