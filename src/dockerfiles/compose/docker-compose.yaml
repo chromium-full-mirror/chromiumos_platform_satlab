@@ -31,13 +31,18 @@ services:
       - DOCKER_DRONE_LABPACK_DIR=/usr/local/labpack
       - DOCKER_DRONE_CACHESERVER_IP=192.168.100.1
     privileged: true
-    network_mode: "host"
     hostname: ${DRONE_HOSTNAME:-satlab-drone}
     restart: always
     volumes:
       - ssp:/usr/local/autotest/containers/ssp_volume:rw
       - service_accounts:/creds/service_accounts:rw
       - /var/run/docker.sock:/var/run/docker.sock:rw
+    # TODO (prasadv): Make static ip addresses higher numbers
+    # so that the lower number are available for dhcp to assign it
+    # to dynamically created containers such as servod container
+    networks:
+      satlab:
+        ipv4_address: 192.168.100.10
     dns:
       - 192.168.100.51
     depends_on:
