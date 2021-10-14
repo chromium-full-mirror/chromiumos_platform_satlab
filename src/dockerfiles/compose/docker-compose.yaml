@@ -37,6 +37,7 @@ services:
       - ssp:/usr/local/autotest/containers/ssp_volume:rw
       - service_accounts:/creds/service_accounts:rw
       - /var/run/docker.sock:/var/run/docker.sock:rw
+      - servod_profile:/var/servod/profile/:rw
     # TODO (prasadv): Make static ip addresses higher numbers
     # so that the lower number are available for dhcp to assign it
     # to dynamically created containers such as servod container
@@ -120,6 +121,7 @@ volumes:
     nginx_configs: {}
     service_accounts: {}
     boto_file: {}
+    servod_profile: {}
     satlab_keys:
       external: True
     ssp: {}
