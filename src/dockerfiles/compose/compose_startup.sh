@@ -72,6 +72,9 @@ else
     # access to chromeos-test user to access docker.sock in order to launch
     # servod.
     docker exec drone chmod 666 /var/run/docker.sock
+    # Set permission for device profile created and maintanse by repair
+    # tasks.
+    docker exec drone chmod 777 /var/servod/profile/
 
     docker-compose pull
     docker-compose up -d
