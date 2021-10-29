@@ -5,7 +5,7 @@
 ARG BASE_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/base-containers
 ARG REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab
 ARG COMMON_CORE_LABEL=autopush
-ARG COMMON_CORE_URI=gcr.io/chromeos-partner-moblab`
+ARG COMMON_CORE_URI=gcr.io/chromeos-partner-moblab
 ###########################################################
 
 # TODO(prasadv): Read tag from Moblab Labels

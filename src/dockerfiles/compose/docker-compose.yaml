@@ -113,6 +113,23 @@ services:
       - service_accounts:/creds/service_accounts
       - boto_file:/boto_file
   ##############################################################################volumes
+  openssh_server:
+    container_name: openssh_server
+    image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/openssh_server:${OPENSSH_SERVER:-release}
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - SUDO_ACCESS=false
+      - USER_NAME=chromeos-test
+    ports:
+      - "2222:2222"
+    dns:
+      - 192.168.100.51
+  ##############################################################################volumes
 volumes:
     logs: {}
     images: {}

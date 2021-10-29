@@ -25,7 +25,7 @@ echo "Command is ${1}"
 # TODO(prasadv): Find an alternative to support user suppiled service_account key.
 SERVICE_ACCOUNT_KEY=/home/satlab/keys/satlab_service_account.json
 if [ -s "${SERVICE_ACCOUNT_KEY}" ]
-then 
+then
   cat ${SERVICE_ACCOUNT_KEY} | docker login -u _json_key --password-stdin https://gcr.io/satlab-images/
   if [ "$?" -ne 0 ]; then
     echo "Failed to authenticate docker, please try again!"
@@ -62,8 +62,8 @@ else
     MACADDR=$(echo "$(get_host_identifier)" | awk '{print tolower($0)}')
     export DRONE_HOSTNAME="${DRONE_HOSTNAME}-${MACADDR}"
     echo "Drone Name: ${DRONE_HOSTNAME}"
-    docker-compose pull drone gsa_server nginx
-    docker-compose up -d drone gsa_server nginx
+    docker-compose pull drone gsa_server openssh_server nginx
+    docker-compose up -d drone gsa_server openssh_server nginx
 
     # set permission for ssp volume to create lxc containers
     # b/190623503
