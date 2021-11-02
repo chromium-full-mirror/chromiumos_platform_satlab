@@ -76,6 +76,11 @@ else
     # tasks.
     docker exec drone chmod 777 /var/servod/profile/
 
+    # Connect satlab_remote_access container to satlab network
+    # so that user can use the local dns serice to resolve
+    # DUT hostname and allow SSH to DUTs
+    docker network connect default_satlab satlab_remote_access
+
     docker-compose pull
     docker-compose up -d
     # Use labels to filter out containers that shouldn't be pruned.
