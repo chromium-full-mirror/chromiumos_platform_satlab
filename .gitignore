@@ -17,6 +17,5 @@
 *pb*.ts
 *pb*.js
 .vscode/*
-.env
 *dist/
 
