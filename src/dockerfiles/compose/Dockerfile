@@ -36,6 +36,7 @@ ARG SATLAB_DRONE_VER
 ARG GSA_SERVER_VER
 ARG NGINX_VER
 ARG SATLAB_SECRETS_VER
+ARG OPENSSH_SERVER_VER
 
 # These are re-defined because ARG has a different scope
 # before and after the FROM instruction.
@@ -84,6 +85,7 @@ RUN ./override_service_version.sh GSA_SERVER ${GSA_SERVER_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh NGINX ${NGINX_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh SATLAB_DRONE ${SATLAB_DRONE_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh SATLAB_SECRETS ${SATLAB_SECRETS_VER:-${BUILD_VERSION}}
+RUN ./override_service_version.sh OPENSSH_SERVER ${OPENSSH_SERVER_VER:-${BUILD_VERSION}}
 
 ENTRYPOINT ["/compose_startup.sh"]
 
