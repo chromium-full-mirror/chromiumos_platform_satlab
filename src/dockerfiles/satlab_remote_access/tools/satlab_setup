@@ -15,8 +15,10 @@ The following the are steps this script executes:
 
 1. Authenticate user using GCloud SDK(uses gcloud-sdk docker container),
    when prompted please use your google.com account
-2. Get required service account and keys from cloud application.
-3. Finally reboots the chromebox. (You must restart the chromebox inorder to
+2. Ask for service account, please follow (go/satlab-manual) to create
+   the service account if needed.
+3. Get required service account and keys from cloud application.
+4. Finally reboots the chromebox. (You must restart the chromebox inorder to
    finish the satlab setup)
 ###############################################################################
 EOF
@@ -42,12 +44,20 @@ if [ "$?" -ne 0 ]; then
   echo "Failed to authenticate the user, you must use your @google.com account. Please try again!"
   exit
 fi
-echo "Downloading artifacts..."
-${GCLOUD} gsutil cp gs://satlab-keys/satlab_service_account.json ${KEYS_FOLDER}
-if [ "$?" -ne 0 ]; then
-  echo "Failed to download service account key, please try again!"
-  exit
-fi
+
+# TODO (anhdle): Enable mutilple service accounts when easier user workflow is available
+# read -p "Please specify the service account: " sa
+# echo "Create and download service account key..."
+# ${GCLOUD} gcloud iam service-accounts keys create "${KEYS_FOLDER}/satlab_service_account.json" --iam-account="$sa"
+# if [ "$?" -ne 0 ]; then
+#   echo "Failed to create service account key, please try again!"
+#   exit
+# fi
+
+echo
+echo "Generating service account key..."
+echo
+${GCLOUD} gcloud iam service-accounts keys create "${KEYS_FOLDER}/satlab_service_account.json" --iam-account="$SATLAB_SERIVCE_ACCOUNT"
 
 echo "Configuring Satlab Privileges successful, please reboot"
 echo
