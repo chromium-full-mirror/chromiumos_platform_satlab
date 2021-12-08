@@ -30,6 +30,8 @@ services:
       - DOCKER_DRONE_AGENT_HIVE=${DRONE_HOSTNAME:-satlab-drone}
       - DOCKER_DRONE_LABPACK_DIR=/usr/local/labpack
       - DOCKER_DRONE_CACHESERVER_IP=192.168.100.1
+      - SERVOD_CONTAINER_LABEL=release
+      - DOCKER_SERVOD_DEBUG_MODE=0
     privileged: true
     hostname: ${DRONE_HOSTNAME:-satlab-drone}
     restart: always
