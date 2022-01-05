@@ -51,3 +51,6 @@ RUN ln -s -t /usr/local/bin /cipd/cipd
 RUN /bin/chmod ugo+rx /usr/local/bin/*
 
 WORKDIR /var/log
+
+# Enable TCP port forwarding required for SSH tunneling.
+RUN  sed -i s/AllowTcpForwarding\ no/AllowTcpForwarding\ yes/ /etc/ssh/sshd_config
