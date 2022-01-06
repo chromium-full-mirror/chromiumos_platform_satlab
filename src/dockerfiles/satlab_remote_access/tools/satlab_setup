@@ -15,10 +15,8 @@ The following the are steps this script executes:
 
 1. Authenticate user using GCloud SDK(uses gcloud-sdk docker container),
    when prompted please use your google.com account
-2. Ask for service account, please follow (go/satlab-manual) to create
-   the service account if needed.
-3. Get required service account and keys from cloud application.
-4. Finally reboots the chromebox. (You must restart the chromebox inorder to
+2. Generate a service account key to pull Docker images.
+3. Finally reboots the chromebox. (You must restart the chromebox inorder to
    finish the satlab setup)
 ###############################################################################
 EOF
