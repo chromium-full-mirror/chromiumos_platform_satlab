@@ -57,9 +57,11 @@ RUN  sed -i s/AllowTcpForwarding\ no/AllowTcpForwarding\ yes/ /etc/ssh/sshd_conf
 
 # Change welcoming message.
 COPY dockerfiles/satlab_remote_access/motd /etc/
+RUN chmod 666 /etc/motd
 
 # Add jq to get service account key id from json file.
 RUN apk add --no-cache --upgrade jq
 
 # Add routine to check service account key expiration
 COPY dockerfiles/satlab_remote_access/tools/service_account_key_check.sh /etc/profile.d/
+RUN chmod 777 /etc/profile.d/service_account_key_check.sh

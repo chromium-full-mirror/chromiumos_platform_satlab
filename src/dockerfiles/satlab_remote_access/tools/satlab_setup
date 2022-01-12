@@ -52,10 +52,15 @@ fi
 #   exit
 # fi
 
-echo
-echo "Generating service account key..."
-echo
-${GCLOUD} gcloud iam service-accounts keys create "${KEYS_FOLDER}/satlab_service_account.json" --iam-account="$SATLAB_SERIVCE_ACCOUNT"
+echo "Downloading artifacts..."
+# Download service account key since 10 keys limit per service account.
+# TODO (anhdle): Investigate Wwrkload identity federation
+${GCLOUD} gsutil cp gs://satlab-keys/satlab_service_account.json ${KEYS_FOLDER}
+if [ "$?" -ne 0 ]; then
+  echo "Failed to download service account key, please try again!"
+  exit
+fi
+chmod 666 /home/satlab/keys satlab_service_account.json
 
 echo "Configuring Satlab Privileges successful, please reboot"
 echo
