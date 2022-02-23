@@ -17,7 +17,7 @@ substitutions:
   _NGINX: "${__BUILD_VERSION}"
   _SATLAB_DRONE: "${__BUILD_VERSION}"
   _SATLAB_SECRETS: "${__BUILD_VERSION}"
-  _WATCHTOWER_CMD: --enable-lifecycle-hooks --interval 60 --include-restarting
+  _WATCHTOWER_CMD: --enable-lifecycle-hooks --include-stopped --revive-stopped --interval 3600 --include-restarting --monitor-only
 steps:
   - id: docker-compose
     name: "gcr.io/cloud-builders/docker"
@@ -157,6 +157,7 @@ steps:
         "--build-arg", "COMMON_CORE_URI=${_COMMON_CORE_URI}",
         "--build-arg", "BASE_REGISTRY_URI=${_BASE_REGISTRY_URI}",
         "--build-arg", "BUILD_VERSION=${__BUILD_VERSION}",
+        "--build-arg", "WATCHTOWER_CMD=${_WATCHTOWER_CMD}",
         "--label=version=${__BUILD_VERSION}",
         "-t", "${_REGISTRY_URI}/satlab-compose:${__LABEL}",
         "-f", "dockerfiles/compose/Dockerfile",
