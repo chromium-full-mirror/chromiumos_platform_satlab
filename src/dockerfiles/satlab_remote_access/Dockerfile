@@ -20,6 +20,10 @@ FROM ${COMMON_CORE_URI}/remote_access:${COMMON_CORE_LABEL}
 WORKDIR /
 RUN /sbin/apk add git
 
+COPY dockerfiles/satlab_remote_access/tools/host_command.py /usr/local/bin
+COPY dockerfiles/satlab_remote_access/tools/get_host_identifier /usr/local/bin
+COPY dockerfiles/satlab_remote_access/tools/update_system /usr/local/bin
+COPY dockerfiles/satlab_remote_access/tools/update_satlab /usr/local/bin
 COPY dockerfiles/satlab_remote_access/tools/satlab_setup /usr/local/bin
 COPY dockerfiles/satlab_remote_access/tools/get_dns_hosts /usr/local/bin
 COPY dockerfiles/satlab_remote_access/tools/force-update-cipd /usr/local/bin
@@ -56,7 +60,7 @@ WORKDIR /var/log
 RUN  sed -i s/AllowTcpForwarding\ no/AllowTcpForwarding\ yes/ /etc/ssh/sshd_config
 
 # Change welcoming message.
-COPY dockerfiles/satlab_remote_access/motd /etc/
+COPY dockerfiles/satlab_remote_access/tools/motd /etc/
 RUN chmod 666 /etc/motd
 
 # Add jq to get service account key id from json file.

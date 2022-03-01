@@ -1,0 +1,30 @@
+#!/bin/sh
+# Copyright 2022 The Chromium OS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# update_system updates the ChromeOS image on the Satlab DHB.
+
+set -eu
+
+cat << EOF
+###############################################################################
+IMPORTANT: Please read below information
+###############################################################################
+
+This operation will update and reboot your Satlab Chromebox, any tests currently in
+progress will be impacted.
+
+###############################################################################
+
+EOF
+while true; do
+    read -p "Do you want to continue with the System update(y/n)?" yn
+    case $yn in
+        [Yy]* ) break;;
+        [Nn]* ) echo "System update aborted!"; exit;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
+
+exec python3 /usr/local/bin/host_command.py "$0"
