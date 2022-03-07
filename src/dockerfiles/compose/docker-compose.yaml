@@ -39,7 +39,8 @@ services:
     volumes:
       - ssp:/usr/local/autotest/containers/ssp_volume:rw
       - service_accounts:/creds/service_accounts:rw
-      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - /var/run/docker.sock:/var/docker.sock:rw
+      - /var/run/docker.sock:/var/docker.sock:rw
       - servod_profile:/var/servod/profile/:rw
     # TODO (prasadv): Make static ip addresses higher numbers
     # so that the lower number are available for dhcp to assign it
