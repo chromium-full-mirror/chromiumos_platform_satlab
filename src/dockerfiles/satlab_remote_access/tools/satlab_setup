@@ -31,7 +31,9 @@ done
 
 SATLAB_SERIVCE_ACCOUNT=satlab-prototype@chromeos-service-accounts-dev.iam.gserviceaccount.com
 KEYS_FOLDER=/home/satlab/keys
-GCLOUD="docker run --rm -ti -a stdout -v satlab_keys:${KEYS_FOLDER} -v gcloud:/root/.config/gcloud google/cloud-sdk:slim"
+# TODO(prasadv): Move this to environment variable
+GCLOUD_SDK_VERSION=372.0.0
+GCLOUD="docker run --rm -ti -a stdout -v satlab_keys:${KEYS_FOLDER} -v gcloud:/root/.config/gcloud google/cloud-sdk:${GCLOUD_SDK_VERSION}-slim"
 
 echo "******* SATLAB Setup Starting..... *********"
 echo
