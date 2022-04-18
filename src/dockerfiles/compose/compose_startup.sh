@@ -56,12 +56,17 @@ else
     docker-compose -f ./docker-compose.watchtower.yaml pull
     docker-compose -f ./docker-compose.watchtower.yaml up -d
 
+    # if DRONE_HOSTNAME is not set via upstart. Create hostname from product ID.
+    if [[ -z "${DRONE_HOSTNAME}" ]]; then
+      DRONE_HOSTNAME="satlab"
+      MACADDR=$(echo "$(get_host_identifier)" | awk '{print tolower($0)}')
+      DRONE_HOSTNAME="${DRONE_HOSTNAME}-${MACADDR}"
+      echo "Drone Name: ${DRONE_HOSTNAME}"
+    fi
+    export DRONE_HOSTNAME
+
     docker-compose pull dns
     docker-compose up -d dns
-    DRONE_HOSTNAME="satlab"
-    MACADDR=$(echo "$(get_host_identifier)" | awk '{print tolower($0)}')
-    export DRONE_HOSTNAME="${DRONE_HOSTNAME}-${MACADDR}"
-    echo "Drone Name: ${DRONE_HOSTNAME}"
     docker-compose pull drone gsa_server openssh_server nginx
     docker-compose up -d drone gsa_server openssh_server nginx
 
