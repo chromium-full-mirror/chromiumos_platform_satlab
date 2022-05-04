@@ -23,7 +23,7 @@ services:
       - DOCKER_DRONE_INVENTORY_ENVIRONMENT=prod
       - DOCKER_DRONE_TKO_INSTANCES=google.com:chromeos-lab:us-central1:tko
       - DOCKER_DRONE_AGENT_DUT_CAPACITY=10
-      - DOCKER_DRONE_LOG_PROJECT=drone-queen-prod
+      - DOCKER_DRONE_LOG_PROJECT=satlab-images
       - DOCKER_DRONE_IMAGE=*drone_image
       - DOCKER_DRONE_INVENTORY_SERVICE=cros-lab-inventory.appspot.com
       - DOCKER_DRONE_UFS_SERVICE=ufs.api.cr.dev
