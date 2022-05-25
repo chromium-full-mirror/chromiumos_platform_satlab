@@ -15,7 +15,7 @@ services:
   ##############################################################################drone
   drone:
     container_name: drone
-    image: &drone_image ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/drone:${SATLAB_DRONE:-release}
+    image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/drone:${SATLAB_DRONE:-release}
     environment:
       - DOCKER_DRONE_QUEEN_SERVICE=drone-queen-prod.appspot.com
       - DOCKER_DRONE_SWARMING_SERVER_URL=https://chromeos-swarming.appspot.com
@@ -24,7 +24,7 @@ services:
       - DOCKER_DRONE_TKO_INSTANCES=google.com:chromeos-lab:us-central1:tko
       - DOCKER_DRONE_AGENT_DUT_CAPACITY=10
       - DOCKER_DRONE_LOG_PROJECT=satlab-images
-      - DOCKER_DRONE_IMAGE=*drone_image
+      - DOCKER_DRONE_IMAGE=${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/drone:${SATLAB_DRONE:-release}
       - DOCKER_DRONE_INVENTORY_SERVICE=cros-lab-inventory.appspot.com
       - DOCKER_DRONE_UFS_SERVICE=ufs.api.cr.dev
       - DOCKER_DRONE_AGENT_HIVE=${DRONE_HOSTNAME:-satlab-drone}
@@ -33,6 +33,7 @@ services:
       - SERVOD_CONTAINER_LABEL=release
       - DOCKER_SERVOD_DEBUG_MODE=0
       - DOCKER_DEFAULT_NETWORK=default_satlab
+      - DOCKER_DRONE_SERVER_NAME=${DRONE_HOSTNAME:-satlab-drone}
     privileged: true
     hostname: ${DRONE_HOSTNAME:-satlab-drone}
     restart: always
@@ -42,6 +43,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - /var/run/docker.sock:/var/docker.sock:rw
       - servod_profile:/var/servod/profile/:rw
+      - containers:/var/lib/containers:rw
     # TODO (prasadv): Make static ip addresses higher numbers
     # so that the lower number are available for dhcp to assign it
     # to dynamically created containers such as servod container
@@ -146,6 +148,7 @@ volumes:
     satlab_keys:
       external: True
     ssp: {}
+    containers: {}
   ##############################################################################networks
 networks:
   satlab:
