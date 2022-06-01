@@ -62,7 +62,7 @@ if [ "$?" -ne 0 ]; then
   echo "Failed to download service account key, please try again!"
   exit
 fi
-chmod 666 /home/satlab/keys/satlab_service_account.json
+sudo chmod 666 /home/satlab/keys/satlab_service_account.json
 
 echo "Configuring Satlab Privileges successful, please reboot"
 echo
