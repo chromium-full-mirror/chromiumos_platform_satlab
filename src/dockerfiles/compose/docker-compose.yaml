@@ -92,7 +92,7 @@ services:
     image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/nginx:${NGINX:-release}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
-      - /var/logs/nginx:/var/log/nginx
+      - nginx_logs:/var/log/nginx
       - cache:/var/cache/nginx
       - nginx_configs:/mnt/conf/nginx:ro
     ports:
@@ -149,6 +149,7 @@ volumes:
       external: True
     ssp: {}
     containers: {}
+    nginx_logs: {}
   ##############################################################################networks
 networks:
   satlab:
