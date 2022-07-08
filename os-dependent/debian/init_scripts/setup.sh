@@ -65,7 +65,7 @@ fi
 ############################################################
 # Docker images used in the script
 DHCP_DOCKER_IMAGE=gcr.io/chromeos-partner-moblab/moblab-dhcp:satlab_server
-COMPOSE_DOCKER_IMAGE=us-docker.pkg.dev/chromeos-partner-moblab/satlab/satlab-compose:satlab_server
+COMPOSE_DOCKER_IMAGE=us-docker.pkg.dev/chromeos-partner-moblab/satlab/satlab-compose:otabek
 # TODO: look to the option to simplify update logic for the image.
 CLOUD_SDK_IMAGE=google/cloud-sdk:372.0.0-slim
 ############################################################
@@ -93,7 +93,7 @@ sudo iptables -w -P FORWARD ACCEPT
 echo "Create volume 'satlab_keys' to keep Satlab key."
 docker volume create --name=satlab_keys
 SATLAB_SERIVCE_ACCOUNT=satlab-prototype@chromeos-service-accounts-dev.iam.gserviceaccount.com
-VOLUME_KEYS_FOLDER=/keys
+VOLUME_KEYS_FOLDER=/home/satlab/keys/
 GCLOUD="docker run --rm -ti -a stdout -v satlab_keys:${VOLUME_KEYS_FOLDER} -v gcloud:/root/.config/gcloud ${CLOUD_SDK_IMAGE}"
 echo "Try to autorize user!"
 ${GCLOUD} gcloud auth login
@@ -118,7 +118,7 @@ sudo docker run -d --restart unless-stopped --name compose \
     --label=com.centurylinklabs.watchtower.stop-signal=KILL \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v docker_config:/root/.docker \
-    -v /keys:/keys \
+    -v satlab_keys:${VOLUME_KEYS_FOLDER} \
     -v cache_server:/home/satlab/cache_server \
     -e DRONE_HOSTNAME=${DRONE_HOSTNAME} \
     -e LABEL=${COMPOSE_LABEL} \
