@@ -66,6 +66,7 @@ fi
 # Docker images used in the script
 DHCP_DOCKER_IMAGE=gcr.io/chromeos-partner-moblab/moblab-dhcp:satlab_server
 COMPOSE_DOCKER_IMAGE=us-docker.pkg.dev/chromeos-partner-moblab/satlab/satlab-compose:otabek
+REMOVE_ACCESS_IMAGE=us-docker.pkg.dev/chromeos-partner-moblab/satlab/satlab_remote_access:release
 # TODO: look to the option to simplify update logic for the image.
 CLOUD_SDK_IMAGE=google/cloud-sdk:372.0.0-slim
 ############################################################
@@ -126,3 +127,52 @@ sudo docker run -d --restart unless-stopped --name compose \
     -e HOSTS_FILE=${HOSTS_FILE} \
     --add-host dockerhost:172.17.0.1 \
     ${COMPOSE_DOCKER_IMAGE} up
+
+# Allowed to open port 2225
+REMOTE_ACCESS_SSH_PORT=2225
+echo "Remote access docker container for port ${REMOTE_ACCESS_SSH_PORT}"
+# Allow port to be available outside.TODO: need working on this part.
+# sudo ufw allow ${REMOTE_ACCESS_SSH_PORT}
+# Remote access required access to the key which already downloaded and verified in compose.
+# Remove old image always to avoid any issues with that and pull new one.
+docker stop satlab_remote_access || true
+docker rm satlab_remote_access || true
+docker pull "${REMOVE_ACCESS_IMAGE}"
+docker run -ti -d -v logs:/var/log/satlab \
+  -v /var/log/bootup:/var/log/bootup \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v satlab_keys:${VOLUME_KEYS_FOLDER} \
+  -v cache_server:/home/satlab/cache_server \
+  -v leases:/leases:ro \
+  --name satlab_remote_access \
+  -e PUBLIC_KEY_FILE=/testing_rsa.pub \
+  -e PUID=246 \
+  -e PGID=246 \
+  -e TZ=Etc/UTC \
+  -e USER_NAME=moblab \
+  -e DOCKER_MODS=linuxserver/mods:openssh-server-ssh-tunnel \
+  -e SUDO_ACCESS=true \
+  -p ${REMOTE_ACCESS_SSH_PORT}:2222 \
+  --dns 192.168.100.51 \
+  --add-host dockerhost:172.17.0.1 \
+  "${REMOVE_ACCESS_IMAGE}"
+
+# Instead access to the remote access create local liks to work with satlab and shivas.
+if [ -s satlab ]; then
+    rm satlab || true
+fi
+cat > satlab <<'EOT'
+#!/usr/bin/env bash
+
+docker exec -it satlab_remote_access satlab "$@"
+EOT
+if [ -s satlab ]; then
+    rm shivas || true
+fi
+cat > shivas <<'EOT'
+#!/usr/bin/env bash
+
+docker exec -it satlab_remote_access shivas "$@"
+EOT
+chmod +x satlab
+chmod +x shivas
