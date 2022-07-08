@@ -79,7 +79,15 @@ CLOUD_SDK_IMAGE=google/cloud-sdk:396.0.0-slim
 docker stop dhcp || true
 docker rm dhcp || true
 docker pull ${DHCP_DOCKER_IMAGE}
-docker run --name dhcp -d -v "${DHCP_LOCAL_FILE}":/etc/dnsmasq.conf:rw --restart always --cap-add=NET_ADMIN --network host ${DHCP_DOCKER_IMAGE} --interface ${DHCPD_IFACE} --bind-interfaces --log-dhcp
+docker run --name dhcp -d \
+    -v "${DHCP_LOCAL_FILE}":/etc/dnsmasq.conf:rw \
+    --restart always \
+    --cap-add=NET_ADMIN \
+    --network host \
+    ${DHCP_DOCKER_IMAGE} \
+    --interface ${DHCPD_IFACE} \
+    --bind-interfaces \
+    --log-dhcp
 
 #Set sharing between interfaces.
 sudo iptables -w -t nat -A POSTROUTING -o ${EXT_IFACE} -j MASQUERADE
