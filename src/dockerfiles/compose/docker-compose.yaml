@@ -24,7 +24,6 @@ services:
       - DOCKER_DRONE_TKO_INSTANCES=google.com:chromeos-lab:us-central1:tko
       - DOCKER_DRONE_AGENT_DUT_CAPACITY=${DRONE_AGENT_DUT_CAPACITY:-10}
       - DOCKER_DRONE_LOG_PROJECT=satlab-images
-      - DOCKER_DRONE_IMAGE=${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/drone:${SATLAB_DRONE:-release}
       - DOCKER_DRONE_INVENTORY_SERVICE=cros-lab-inventory.appspot.com
       - DOCKER_DRONE_UFS_SERVICE=ufs.api.cr.dev
       - DOCKER_DRONE_AGENT_HIVE=${DRONE_HOSTNAME:-satlab-drone}
