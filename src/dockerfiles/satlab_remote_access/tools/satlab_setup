@@ -77,6 +77,7 @@ if [ -f "$KEYS_FOLDER/$KEY_FILE" ]; then
   ${GCLOUD} gcloud iam service-accounts keys list \
   --iam-account="$SATLAB_SERIVCE_ACCOUNT" \
   --filter "name=projects/chromeos-service-accounts-dev/serviceAccounts/$SATLAB_SERIVCE_ACCOUNT/keys/$PRIVATE_KEY_ID" \
+  --format="json(validAfterTime,validBeforeTime)" \
   > ${KEYS_FOLDER}/${KEY_DATES_FILE}
   if [ "$?" -ne 0 ]; then
     echo "Failed to download service account key metadata, please try again!"
