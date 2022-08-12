@@ -68,7 +68,7 @@ DHCP_DOCKER_IMAGE=gcr.io/chromeos-partner-moblab/moblab-dhcp:satlab_server
 COMPOSE_DOCKER_IMAGE=us-docker.pkg.dev/chromeos-partner-moblab/satlab/satlab-compose:otabek
 REMOVE_ACCESS_IMAGE=us-docker.pkg.dev/chromeos-partner-moblab/satlab/satlab_remote_access:release
 # TODO: look to the option to simplify update logic for the image.
-CLOUD_SDK_IMAGE=google/cloud-sdk:372.0.0-slim
+CLOUD_SDK_IMAGE=google/cloud-sdk:396.0.0-slim
 ############################################################
 # You can't have --rm and --restart on a docker run command.
 # However this means that on a non clean shutdown the dhcp container is
