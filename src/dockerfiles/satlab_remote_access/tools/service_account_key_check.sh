@@ -30,7 +30,8 @@ echo "##########################################################################
 else
     cat << EOF
 ###############################################################################
-Please run satlab_setup to initialize your Satlab.
+This Satlab is either new or missing cached key metadata.
+Please run satlab_setup to initialize your Satlab and/or fetch key metadata.
 ###############################################################################
 EOF
 fi
