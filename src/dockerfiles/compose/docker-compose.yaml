@@ -33,6 +33,7 @@ services:
       - DOCKER_SERVOD_DEBUG_MODE=0
       - DOCKER_DEFAULT_NETWORK=default_satlab
       - DOCKER_DRONE_SERVER_NAME=${DRONE_HOSTNAME:-satlab-drone}
+      - DOCKER_DNS_SERVER=192.168.100.51
     privileged: true
     hostname: ${DRONE_HOSTNAME:-satlab-drone}
     restart: always
