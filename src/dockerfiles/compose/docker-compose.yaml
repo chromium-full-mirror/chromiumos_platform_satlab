@@ -63,7 +63,7 @@ services:
     volumes:
         - logs:/var/log/
         - dut_hosts:/etc/dut_hosts:rw
-    command: ['/usr/sbin/dnsmasq', '--no-daemon', '-u', 'moblab', '-g', 'moblab', '-H', '/etc/dut_hosts/hosts']
+    command: ['/usr/sbin/dnsmasq', '--no-daemon', '-u', 'moblab', '-g', 'moblab', '-H', '/etc/dut_hosts/hosts', '--log-queries', '--log-debug']
     networks:
       satlab:
         ipv4_address: 192.168.100.51
