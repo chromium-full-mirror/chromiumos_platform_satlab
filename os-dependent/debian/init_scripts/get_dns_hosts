@@ -27,8 +27,12 @@ type docker 1>/dev/null 2>/dev/null || die 'no docker tool'
 
 # Run a harmless command on the dns container to check for its presence
 docker exec -it dns /bin/date || die 'dns container failed to run date command'
+docker exec -it dhcp /bin/date || die 'dhcp container failed to run date command'
 
 # Print diagnostic information about the hosts files inside the container
+printf "%s\n" "/etc/dnsmasq.conf in dhcp container"
+docker exec -it dhcp /bin/cat /etc/dnsmasq.conf  || true
+printf "%s\n"
 printf "%s\n" "/etc/hosts in dns container"
 docker exec -it dns /bin/cat /etc/hosts  || true
 printf "%s\n"

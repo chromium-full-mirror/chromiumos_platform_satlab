@@ -7,31 +7,20 @@
 # Provides:           satlab-setup
 # Required-Start:     docker
 # Required-Stop:      docker
-# Short-Description:  Create Satlab compose to setup Satlab containers.
-# Description:        Create Satlab compose to setup Satlab containers.
+# Short-Description:  Create Satlab compose to restart Satlab containers.
+# Description:        Create Satlab compose to restart Satlab containers.
 ### END INIT INFO
 
 # Required to be installed bridge-utils.
 # sudo apt install bridge-utils
 
-# Single script to prepare Satlab
-# Function to ask user to provide data.
-ask(){
-   local filename=$1
-   local message=$2
-   local name2
-   if [ -f "$filename" ]; then name="$(cat <"$filename")";else name=""; fi
-   1>&2 echo -n "$message ($name): "
-   read -r name2
-   if [ -z "$name2" ]; then 1>&2 echo "Using $name as default value" ; else name="$name2" ;fi
-   echo "$name" > "$filename"
-   echo "$name"
-}
+# Single script to restart Satlab
+# TODO: This is a modified copy of setup script. Need to extract common to simplify both files.
 ##################################################################
 # Collect some data from user
-DRONE_HOSTNAME=$(ask "satlab-server-name" "Please specify Satlab name") # Name that is set for the drone.
-EXT_IFACE=$(ask "satlab-external-port" "Please specify internet port")  # Interface that is connected to the internet
-INT_IFACE=$(ask "satlab-ethernet-port" "Please specify ethernet port")  # Interface that is connected to DUT
+DRONE_HOSTNAME=$(cat < satlab-server-name) # Name that is set for the drone.
+EXT_IFACE=$(cat < satlab-external-port)  # Interface that is connected to the internet
+INT_IFACE=$(cat < satlab-ethernet-port)  # Interface that is connected to DUT
 HOSTS_FILE=/etc/hosts
 echo "Name used for drone: ${DRONE_HOSTNAME}"
 echo "Local file used for DNS server: ${HOSTS_FILE}"
@@ -58,8 +47,6 @@ sudo brctl addif ${DHCPD_IFACE} "${INT_IFACE}"
 DHCP_DOCKER_IMAGE=gcr.io/chromeos-partner-moblab/moblab-dhcp:release
 COMPOSE_DOCKER_IMAGE=us-docker.pkg.dev/chromeos-partner-moblab/satlab/satlab-compose:release
 REMOVE_ACCESS_IMAGE=us-docker.pkg.dev/chromeos-partner-moblab/satlab/satlab_remote_access:release
-# TODO: look to the option to simplify update logic for the image.
-CLOUD_SDK_IMAGE=google/cloud-sdk:396.0.0-slim
 ############################################################
 # You can't have --rm and --restart on a docker run command.
 # However this means that on a non clean shutdown the dhcp container is
@@ -87,25 +74,8 @@ sudo iptables -w -A FORWARD -i ${DHCPD_IFACE} -o "${EXT_IFACE}" -j ACCEPT
 sudo ifconfig "${INT_IFACE}" up
 sudo iptables -w -P FORWARD ACCEPT
 ##################################################################
-# Download service account file for compose.
-# System is expected that this volume will be exist.
-# TODO: Avoid authorization by verifying the downloaded key that is not expired.
-echo "Create volume 'satlab_keys' to keep Satlab key."
-docker volume create --name=satlab_keys
+echo "The volume 'satlab_keys' expected to be create and have the Satlab key."
 VOLUME_KEYS_FOLDER=/home/satlab/keys/
-GCLOUD="docker run --rm -ti -a stdout -v satlab_keys:${VOLUME_KEYS_FOLDER} -v gcloud:/root/.config/gcloud ${CLOUD_SDK_IMAGE}"
-echo "Try to autorize user!"
-if ! ${GCLOUD} gcloud auth login; then
-    echo "User fail to autorize!"
-    exit 1
-fi
-echo "User autorized!"
-echo "Try to download service account key!"
-if ! ${GCLOUD} gsutil cp gs://satlab-keys/satlab_service_account.json ${VOLUME_KEYS_FOLDER}; then
-    echo "Failed to download service account key, please try again!"
-    exit 1
-fi
-echo "Satlab service account key downloaded!"
 # Start compose for Satlab
 echo "Starting preparation the host for usage"
 sudo docker rm compose --force || true
