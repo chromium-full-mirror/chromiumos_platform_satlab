@@ -4,7 +4,7 @@
 
 version: "3"
 services:
-  ##############################################################################drone
+  ##############################################################################conf-creator
   conf_creator:
     container_name: conf-creator
     image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/conf_creator:${CONF_CREATOR:-release}
@@ -67,17 +67,23 @@ services:
     networks:
       satlab:
         ipv4_address: 192.168.100.51
+  ##############################################################################artifacts_downloader_secret
+  artifacts_downloader_secret:
+    container_name: artifacts_downloader_secret
+    image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/artifacts_downloader_secret:${SATLAB_SECRETS:-release}
+    labels:
+      - "skip.while.pruning.docker.system=yes"
+    volumes:
+      - artifacts_downloader_secret:/creds/service_accounts
   ##############################################################################gsa_server
   gsa_server:
     container_name: gsa_server
     image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/gsa_server:${GSA_SERVER:-release}
-    environment:
-      - BOTO_CONFIG=/home/chromeos-test/boto_key/.boto
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - images:/home/chromeos-test/images
-      - boto_file:/home/chromeos-test/boto_key
-    command: ['python', '-m', 'gs_archive_server', '-p', '8887', '-c', '192.168.100.3:8082', '-b', '0.0.0.0']
+      - artifacts_downloader_secret:/creds/service_accounts
+    command: ['--credential-file', '/creds/service_accounts/artifacts-downloader-service-account.json', '--address', ':8887', '--cache-server-url', 'http://192.168.100.3:8082']
     networks:
       satlab:
         ipv4_address: 192.168.100.2
@@ -85,7 +91,7 @@ services:
       - 192.168.100.51
     depends_on:
       - dns
-      - satlab_secrets
+      - artifacts_downloader_secret
   ##############################################################################ngix
   nginx:
     container_name: nginx
@@ -142,6 +148,7 @@ volumes:
     cache: {}
     dut_hosts: {}
     nginx_configs: {}
+    artifacts_downloader_secret: {}
     service_accounts: {}
     boto_file: {}
     servod_profile: {}

@@ -52,6 +52,8 @@ else
     docker-compose up -d conf_creator
     docker-compose pull satlab_secrets
     docker-compose up -d satlab_secrets
+    docker-compose pull artifacts_downloader_secret
+    docker-compose up -d artifacts_downloader_secret
 
     docker-compose -f ./docker-compose.watchtower.yaml pull
     docker-compose -f ./docker-compose.watchtower.yaml up -d
