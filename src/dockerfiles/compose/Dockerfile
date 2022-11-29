@@ -31,6 +31,7 @@ RUN apk add --no-cache --upgrade \
     libstdc++
 
 # If the args left empty the script will leave the values in .env as is.
+ARG ARTIFACT_DOWNLOADER_SECRET_VER
 ARG CONF_CREATOR_VER
 ARG SATLAB_DRONE_VER
 ARG GSA_SERVER_VER
@@ -83,6 +84,7 @@ RUN chmod u+x override_service_version.sh
 RUN ./override_service_version.sh CONF_CREATOR ${CONF_CREATOR_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh GSA_SERVER ${GSA_SERVER_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh NGINX ${NGINX_VER:-${BUILD_VERSION}}
+RUN ./override_service_version.sh ARTIFACT_DOWNLOADER_SECRET ${ARTIFACT_DOWNLOADER_SECRET_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh SATLAB_DRONE ${SATLAB_DRONE_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh SATLAB_SECRETS ${SATLAB_SECRETS_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh OPENSSH_SERVER ${OPENSSH_SERVER_VER:-${BUILD_VERSION}}
