@@ -70,7 +70,7 @@ services:
   ##############################################################################artifacts_downloader_secret
   artifacts_downloader_secret:
     container_name: artifacts_downloader_secret
-    image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/artifacts_downloader_secret:${SATLAB_SECRETS:-release}
+    image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/artifacts_downloader_secret:${ARTIFACT_DOWNLOADER_SECRET:-release}
     labels:
       - "skip.while.pruning.docker.system=yes"
     volumes:

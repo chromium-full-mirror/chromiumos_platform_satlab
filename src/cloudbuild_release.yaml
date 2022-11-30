@@ -4,11 +4,11 @@ substitutions:
   _REGISTRY_URI: us-docker.pkg.dev/chromeos-partner-moblab/satlab
   _SATLAB_REGISTRY_URI: gcr.io/satlab-images
   _SSH_PORT: "22"
-  _COMMON_CORE_LABEL: ""
+  _COMMON_CORE_LABEL: "R-2.20.2"
   # Satlab drone, cache server images to use
-  _SATLAB_STABLE_IMAGE: ""
-  __LABEL: ""
-  __BUILD_VERSION: ""
+  _SATLAB_STABLE_IMAGE: "beta"
+  __LABEL: "R-3.1.1"
+  __BUILD_VERSION: "R-3.1.1"
 
   # These labels/tags are part of satlab-compose
   _CONF_CREATOR: "${__BUILD_VERSION}"
@@ -17,6 +17,7 @@ substitutions:
   _NGINX: "${__BUILD_VERSION}"
   _SATLAB_DRONE: "${__BUILD_VERSION}"
   _SATLAB_SECRETS: "${__BUILD_VERSION}"
+  _ARTIFACT_DOWNLOADER_SECRET: "${__BUILD_VERSION}"
   _WATCHTOWER_CMD: --enable-lifecycle-hooks --include-stopped --revive-stopped --interval 3600 --include-restarting --monitor-only
 steps:
   - id: docker-compose
@@ -50,6 +51,24 @@ steps:
       ]
     waitFor:
       - "drone-pull"
+  - id: artifacts_downloader_secret-pull
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "pull",
+        "${_SATLAB_REGISTRY_URI}/artifacts_downloader_secret:${_SATLAB_STABLE_IMAGE}",
+      ]
+    waitFor: ['-']
+  - id: artifacts_downloader_secret
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "tag",
+        "${_SATLAB_REGISTRY_URI}/artifacts_downloader_secret:${_SATLAB_STABLE_IMAGE}",
+        "${_SATLAB_REGISTRY_URI}/artifacts_downloader_secret:${__BUILD_VERSION}"
+      ]
+    waitFor:
+      - "artifacts_downloader_secret-pull"
   - id: gsa-server-pull
     name: "gcr.io/cloud-builders/docker"
     args:
@@ -145,6 +164,7 @@ steps:
     args:
       [
         "build",
+        "--build-arg", "ARTIFACT_DOWNLOADER_SECRET_VER=${_ARTIFACT_DOWNLOADER_SECRET}",
         "--build-arg", "CONF_CREATOR_VER=${_CONF_CREATOR}",
         "--build-arg", "GSA_SERVER_VER=${_GSA_SERVER}",
         "--build-arg", "NGINX_VER=${_NGINX}",
@@ -174,6 +194,7 @@ steps:
      - nginx
      - conf-creator
      - satlab-secrets
+     - artifacts_downloader_secret
   - id: satlab-remote-access
     name: "gcr.io/cloud-builders/docker"
     dir: src
