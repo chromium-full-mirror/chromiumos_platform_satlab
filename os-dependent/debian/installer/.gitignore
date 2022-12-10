@@ -1,0 +1,16 @@
+# Generated folders.
+/satlab/scripts/
+/satlab/debian/satlab
+/satlab/debian/.debhelper
+
+# Generated files.
+*.substvars
+*debhelper*
+files
+
+# Created install packages.
+*.deb
+*.build
+*.buildinfo
+*.changes
+*.dsc

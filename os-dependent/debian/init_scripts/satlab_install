@@ -16,6 +16,7 @@
 
 # Single script to prepare Satlab
 # Function to ask user to provide data.
+. satlab_common
 ask(){
    local filename=$1
    local message=$2
@@ -27,16 +28,30 @@ ask(){
    echo "$name" > "$filename"
    echo "$name"
 }
+
+# List all network interfaces
+network_interfaces=$(find /sys/class/net -mindepth 1 -maxdepth 1 -lname '*virtual*' -prune -o -printf '%f\n')
+select_network_interface(){
+   local filename=$1
+   local message=$2
+   if [ -f "$filename" ]; then name="$(cat <"$filename")";else name=""; fi
+   1>&2 echo "$message ($name):"
+   name2=$(select opt in $network_interfaces;do echo $opt; break;done)
+   if [ -z "$name2" ]; then 1>&2 echo "Using $name as default value" ; else name="$name2" ;fi
+   echo "$name" > "$filename"
+   echo "$name"
+}
+mkdir -p /etc/satlab/
 ##################################################################
 # Collect some data from user
-DRONE_HOSTNAME=$(ask "satlab-server-name" "Please specify Satlab name") # Name that is set for the drone.
-EXT_IFACE=$(ask "satlab-external-port" "Please specify internet port")  # Interface that is connected to the internet
-INT_IFACE=$(ask "satlab-ethernet-port" "Please specify ethernet port")  # Interface that is connected to DUT
+DRONE_HOSTNAME=$(ask "$SERVER_NAME_FILE" "Please specify Satlab name") # Name that is set for the drone.
+EXT_IFACE=$(select_network_interface "$EXTERNAL_PORT_FILE" "Please specify internet port")  # Interface that is connected to the internet
+INT_IFACE=$(select_network_interface "$ETHERNET_PORT_FILE" "Please specify ethernet port")  # Interface that is connected to DUT
 HOSTS_FILE=/etc/hosts
 echo "Name used for drone: ${DRONE_HOSTNAME}"
-echo "Local file used for DNS server: ${HOSTS_FILE}"
 echo "External network port: ${EXT_IFACE}"
 echo "Private network port: ${INT_IFACE}"
+echo "Local file used for DNS server: ${HOSTS_FILE}"
 ##################################################################
 # Do not edit below this line.
 ##################################################################
@@ -53,13 +68,6 @@ sudo brctl addif ${DHCPD_IFACE} "${INT_IFACE}"
 # Creating local file for user which will be used for DHCP.
 # By this file user can set mapping between Mac and IP addressess.
 # File is outside to keep outside the docker and persist per server.
-############################################################
-# Docker images used in the script
-DHCP_DOCKER_IMAGE=gcr.io/chromeos-partner-moblab/moblab-dhcp:release
-COMPOSE_DOCKER_IMAGE=us-docker.pkg.dev/chromeos-partner-moblab/satlab/satlab-compose:release
-REMOVE_ACCESS_IMAGE=us-docker.pkg.dev/chromeos-partner-moblab/satlab/satlab_remote_access:release
-# TODO: look to the option to simplify update logic for the image.
-CLOUD_SDK_IMAGE=google/cloud-sdk:396.0.0-slim
 ############################################################
 # You can't have --rm and --restart on a docker run command.
 # However this means that on a non clean shutdown the dhcp container is
@@ -108,9 +116,9 @@ fi
 echo "Satlab service account key downloaded!"
 # Start compose for Satlab
 echo "Starting preparation the host for usage"
-sudo docker rm compose --force || true
-sudo docker pull ${COMPOSE_DOCKER_IMAGE} || true
-sudo docker run -d --restart unless-stopped --name compose \
+docker rm compose --force || true
+docker pull ${COMPOSE_DOCKER_IMAGE} || true
+docker run -d --restart unless-stopped --name compose \
     --label=com.centurylinklabs.watchtower.lifecycle.pre-update="docker-compose down" \
     --label=com.centurylinklabs.watchtower.stop-signal=KILL \
     -v /var/run/docker.sock:/var/run/docker.sock \
@@ -124,16 +132,13 @@ sudo docker run -d --restart unless-stopped --name compose \
     --add-host dockerhost:172.17.0.1 \
     ${COMPOSE_DOCKER_IMAGE} up
 
-# Allowed to open port 2225
-REMOTE_ACCESS_SSH_PORT=2225
-echo "Remote access docker container for port ${REMOTE_ACCESS_SSH_PORT}"
 # Allow port to be available outside.TODO: need working on this part.
 # sudo ufw allow ${REMOTE_ACCESS_SSH_PORT}
 # Remote access required access to the key which already downloaded and verified in compose.
 # Remove old image always to avoid any issues with that and pull new one.
 docker stop satlab_remote_access || true
 docker rm satlab_remote_access || true
-docker pull "${REMOVE_ACCESS_IMAGE}"
+docker pull "${REMOTE_ACCESS_IMAGE}"
 docker run -ti -d -v logs:/var/log/satlab \
   -v /var/log/bootup:/var/log/bootup \
   -v /var/run/docker.sock:/var/run/docker.sock \
@@ -151,24 +156,4 @@ docker run -ti -d -v logs:/var/log/satlab \
   -p ${REMOTE_ACCESS_SSH_PORT}:2222 \
   --dns 192.168.100.51 \
   --add-host dockerhost:172.17.0.1 \
-  "${REMOVE_ACCESS_IMAGE}"
-
-# Instead access to the remote access create local liks to work with satlab and shivas.
-if [ -s satlab ]; then
-    rm -f -- satlab || true
-fi
-cat > satlab <<'EOT'
-#!/usr/bin/env bash
-
-docker exec -it satlab_remote_access satlab "$@"
-EOT
-if [ -s satlab ]; then
-    rm -f -- shivas || true
-fi
-cat > shivas <<'EOT'
-#!/usr/bin/env bash
-
-docker exec -it satlab_remote_access shivas "$@"
-EOT
-chmod +x satlab
-chmod +x shivas
+  "${REMOTE_ACCESS_IMAGE}"

@@ -11,17 +11,15 @@
 # Description:        Create Satlab compose to restart Satlab containers.
 ### END INIT INFO
 
-# Required to be installed bridge-utils.
-# sudo apt install bridge-utils
+. satlab_common
 
 # Single script to restart Satlab
 # TODO: This is a modified copy of setup script. Need to extract common to simplify both files.
 ##################################################################
 # Collect some data from user
-DRONE_HOSTNAME=$(cat < satlab-server-name) # Name that is set for the drone.
-EXT_IFACE=$(cat < satlab-external-port)  # Interface that is connected to the internet
-INT_IFACE=$(cat < satlab-ethernet-port)  # Interface that is connected to DUT
-HOSTS_FILE=/etc/hosts
+DRONE_HOSTNAME=$(cat < "$SERVER_NAME_FILE") # Name that is set for the drone.
+EXT_IFACE=$(cat < "$EXTERNAL_PORT_FILE")  # Interface that is connected to the internet
+INT_IFACE=$(cat < "$ETHERNET_PORT_FILE")  # Interface that is connected to DUT
 echo "Name used for drone: ${DRONE_HOSTNAME}"
 echo "Local file used for DNS server: ${HOSTS_FILE}"
 echo "External network port: ${EXT_IFACE}"
@@ -42,11 +40,6 @@ sudo brctl addif ${DHCPD_IFACE} "${INT_IFACE}"
 # Creating local file for user which will be used for DHCP.
 # By this file user can set mapping between Mac and IP addressess.
 # File is outside to keep outside the docker and persist per server.
-############################################################
-# Docker images used in the script
-DHCP_DOCKER_IMAGE=gcr.io/chromeos-partner-moblab/moblab-dhcp:release
-COMPOSE_DOCKER_IMAGE=us-docker.pkg.dev/chromeos-partner-moblab/satlab/satlab-compose:release
-REMOVE_ACCESS_IMAGE=us-docker.pkg.dev/chromeos-partner-moblab/satlab/satlab_remote_access:release
 ############################################################
 # You can't have --rm and --restart on a docker run command.
 # However this means that on a non clean shutdown the dhcp container is
@@ -78,9 +71,9 @@ echo "The volume 'satlab_keys' expected to be create and have the Satlab key."
 VOLUME_KEYS_FOLDER=/home/satlab/keys/
 # Start compose for Satlab
 echo "Starting preparation the host for usage"
-sudo docker rm compose --force || true
-sudo docker pull ${COMPOSE_DOCKER_IMAGE} || true
-sudo docker run -d --restart unless-stopped --name compose \
+docker rm compose --force || true
+docker pull ${COMPOSE_DOCKER_IMAGE} || true
+docker run -d --restart unless-stopped --name compose \
     --label=com.centurylinklabs.watchtower.lifecycle.pre-update="docker-compose down" \
     --label=com.centurylinklabs.watchtower.stop-signal=KILL \
     -v /var/run/docker.sock:/var/run/docker.sock \
@@ -103,7 +96,7 @@ echo "Remote access docker container for port ${REMOTE_ACCESS_SSH_PORT}"
 # Remove old image always to avoid any issues with that and pull new one.
 docker stop satlab_remote_access || true
 docker rm satlab_remote_access || true
-docker pull "${REMOVE_ACCESS_IMAGE}"
+docker pull "${REMOTE_ACCESS_IMAGE}"
 docker run -ti -d -v logs:/var/log/satlab \
   -v /var/log/bootup:/var/log/bootup \
   -v /var/run/docker.sock:/var/run/docker.sock \
@@ -121,24 +114,4 @@ docker run -ti -d -v logs:/var/log/satlab \
   -p ${REMOTE_ACCESS_SSH_PORT}:2222 \
   --dns 192.168.100.51 \
   --add-host dockerhost:172.17.0.1 \
-  "${REMOVE_ACCESS_IMAGE}"
-
-# Instead access to the remote access create local liks to work with satlab and shivas.
-if [ -s satlab ]; then
-    rm -f -- satlab || true
-fi
-cat > satlab <<'EOT'
-#!/usr/bin/env bash
-
-docker exec -it satlab_remote_access satlab "$@"
-EOT
-if [ -s satlab ]; then
-    rm -f -- shivas || true
-fi
-cat > shivas <<'EOT'
-#!/usr/bin/env bash
-
-docker exec -it satlab_remote_access shivas "$@"
-EOT
-chmod +x satlab
-chmod +x shivas
+  "${REMOTE_ACCESS_IMAGE}"

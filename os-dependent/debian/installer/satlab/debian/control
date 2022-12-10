@@ -1,0 +1,17 @@
+Source: satlab
+Section: unknown
+Priority: optional
+Maintainer: Otabek Kasimov <otabek@google.com>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13),
+Standards-Version: 4.6.1
+Homepage: go/satlab
+#Vcs-Browser: https://salsa.debian.org/debian/satlab
+#Vcs-Git: https://salsa.debian.org/debian/satlab.git
+
+Package: satlab
+Architecture: all
+Depends:
+ ${misc:Depends}, bridge-utils, net-tools, docker.io, vim
+Description: Satlab installer for linux
