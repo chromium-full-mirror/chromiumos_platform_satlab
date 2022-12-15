@@ -21,28 +21,6 @@ cp ../init_scripts/satlab.sh ${SOURCE_DIR}/scripts/satlab
 cp ../init_scripts/shivas.sh ${SOURCE_DIR}/scripts/shivas
 echo "scripts copied"
 
-# TODO(prasadv): Move this to file instead.
-cat > ${SOURCE_DIR}/debian/postinst <<'EOT'
-#!/usr/bin/env bash
-set e
-
-echo "##################################"
-echo "Install Satlab"
-echo "##################################"
-echo "We try to prepare your setup to use Satlab."
-echo "Please restart the host after installing Satlab to finish initialization."
-
-/usr/bin/bash satlab_prepare_docker
-
-echo "Please provide followed information."
-echo "All information can be updated lated by running 'satlab_install'."
-
-/usr/bin/bash satlab_install
-echo "##################################"
-echo "Thank you for using Satlab."
-echo "##################################"
-EOT
-
 # Create the package.
 # Execution the command expected to be run in the folder.
 cd ${SOURCE_DIR}
