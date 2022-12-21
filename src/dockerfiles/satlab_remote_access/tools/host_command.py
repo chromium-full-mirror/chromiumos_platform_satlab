@@ -26,6 +26,16 @@ def get_host_identifier():
     print(host_connector.HostServicesConnector.get_host_identifier())
 
 
+def get_host_ip():
+    """Get the IP address of the Satlab host"""
+    print(host_connector.HostServicesConnector.get_ip())
+
+
+def get_host_os_version():
+    """Get the OS Version of the Satlab host"""
+    print(host_connector.HostServicesConnector.get_system_version())
+
+
 def update_satlab():
     """
         Sets off an update of all docker containers, using watchtower
@@ -63,6 +73,7 @@ def update_satlab():
         container.remove()
     print("Update finished.")
     return
+
 
 def update_system():
     """
