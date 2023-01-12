@@ -1,1 +1,7 @@
-./scripts/* usr/bin
+# Main scripts
+./scripts/satlab* /usr/bin
+./scripts/shivas /usr/bin
+
+# Init scripts
+./scripts/init/* /etc/init.d
+./scripts/configs/* /etc/satlab

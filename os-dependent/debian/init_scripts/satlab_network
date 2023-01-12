@@ -1,0 +1,45 @@
+#!/bin/bash
+# Copyright 2023 The Chromium OS Authors.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+. /etc/satlab/satlab.conf
+
+##################################################################
+# Do not edit below this line.
+##################################################################
+sudo brctl addbr ${DHCPD_IFACE} || true
+sudo brctl setfd ${DHCPD_IFACE} 0 || true
+sudo ifconfig ${DHCPD_IFACE} allmulti
+sudo ifconfig "${INTERNAL_PORT_TO_DUTS}" allmulti
+sudo ifconfig ${DHCPD_IFACE} ${SERVER_ADDRESS} netmask ${SERVER_NETMASK} up
+sudo brctl addif ${DHCPD_IFACE} "${INTERNAL_PORT_TO_DUTS}"
+# Creating local file for user which will be used for DHCP.
+# By this file user can set mapping between Mac and IP addressess.
+# File is outside to keep outside the docker and persist per server.
+############################################################
+# You can't have --rm and --restart on a docker run command.
+# However this means that on a non clean shutdown the dhcp container is
+# restarted, this causes internal/external network detection issues and
+# put the moblab in a bad state.
+# On boot get rid of any prior containers and make sure we have the latest
+# dhcp container.
+docker stop dhcp || true
+docker rm dhcp || true
+docker pull ${DHCP_DOCKER_IMAGE}
+docker run --name dhcp -d \
+    -v leases:/var/lib/misc -d \
+    --restart always \
+    --cap-add=NET_ADMIN \
+    --network host \
+    ${DHCP_DOCKER_IMAGE} \
+    --interface ${DHCPD_IFACE} \
+    --bind-interfaces \
+    --log-dhcp
+
+#Set sharing between interfaces.
+sudo iptables -w -t nat -A POSTROUTING -o "${EXTERNAL_PORT_TO_INTERNET}" -j MASQUERADE
+sudo iptables -w -A FORWARD -i "${EXTERNAL_PORT_TO_INTERNET}" -o ${DHCPD_IFACE} -m state --state RELATED,ESTABLISHED -j ACCEPT
+sudo iptables -w -A FORWARD -i ${DHCPD_IFACE} -o "${EXTERNAL_PORT_TO_INTERNET}" -j ACCEPT
+sudo ifconfig "${INTERNAL_PORT_TO_DUTS}" up
+sudo iptables -w -P FORWARD ACCEPT

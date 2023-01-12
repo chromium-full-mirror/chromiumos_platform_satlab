@@ -1,0 +1,40 @@
+#!/bin/bash
+# Copyright 2023 The Chromium OS Authors.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# configuration script to get and set the port values from a configuration file
+
+CONFIG="/etc/satlab/satlab.conf"
+source $CONFIG
+
+function set_config(){
+    sudo sed -i "s/^\($1\s*=\s*\).*\$/\1$2/" $CONFIG
+}
+
+network_interfaces=$(find /sys/class/net -mindepth 1 -maxdepth 1 -lname '*virtual*' -prune -o -printf '%f\n')
+select_network_interface(){
+    local portname=$1
+    local curr_value=$2
+
+    1>&2 echo "Please specify port connected to $portname ($curr_value):"
+    new_value=$(select opt in $network_interfaces;do echo $opt; break;done)
+    set_config $portname $curr_value
+}
+
+specify_drone_name(){
+    local drone_name=$1
+    local curr_value=$2
+
+    1>&2 echo -n "Please specify drone hostname ($curr_value): "
+    local new_value
+    read -r new_value
+    if [ -z "$new_value" ]; then 1>&2 echo "Using $curr_value as default value" ; else curr_value="$new_value" ;fi
+    set_config $drone_name $curr_value
+}
+# Collect some data specified before from user.
+$(specify_drone_name "DRONE_HOSTNAME" "$DRONE_HOSTNAME")
+$(select_network_interface "EXTERNAL_PORT_TO_INTERNET" "$EXTERNAL_PORT_TO_INTERNET")
+$(select_network_interface "INTERNAL_PORT_TO_DUTS" "$INTERNAL_PORT_TO_DUTS")
+# Reimport data after receiving responses from user.
+source $CONFIG

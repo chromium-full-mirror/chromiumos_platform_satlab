@@ -15,4 +15,6 @@ echo "All information can be updated lated by running 'satlab_install'."
 /usr/bin/bash satlab_install
 echo "##################################"
 echo "Thank you for using Satlab."
+echo ""
+echo "Please reboot the host now to finish initialization."
 echo "##################################"

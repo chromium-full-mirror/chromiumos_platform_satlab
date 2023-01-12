@@ -3,23 +3,30 @@
 
 set -e
 
-PACKAGE=satlab
-VERSION=0.2.1
-SATLAB_VER=${PACKAGE}-${VERSION}
-echo "creating installer: ${SATLAB_VER}"
+echo "Creating a new installer"
 
 SOURCE_DIR=satlab
 mkdir -p ${SOURCE_DIR}/scripts
+mkdir -p ${SOURCE_DIR}/scripts/init
+mkdir -p ${SOURCE_DIR}/scripts/configs
 
-cp ../init_scripts/satlab_common ${SOURCE_DIR}/scripts/satlab_common
+cp ../init_scripts/satlab_compose ${SOURCE_DIR}/scripts/satlab_compose
 cp ../init_scripts/satlab_dns_hosts ${SOURCE_DIR}/scripts/satlab_dns_hosts
+cp ../init_scripts/satlab_init ${SOURCE_DIR}/scripts/init/satlab_init
 cp ../init_scripts/satlab_install ${SOURCE_DIR}/scripts/satlab_install
+cp ../init_scripts/satlab_network ${SOURCE_DIR}/scripts/satlab_network
 cp ../init_scripts/satlab_prepare_docker ${SOURCE_DIR}/scripts/satlab_prepare_docker
+cp ../init_scripts/satlab_questions ${SOURCE_DIR}/scripts/satlab_questions
+cp ../init_scripts/satlab_remote_access ${SOURCE_DIR}/scripts/satlab_remote_access
 cp ../init_scripts/satlab_restart ${SOURCE_DIR}/scripts/satlab_restart
 cp ../init_scripts/satlab_update_dns ${SOURCE_DIR}/scripts/satlab_update_dns
+cp ../init_scripts/satlab.conf ${SOURCE_DIR}/scripts/configs/satlab.conf
 cp ../init_scripts/satlab.sh ${SOURCE_DIR}/scripts/satlab
 cp ../init_scripts/shivas.sh ${SOURCE_DIR}/scripts/shivas
+
 echo "scripts copied"
+
+rm *all.deb
 
 # Create the package.
 # Execution the command expected to be run in the folder.
@@ -41,6 +48,7 @@ test_install()
   INSTALL_VOL=installer
 cat > install.sh <<EOT
 #!/usr/bin/env bash
+ls -ll /${INSTALL_VOL}/
 dpkg -i -D1 /${INSTALL_VOL}/${INSTALL_PACKAGE}
 EOT
 
@@ -63,14 +71,14 @@ upload_package()
   # Before try to upload run this commands.
   # sudo apt install apt-transport-artifact-registry
   # echo 'deb ar+https://us-central1-apt.pkg.dev/projects/chromeos-partner-moblab-dev quickstart-apt-repo main' | sudo tee -a  /etc/apt/sources.list.d/artifact-registry.list
-  gcloud artifacts apt upload satlab-linux --location=us-central-1 --source="${SATLAB_VER}.deb" --project=chromeos-partner-moblab
+  gcloud artifacts apt upload satlab-linux --source=${INSTALL_PACKAGE} --project=chromeos-partner-moblab --location=us-central1
 }
 
 if [[ $1 == upload ]]; then
     upload_package
 fi
 
-# For testing package you need run followed command son the host.
+# For testing package on final host you need run followed commands on the host.
 # echo 'deb [trusted=yes] https://us-central1-apt.pkg.dev/projects/chromeos-partner-moblab satlab-linux main' | sudo tee -a  /etc/apt/sources.list.d/artifact-registry.list
 # sudo apt update
 # sudo apt install satlab/satlab-linux

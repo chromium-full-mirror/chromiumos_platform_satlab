@@ -1,0 +1,23 @@
+#!/bin/bash
+# Copyright 2023 The Chromium OS Authors.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+. /etc/satlab/satlab.conf
+
+# Restart compose.
+echo "Starting preparation the host for usage"
+docker rm compose --force || true
+docker pull ${COMPOSE_DOCKER_IMAGE} || true
+docker run -d --restart unless-stopped --name compose \
+    --label=com.centurylinklabs.watchtower.lifecycle.pre-update="docker-compose down" \
+    --label=com.centurylinklabs.watchtower.stop-signal=KILL \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v docker_config:/root/.docker \
+    -v satlab_keys:${VOLUME_KEYS_FOLDER} \
+    -v cache_server:/home/satlab/cache_server \
+    -e DRONE_HOSTNAME="${DRONE_HOSTNAME}" \
+    -e LABEL="${COMPOSE_LABEL}" \
+    -e DRONE_AGENT_DUT_CAPACITY=60 \
+    --add-host dockerhost:172.17.0.1 \
+    ${COMPOSE_DOCKER_IMAGE} up

@@ -11,107 +11,23 @@
 # Description:        Create Satlab compose to restart Satlab containers.
 ### END INIT INFO
 
-. satlab_common
-
 # Single script to restart Satlab
-# TODO: This is a modified copy of setup script. Need to extract common to simplify both files.
+
+. /etc/satlab/satlab.conf
 ##################################################################
-# Collect some data from user
-DRONE_HOSTNAME=$(cat < "$SERVER_NAME_FILE") # Name that is set for the drone.
-EXT_IFACE=$(cat < "$EXTERNAL_PORT_FILE")  # Interface that is connected to the internet
-INT_IFACE=$(cat < "$ETHERNET_PORT_FILE")  # Interface that is connected to DUT
+# Data specified by user.
 echo "Name used for drone: ${DRONE_HOSTNAME}"
-echo "Local file used for DNS server: ${HOSTS_FILE}"
-echo "External network port: ${EXT_IFACE}"
-echo "Private network port: ${INT_IFACE}"
+echo "External network port: ${EXTERNAL_PORT_TO_INTERNET}"
+echo "Private network port: ${INTERNAL_PORT_TO_DUTS}"
 ##################################################################
-# Do not edit below this line.
+# Docker preparation as access to the file is always gone after reboot.
+sudo chmod 666 /var/run/docker.sock
 ##################################################################
-DHCPD_IFACE=qemubr0
-SERVER_ADDRESS=192.168.231.1
-SERVER_NETMASK=255.255.255.0
-
-sudo brctl addbr ${DHCPD_IFACE} || true
-sudo brctl setfd ${DHCPD_IFACE} 0 || true
-sudo ifconfig ${DHCPD_IFACE} allmulti
-sudo ifconfig "${INT_IFACE}" allmulti
-sudo ifconfig ${DHCPD_IFACE} ${SERVER_ADDRESS} netmask ${SERVER_NETMASK} up
-sudo brctl addif ${DHCPD_IFACE} "${INT_IFACE}"
-# Creating local file for user which will be used for DHCP.
-# By this file user can set mapping between Mac and IP addressess.
-# File is outside to keep outside the docker and persist per server.
-############################################################
-# You can't have --rm and --restart on a docker run command.
-# However this means that on a non clean shutdown the dhcp container is
-# restarted, this causes internal/external network detection issues and
-# put the moblab in a bad state.
-# On boot get rid of any prior containers and make sure we have the latest
-# dhcp container.
-docker stop dhcp || true
-docker rm dhcp || true
-docker pull ${DHCP_DOCKER_IMAGE}
-docker run --name dhcp -d \
-    -v leases:/var/lib/misc -d \
-    --restart always \
-    --cap-add=NET_ADMIN \
-    --network host \
-    ${DHCP_DOCKER_IMAGE} \
-    --interface ${DHCPD_IFACE} \
-    --bind-interfaces \
-    --log-dhcp
-
-#Set sharing between interfaces.
-sudo iptables -w -t nat -A POSTROUTING -o "${EXT_IFACE}" -j MASQUERADE
-sudo iptables -w -A FORWARD -i "${EXT_IFACE}" -o ${DHCPD_IFACE} -m state --state RELATED,ESTABLISHED -j ACCEPT
-sudo iptables -w -A FORWARD -i ${DHCPD_IFACE} -o "${EXT_IFACE}" -j ACCEPT
-sudo ifconfig "${INT_IFACE}" up
-sudo iptables -w -P FORWARD ACCEPT
+# Prepare network.
+. satlab_network
 ##################################################################
-echo "The volume 'satlab_keys' expected to be create and have the Satlab key."
-VOLUME_KEYS_FOLDER=/home/satlab/keys/
-# Start compose for Satlab
-echo "Starting preparation the host for usage"
-docker rm compose --force || true
-docker pull ${COMPOSE_DOCKER_IMAGE} || true
-docker run -d --restart unless-stopped --name compose \
-    --label=com.centurylinklabs.watchtower.lifecycle.pre-update="docker-compose down" \
-    --label=com.centurylinklabs.watchtower.stop-signal=KILL \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    -v docker_config:/root/.docker \
-    -v satlab_keys:${VOLUME_KEYS_FOLDER} \
-    -v cache_server:/home/satlab/cache_server \
-    -e DRONE_HOSTNAME="${DRONE_HOSTNAME}" \
-    -e LABEL="${COMPOSE_LABEL}" \
-    -e DRONE_AGENT_DUT_CAPACITY=60 \
-    -e HOSTS_FILE="${HOSTS_FILE}" \
-    --add-host dockerhost:172.17.0.1 \
-    ${COMPOSE_DOCKER_IMAGE} up
-
-# Allowed to open port 2225
-REMOTE_ACCESS_SSH_PORT=2225
-echo "Remote access docker container for port ${REMOTE_ACCESS_SSH_PORT}"
-# Allow port to be available outside.TODO: need working on this part.
-# sudo ufw allow ${REMOTE_ACCESS_SSH_PORT}
-# Remote access required access to the key which already downloaded and verified in compose.
-# Remove old image always to avoid any issues with that and pull new one.
-docker stop satlab_remote_access || true
-docker rm satlab_remote_access || true
-docker pull "${REMOTE_ACCESS_IMAGE}"
-docker run -ti -d -v logs:/var/log/satlab \
-  -v /var/log/bootup:/var/log/bootup \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v satlab_keys:${VOLUME_KEYS_FOLDER} \
-  -v cache_server:/home/satlab/cache_server \
-  -v leases:/leases:ro \
-  --name satlab_remote_access \
-  -e PUBLIC_KEY_FILE=/testing_rsa.pub \
-  -e PUID=246 \
-  -e PGID=246 \
-  -e TZ=Etc/UTC \
-  -e USER_NAME=moblab \
-  -e DOCKER_MODS=linuxserver/mods:openssh-server-ssh-tunnel \
-  -e SUDO_ACCESS=true \
-  -p ${REMOTE_ACCESS_SSH_PORT}:2222 \
-  --dns 192.168.100.51 \
-  --add-host dockerhost:172.17.0.1 \
-  "${REMOTE_ACCESS_IMAGE}"
+# We do we not download security key here as no user interaction is expected.
+# TODO: Need verify is key is expired or not.
+##################################################################
+. satlab_compose
+. satlab_remote_access
