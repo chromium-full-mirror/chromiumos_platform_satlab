@@ -1,15 +1,15 @@
 echo "Prepare Docker on the host."
-sudo usermod -aG docker $USER
-sudo chmod 666 /var/run/docker.sock
-sudo systemctl start docker.service
-sudo systemctl enable docker.service
+# usermod -aG docker $USER
+chmod 666 /var/run/docker.sock
+systemctl start docker.service
+systemctl enable docker.service
 
 # Create required folder and file to run docker for all users.
-sudo mkdir -p /etc/systemd/system/docker.service.d
-sudo cat > /etc/systemd/system/docker.service.d/override.conf <<'EOT'
+mkdir -p /etc/systemd/system/docker.service.d
+cat > /etc/systemd/system/docker.service.d/override.conf <<'EOT'
 [Service]
 ExecStart=
 ExecStart=/usr/bin/dockerd -H fd:// -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2375
 EOT
-sudo systemctl daemon-reload
-sudo systemctl restart docker.service
+systemctl daemon-reload
+systemctl restart docker.service

@@ -1,0 +1,11 @@
+[Unit]
+Description=Satlab
+After=network.target docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/satlab_restart
+RemainAfterExit=true
+
+[Install]
+Alias=satlab.service

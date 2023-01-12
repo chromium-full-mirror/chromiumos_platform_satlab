@@ -1,3 +1,10 @@
+satlab (0.0.2) testing; urgency=medium
+
+  * Register systemd.
+  * Removed duplicate code.
+
+ -- Otabek <otabek@google.com>  Wed, 11 Jan 2023 20:55:47 -0700
+
 satlab (0.0.1) testing; urgency=medium
 
   * Initiate iinstaller

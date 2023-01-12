@@ -9,10 +9,11 @@ SOURCE_DIR=satlab
 mkdir -p ${SOURCE_DIR}/scripts
 mkdir -p ${SOURCE_DIR}/scripts/init
 mkdir -p ${SOURCE_DIR}/scripts/configs
+mkdir -p ${SOURCE_DIR}/scripts/systemd
 
 cp ../init_scripts/satlab_compose ${SOURCE_DIR}/scripts/satlab_compose
 cp ../init_scripts/satlab_dns_hosts ${SOURCE_DIR}/scripts/satlab_dns_hosts
-cp ../init_scripts/satlab_init ${SOURCE_DIR}/scripts/init/satlab_init
+cp ../init_scripts/satlab.service ${SOURCE_DIR}/scripts/systemd/satlab.service
 cp ../init_scripts/satlab_install ${SOURCE_DIR}/scripts/satlab_install
 cp ../init_scripts/satlab_network ${SOURCE_DIR}/scripts/satlab_network
 cp ../init_scripts/satlab_prepare_docker ${SOURCE_DIR}/scripts/satlab_prepare_docker
@@ -26,7 +27,7 @@ cp ../init_scripts/shivas.sh ${SOURCE_DIR}/scripts/shivas
 
 echo "scripts copied"
 
-rm *all.deb
+rm *all.deb || true
 
 # Create the package.
 # Execution the command expected to be run in the folder.

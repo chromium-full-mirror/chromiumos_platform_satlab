@@ -21,7 +21,7 @@ echo "External network port: ${EXTERNAL_PORT_TO_INTERNET}"
 echo "Private network port: ${INTERNAL_PORT_TO_DUTS}"
 ##################################################################
 # Docker preparation as access to the file is always gone after reboot.
-sudo chmod 666 /var/run/docker.sock
+chmod 666 /var/run/docker.sock
 ##################################################################
 # Prepare network.
 . satlab_network

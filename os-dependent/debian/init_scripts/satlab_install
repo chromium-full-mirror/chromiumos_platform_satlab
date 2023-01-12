@@ -15,9 +15,14 @@
 # sudo apt install bridge-utils
 
 # Single script to prepare Satlab
+##################################################################
 # Function to ask user to provide data.
 . /etc/satlab/satlab.conf
 . satlab_questions
+##################################################################
+# Prepare service to restart satlab as needed
+systemctl daemon-reload
+systemctl enable satlab.service
 ##################################################################
 # Collect some data from user
 echo "Name used for drone: ${DRONE_HOSTNAME}"
@@ -25,17 +30,13 @@ echo "External network port: ${EXTERNAL_PORT_TO_INTERNET}"
 echo "Private network port: ${INTERNAL_PORT_TO_DUTS}"
 ##################################################################
 # Docker preparation as access to the file is always gone after reboot.
-sudo chmod 666 /var/run/docker.sock
-##################################################################
-# Prepare network.
-. satlab_network
+chmod 666 /var/run/docker.sock
 ##################################################################
 # Download service account file for compose.
 # System is expected that this volume will be exist.
 # TODO: Avoid authorization by verifying the downloaded key that is not expired.
 echo "Create volume 'satlab_keys' to keep Satlab key."
 docker volume create --name=satlab_keys
-VOLUME_KEYS_FOLDER=/home/satlab/keys/
 GCLOUD="docker run --rm -ti -a stdout -v satlab_keys:${VOLUME_KEYS_FOLDER} -v gcloud:/root/.config/gcloud ${CLOUD_SDK_IMAGE}"
 echo "Try to autorize user!"
 if ! ${GCLOUD} gcloud auth login; then
@@ -50,5 +51,4 @@ if ! ${GCLOUD} gsutil cp gs://satlab-keys/satlab_service_account.json ${VOLUME_K
 fi
 echo "Satlab service account key downloaded!"
 ##################################################################
-. satlab_compose
-. satlab_remote_access
+source satlab_restart

@@ -14,4 +14,4 @@ Package: satlab
 Architecture: all
 Depends:
  ${misc:Depends}, bridge-utils, net-tools, docker.io, vim
-Description: Satlab installer for linux
+Description: Satlab for Linux box
