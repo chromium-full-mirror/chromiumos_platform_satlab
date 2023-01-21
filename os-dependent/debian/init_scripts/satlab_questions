@@ -19,7 +19,7 @@ select_network_interface(){
 
     1>&2 echo "Please specify port connected to $portname ($curr_value):"
     new_value=$(select opt in $network_interfaces;do echo $opt; break;done)
-    set_config $portname $curr_value
+    set_config $portname $new_value
 }
 
 specify_drone_name(){

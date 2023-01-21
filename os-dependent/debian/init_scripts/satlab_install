@@ -18,11 +18,11 @@
 ##################################################################
 # Function to ask user to provide data.
 . /etc/satlab/satlab.conf
-. satlab_questions
+sudo satlab_questions
 ##################################################################
 # Prepare service to restart satlab as needed
-systemctl daemon-reload
-systemctl enable satlab.service
+sudo systemctl daemon-reload
+sudo systemctl enable satlab.service
 ##################################################################
 # Collect some data from user
 echo "Name used for drone: ${DRONE_HOSTNAME}"
@@ -30,7 +30,7 @@ echo "External network port: ${EXTERNAL_PORT_TO_INTERNET}"
 echo "Private network port: ${INTERNAL_PORT_TO_DUTS}"
 ##################################################################
 # Docker preparation as access to the file is always gone after reboot.
-chmod 666 /var/run/docker.sock
+sudo chmod 666 /var/run/docker.sock
 ##################################################################
 # Download service account file for compose.
 # System is expected that this volume will be exist.
@@ -51,4 +51,4 @@ if ! ${GCLOUD} gsutil cp gs://satlab-keys/satlab_service_account.json ${VOLUME_K
 fi
 echo "Satlab service account key downloaded!"
 ##################################################################
-source satlab_restart
+sudo satlab_restart

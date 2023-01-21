@@ -21,13 +21,13 @@ echo "External network port: ${EXTERNAL_PORT_TO_INTERNET}"
 echo "Private network port: ${INTERNAL_PORT_TO_DUTS}"
 ##################################################################
 # Docker preparation as access to the file is always gone after reboot.
-chmod 666 /var/run/docker.sock
+sudo chmod 666 /var/run/docker.sock
 ##################################################################
 # Prepare network.
-. satlab_network
+sudo satlab_network
 ##################################################################
 # We do we not download security key here as no user interaction is expected.
 # TODO: Need verify is key is expired or not.
 ##################################################################
-. satlab_compose
-. satlab_remote_access
+sudo satlab_compose
+sudo satlab_remote_access

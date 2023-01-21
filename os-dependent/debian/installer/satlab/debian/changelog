@@ -1,3 +1,9 @@
+satlab (0.0.3) testing; urgency=medium
+
+  * Fix install scripts.
+
+ -- Otabek <otabek@google.com>  Fri, 20 Jan 2023 16:09:00 -0700
+
 satlab (0.0.2) testing; urgency=medium
 
   * Register systemd.
