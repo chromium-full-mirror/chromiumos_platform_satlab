@@ -67,11 +67,13 @@ COPY --from=common /install/* .
 RUN pip install *.whl
 RUN rm -rf /install
 
-COPY tools/host_command.py /usr/local/bin
-COPY tools/get_host_identifier /usr/local/bin
-RUN chmod uog+rx /usr/local/bin/get_host_identifier
-
 WORKDIR /
+COPY dockerfiles/satlab_remote_access/tools/host_command.py /usr/local/bin
+COPY dockerfiles/satlab_remote_access/tools/get_host_identifier /usr/local/bin
+COPY dockerfiles/satlab_remote_access/tools/get_host_ip /usr/local/bin
+RUN chmod uog+rx /usr/local/bin/get_host_identifier
+RUN chmod uog+rx /usr/local/bin/get_host_ip
+
 COPY dockerfiles/compose/docker-compose.yaml .
 COPY dockerfiles/compose/docker-compose.watchtower.yaml .
 COPY dockerfiles/compose/.env main.env

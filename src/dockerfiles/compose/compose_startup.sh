@@ -67,6 +67,14 @@ else
     fi
     export DRONE_HOSTNAME
 
+    # Get the DHB IP address so that it can be exposed as swarming dimension.
+    SATLAB_HOST_IP=$(echo "$(get_host_ip)")
+    echo "Satlab Host IP: ${SATLAB_HOST_IP}"
+    # Export ENV only when the ip address is found.
+    if [[ -n "${SATLAB_HOST_IP}" ]]; then
+      export SATLAB_HOST_IP
+    fi
+
     docker-compose pull dns
     docker-compose up -d dns
     docker-compose pull drone gsa_server openssh_server nginx
