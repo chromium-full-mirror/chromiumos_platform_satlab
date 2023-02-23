@@ -52,6 +52,9 @@ else
     docker-compose up -d conf_creator
     docker-compose pull satlab_secrets
     docker-compose up -d satlab_secrets
+
+    docker rm -f artifacts_downloader_secret gsa_server
+    docker volume rm default_artifacts_downloader_secret
     docker-compose pull artifacts_downloader_secret
     docker-compose up -d artifacts_downloader_secret
 
@@ -95,7 +98,7 @@ else
     # Connect satlab_remote_access container to satlab network
     # so that user can use the local dns serice to resolve
     # DUT hostname and allow SSH to DUTs
-    docker network connect default_satlab satlab_remote_access
+    docker network connect --ip 192.168.100.50 default_satlab satlab_remote_access
 
     docker-compose pull
     docker-compose up -d

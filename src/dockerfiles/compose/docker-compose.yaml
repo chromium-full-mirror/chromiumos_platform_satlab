@@ -75,7 +75,7 @@ services:
     labels:
       - "skip.while.pruning.docker.system=yes"
     volumes:
-      - artifacts_downloader_secret:/creds/service_accounts
+      - artifacts_downloader_secret:/creds/service_accounts:rw
   ##############################################################################gsa_server
   gsa_server:
     container_name: gsa_server
@@ -83,7 +83,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - images:/home/chromeos-test/images
-      - artifacts_downloader_secret:/creds/service_accounts
+      - artifacts_downloader_secret:/creds/service_accounts:ro
     command: ['--credential-file', '/creds/service_accounts/artifacts-downloader-service-account.json', '--address', ':8887', '--cache-server-url', 'http://192.168.100.3:8082']
     networks:
       satlab:
