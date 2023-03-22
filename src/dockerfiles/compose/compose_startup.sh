@@ -57,6 +57,10 @@ else
     docker volume rm default_artifacts_downloader_secret
     docker-compose pull artifacts_downloader_secret
     docker-compose up -d artifacts_downloader_secret
+    docker rm -f partner_testing_rsa
+    docker volume rm default_partner_testing_rsa
+    docker-compose pull partner_testing_rsa
+    docker-compose up -d partner_testing_rsa
 
     docker-compose -f ./docker-compose.watchtower.yaml pull
     docker-compose -f ./docker-compose.watchtower.yaml up -d

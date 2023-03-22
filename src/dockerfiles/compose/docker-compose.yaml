@@ -58,6 +58,7 @@ services:
     depends_on:
       - dns
       - satlab_secrets
+      - partner_testing_rsa
   ##############################################################################dns
   dns:
     container_name: dns
@@ -147,7 +148,7 @@ services:
   ##############################################################################dut_key
   partner_testing_rsa:
     container_name: partner_testing_rsa
-    image: gcr.io/satlab-images/partner_testing_rsa:${PARTNER-TESTING-RSA:-release}
+    image: gcr.io/satlab-images/partner_testing_rsa:${PARTNER_TESTING_RSA:-release}
     labels:
       - "skip.while.pruning.docker.system=yes"
     volumes:
