@@ -18,4 +18,5 @@
 *pb*.js
 .vscode/*
 *dist/
-
+*service_account.json
+*pb*.go

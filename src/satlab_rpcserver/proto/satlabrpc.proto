@@ -1,0 +1,20 @@
+// Copyright 2023 The Chromium OS Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+syntax = "proto3";
+
+package satlabrpcserver;
+
+option go_package = "satlab/satlabrpcserver"; // figure out what this should be
+
+service SatlabRpcService {
+    rpc list_build_targets (ListBuildTargetsRequest) returns (ListBuildTargetsResponse) {}
+}
+
+message ListBuildTargetsRequest {
+}
+
+// NEXT_TAG = 2
+message ListBuildTargetsResponse {
+  repeated string build_targets = 1;
+}
