@@ -29,6 +29,7 @@ COPY dockerfiles/satlab_remote_access/tools/get_host_os_version /usr/local/bin
 COPY dockerfiles/satlab_remote_access/tools/satlab_setup /usr/local/bin
 COPY dockerfiles/satlab_remote_access/tools/update_system /usr/local/bin
 COPY dockerfiles/satlab_remote_access/tools/update_satlab /usr/local/bin
+COPY dockerfiles/satlab_remote_access/tools/get_disk_info /usr/local/bin
 COPY dockerfiles/satlab_remote_access/tools/docker-system-summary.py /usr/local/bin
 
 # NOTE about cipd:
@@ -72,3 +73,11 @@ RUN apk add --no-cache --upgrade jq
 # Add routine to check export environment variable from .env file
 COPY tools/export_env_file.sh /etc/profile.d/
 RUN chmod 777 /etc/profile.d/export_env_file.sh
+
+# Add routine to check service account key expiration
+COPY dockerfiles/satlab_remote_access/tools/service_account_key_check.sh /etc/profile.d/
+RUN chmod 777 /etc/profile.d/service_account_key_check.sh
+
+# Run storage monitoring check upon ssh
+COPY dockerfiles/satlab_remote_access/tools/wcache_check.sh /etc/profile.d/
+RUN chmod 777 /etc/profile.d/wcache_check.sh

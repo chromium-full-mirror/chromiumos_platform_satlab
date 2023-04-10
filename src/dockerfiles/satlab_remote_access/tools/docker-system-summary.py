@@ -7,8 +7,7 @@ import json
 import re
 import subprocess
 
-"""Pretty-printing output of docker system df -v
-"""
+"""Pretty-printing output of docker system df -v"""
 
 unit_pattern = re.compile("[A-Za-z]+$")
 
