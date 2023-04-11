@@ -29,6 +29,7 @@ COPY dockerfiles/satlab_remote_access/tools/get_host_os_version /usr/local/bin
 COPY dockerfiles/satlab_remote_access/tools/satlab_setup /usr/local/bin
 COPY dockerfiles/satlab_remote_access/tools/update_system /usr/local/bin
 COPY dockerfiles/satlab_remote_access/tools/update_satlab /usr/local/bin
+COPY dockerfiles/satlab_remote_access/tools/docker-system-summary.py /usr/local/bin
 
 # NOTE about cipd:
 # There are two cipd executables. One is located at /root/depot_tools/cipd and the
