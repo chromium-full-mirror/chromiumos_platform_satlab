@@ -1,0 +1,80 @@
+#!/bin/bash
+# Copyright 2023 The Chromium OS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+set -eu
+
+# Fetch IP address from a file.
+function fetch_ip() {
+  local file="$file_path"
+  while read -r line;do
+    for ip in $line
+    do
+      array_ip+=($ip)
+    done
+  done < "$file"
+  reboot_testbed
+}
+
+# Reboots all testbeds
+function reboot_testbed() {
+  echo "This will reboot following testbeds:"
+  printf '%s\n' ${array_ip[@]}
+  read -r -p  "Do you wish to continue(y/n)?" yn
+  case $yn in
+    [Yy]|[Yy][Ee][Ss])
+      while read -r line;do
+        for ip in ${array_ip[@]}
+        do
+          ssh "$ip" /usr/local/bin/reboot >/dev/null 2>&1 &
+        done
+      done < "$file"
+      echo "Successfully Rebooted testbeds ${array_ip[@]}"
+      exit;;
+    [Nn]|[Nn][Oo])echo "User requested to abort task"; exit;;
+    * )echo "Please answer yes or no!"
+      reboot_testbed;;
+  esac
+}
+
+# Help
+function usage() {
+cat <<EOT
+
+usage: ${0} [-f] [file_path]
+
+   -f: File path for Satlab IPs, IPs should be one per line.
+
+EOT
+}
+
+file_flag=false
+
+while getopts ":f:h:" opt; do
+  case "$opt" in
+    f)
+      file_flag=true
+      file_path="$OPTARG"
+      ;;
+    h)
+      usage
+      exit 0
+      ;;
+    *)
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+if [ "$file_flag" = "true" ] && [ $file_path ]; then
+  if [ ! -f $file_path ] || [ -d $file_path ]; then
+    echo "File not found!"
+    exit
+  fi
+  fetch_ip
+else
+    echo "Missing File Flag or File path"
+    usage
+fi
