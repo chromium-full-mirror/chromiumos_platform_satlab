@@ -7,6 +7,7 @@ require (
 	cloud.google.com/go/storage v1.28.1
 	github.com/golang/protobuf v1.5.3
 	github.com/googleapis/gax-go/v2 v2.8.0
+	github.com/hashicorp/go-version v1.6.0
 	github.com/stretchr/testify v1.8.1
 	google.golang.org/api v0.114.0
 	google.golang.org/genproto v0.0.0-20230306155012-7f2fa6fef1f4

@@ -6,6 +6,8 @@ import (
 	"sort"
 	"strconv"
 
+	"github.com/hashicorp/go-version"
+
 	pb "satlab/satlabrpcserver/proto"
 	"satlab/satlabrpcserver/server/services/bucket_services"
 	"satlab/satlabrpcserver/server/services/build_services"
@@ -201,7 +203,12 @@ func (s *SatlabRpcServiceServer) ListBuildVersions(ctx context.Context, in *pb.L
 
 	// Sort the result
 	sort.SliceStable(res, func(i, j int) bool {
-		return res[i].Value < res[i].Value
+		mA, errA := version.NewVersion(res[i].Value)
+		mB, errB := version.NewVersion(res[j].Value)
+		if errA != nil || errB != nil {
+			return res[i].Value > res[j].Value
+		}
+		return mA.GreaterThanOrEqual(mB)
 	})
 
 	return &pb.ListBuildVersionsResponse{
