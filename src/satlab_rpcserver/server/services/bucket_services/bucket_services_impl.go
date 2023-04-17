@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
-	"google.golang.org/api/iterator"
+	"satlab/satlabrpcserver/server/utils"
 )
 
 // BucketConnector is an object for connecting the GCS bucket storage.
@@ -42,19 +42,9 @@ func (b *BucketConnector) getPartialObjectPath(ctx context.Context, prefix strin
 	bucket := b.client.Bucket(b.bucketName)
 	iter := bucket.Objects(ctx, &storage.Query{Prefix: prefix, Delimiter: delimiter})
 
-	var res []string
-	for {
-		blobs, err := iter.Next()
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			return nil, err
-		}
-		path := blobs.Prefix
-		res = append(res, path)
-	}
-	return res, nil
+	return utils.Collect(iter.Next, func(obj *storage.ObjectAttrs) (string, error) {
+		return obj.Prefix, nil
+	})
 }
 
 // IsBucketInAsia returns boolean. Check the given bucket is in asia.
