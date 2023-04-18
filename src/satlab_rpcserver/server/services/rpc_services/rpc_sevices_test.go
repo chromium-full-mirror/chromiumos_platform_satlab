@@ -1,4 +1,4 @@
-package tests
+package rpc_services
 
 import (
 	"context"
@@ -7,12 +7,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	moblabapipb "google.golang.org/genproto/googleapis/chromeos/moblab/v1beta1"
 
 	pb "satlab/satlabrpcserver/proto"
 	"satlab/satlabrpcserver/server/services/build_services"
 	"satlab/satlabrpcserver/server/services/mocks"
-	"satlab/satlabrpcserver/server/services/rpc_services"
 	"satlab/satlabrpcserver/server/utils"
 )
 
@@ -21,6 +22,17 @@ var mockBuildService = new(mocks.MockBuildServices)
 
 // Create a Mock `IBucketService`
 var mockBucketService = new(mocks.MockBucketServices)
+
+// checkShouldRaiseError it is a helper function to check the response should raise error.
+func checkShouldRaiseError(t *testing.T, err error, expectedErr error) {
+	if err == nil {
+		t.Errorf("Should return error, but got no error")
+	}
+
+	if err.Error() != expectedErr.Error() {
+		t.Errorf("Should return error, but get a different error. Expected %v, got %v", expectedErr, err)
+	}
+}
 
 // TestListBuildTargetsShouldSuccess test `ListBuildTargets` function.
 //
@@ -32,7 +44,7 @@ func TestListBuildTargetsShouldSuccess(t *testing.T) {
 		t.Fatalf("Failed to create a label parser %v", err)
 	}
 	// Create a SATLab Server
-	s := rpc_services.New(mockBuildService, mockBucketService, labelParser)
+	s := New(mockBuildService, mockBucketService, labelParser)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
@@ -51,8 +63,8 @@ func TestListBuildTargetsShouldSuccess(t *testing.T) {
 		t.Errorf("Should not return error, but got an error: %v", err)
 	}
 
-	if !reflect.DeepEqual(res.BuildTargets, expected) {
-		t.Errorf("The items isn't match. Expected %v, got: %v", expected, res.BuildTargets)
+	if !reflect.DeepEqual(expected, res.BuildTargets) {
+		t.Errorf("Expected %v != got %v", expected, res.BuildTargets)
 	}
 }
 
@@ -67,7 +79,7 @@ func TestListBuildTargetsShouldFailWhenMakeARequestToBuildClientFailed(t *testin
 		t.Fatalf("Failed to create a label parser %v", err)
 	}
 	// Create a SATLab Server
-	s := rpc_services.New(mockBuildService, mockBucketService, labelParser)
+	s := New(mockBuildService, mockBucketService, labelParser)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
@@ -82,13 +94,7 @@ func TestListBuildTargetsShouldFailWhenMakeARequestToBuildClientFailed(t *testin
 	_, err = s.ListBuildTargets(ctx, req)
 
 	// Assert
-	if err == nil {
-		t.Errorf("Should return error, but no error")
-	}
-
-	if !reflect.DeepEqual(err, expectedErr) {
-		t.Errorf("Should return error, but get a different error. Expected %v, got %v", expectedErr, err)
-	}
+	checkShouldRaiseError(t, err, expectedErr)
 }
 
 // TestListMilestonesShouldSuccess test `ListMilestones` function.
@@ -101,7 +107,7 @@ func TestListMilestonesShouldSuccess(t *testing.T) {
 		t.Fatalf("Failed to create a label parser %v", err)
 	}
 	// Create a SATLab Server
-	s := rpc_services.New(mockBuildService, mockBucketService, labelParser)
+	s := New(mockBuildService, mockBucketService, labelParser)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
@@ -135,13 +141,20 @@ func TestListMilestonesShouldSuccess(t *testing.T) {
 		t.Errorf("Expected %v items, but got %v", 2, len(res.Milestones))
 	}
 
-	for _, item := range res.Milestones {
-		if item.Value == "114" && item.IsStaged {
-			t.Errorf("Expected milestone `114` isn't staged")
-		}
-		if item.Value == "113" && !item.IsStaged {
-			t.Errorf("Expected milestone `113` is staged")
-		}
+	// Assert
+	expected := []*pb.BuildItem{
+		{
+			Value:    "114",
+			IsStaged: false,
+		},
+		{
+			Value:    "113",
+			IsStaged: true,
+		},
+	}
+
+	if !reflect.DeepEqual(expected, res.Milestones) {
+		t.Errorf("Expected %v != got %v", expected, res.Milestones)
 	}
 }
 
@@ -153,7 +166,7 @@ func TestListMilestonesShouldSuccessWhenBucketInAsia(t *testing.T) {
 		t.Fatalf("Failed to create a label parser %v", err)
 	}
 	// Create a SATLab Server
-	s := rpc_services.New(mockBuildService, mockBucketService, labelParser)
+	s := New(mockBuildService, mockBucketService, labelParser)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
@@ -169,7 +182,7 @@ func TestListMilestonesShouldSuccessWhenBucketInAsia(t *testing.T) {
 	mockBucketService.On("GetMilestones", ctx, board).Return(
 		localBucketMilestones, nil)
 	mockBucketService.On("IsBucketInAsia", ctx).Return(
-		false, nil)
+		true, nil)
 
 	req := &pb.ListMilestonesRequest{
 		Board: board,
@@ -183,14 +196,20 @@ func TestListMilestonesShouldSuccessWhenBucketInAsia(t *testing.T) {
 		t.Errorf("Should not return error, but got an error: %v", err)
 	}
 
-	if len(res.Milestones) != 2 {
+	if len(res.Milestones) != 1 {
 		t.Errorf("Expected %v items, but got %v", 2, len(res.Milestones))
 	}
 
-	for _, item := range res.Milestones {
-		if item.Value == "113" && !item.IsStaged {
-			t.Errorf("Expected milestone `113` is staged")
-		}
+	// Assert
+	expected := []*pb.BuildItem{
+		{
+			Value:    "113",
+			IsStaged: true,
+		},
+	}
+
+	if !reflect.DeepEqual(expected, res.Milestones) {
+		t.Errorf("Expected %v != got %v", expected, res.Milestones)
 	}
 }
 
@@ -202,7 +221,7 @@ func TestListMilestonesShouldFailWhenMakeARequestToBucketFailed(t *testing.T) {
 		t.Fatalf("Failed to create a label parser %v", err)
 	}
 	// Create a SATLab Server
-	s := rpc_services.New(mockBuildService, mockBucketService, labelParser)
+	s := New(mockBuildService, mockBucketService, labelParser)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
@@ -229,13 +248,7 @@ func TestListMilestonesShouldFailWhenMakeARequestToBucketFailed(t *testing.T) {
 	_, err = s.ListMilestones(ctx, req)
 
 	// Assert
-	if err == nil {
-		t.Errorf("Should return error, but got no error")
-	}
-
-	if err.Error() != expectedErr.Error() {
-		t.Errorf("Should return error, but get a different error. Expected %v, got %v", expectedErr, err)
-	}
+	checkShouldRaiseError(t, err, expectedErr)
 }
 
 // TestListAccessibleModelShouldSuccess test `ListAccessibleModel` function.
@@ -246,7 +259,7 @@ func TestListAccessibleModelShouldSuccess(t *testing.T) {
 		t.Fatalf("Failed to create a label parser %v", err)
 	}
 	// Create a SATLab Server
-	s := rpc_services.New(mockBuildService, mockBucketService, labelParser)
+	s := New(mockBuildService, mockBucketService, labelParser)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
@@ -272,12 +285,33 @@ func TestListAccessibleModelShouldSuccess(t *testing.T) {
 		t.Errorf("Should got %v difference models", 3)
 	}
 
-	expected := []string{"model1", "model2", "dirinboz"}
-	shouldEmpty := utils.Subtract(expected, res.Models, func(a string, b *pb.Model) bool {
-		return a == b.GetName()
-	})
+	expected := &pb.ListAccessibleModelsResponse{
+		Models: []*pb.Model{
+			{
+				Name:   "model1",
+				Boards: []string{"zork"},
+			},
+			{
+				Name:   "dirinboz",
+				Boards: []string{"zork"},
+			},
+			{
+				Name:   "model2",
+				Boards: []string{"zork"},
+			},
+		},
+	}
 
-	if len(shouldEmpty) != 0 {
+	// Assert
+	// ignore generated pb code
+	ignorePBFieldOpts := cmpopts.IgnoreUnexported(pb.ListAccessibleModelsResponse{}, pb.Model{})
+	// Model ordering is not deterministic, need to sort before comparing
+	sortModelsOpts := cmpopts.SortSlices(
+		func(x, y *pb.Model) bool {
+			return x.GetName() > y.GetName()
+		})
+
+	if diff := cmp.Diff(expected, res, ignorePBFieldOpts, sortModelsOpts); diff != "" {
 		t.Errorf("Expected %v, got %v", expected, res.Models)
 	}
 }
@@ -290,7 +324,7 @@ func TestListAccessibleModelShouldFailWhenMakeARequestToBucketFailed(t *testing.
 		t.Fatalf("Failed to create a label parser %v", err)
 	}
 	// Create a SATLab Server
-	s := rpc_services.New(mockBuildService, mockBucketService, labelParser)
+	s := New(mockBuildService, mockBucketService, labelParser)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
@@ -309,13 +343,7 @@ func TestListAccessibleModelShouldFailWhenMakeARequestToBucketFailed(t *testing.
 	_, err = s.ListAccessibleModels(ctx, req)
 
 	// Assert
-	if err == nil {
-		t.Errorf("Should return error, but got no error")
-	}
-
-	if err.Error() != expectedErr.Error() {
-		t.Errorf("Should return error, but get a different error. Expected %v, got %v", expectedErr, err)
-	}
+	checkShouldRaiseError(t, err, expectedErr)
 }
 
 // TestListBuildVersionsShouldSuccess test `ListBuildVersions` function.
@@ -326,29 +354,33 @@ func TestListBuildVersionsShouldSuccess(t *testing.T) {
 		t.Fatalf("Failed to create a label parser %v", err)
 	}
 	// Create a SATLab Server
-	s := rpc_services.New(mockBuildService, mockBucketService, labelParser)
+	s := New(mockBuildService, mockBucketService, labelParser)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
 	// Setup some data to Mock
-	board := "zork"
-	model := "dirinboz"
+	board := "zork1"
+	model := "dirinboz1"
 	var milestone int32 = 105
 	mockBucketService.
 		On("GetBuilds", ctx, board, milestone).
-		Return([]string{"14826.0.0"}, nil)
+		Return([]string{"14820.8.0"}, nil)
 
 	mockBuildService.
 		On("ListBuildsForMilestone", ctx, board, model, milestone).
 		Return([]*build_services.BuildVersion{
 			{
-				Version: "14989.80.0",
+				Version: "14820.100.0",
+				Status:  build_services.FAILED,
+			},
+			{
+				Version: "14820.20.0",
 				Status:  build_services.AVAILABLE,
 			},
 			{
-				Version: "14820.0.0",
-				Status:  build_services.FAILED,
+				Version: "14820.8.0",
+				Status:  build_services.AVAILABLE,
 			},
 		}, nil)
 
@@ -368,17 +400,27 @@ func TestListBuildVersionsShouldSuccess(t *testing.T) {
 		t.Errorf("Should got %v difference models", 3)
 	}
 
-	for _, build := range res.BuildVersions {
-		if build.GetValue() == "14826.0.0" && !(build.GetIsStaged() && build.GetStatus() == pb.BuildItem_BUILD_STATUS_PASS) {
-			t.Errorf("Expected `14826.0.0` is staged and pass, %v", build)
-		}
-		if build.GetValue() == "14989.80.0" && !(!build.GetIsStaged() && build.GetStatus() == pb.BuildItem_BUILD_STATUS_PASS) {
-			t.Errorf("Expected `14989.80.0` isn't staged and pass %v", build)
-		}
+	expectedResult := []*pb.BuildItem{
+		{
+			Value:    "14820.100.0",
+			Status:   pb.BuildItem_BUILD_STATUS_FAIL,
+			IsStaged: false,
+		},
+		{
+			Value:    "14820.20.0",
+			Status:   pb.BuildItem_BUILD_STATUS_PASS,
+			IsStaged: false,
+		},
+		{
+			Value:    "14820.8.0",
+			Status:   pb.BuildItem_BUILD_STATUS_PASS,
+			IsStaged: true,
+		},
+	}
 
-		if build.GetValue() == "14820.0.0" && !(!build.GetIsStaged() && build.GetStatus() == pb.BuildItem_BUILD_STATUS_FAIL) {
-			t.Errorf("Expected `14820.0.0` isn't staged and isn't passed %v", build)
-		}
+	// Assert
+	if !reflect.DeepEqual(expectedResult, res.BuildVersions) {
+		t.Errorf("Expected %v != got %v", expectedResult, res.BuildVersions)
 	}
 }
 
@@ -390,7 +432,7 @@ func TestListBuildVersionsShouldFailWhenMakeARequestToBuildClientFailed(t *testi
 		t.Fatalf("Failed to create a label parser %v", err)
 	}
 	// Create a SATLab Server
-	s := rpc_services.New(mockBuildService, mockBucketService, labelParser)
+	s := New(mockBuildService, mockBucketService, labelParser)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
@@ -416,13 +458,7 @@ func TestListBuildVersionsShouldFailWhenMakeARequestToBuildClientFailed(t *testi
 	_, err = s.ListBuildVersions(ctx, req)
 
 	// Assert
-	if err == nil {
-		t.Errorf("Should return error, but got no error")
-	}
-
-	if err.Error() != expectedErr.Error() {
-		t.Errorf("Should return error, but get a different error. Expected %v, got %v", expectedErr, err)
-	}
+	checkShouldRaiseError(t, err, expectedErr)
 }
 
 // TestStageBuildShouldSuccess test `StageBuild` function.
@@ -433,7 +469,7 @@ func TestStageBuildShouldSuccess(t *testing.T) {
 		t.Fatalf("Failed to create a label parser %v", err)
 	}
 	// Create a SATLab Server
-	s := rpc_services.New(mockBuildService, mockBucketService, labelParser)
+	s := New(mockBuildService, mockBucketService, labelParser)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
@@ -480,7 +516,7 @@ func TestStageBuildShouldFailWhenMakeARequestToBuildClientFailed(t *testing.T) {
 		t.Fatalf("Failed to create a label parser %v", err)
 	}
 	// Create a SATLab Server
-	s := rpc_services.New(mockBuildService, mockBucketService, labelParser)
+	s := New(mockBuildService, mockBucketService, labelParser)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
@@ -511,11 +547,5 @@ func TestStageBuildShouldFailWhenMakeARequestToBuildClientFailed(t *testing.T) {
 	_, err = s.StageBuild(ctx, req)
 
 	// Assert
-	if err == nil {
-		t.Errorf("Should return error, but got no error")
-	}
-
-	if err.Error() != expectedErr.Error() {
-		t.Errorf("Should return error, but get a different error. Expected %v, got %v", expectedErr, err)
-	}
+	checkShouldRaiseError(t, err, expectedErr)
 }
