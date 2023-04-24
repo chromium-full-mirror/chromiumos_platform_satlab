@@ -22,8 +22,7 @@ echo "Command is ${1}"
 # Stop any old style docker containers that are named default_
 /usr/local/bin/docker stop $(/usr/local/bin/docker ps --filter name="default_" --format "{{.ID}}")
 
-# TODO(prasadv): Find an alternative to support user suppiled service_account key.
-SERVICE_ACCOUNT_KEY=/home/satlab/keys/satlab_service_account.json
+SERVICE_ACCOUNT_KEY=/home/satlab/keys/pubsub-key-do-not-delete.json
 if [ -s "${SERVICE_ACCOUNT_KEY}" ]
 then
   cat ${SERVICE_ACCOUNT_KEY} | docker login -u _json_key --password-stdin https://gcr.io/satlab-images/
