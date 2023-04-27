@@ -3,23 +3,46 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# Folder where all the keys/configs are stored
+KEYS_FOLDER=/home/satlab/keys
+# TODO(prasadv): Move this to environment variable
+GCLOUD_SDK_VERSION=396.0.0
+# Docker command to run gcloud sdk
+GCLOUD="docker run --rm -ti -a stdout -v satlab_keys:${KEYS_FOLDER} -v gcloud:/root/.config/gcloud google/cloud-sdk:${GCLOUD_SDK_VERSION}-slim"
+# Satlab configuration file name to be downloaed from GCS
+SATLAB_CONFIG_FILENAME=satlab-config.json
+# Directory where the .env file is stored
+SATLAB_ENV_DIR=/home/satlab/config
+# File path to the .env file where environmental variables are stored
+SATLAB_ENV_FILE=${SATLAB_ENV_DIR}/.env
+# Service account key file name
+SATLAB_SA_FILENAME="pubsub-key-do-not-delete.json"
+
+clear >$(tty)
 cat << EOF
 ###############################################################################
 IMPORTANT: Please read below information
 ###############################################################################
 Setting up Satlab requires special privileges, you need access to
-serviceaccount and keys to access docker images and other configuration files.
+the Google Storage Bucket and to download artifacts.
 This script will authenticate the user to access the required artifacts.
 
 The following the are steps this script executes:
 
-1. Authenticate user using GCloud SDK(uses gcloud-sdk docker container),
-   when prompted please use your google.com account
-2. Pulls in service account and keys
-3. Pulls in metadata about the state of the service account keys
+1. Asks for Google Storage Bucket name
+
+  *  Google Partners have to provide the GS bucket information assigned to them.
+
+  *  Satlab internal users(googlers), please use "chromeos-satlab-internal-users"
+     as your GS bucket
+
+2. Authenticate user using GCloud SDK(uses gcloud-sdk docker container),
+   when prompted please use your account(@google.com or Partner Domain account)
+3. Pulls in required artifacts once the user is verified.
 4. Finally reboots the chromebox. (You must restart the chromebox inorder to
    finish the satlab setup)
 ###############################################################################
+
 EOF
 while true; do
     read -p "Do you want to continue with the Satlab setup(y/n)?" yn
@@ -30,33 +53,43 @@ while true; do
     esac
 done
 
-SATLAB_SA_FILENAME="pubsub-key-do-not-delete.json"
-KEYS_FOLDER=/home/satlab/keys
-# TODO(prasadv): Move this to environment variable
-GCLOUD_SDK_VERSION=396.0.0
-GCLOUD="docker run --rm -ti -a stdout -v satlab_keys:${KEYS_FOLDER} -v gcloud:/root/.config/gcloud google/cloud-sdk:${GCLOUD_SDK_VERSION}-slim"
+# This function takes JSON file as input and parses key-values to env
+# vairables, then store in .env file.
+function create_env_file() {
+  CONFIG_FILE=$1
 
-echo "******* SATLAB Setup Starting..... *********"
-echo
+  # Check if the JSON file exists.
+  if [ ! -f "${CONFIG_FILE}" ]; then
+    echo -e "ERROR: The Satlab config file '$CONFIG_FILE' does not exist.\n"
+    exit 1
+  fi
+  # Creat and empty .env file, delete content if file already exists
+  # TODO(prasadv): replace with `> ${SATLAB_ENV_FILE}` when we mount config directory in upstart script.
+  sudo touch ${SATLAB_ENV_FILE}
 
-cat << EOF
-To setup Satlab you have to provide the Google Storage Bucket information when prompted.
+  # Read the JSON file into a temporary file
+  TMP_FILE=$(mktemp)
+  sed '/\/\//d' "${CONFIG_FILE}" | jq -r 'to_entries[] | [.key, .value] | join("=")' > "${TMP_FILE}"
+  if [ "$?" -ne 0 ]; then
+    echo -e "\nERROR: Failed parse the Satlab Configuration file, aborting setup!"
+    exit
+  fi
 
-  *  Google Partners have to provide the GS bucket information assigned to them.
+  # Write each key-value pair as an environment variable in .env file
+  while IFS='=' read -r key value; do
+    echo "$key=$value" >> ${SATLAB_ENV_FILE}
+  done < "${TMP_FILE}"
+  # Delete the temporary file
+  rm "${TMP_FILE}"
+}
 
-  *  Satlab internal users a.k.a Googler, please use "chromeos-satlab-internal-users"
-     as your GS bucket
-##########################################################################
-EOF
+echo -e "\nStarting Satlab setup.....\n"
+read -p "Please enter your GS Bucket name (for details pls read the instructions above): " PROJECT_GS_BUCKET
+echo -e "\nAuthenticating the user, please follow the instructions..."
 
-read -p "Please enter your GS Bucket name: " PROJECT_GS_BUCKET
-
-echo
-echo "Authenticating the user, please follow the instructions... ###"
-echo
 ${GCLOUD} gcloud auth login
 if [ "$?" -ne 0 ]; then
-  echo "Failed to authenticate the user, you must use your @google.com account. Please try again!"
+  echo -e "\nERROR:Failed to authenticate the user, you must use your @google.com account. Please try again!"
   exit
 fi
 
@@ -69,18 +102,37 @@ fi
 #   exit
 # fi
 
+echo
 echo "Downloading artifacts..."
 # Download service account key since 10 keys limit per service account.
 # TODO (anhdle): Investigate Wwrkload identity federation
 ${GCLOUD} gsutil cp gs://${PROJECT_GS_BUCKET}/${SATLAB_SA_FILENAME} ${KEYS_FOLDER}
 if [ "$?" -ne 0 ]; then
-  echo "Failed to download service account key, please try again!"
+  echo -e "\nERROR:Failed to download service account key, please try again!"
   exit
 fi
 sudo chmod 666 ${KEYS_FOLDER}/${SATLAB_SA_FILENAME}
 
-echo "Configuring Satlab Privileges successful, please reboot"
-echo
+# Download Satlab configuration file.
+${GCLOUD} gsutil cp gs://${PROJECT_GS_BUCKET}/${SATLAB_CONFIG_FILENAME} ${KEYS_FOLDER}
+
+if [ "$?" -ne 0 ]; then
+  echo -e "\nERROR:Failed to download Satlab Configuration file please try again!"
+  exit
+fi
+
+if [ -f "${KEYS_FOLDER}/${SATLAB_CONFIG_FILENAME}" ]; then
+  # Create a directory to store .env file
+  # TODO(prasadv): Remove this once we mount this directory in upstart script.
+  sudo mkdir -p ${SATLAB_ENV_DIR}
+  # Convert JSON file content to environmental variables
+  create_env_file  ${KEYS_FOLDER}/${SATLAB_CONFIG_FILENAME}
+else
+  echo -e "\nERROR: Couldn't find Satlab config file, please retry satlab_setup."
+  exit 1
+fi
+echo -e "\nSatlab setup successful, please reboot\n"
+
 while true; do
     read -p "Do you want to reboot now(y/n)?" yn
     case $yn in
