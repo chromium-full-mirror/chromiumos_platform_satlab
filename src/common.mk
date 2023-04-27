@@ -32,3 +32,10 @@ compose:
 		-t ${REGISTRY_URI}/satlab-compose:${LABEL} \
 		-f dockerfiles/compose/Dockerfile .
 	docker push ${REGISTRY_URI}/satlab-compose:${LABEL}
+
+satlab-rpcserver: export DOCKER_BUILDKIT := 1
+satlab-rpcserver:
+	docker build ${EXTRA_ARGS} --label "version=${BUILD_VERSION}" \
+		-t ${REGISTRY_URI}/satlab-rpcserver:${LABEL} \
+		-f dockerfiles/satlab-rpcserver/Dockerfile .
+	docker push ${REGISTRY_URI}/satlab-rpcserver:${LABEL}

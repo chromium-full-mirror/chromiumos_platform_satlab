@@ -1,0 +1,3 @@
+$ServiceURL https://chrome-infra-packages.appspot.com/
+
+infra/cros/satlab/satlabrpcserver/linux-amd64 latest
