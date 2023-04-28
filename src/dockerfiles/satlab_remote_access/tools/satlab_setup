@@ -64,8 +64,7 @@ function create_env_file() {
     exit 1
   fi
   # Creat and empty .env file, delete content if file already exists
-  # TODO(prasadv): replace with `> ${SATLAB_ENV_FILE}` when we mount config directory in upstart script.
-  sudo touch ${SATLAB_ENV_FILE}
+  > ${SATLAB_ENV_FILE}
 
   # Read the JSON file into a temporary file
   TMP_FILE=$(mktemp)
@@ -121,16 +120,11 @@ if [ "$?" -ne 0 ]; then
   exit
 fi
 
-if [ -f "${KEYS_FOLDER}/${SATLAB_CONFIG_FILENAME}" ]; then
-  # Create a directory to store .env file
-  # TODO(prasadv): Remove this once we mount this directory in upstart script.
-  sudo mkdir -p ${SATLAB_ENV_DIR}
+if [[ -f "${KEYS_FOLDER}/${SATLAB_CONFIG_FILENAME}" && -d "${SATLAB_ENV_DIR}" ]]; then
   # Convert JSON file content to environmental variables
   create_env_file  ${KEYS_FOLDER}/${SATLAB_CONFIG_FILENAME}
-else
-  echo -e "\nERROR: Couldn't find Satlab config file, please retry satlab_setup."
-  exit 1
 fi
+
 echo -e "\nSatlab setup successful, please reboot\n"
 
 while true; do
