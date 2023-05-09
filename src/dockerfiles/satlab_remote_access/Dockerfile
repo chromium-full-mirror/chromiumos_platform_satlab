@@ -68,3 +68,7 @@ RUN chmod 666 /etc/motd
 
 # Add jq to get service account key id from json file.
 RUN apk add --no-cache --upgrade jq
+
+# Add routine to check export environment variable from .env file
+COPY tools/export_env_file.sh /etc/profile.d/
+RUN chmod 777 /etc/profile.d/export_env_file.sh

@@ -16,19 +16,20 @@ FROM ${COMMON_CORE_URI}/moblab_common:${COMMON_CORE_LABEL} as common
 FROM ${BASE_REGISTRY_URI}/docker/compose:alpine-1.27.4
 
 RUN apk add --no-cache --upgrade \
+    alpine-sdk \
+    cmake \
+    gcc \
+    jq \
+    libffi-dev \
+    libstdc++ \
+    linux-headers \
     openssh-client \
+    openssl-dev \
+    py-pip \
     python3 \
     python3-dev \
     py3-setuptools \
-    alpine-sdk \
-    linux-headers \
-    gcc \
-    cmake \
-    openssl-dev \
-    zlib-dev \
-    libffi-dev \
-    py-pip \
-    libstdc++
+    zlib-dev
 
 # If the args left empty the script will leave the values in .env as is.
 ARG ARTIFACT_DOWNLOADER_SECRET_VER
@@ -90,6 +91,10 @@ RUN ./override_service_version.sh ARTIFACT_DOWNLOADER_SECRET ${ARTIFACT_DOWNLOAD
 RUN ./override_service_version.sh SATLAB_DRONE ${SATLAB_DRONE_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh SATLAB_SECRETS ${SATLAB_SECRETS_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh OPENSSH_SERVER ${OPENSSH_SERVER_VER:-${BUILD_VERSION}}
+
+# Add routine to check export environment variable from .env file
+COPY tools/export_env_file.sh /
+RUN chmod 777 /export_env_file.sh
 
 ENTRYPOINT ["/compose_startup.sh"]
 

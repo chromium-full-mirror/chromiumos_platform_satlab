@@ -38,6 +38,7 @@ services:
       - DOCKER_DRONE_SERVER_NAME=${SATLAB_HOST_IP:-satlab-drone}
       - DOCKER_DNS_SERVER=192.168.100.51
       - DOCKER_DRONE_PRIVATE_SSH_KEYS_PATH=/creds/ssh_keys/partner_testing_rsa
+      - DOCKER_DRONE_AGENT_BOT_PREFIX=${BOT_PREFIX:-crossk-}
     privileged: true
     hostname: ${DRONE_HOSTNAME:-satlab-drone}
     restart: always

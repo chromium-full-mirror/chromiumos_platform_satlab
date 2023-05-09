@@ -81,6 +81,11 @@ else
       export SATLAB_HOST_IP
     fi
 
+    ENV_SETUP_FILE=/export_env_file.sh
+    if [[ -f "${ENV_SETUP_FILE}" ]]; then
+      . ${ENV_SETUP_FILE}
+    fi
+
     docker-compose pull dns
     docker-compose up -d dns
     docker-compose pull drone gsa_server openssh_server nginx
