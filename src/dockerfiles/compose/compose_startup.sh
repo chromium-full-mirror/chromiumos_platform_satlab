@@ -83,7 +83,7 @@ else
 
     ENV_SETUP_FILE=/export_env_file.sh
     if [[ -f "${ENV_SETUP_FILE}" ]]; then
-      . ${ENV_SETUP_FILE}
+      source ${ENV_SETUP_FILE}
     fi
 
     docker-compose pull dns

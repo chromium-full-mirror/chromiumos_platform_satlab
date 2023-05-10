@@ -39,6 +39,8 @@ services:
       - DOCKER_DNS_SERVER=192.168.100.51
       - DOCKER_DRONE_PRIVATE_SSH_KEYS_PATH=/creds/ssh_keys/partner_testing_rsa
       - DOCKER_DRONE_AGENT_BOT_PREFIX=${BOT_PREFIX:-crossk-}
+      - DOCKER_DRONE_AGENT_TSMON_CREDENTIAL_PATH=${TSMON_CREDENTIAL_PATH:-}
+      - DOCKER_DRONE_AGENT_TSMON_ENDPOINT=${TSMON_END_POINT:-file:///dev/null}
     privileged: true
     hostname: ${DRONE_HOSTNAME:-satlab-drone}
     restart: always
