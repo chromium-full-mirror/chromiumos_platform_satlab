@@ -3,6 +3,7 @@ substitutions:
   _COMMON_CORE_URI: gcr.io/chromeos-partner-moblab
   _REGISTRY_URI: us-docker.pkg.dev/chromeos-partner-moblab/satlab
   _SATLAB_REGISTRY_URI: gcr.io/satlab-images
+  _SFP_REGISTRY_URI: us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners
   _SSH_PORT: "22"
   _COMMON_CORE_LABEL: ""
   # Satlab drone, cache server images to use
@@ -12,12 +13,11 @@ substitutions:
 
   # These labels/tags are part of satlab-compose
   _CONF_CREATOR: "${__BUILD_VERSION}"
-  _GSA_SERVER: "${__BUILD_VERSION}"
+  _DOWNLOADER: "${__BUILD_VERSION}"
   _OPENSSH_SERVER: "${__BUILD_VERSION}"
   _NGINX: "${__BUILD_VERSION}"
   _SATLAB_DRONE: "${__BUILD_VERSION}"
   _SATLAB_SECRETS: "${__BUILD_VERSION}"
-  _ARTIFACT_DOWNLOADER_SECRET: "${__BUILD_VERSION}"
   _WATCHTOWER_CMD: --enable-lifecycle-hooks --include-stopped --revive-stopped --interval 3600 --include-restarting --monitor-only
 steps:
   - id: docker-compose
@@ -51,42 +51,24 @@ steps:
       ]
     waitFor:
       - "drone-pull"
-  - id: artifacts_downloader_secret-pull
+  - id: downloader-pull
     name: "gcr.io/cloud-builders/docker"
     args:
       [
         "pull",
-        "${_SATLAB_REGISTRY_URI}/artifacts_downloader_secret:${_SATLAB_STABLE_IMAGE}",
+        "${_SFP_REGISTRY_URI}/downloader:${_SATLAB_STABLE_IMAGE}",
       ]
     waitFor: ['-']
-  - id: artifacts_downloader_secret
+  - id: downloader
     name: "gcr.io/cloud-builders/docker"
     args:
       [
         "tag",
-        "${_SATLAB_REGISTRY_URI}/artifacts_downloader_secret:${_SATLAB_STABLE_IMAGE}",
-        "${_SATLAB_REGISTRY_URI}/artifacts_downloader_secret:${__BUILD_VERSION}"
+        "${_SFP_REGISTRY_URI}/downloader:${_SATLAB_STABLE_IMAGE}",
+        "${_SFP_REGISTRY_URI}/downloader:${__BUILD_VERSION}"
       ]
     waitFor:
-      - "artifacts_downloader_secret-pull"
-  - id: gsa-server-pull
-    name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "pull",
-        "${_SATLAB_REGISTRY_URI}/gsa_server:${_SATLAB_STABLE_IMAGE}",
-      ]
-    waitFor: ['-']
-  - id: gsa-server
-    name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "tag",
-        "${_SATLAB_REGISTRY_URI}/gsa_server:${_SATLAB_STABLE_IMAGE}",
-        "${_SATLAB_REGISTRY_URI}/gsa_server:${__BUILD_VERSION}"
-      ]
-    waitFor:
-      - "gsa-server-pull"
+      - "downloader-pull"
   - id: nginx-pull
     name: "gcr.io/cloud-builders/docker"
     args:
@@ -164,14 +146,14 @@ steps:
     args:
       [
         "build",
-        "--build-arg", "ARTIFACT_DOWNLOADER_SECRET_VER=${_ARTIFACT_DOWNLOADER_SECRET}",
         "--build-arg", "CONF_CREATOR_VER=${_CONF_CREATOR}",
-        "--build-arg", "GSA_SERVER_VER=${_GSA_SERVER}",
+        "--build-arg", "DOWNLOADER_VER=${_DOWNLOADER}",
         "--build-arg", "NGINX_VER=${_NGINX}",
         "--build-arg", "SATLAB_DRONE_VER=${_SATLAB_DRONE}",
         "--build-arg", "SATLAB_SECRETS_VER=${_SATLAB_SECRETS}",
         "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
         "--build-arg", "SATLAB_REGISTRY_URI=${_SATLAB_REGISTRY_URI}",
+        "--build-arg", "SFP_REGISTRY_URI=${_SFP_REGISTRY_URI}",
         "--build-arg", "LABEL=${__LABEL}",
         "--build-arg", "COMMON_CORE_LABEL=${_COMMON_CORE_LABEL}",
         "--build-arg", "COMMON_CORE_URI=${_COMMON_CORE_URI}",
@@ -190,11 +172,10 @@ steps:
      - "docker-compose"
      - "moblab-common"
      - drone
-     - gsa-server
+     - downloader
      - nginx
      - conf-creator
      - satlab-secrets
-     - artifacts_downloader_secret
   - id: satlab-remote-access
     name: "gcr.io/cloud-builders/docker"
     dir: src
@@ -223,7 +204,7 @@ images:
     "${_REGISTRY_URI}/satlab-compose:${__LABEL}",
     "${_REGISTRY_URI}/satlab_remote_access:${__LABEL}",
     "${_SATLAB_REGISTRY_URI}/drone:${__BUILD_VERSION}",
-    "${_SATLAB_REGISTRY_URI}/gsa_server:${__BUILD_VERSION}",
+    "${_SFP_REGISTRY_URI}/downloader:${__BUILD_VERSION}",
     "${_SATLAB_REGISTRY_URI}/nginx:${__BUILD_VERSION}",
     "${_SATLAB_REGISTRY_URI}/conf_creator:${__BUILD_VERSION}",
     "${_SATLAB_REGISTRY_URI}/satlab_secrets:${__BUILD_VERSION}",

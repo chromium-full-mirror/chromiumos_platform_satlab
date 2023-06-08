@@ -13,10 +13,11 @@ export COMMON_CORE_LABEL := autopush
 export COMMON_CORE_REGISTRY := gcr.io/chromeos-partner-moblab
 export REGISTRY := us-docker.pkg.dev/chromeos-partner-moblab/satlab
 export SATLAB_REGISTRY := gcr.io/satlab-images
+export SFP_REGISTRY_URI := us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners
 # Please Note: This make file does not build any core Satlab containers(
-# drone, gsa_server, nginx). These are build separately and we just
+# drone, downloader, nginx). These are build separately and we just
 # use these images in the compose. BUILD_VERSION here is the version
-# of Satlab containers(drone, gsa_server, nginx,conf_creator) that we want.
+# of Satlab containers(drone, downloader, nginx,conf_creator) that we want.
 # to use in the compose. We will add versions tag to these container when
 # pushed to prod and update this flag accordingly.
 # By default we use "stable" tag.

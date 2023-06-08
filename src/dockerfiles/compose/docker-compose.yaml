@@ -78,23 +78,15 @@ services:
     networks:
       satlab:
         ipv4_address: 192.168.100.51
-  ##############################################################################artifacts_downloader_secret
-  artifacts_downloader_secret:
-    container_name: artifacts_downloader_secret
-    image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/artifacts_downloader_secret:${ARTIFACT_DOWNLOADER_SECRET:-release}
-    labels:
-      - "skip.while.pruning.docker.system=yes"
-    volumes:
-      - artifacts_downloader_secret:/creds/service_accounts:rw
-  ##############################################################################gsa_server
-  gsa_server:
-    container_name: gsa_server
-    image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/gsa_server:${GSA_SERVER:-release}
+  ##############################################################################downloader
+  downloader:
+    container_name: downloader
+    image: ${SFP_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners}/downloader:${DOWNLOADER:-release}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - images:/home/chromeos-test/images
-      - artifacts_downloader_secret:/creds/service_accounts:ro
-    command: ['--credential-file', '/creds/service_accounts/artifacts-downloader-service-account.json', '--address', ':8887', '--cache-server-url', 'http://192.168.100.3:8082']
+      - satlab_keys:/creds/service_accounts
+    command: ['--credential-file', '/creds/service_accounts/pubsub-key-do-not-delete.json', '--address', ':8887', '--cache-server-url', 'http://192.168.100.3:8082']
     networks:
       satlab:
         ipv4_address: 192.168.100.2
@@ -102,7 +94,6 @@ services:
       - 192.168.100.51
     depends_on:
       - dns
-      - artifacts_downloader_secret
   ##############################################################################ngix
   nginx:
     container_name: nginx
@@ -125,7 +116,7 @@ services:
     depends_on:
       - conf_creator
       - dns
-      - gsa_server
+      - downloader
   ##############################################################################satlab-secrets
   satlab_secrets:
     container_name: satlab_secrets
@@ -167,7 +158,6 @@ volumes:
     cache: {}
     dut_hosts: {}
     nginx_configs: {}
-    artifacts_downloader_secret: {}
     service_accounts: {}
     boto_file: {}
     servod_profile: {}

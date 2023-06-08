@@ -32,10 +32,9 @@ RUN apk add --no-cache --upgrade \
     zlib-dev
 
 # If the args left empty the script will leave the values in .env as is.
-ARG ARTIFACT_DOWNLOADER_SECRET_VER
 ARG CONF_CREATOR_VER
 ARG SATLAB_DRONE_VER
-ARG GSA_SERVER_VER
+ARG DOWNLOADER_VER
 ARG NGINX_VER
 ARG SATLAB_SECRETS_VER
 ARG OPENSSH_SERVER_VER
@@ -45,6 +44,7 @@ ARG OPENSSH_SERVER_VER
 ARG BASE_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/base-containers
 ARG REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab
 ARG SATLAB_REGISTRY_URI=gcr.io/satlab-images
+ARG SFP_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners
 ARG LABEL=autopush
 # Append --include-stopped --revive-stopped to let watchtower monitor
 # stopped containers (eg: conf_creator, satlab_secrets).
@@ -58,6 +58,7 @@ ENV COMMON_CORE_URI="${COMMON_CORE_URI}"
 ENV REGISTRY_URI="${REGISTRY_URI}"
 ENV WATCHTOWER_CMD="${WATCHTOWER_CMD}"
 ENV SATLAB_REGISTRY_URI="${SATLAB_REGISTRY_URI}"
+ENV SFP_REGISTRY_URI="${SFP_REGISTRY_URI}"
 ENV BUILD_VERSION="${BUILD_VERSION}"
 
 COPY dockerfiles/compose/requirements.txt ./
@@ -85,9 +86,8 @@ COPY dockerfiles/compose/override_service_version.sh .
 RUN chmod u+x override_service_version.sh
 
 RUN ./override_service_version.sh CONF_CREATOR ${CONF_CREATOR_VER:-${BUILD_VERSION}}
-RUN ./override_service_version.sh GSA_SERVER ${GSA_SERVER_VER:-${BUILD_VERSION}}
+RUN ./override_service_version.sh DOWNLOADER ${DOWNLOADER_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh NGINX ${NGINX_VER:-${BUILD_VERSION}}
-RUN ./override_service_version.sh ARTIFACT_DOWNLOADER_SECRET ${ARTIFACT_DOWNLOADER_SECRET_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh SATLAB_DRONE ${SATLAB_DRONE_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh SATLAB_SECRETS ${SATLAB_SECRETS_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh OPENSSH_SERVER ${OPENSSH_SERVER_VER:-${BUILD_VERSION}}

@@ -52,10 +52,7 @@ else
     docker-compose pull satlab_secrets
     docker-compose up -d satlab_secrets
 
-    docker rm -f artifacts_downloader_secret gsa_server
-    docker volume rm default_artifacts_downloader_secret
-    docker-compose pull artifacts_downloader_secret
-    docker-compose up -d artifacts_downloader_secret
+    docker rm -f downloader
     docker rm -f partner_testing_rsa
     docker volume rm default_partner_testing_rsa
     docker-compose pull partner_testing_rsa
@@ -88,8 +85,8 @@ else
 
     docker-compose pull dns
     docker-compose up -d dns
-    docker-compose pull drone gsa_server openssh_server nginx
-    docker-compose up -d drone gsa_server openssh_server nginx
+    docker-compose pull drone downloader openssh_server nginx
+    docker-compose up -d drone downloader openssh_server nginx
 
     # set permission for ssp volume to create lxc containers
     # b/190623503
