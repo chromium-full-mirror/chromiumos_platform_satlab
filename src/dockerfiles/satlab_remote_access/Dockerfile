@@ -74,10 +74,6 @@ RUN apk add --no-cache --upgrade jq
 COPY tools/export_env_file.sh /etc/profile.d/
 RUN chmod 777 /etc/profile.d/export_env_file.sh
 
-# Add routine to check service account key expiration
-COPY dockerfiles/satlab_remote_access/tools/service_account_key_check.sh /etc/profile.d/
-RUN chmod 777 /etc/profile.d/service_account_key_check.sh
-
 # Run storage monitoring check upon ssh
 COPY dockerfiles/satlab_remote_access/tools/wcache_check.sh /etc/profile.d/
 RUN chmod 777 /etc/profile.d/wcache_check.sh
