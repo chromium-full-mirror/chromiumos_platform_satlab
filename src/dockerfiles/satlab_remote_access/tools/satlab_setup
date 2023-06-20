@@ -17,6 +17,8 @@ SATLAB_ENV_DIR=/home/satlab/config
 SATLAB_ENV_FILE=${SATLAB_ENV_DIR}/.env
 # Service account key file name
 SATLAB_SA_FILENAME="pubsub-key-do-not-delete.json"
+# File name of service account key to use by drone container
+SKYLAB_DRONE_KEY_FILENAME="skylab-drone.json"
 
 clear >$(tty)
 cat << EOF
@@ -82,6 +84,9 @@ if [ "$?" -ne 0 ]; then
   exit
 fi
 sudo chmod 666 ${KEYS_FOLDER}/${SATLAB_SA_FILENAME}
+
+# Create skylab drone service account key file due to hardcoded path in drone processes.
+sudo ln -f ${KEYS_FOLDER}/${SATLAB_SA_FILENAME} ${KEYS_FOLDER}/${SKYLAB_DRONE_KEY_FILENAME}
 
 # Download Satlab configuration file.
 ${GCLOUD} gsutil cp gs://${PROJECT_GS_BUCKET}/${SATLAB_CONFIG_FILENAME} ${KEYS_FOLDER}

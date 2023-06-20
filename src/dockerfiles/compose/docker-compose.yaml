@@ -47,7 +47,7 @@ services:
     restart: always
     volumes:
       - ssp:/usr/local/autotest/containers/ssp_volume:rw
-      - service_accounts:/creds/service_accounts:rw
+      - satlab_keys:/creds/service_accounts:rw
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - /var/run/docker.sock:/var/docker.sock:rw
       - servod_profile:/var/servod/profile/:rw
@@ -63,7 +63,6 @@ services:
       - 192.168.100.51
     depends_on:
       - dns
-      - satlab_secrets
       - partner_testing_rsa
   ##############################################################################dns
   dns:
@@ -116,14 +115,6 @@ services:
       - conf_creator
       - dns
       - downloader
-  ##############################################################################satlab-secrets
-  satlab_secrets:
-    container_name: satlab_secrets
-    image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/satlab_secrets:${SATLAB_SECRETS:-release}
-    labels:
-      - "skip.while.pruning.docker.system=yes"
-    volumes:
-      - service_accounts:/creds/service_accounts
   ##############################################################################openssh_server
   openssh_server:
     container_name: openssh_server
@@ -156,7 +147,6 @@ volumes:
     cache: {}
     dut_hosts: {}
     nginx_configs: {}
-    service_accounts: {}
     servod_profile: {}
     satlab_keys:
       external: True

@@ -13,7 +13,6 @@ substitutions:
   _DOWNLOADER: ""
   _NGINX: ""
   _SATLAB_DRONE: ""
-  _SATLAB_SECRETS: ""
 steps:
   - id: docker-compose
     name: "gcr.io/cloud-builders/docker"
@@ -37,7 +36,6 @@ steps:
         "--build-arg", "DOWNLOADER_VER=${_DOWNLOADER}",
         "--build-arg", "NGINX_VER=${_NGINX}",
         "--build-arg", "SATLAB_DRONE_VER=${_SATLAB_DRONE}",
-        "--build-arg", "SATLAB_SECRETS_VER=${_SATLAB_SECRETS}",
         "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
         "--build-arg", "SATLAB_REGISTRY_URI=${_SATLAB_REGISTRY_URI}",
         "--build-arg", "LABEL=${__LABEL}",

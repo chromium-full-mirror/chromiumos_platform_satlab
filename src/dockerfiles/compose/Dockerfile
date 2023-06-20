@@ -36,7 +36,6 @@ ARG CONF_CREATOR_VER
 ARG SATLAB_DRONE_VER
 ARG DOWNLOADER_VER
 ARG NGINX_VER
-ARG SATLAB_SECRETS_VER
 ARG OPENSSH_SERVER_VER
 
 # These are re-defined because ARG has a different scope
@@ -47,7 +46,7 @@ ARG SATLAB_REGISTRY_URI=gcr.io/satlab-images
 ARG SFP_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners
 ARG LABEL=autopush
 # Append --include-stopped --revive-stopped to let watchtower monitor
-# stopped containers (eg: conf_creator, satlab_secrets).
+# stopped containers (eg: conf_creator).
 ARG WATCHTOWER_CMD="--include-stopped --revive-stopped --interval 3600 --monitor-only"
 ARG COMMON_CORE_LABEL=autopush
 ARG COMMON_CORE_URI=gcr.io/chromeos-partner-moblab`
@@ -89,7 +88,6 @@ RUN ./override_service_version.sh CONF_CREATOR ${CONF_CREATOR_VER:-${BUILD_VERSI
 RUN ./override_service_version.sh DOWNLOADER ${DOWNLOADER_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh NGINX ${NGINX_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh SATLAB_DRONE ${SATLAB_DRONE_VER:-${BUILD_VERSION}}
-RUN ./override_service_version.sh SATLAB_SECRETS ${SATLAB_SECRETS_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh OPENSSH_SERVER ${OPENSSH_SERVER_VER:-${BUILD_VERSION}}
 
 # Add routine to check export environment variable from .env file

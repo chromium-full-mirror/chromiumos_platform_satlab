@@ -49,8 +49,6 @@ else
 
     docker-compose pull conf_creator
     docker-compose up -d conf_creator
-    docker-compose pull satlab_secrets
-    docker-compose up -d satlab_secrets
 
     docker rm -f downloader
     docker rm -f partner_testing_rsa

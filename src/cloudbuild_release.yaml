@@ -17,7 +17,6 @@ substitutions:
   _OPENSSH_SERVER: "${__BUILD_VERSION}"
   _NGINX: "${__BUILD_VERSION}"
   _SATLAB_DRONE: "${__BUILD_VERSION}"
-  _SATLAB_SECRETS: "${__BUILD_VERSION}"
   _WATCHTOWER_CMD: --enable-lifecycle-hooks --include-stopped --revive-stopped --interval 3600 --include-restarting --monitor-only
 steps:
   - id: docker-compose
@@ -105,24 +104,6 @@ steps:
       ]
     waitFor:
       - conf-creator-pull
-  - id: satlab-secrets-pull
-    name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "pull",
-        "${_SATLAB_REGISTRY_URI}/satlab_secrets:${_SATLAB_STABLE_IMAGE}",
-      ]
-    waitFor: ['-']
-  - id: satlab-secrets
-    name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "tag",
-        "${_SATLAB_REGISTRY_URI}/satlab_secrets:${_SATLAB_STABLE_IMAGE}",
-        "${_SATLAB_REGISTRY_URI}/satlab_secrets:${__BUILD_VERSION}"
-      ]
-    waitFor:
-      - satlab-secrets-pull
   - id: openssh-server-pull
     name: "gcr.io/cloud-builders/docker"
     args:
@@ -150,7 +131,6 @@ steps:
         "--build-arg", "DOWNLOADER_VER=${_DOWNLOADER}",
         "--build-arg", "NGINX_VER=${_NGINX}",
         "--build-arg", "SATLAB_DRONE_VER=${_SATLAB_DRONE}",
-        "--build-arg", "SATLAB_SECRETS_VER=${_SATLAB_SECRETS}",
         "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
         "--build-arg", "SATLAB_REGISTRY_URI=${_SATLAB_REGISTRY_URI}",
         "--build-arg", "SFP_REGISTRY_URI=${_SFP_REGISTRY_URI}",
@@ -175,7 +155,6 @@ steps:
      - downloader
      - nginx
      - conf-creator
-     - satlab-secrets
   - id: satlab-remote-access
     name: "gcr.io/cloud-builders/docker"
     dir: src
@@ -207,7 +186,6 @@ images:
     "${_SFP_REGISTRY_URI}/downloader:${__BUILD_VERSION}",
     "${_SATLAB_REGISTRY_URI}/nginx:${__BUILD_VERSION}",
     "${_SATLAB_REGISTRY_URI}/conf_creator:${__BUILD_VERSION}",
-    "${_SATLAB_REGISTRY_URI}/satlab_secrets:${__BUILD_VERSION}",
     "${_SATLAB_REGISTRY_URI}/openssh_server:${__BUILD_VERSION}",
   ]
 
