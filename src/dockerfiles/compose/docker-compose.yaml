@@ -53,7 +53,6 @@ services:
       - servod_profile:/var/servod/profile/:rw
       - containers:/var/lib/containers:rw
       - partner_testing_rsa:/creds/ssh_keys:rw
-      - boto_file:/home/chromeos-test/boto_file:rw
     # TODO (prasadv): Make static ip addresses higher numbers
     # so that the lower number are available for dhcp to assign it
     # to dynamically created containers such as servod container
@@ -125,7 +124,6 @@ services:
       - "skip.while.pruning.docker.system=yes"
     volumes:
       - service_accounts:/creds/service_accounts
-      - boto_file:/boto_file
   ##############################################################################openssh_server
   openssh_server:
     container_name: openssh_server
@@ -159,7 +157,6 @@ volumes:
     dut_hosts: {}
     nginx_configs: {}
     service_accounts: {}
-    boto_file: {}
     servod_profile: {}
     satlab_keys:
       external: True
