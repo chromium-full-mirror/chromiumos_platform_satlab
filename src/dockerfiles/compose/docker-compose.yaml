@@ -42,6 +42,7 @@ services:
       - DOCKER_DRONE_AGENT_TSMON_CREDENTIAL_PATH=${TSMON_CREDENTIAL_PATH:-}
       - DOCKER_DRONE_AGENT_TSMON_ENDPOINT=${TSMON_END_POINT:-}
       - DOCKER_SHIVAS_NAMESPACE=${UFS_NAMESPACE:-os}
+      - DOCKER_IMAGE_STORAGE_SERVER=${GCS_IMAGE_BUCKET:-}
     privileged: true
     hostname: ${DRONE_HOSTNAME:-satlab-drone}
     restart: always
