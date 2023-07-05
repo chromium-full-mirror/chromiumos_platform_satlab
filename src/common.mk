@@ -39,3 +39,9 @@ satlab-rpcserver:
 		-t ${REGISTRY_URI}/satlab-rpcserver:${LABEL} \
 		-f dockerfiles/satlab-rpcserver/Dockerfile .
 	docker push ${REGISTRY_URI}/satlab-rpcserver:${LABEL}
+
+conf_creator:
+	docker build ${EXTRA_ARGS} --label "version=${BUILD_VERSION}" \
+		-t ${REGISTRY_URI}/conf_creator:${LABEL} \
+		-f dockerfiles/conf_creator/Dockerfile .
+	docker push ${REGISTRY_URI}/conf_creator:${LABEL}
