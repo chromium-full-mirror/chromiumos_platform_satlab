@@ -21,9 +21,6 @@ services:
       - DOCKER_DRONE_SWARMING_SERVER_URL=https://chromeos-swarming.appspot.com
       - DOCKER_DRONE_ADMIN_SERVICE=chromeos-skylab-bot-fleet.appspot.com
       - DOCKER_DRONE_INVENTORY_ENVIRONMENT=prod
-      # TODO(anhdle): Remove TKO values after TKO deprecation.
-      - DOCKER_DRONE_TKO_INSTANCES=google.com:chromeos-lab:us-central1:tko
-      - DOCKER_DRONE_TKO_USER=cros-infra-admin
       - DOCKER_DRONE_AGENT_DUT_CAPACITY=${DRONE_AGENT_DUT_CAPACITY:-10}
       - DOCKER_DRONE_LOG_PROJECT=satlab-images
       - DOCKER_DRONE_INVENTORY_SERVICE=cros-lab-inventory.appspot.com
