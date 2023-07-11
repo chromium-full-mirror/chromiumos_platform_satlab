@@ -11,8 +11,8 @@ echo "Enviroment variable LABEL is ${LABEL}"
 echo "Enviroment variable COMMON_CORE_LABEL is ${COMMON_CORE_LABEL}"
 echo "Enviroment variable COMMON_CORE_URI is ${COMMON_CORE_URI}"
 echo "Enviroment variable REGISTRY_URI is ${REGISTRY_URI}"
-echo "Enviroment variable SATLAB_REGISTRY_URI is ${SATLAB_REGISTRY_URI}"
 echo "Enviroment variable BUILD_VERSION is ${BUILD_VERSION}"
+echo "Enviroment variable SFP_REGISTRY_URI is ${SFP_REGISTRY_URI}"
 
 echo "Merging main.env and override.env into .env"
 egrep -oh '^[^#]+' main.env override.env | egrep . | awk -F= '{a[$1]=$2}END{for(i in a) print i "=" a[i]}' > .env
@@ -25,7 +25,7 @@ echo "Command is ${1}"
 SERVICE_ACCOUNT_KEY=/home/satlab/keys/pubsub-key-do-not-delete.json
 if [ -s "${SERVICE_ACCOUNT_KEY}" ]
 then
-  cat ${SERVICE_ACCOUNT_KEY} | docker login -u _json_key --password-stdin https://gcr.io/satlab-images/
+  cat ${SERVICE_ACCOUNT_KEY} | docker login -u _json_key --password-stdin ${SFP_REGISTRY_URI}
   if [ "$?" -ne 0 ]; then
     echo "Failed to authenticate docker, please try again!"
     exit

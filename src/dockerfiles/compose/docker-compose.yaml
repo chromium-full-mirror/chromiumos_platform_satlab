@@ -7,7 +7,7 @@ services:
   ##############################################################################conf-creator
   conf_creator:
     container_name: conf-creator
-    image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/conf_creator:${CONF_CREATOR:-release}
+    image: ${SFP_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners}/conf_creator:${CONF_CREATOR:-release}
     labels:
       - "skip.while.pruning.docker.system=yes"
     volumes:
@@ -15,14 +15,13 @@ services:
   ##############################################################################drone
   drone:
     container_name: drone
-    image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/drone:${SATLAB_DRONE:-release}
+    image: ${SFP_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners}/drone:${SATLAB_DRONE:-release}
     environment:
       - DOCKER_DRONE_QUEEN_SERVICE=drone-queen-prod.appspot.com
       - DOCKER_DRONE_SWARMING_SERVER_URL=https://chromeos-swarming.appspot.com
       - DOCKER_DRONE_ADMIN_SERVICE=chromeos-skylab-bot-fleet.appspot.com
       - DOCKER_DRONE_INVENTORY_ENVIRONMENT=prod
       - DOCKER_DRONE_AGENT_DUT_CAPACITY=${DRONE_AGENT_DUT_CAPACITY:-10}
-      - DOCKER_DRONE_LOG_PROJECT=satlab-images
       - DOCKER_DRONE_INVENTORY_SERVICE=cros-lab-inventory.appspot.com
       - DOCKER_DRONE_UFS_SERVICE=ufs.api.cr.dev
       - DOCKER_DRONE_AGENT_HIVE=${DRONE_HOSTNAME:-satlab-drone}
@@ -93,7 +92,7 @@ services:
   ##############################################################################ngix
   nginx:
     container_name: nginx
-    image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/nginx:${NGINX:-release}
+    image: ${SFP_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners}/nginx:${NGINX:-release}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - nginx_logs:/var/log/nginx
@@ -116,7 +115,7 @@ services:
   ##############################################################################openssh_server
   openssh_server:
     container_name: openssh_server
-    image: ${SATLAB_REGISTRY_URI:-gcr.io/satlab-images}/openssh_server:${OPENSSH_SERVER:-release}
+    image: ${SFP_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners}/openssh_server:${OPENSSH_SERVER:-release}
     network_mode: host
     cap_add:
       - NET_ADMIN
@@ -133,7 +132,7 @@ services:
   ##############################################################################dut_key
   partner_testing_rsa:
     container_name: partner_testing_rsa
-    image: gcr.io/satlab-images/partner_testing_rsa:${PARTNER_TESTING_RSA:-release}
+    image: us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners/partner_testing_rsa:${PARTNER_TESTING_RSA:-release}
     labels:
       - "skip.while.pruning.docker.system=yes"
     volumes:

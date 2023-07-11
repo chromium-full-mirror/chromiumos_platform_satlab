@@ -3,11 +3,13 @@
 # found in the LICENSE file.
 
 REGISTRY_URI := ${REGISTRY}
+SFP_REGISTRY_URI := ${SFP_REGISTRY_URI}
+EXTRA_ARGS+= --no-cache
 EXTRA_ARGS+= --build-arg REGISTRY_URI="${REGISTRY_URI}"
-EXTRA_ARGS+= --build-arg SATLAB_REGISTRY_URI="${SATLAB_REGISTRY}"
 EXTRA_ARGS+= --build-arg LABEL="${LABEL}"
 EXTRA_ARGS+= --build-arg COMMON_CORE_LABEL="${COMMON_CORE_LABEL}"
 EXTRA_ARGS+= --build-arg COMMON_CORE_URI="${COMMON_CORE_REGISTRY}"
+EXTRA_ARGS+= --build-arg SFP_REGISTRY_URI="${SFP_REGISTRY_URI}"
 EXTRA_ARGS+= --build-arg BUILD_VERSION="${BUILD_VERSION}"
 EXTRA_ARGS+= --build-arg WATCHTOWER_CMD="${WATCHTOWER_CMD}"
 
@@ -42,6 +44,6 @@ satlab-rpcserver:
 
 conf_creator:
 	docker build ${EXTRA_ARGS} --label "version=${BUILD_VERSION}" \
-		-t ${REGISTRY_URI}/conf_creator:${LABEL} \
+		-t ${SFP_REGISTRY_URI}/conf_creator:${LABEL} \
 		-f dockerfiles/conf_creator/Dockerfile .
-	docker push ${REGISTRY_URI}/conf_creator:${LABEL}
+	docker push ${SFP_REGISTRY_URI}/conf_creator:${LABEL}

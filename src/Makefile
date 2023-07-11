@@ -12,7 +12,6 @@ export LABEL := ${USER}
 export COMMON_CORE_LABEL := autopush
 export COMMON_CORE_REGISTRY := gcr.io/chromeos-partner-moblab
 export REGISTRY := us-docker.pkg.dev/chromeos-partner-moblab/satlab
-export SATLAB_REGISTRY := gcr.io/satlab-images
 export SFP_REGISTRY_URI := us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners
 # Please Note: This make file does not build any core Satlab containers(
 # drone, downloader, nginx). These are build separately and we just

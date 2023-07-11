@@ -6,7 +6,7 @@ substitutions:
   _WATCHTOWER_CMD: --enable-lifecycle-hooks --interval 60 --include-restarting
   _COMMON_CORE_LABEL: autopush
   _COMMON_CORE_URI: gcr.io/chromeos-partner-moblab
-  _SATLAB_REGISTRY_URI: gcr.io/satlab-images
+  _SFP_REGISTRY_URI: us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners
   __BUILD_VERSION: "stable"
   # These labels/tags are part of satlab-compose
   _CONF_CREATOR: ""
@@ -37,11 +37,11 @@ steps:
         "--build-arg", "NGINX_VER=${_NGINX}",
         "--build-arg", "SATLAB_DRONE_VER=${_SATLAB_DRONE}",
         "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
-        "--build-arg", "SATLAB_REGISTRY_URI=${_SATLAB_REGISTRY_URI}",
         "--build-arg", "LABEL=${__LABEL}",
         "--build-arg", "COMMON_CORE_LABEL=${_COMMON_CORE_LABEL}",
         "--build-arg", "COMMON_CORE_URI=${_COMMON_CORE_URI}",
         "--build-arg", "BASE_REGISTRY_URI=${_BASE_REGISTRY_URI}",
+        "--build-arg", "SFP_REGISTRY_URI=${_SFP_REGISTRY_URI}",
         "--build-arg", "BUILD_VERSION=${__BUILD_VERSION}",
         "--label=version=${__BUILD_VERSION}",
         "-t", "${_REGISTRY_URI}/satlab-compose:${__LABEL}",
@@ -62,7 +62,6 @@ steps:
       [
         "build",
         "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
-        "--build-arg", "SATLAB_REGISTRY_URI=${_SATLAB_REGISTRY_URI}",
         "--build-arg", "LABEL=${__LABEL}",
         "--build-arg", "COMMON_CORE_LABEL=${_COMMON_CORE_LABEL}",
         "--build-arg", "COMMON_CORE_URI=${_COMMON_CORE_URI}",

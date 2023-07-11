@@ -42,7 +42,6 @@ ARG OPENSSH_SERVER_VER
 # before and after the FROM instruction.
 ARG BASE_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/base-containers
 ARG REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab
-ARG SATLAB_REGISTRY_URI=gcr.io/satlab-images
 ARG SFP_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners
 ARG LABEL=autopush
 # Append --include-stopped --revive-stopped to let watchtower monitor
@@ -56,7 +55,6 @@ ENV COMMON_CORE_LABEL="${COMMON_CORE_LABEL}"
 ENV COMMON_CORE_URI="${COMMON_CORE_URI}"
 ENV REGISTRY_URI="${REGISTRY_URI}"
 ENV WATCHTOWER_CMD="${WATCHTOWER_CMD}"
-ENV SATLAB_REGISTRY_URI="${SATLAB_REGISTRY_URI}"
 ENV SFP_REGISTRY_URI="${SFP_REGISTRY_URI}"
 ENV BUILD_VERSION="${BUILD_VERSION}"
 

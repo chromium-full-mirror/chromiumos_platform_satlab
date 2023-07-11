@@ -2,7 +2,6 @@ substitutions:
   _BASE_REGISTRY_URI: us-docker.pkg.dev/chromeos-partner-moblab/base-containers
   _COMMON_CORE_URI: gcr.io/chromeos-partner-moblab
   _REGISTRY_URI: us-docker.pkg.dev/chromeos-partner-moblab/satlab
-  _SATLAB_REGISTRY_URI: gcr.io/satlab-images
   _SFP_REGISTRY_URI: us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners
   _SSH_PORT: "22"
   _COMMON_CORE_LABEL: ""
@@ -37,7 +36,7 @@ steps:
     args:
       [
         "pull",
-        "${_SATLAB_REGISTRY_URI}/drone:${_SATLAB_STABLE_IMAGE}",
+        "${_SFP_REGISTRY_URI}/drone:${_SATLAB_STABLE_IMAGE}",
       ]
     waitFor: ['-']
   - id: drone
@@ -45,8 +44,8 @@ steps:
     args:
       [
         "tag",
-        "${_SATLAB_REGISTRY_URI}/drone:${_SATLAB_STABLE_IMAGE}",
-        "${_SATLAB_REGISTRY_URI}/drone:${__BUILD_VERSION}"
+        "${_SFP_REGISTRY_URI}/drone:${_SATLAB_STABLE_IMAGE}",
+        "${_SFP_REGISTRY_URI}/drone:${__BUILD_VERSION}"
       ]
     waitFor:
       - "drone-pull"
@@ -73,7 +72,7 @@ steps:
     args:
       [
         "pull",
-        "${_SATLAB_REGISTRY_URI}/nginx:${_SATLAB_STABLE_IMAGE}",
+        "${_SFP_REGISTRY_URI}/nginx:${_SATLAB_STABLE_IMAGE}",
       ]
     waitFor: ['-']
   - id: nginx
@@ -81,8 +80,8 @@ steps:
     args:
       [
         "tag",
-        "${_SATLAB_REGISTRY_URI}/nginx:${_SATLAB_STABLE_IMAGE}",
-        "${_SATLAB_REGISTRY_URI}/nginx:${__BUILD_VERSION}"
+        "${_SFP_REGISTRY_URI}/nginx:${_SATLAB_STABLE_IMAGE}",
+        "${_SFP_REGISTRY_URI}/nginx:${__BUILD_VERSION}"
       ]
     waitFor:
       - nginx-pull
@@ -91,7 +90,7 @@ steps:
     args:
       [
         "pull",
-        "${_SATLAB_REGISTRY_URI}/conf_creator:${_SATLAB_STABLE_IMAGE}",
+        "${_SFP_REGISTRY_URI}/conf_creator:${_SATLAB_STABLE_IMAGE}",
       ]
     waitFor: ['-']
   - id: conf-creator
@@ -99,8 +98,8 @@ steps:
     args:
       [
         "tag",
-        "${_SATLAB_REGISTRY_URI}/conf_creator:${_SATLAB_STABLE_IMAGE}",
-        "${_SATLAB_REGISTRY_URI}/conf_creator:${__BUILD_VERSION}"
+        "${_SFP_REGISTRY_URI}/conf_creator:${_SATLAB_STABLE_IMAGE}",
+        "${_SFP_REGISTRY_URI}/conf_creator:${__BUILD_VERSION}"
       ]
     waitFor:
       - conf-creator-pull
@@ -109,15 +108,15 @@ steps:
     args:
       [
         "pull",
-        "${_SATLAB_REGISTRY_URI}/openssh_server:${_SATLAB_STABLE_IMAGE}",
+        "${_SFP_REGISTRY_URI}/openssh_server:${_SATLAB_STABLE_IMAGE}",
       ]
   - id: openssh-server
     name: "gcr.io/cloud-builders/docker"
     args:
       [
         "tag",
-        "${_SATLAB_REGISTRY_URI}/openssh_server:${_SATLAB_STABLE_IMAGE}",
-        "${_SATLAB_REGISTRY_URI}/openssh_server:${__BUILD_VERSION}"
+        "${_SFP_REGISTRY_URI}/openssh_server:${_SATLAB_STABLE_IMAGE}",
+        "${_SFP_REGISTRY_URI}/openssh_server:${__BUILD_VERSION}"
       ]
     waitFor:
       - openssh-server-pull
@@ -132,7 +131,6 @@ steps:
         "--build-arg", "NGINX_VER=${_NGINX}",
         "--build-arg", "SATLAB_DRONE_VER=${_SATLAB_DRONE}",
         "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
-        "--build-arg", "SATLAB_REGISTRY_URI=${_SATLAB_REGISTRY_URI}",
         "--build-arg", "SFP_REGISTRY_URI=${_SFP_REGISTRY_URI}",
         "--build-arg", "LABEL=${__LABEL}",
         "--build-arg", "COMMON_CORE_LABEL=${_COMMON_CORE_LABEL}",
@@ -162,7 +160,6 @@ steps:
       [
         "build",
         "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
-        "--build-arg", "SATLAB_REGISTRY_URI=${_SATLAB_REGISTRY_URI}",
         "--build-arg", "LABEL=${__LABEL}",
         "--build-arg", "COMMON_CORE_LABEL=${_COMMON_CORE_LABEL}",
         "--build-arg", "COMMON_CORE_URI=${_COMMON_CORE_URI}",
@@ -182,11 +179,11 @@ images:
   [
     "${_REGISTRY_URI}/satlab-compose:${__LABEL}",
     "${_REGISTRY_URI}/satlab_remote_access:${__LABEL}",
-    "${_SATLAB_REGISTRY_URI}/drone:${__BUILD_VERSION}",
+    "${_SFP_REGISTRY_URI}/drone:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/downloader:${__BUILD_VERSION}",
-    "${_SATLAB_REGISTRY_URI}/nginx:${__BUILD_VERSION}",
-    "${_SATLAB_REGISTRY_URI}/conf_creator:${__BUILD_VERSION}",
-    "${_SATLAB_REGISTRY_URI}/openssh_server:${__BUILD_VERSION}",
+    "${_SFP_REGISTRY_URI}/nginx:${__BUILD_VERSION}",
+    "${_SFP_REGISTRY_URI}/conf_creator:${__BUILD_VERSION}",
+    "${_SFP_REGISTRY_URI}/openssh_server:${__BUILD_VERSION}",
   ]
 
 options:
