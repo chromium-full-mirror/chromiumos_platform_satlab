@@ -8,6 +8,8 @@ services:
   conf_creator:
     container_name: conf-creator
     image: ${SFP_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners}/conf_creator:${CONF_CREATOR:-release}
+    environment:
+      - DOCKER_GCS_IMAGE_STORAGE_SERVER=${GCS_IMAGE_BUCKET:-chromeos-image-archive}
     labels:
       - "skip.while.pruning.docker.system=yes"
     volumes:
