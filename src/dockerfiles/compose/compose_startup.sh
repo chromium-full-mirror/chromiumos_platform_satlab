@@ -97,6 +97,8 @@ else
     # Set permission for device profile created and maintanse by repair
     # tasks.
     docker exec drone chmod 777 /var/servod/profile/
+    # Remove old CFT docker test image.
+    docker exec drone docker image prune -a -f
 
     # Connect satlab_remote_access container to satlab network
     # so that user can use the local dns serice to resolve
