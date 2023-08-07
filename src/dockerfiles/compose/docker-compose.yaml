@@ -48,8 +48,6 @@ services:
     volumes:
       - ssp:/usr/local/autotest/containers/ssp_volume:rw
       - satlab_keys:/creds/service_accounts:rw
-      - /var/run/docker.sock:/var/run/docker.sock:rw
-      - /var/run/docker.sock:/var/docker.sock:rw
       - servod_profile:/var/servod/profile/:rw
       - containers:/var/lib/containers:rw
       - partner_testing_rsa:/creds/ssh_keys:rw
