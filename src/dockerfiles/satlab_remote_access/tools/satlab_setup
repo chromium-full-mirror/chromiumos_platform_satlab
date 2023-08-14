@@ -5,6 +5,8 @@
 
 # Folder where all the keys/configs are stored
 KEYS_FOLDER=/home/satlab/keys
+# Folder where all the recovery versions are stored
+RECOVERY_VERSIONS_FOLDER=recovery_versions
 # TODO(prasadv): Move this to environment variable
 GCLOUD_SDK_VERSION=396.0.0
 # Docker command to run gcloud sdk
@@ -95,6 +97,11 @@ if [ "$?" -ne 0 ]; then
   echo -e "\nERROR:Failed to download Satlab Configuration file please try again!"
   exit
 fi
+
+# Create directory to store recovery versions
+sudo mkdir -p ${KEYS_FOLDER}/${RECOVERY_VERSIONS_FOLDER}
+sudo chmod 777 ${KEYS_FOLDER}/${RECOVERY_VERSIONS_FOLDER}
+echo -e "\nRecovery Versions directory created/n"
 
 echo -e "\nSatlab setup successful, please reboot\n"
 
