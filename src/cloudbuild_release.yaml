@@ -16,7 +16,7 @@ substitutions:
   _OPENSSH_SERVER: "${__BUILD_VERSION}"
   _NGINX: "${__BUILD_VERSION}"
   _SATLAB_DRONE: "${__BUILD_VERSION}"
-  _WATCHTOWER_CMD: --enable-lifecycle-hooks --include-stopped --revive-stopped --interval 3600 --include-restarting --monitor-only
+  _WATCHTOWER_CMD: --enable-lifecycle-hooks --include-stopped --revive-stopped --interval 3600 --include-restarting --label-enable
 steps:
   - id: docker-compose
     name: "gcr.io/cloud-builders/docker"

@@ -3,7 +3,7 @@ substitutions:
   _REGISTRY_URI: us-docker.pkg.dev/chromeos-partner-moblab/satlab
   _SSH_PORT: "22"
   __LABEL: autopush
-  _WATCHTOWER_CMD: --enable-lifecycle-hooks --interval 60 --include-restarting
+  _WATCHTOWER_CMD: --enable-lifecycle-hooks --interval 60 --include-restarting --label-enable
   _COMMON_CORE_LABEL: autopush
   _COMMON_CORE_URI: gcr.io/chromeos-partner-moblab
   _SFP_REGISTRY_URI: us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners
