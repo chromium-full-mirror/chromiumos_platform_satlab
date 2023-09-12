@@ -20,6 +20,9 @@ def factory_reset():
     """Run a factory reset on the docker host box."""
     host_connector.HostServicesConnector.factory_reset()
 
+def get_disk_info():
+    """Executes df -h and lsblk command """
+    print(host_connector.HostServicesConnector.get_disk_info())
 
 def get_host_identifier():
     """Get the serial number for the satlab as a whole"""
