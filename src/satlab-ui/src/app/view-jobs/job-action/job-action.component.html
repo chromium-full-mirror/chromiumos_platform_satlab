@@ -1,0 +1,4 @@
+<button id="action-button" mat-raised-button color="primary"
+          [disabled]="!getNumSelectedJobs()" (click)="doAction()">
+          Abort ({{jobSelections.selected.length}})
+</button>

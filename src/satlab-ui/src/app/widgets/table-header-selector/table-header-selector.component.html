@@ -1,0 +1,10 @@
+<div class="flex flex-row item-center justify-start gap-x-1">
+  <mat-checkbox id="{{checkboxId}}" (change)="checkboxChange()" [checked]="getCheckboxState()"></mat-checkbox>
+  <mat-select [(ngModel)]="selectValue" (selectionChange)="selectionChange()">
+    <mat-option value="None">None</mat-option>
+    <mat-option value="All">All</mat-option>
+    <mat-option *ngFor="let option of options" [value]="option">{{
+      option
+      }}</mat-option>
+  </mat-select>
+</div>

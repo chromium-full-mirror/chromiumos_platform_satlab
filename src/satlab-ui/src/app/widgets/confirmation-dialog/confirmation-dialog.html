@@ -1,0 +1,13 @@
+<h1 mat-dialog-title>{{title}}</h1>
+<div mat-dialog-content class="mat-typography">
+  <p>{{message}}</p>
+</div>
+<div mat-dialog-actions>
+  <button mat-raised-button color="primary" cdkFocusInitial [mat-dialog-close] (click)="onClick()">
+    Yes
+  </button>
+
+  <button mat-raised-button [mat-dialog-close]>
+    No
+  </button>
+</div>

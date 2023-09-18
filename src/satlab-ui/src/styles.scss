@@ -1,0 +1,62 @@
+/* You can add global styles to this file, and also import other style files */
+$material-icons-font-path: '~material-icons/iconfont/';
+
+@import 'material-icons/iconfont/material-icons.scss';
+
+@import '@angular/material/theming';
+// Plus imports for other components in your app.
+
+// Include the common styles for Angular Material. We include this here so that you only
+// have to load a single css file for Angular Material in your app.
+// Be sure that you only ever include this mixin once!
+@include mat-core();
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import './theme.scss';
+
+.mat-mdc-text-field-wrapper {
+  &.mdc-text-field {
+    background-color: transparent !important;
+  }
+
+  .mat-mdc-form-field-focus-overlay {
+    background-color: transparent !important;
+  }
+}
+
+.input-box-container {
+  position: relative;
+  height: 4rem;
+
+  > .mat-mdc-form-field {
+    border: 1px solid #ebebeb;
+    border-radius: 0.25rem;
+  }
+
+  > .mat-mdc-form-field.mat-form-field-invalid {
+    border-color: #f44336;
+  }
+
+  .without-underline .mdc-line-ripple {
+    display: none;
+  }
+
+  .mat-mdc-form-field-subscript-wrapper {
+    position: absolute;
+    top: 3.5rem;
+
+    .mat-mdc-form-field-error-wrapper {
+      padding: 0 0.75rem;
+    }
+  }
+}
+
+.full-width {
+  width: 100%;
+}
+
+.no-wrap {
+  white-space: nowrap;
+}

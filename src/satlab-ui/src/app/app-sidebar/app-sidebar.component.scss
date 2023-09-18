@@ -1,0 +1,141 @@
+@import '../../theme.scss';
+
+.mat-drawer-container {
+  background: white;
+}
+
+mat-sidenav-container {
+  min-height: 600px;
+  background: white;
+  height:100%;
+}
+
+mat-sidenav-content {
+  background: white;
+}
+
+mat-toolbar {
+  min-height: 64px;
+}
+
+.mat-toolbar-warn {
+  min-height: 34px;
+  height: 34px;
+  font-size: 16px;
+  background-color: $moblab-colors-attention;
+}
+
+.moblab-logo-icon {
+  transform: scale(0.9);
+  vertical-align: middle;
+  align-content: center;
+  height: 56px;
+  width: 56px;
+}
+
+.problem-icon {
+  color: yellow;
+  vertical-align: middle
+}
+
+.feedback-icon {
+  vertical-align: middle;
+  align: right;
+}
+
+
+.toolbar-title {
+  margin-left: 16px;
+  font-size: 34px;
+  font-weight: 350;
+}
+
+.moblab-sidebar-icon {
+  padding-right: 10px;
+}
+
+.body {
+  margin: 0px;
+}
+
+.links {
+  font-size:17px;
+  text-align: right;
+  color: #CCCCCC;
+  text-decoration: none;
+}
+
+#links-box {
+  float:right;
+  font-size: 17px;
+}
+
+.link-box-item {
+  display:inline-block;
+  vertical-align: middle;
+}
+
+.feedback-icon-wrapper {
+  margin-top: 10px;
+}
+
+.list-item-active {
+  font-weight: bold;
+  color: mat-color($accent, darker) !important;
+}
+
+.list-item-disabled{
+  opacity: 0.5;
+  text-decoration: none;
+}
+
+.menu-button {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+.toolbar-icon {
+  width: 56px;
+}
+
+.notifications-panel {
+  z-index: 1000;
+  position: fixed;
+  pointer-events: none;
+  top: 0px;
+  width: 100%;
+}
+
+.topbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+a {
+  text-decoration: underline;
+  color: -webkit-link;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.chip-wrapper {
+  display: inline-block;
+  background-color: #3f51b5;
+  margin: 0 4px;
+  padding: 0 8px;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: white;
+}
+
+.chip-wrapper.warn {
+  background-color: #f44336;
+}
+
+.sidenav-wrapper {
+  width: 12rem;
+}
