@@ -1,1 +1,26 @@
+<div>
+  <mat-toolbar color="primary" opened="true" #topToolbar class="top-bar-wrapper">
+    <button mat-icon-button color="accent" aria-label="sidenav button" (click)="drawer.toggle()">
+      <mat-icon class="white-color">menu</mat-icon>
+    </button>
+  </mat-toolbar>
 
+  <mat-drawer-container class="wrapper" autosize>
+    <mat-drawer #drawer mode="side">
+      <div class="sidebar-wrapper">
+        <div class="sidebar-item">
+          <a *ngFor="let tab of navTabs" mat-list-item routerLink="{{ tab.route }}" routerLinkActive="active-route">
+            <div class="flex flex-row items-center gap-2">
+              <mat-icon class="sidebar-icon">{{ tab.icon }} </mat-icon>
+              <p>{{ tab.label }}</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </mat-drawer>
+
+    <div class="content-wrapper">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-drawer-container>
+</div>

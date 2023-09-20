@@ -1,0 +1,33 @@
+.white-color {
+  color: rgb(255, 255, 255);
+}
+
+.wrapper {
+  width: 100%;
+  height: 100vh;
+
+  .sidebar-wrapper {
+    min-width: 13rem;
+    height: 100%;
+
+    .sidebar-item {
+      font-size: 1.1rem;
+      font-weight: 400;
+
+      &:hover {
+        background-color: rgba(200, 200, 200, 0.6);
+      }
+
+      padding: 1rem;
+      min-height: 4rem;
+    }
+  }
+
+  .content-wrapper {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
