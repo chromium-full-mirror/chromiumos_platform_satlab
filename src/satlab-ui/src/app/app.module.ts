@@ -27,46 +27,23 @@ import {NgModule} from '@angular/core';
 import {RouterModule} from '@angular/router';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
 
-import {AdvancedSettingsComponent} from './advanced-settings/advanced-settings.component';
 import {AppComponent} from './app.component';
 import {AppRoutingModule} from './app-routing.module';
 import {AppSidebarComponent} from './app-sidebar/app-sidebar.component';
-import {ConfigurationComponent} from './configuration/configuration.component';
-import {DutDetailModule} from './dut-detail/dut-detail.module';
-import {JobDetailModule} from './job-detail/job-detail.module';
-import {ManageDutsModule} from './manage-duts/manage-duts.module';
-import {MobmonitorComponent} from './mobmonitor/mobmonitor.component';
-import {MobmonitorPipe} from './mobmonitor/mobmonitor.component';
-import {PipesModule} from './pipes/pipes.module';
-import {RunSuiteModule} from './run-suite/run-suite.module';
-import {ServicesModule} from './services/services.module';
-import {ViewJobsModule} from './view-jobs/view-jobs.module';
-import {WidgetsModule} from './widgets/widgets.module';
-import {HealthCheckComponent} from './health-check/health-check.component';
-import {AboutComponent} from './about/about.component';
 
 @NgModule({
   declarations: [
-    AdvancedSettingsComponent,
     AppComponent,
     AppSidebarComponent,
-    ConfigurationComponent,
-    MobmonitorComponent,
-    MobmonitorPipe,
-    HealthCheckComponent,
-    AboutComponent,
   ],
   imports: [
     AppRoutingModule,
     BrowserAnimationsModule,
     BrowserModule,
     CommonModule,
-    DutDetailModule,
     FormsModule,
     HttpClientModule,
-    JobDetailModule,
     LayoutModule,
-    ManageDutsModule,
     MatButtonModule,
     MatCardModule,
     MatCheckboxModule,
@@ -87,13 +64,8 @@ import {AboutComponent} from './about/about.component';
     MatTabsModule,
     MatToolbarModule,
     MatTooltipModule,
-    PipesModule,
     ReactiveFormsModule,
     RouterModule,
-    RunSuiteModule,
-    ServicesModule.forRoot(),
-    ViewJobsModule,
-    WidgetsModule,
   ],
   exports: [
     AppRoutingModule,
@@ -101,8 +73,6 @@ import {AboutComponent} from './about/about.component';
     MatMenuModule,
     MatTableModule,
     RouterModule,
-    RunSuiteModule,
-    WidgetsModule,
   ],
   bootstrap: [AppComponent],
 })

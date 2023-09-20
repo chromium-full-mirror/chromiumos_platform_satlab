@@ -16,7 +16,6 @@ import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterModule} from '@angular/router';
 
 import {AppSidebarComponent} from './app-sidebar.component';
-import {GlobalInfoService, ServicesModule} from 'app/services/services.module';
 
 describe('AppSidebarComponent', () => {
   let component: AppSidebarComponent;
@@ -38,11 +37,10 @@ describe('AppSidebarComponent', () => {
         MatTabsModule,
         MatToolbarModule,
         NoopAnimationsModule,
-        ServicesModule,
         RouterModule,
         RouterModule.forRoot([]),
       ],
-      providers: [{provide: GlobalInfoService, useClass: GlobalInfoService}],
+      providers: [],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
   }));

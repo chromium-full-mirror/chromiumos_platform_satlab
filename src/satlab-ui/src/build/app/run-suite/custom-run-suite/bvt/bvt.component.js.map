@@ -1,1 +1,0 @@
-{"version":3,"file":"bvt.component.js","sourceRoot":"","sources":["bvt.component.ts"],"names":[],"mappings":";;;;;;;;;AAAA,OAAO,EAAC,SAAS,EAAS,MAAM,eAAe,CAAC;AAOhD,IAAa,YAAY,GAAzB,MAAa,YAAY;IACvB,gBAAe,CAAC;IAEhB,QAAQ,KAAI,CAAC;CACd,CAAA;AAJY,YAAY;IALxB,SAAS,CAAC;QACT,QAAQ,EAAE,SAAS;QACnB,WAAW,EAAE,sBAAsB;QACnC,SAAS,EAAE,CAAC,sBAAsB,CAAC;KACpC,CAAC;;GACW,YAAY,CAIxB;SAJY,YAAY"}

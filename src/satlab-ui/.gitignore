@@ -41,3 +41,7 @@ Thumbs.db
 
 # local environment overrride
 /src/environments/environment.local.ts
+
+/src/build/*
+
+.angular/*

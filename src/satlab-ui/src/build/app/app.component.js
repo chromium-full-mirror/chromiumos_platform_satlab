@@ -10,7 +10,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 import { Component } from '@angular/core';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
-let AppComponent = class AppComponent {
+export let AppComponent = class AppComponent {
+    matIconRegistry;
+    domSanitizer;
     constructor(matIconRegistry, domSanitizer) {
         this.matIconRegistry = matIconRegistry;
         this.domSanitizer = domSanitizer;
@@ -29,5 +31,4 @@ AppComponent = __decorate([
     __metadata("design:paramtypes", [MatIconRegistry,
         DomSanitizer])
 ], AppComponent);
-export { AppComponent };
 //# sourceMappingURL=../../app/app.component.js.map
