@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "moblab-partner-ui": {
+    "satlab-partner-ui": {
       "root": "",
       "sourceRoot": "src",
       "projectType": "application",
@@ -101,27 +101,27 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "moblab-partner-ui:build"
+            "browserTarget": "satlab-partner-ui:build"
           },
           "configurations": {
             "source": {
-              "browserTarget": "moblab-partner-ui:build:source"
+              "browserTarget": "satlab-partner-ui:build:source"
             },
             "dev": {
-              "browserTarget": "moblab-partner-ui:build:dev"
+              "browserTarget": "satlab-partner-ui:build:dev"
             },
             "local": {
-              "browserTarget": "moblab-partner-ui:build:local"
+              "browserTarget": "satlab-partner-ui:build:local"
             },
             "production": {
-              "browserTarget": "moblab-partner-ui:build:production"
+              "browserTarget": "satlab-partner-ui:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "moblab-partner-ui:build"
+            "browserTarget": "satlab-partner-ui:build"
           }
         },
         "test": {
@@ -150,7 +150,7 @@
         }
       }
     },
-    "moblab-partner-ui-e2e": {
+    "satlab-partner-ui-e2e": {
       "root": "",
       "sourceRoot": "e2e",
       "projectType": "application",
@@ -159,7 +159,7 @@
           "builder": "@angular-devkit/build-angular:protractor",
           "options": {
             "protractorConfig": "./protractor.conf.js",
-            "devServerTarget": "moblab-partner-ui:serve"
+            "devServerTarget": "satlab-partner-ui:serve"
           }
         },
         "lint": {
@@ -192,7 +192,6 @@
       }
     }
   },
-  "defaultProject": "moblab-partner-ui",
   "schematics": {
     "@schematics/angular:component": {
       "prefix": "app",
