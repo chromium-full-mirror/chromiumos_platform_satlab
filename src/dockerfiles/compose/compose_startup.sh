@@ -106,7 +106,7 @@ else
     docker system prune --filter "label!=skip.while.pruning.docker.system=yes" -f
 
     # Prune unused/dangling images.
-    docker image prune -a
+    docker image prune -a -f
 
     docker-compose logs -f -t
 
