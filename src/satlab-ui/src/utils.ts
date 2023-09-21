@@ -1,5 +1,12 @@
+import { environment } from './environments/environment';
+
 export function getRPCHost() {
-  return 'http://10.240.102.38:8080/satlab/rpc';
+  const url = new URL(window.location.href);
+  const hostname = environment.defaultHostName || url.hostname;
+  const port = environment.defaultApiPort || url.port;
+  let serviceUrl = new String(url.protocol);
+  serviceUrl = serviceUrl.concat('//', hostname, ':', port, '/rpc');
+  return serviceUrl;
 }
 
 function* map<T, U>(iter: Iterator<T>, f: (elem: T) => U) {
