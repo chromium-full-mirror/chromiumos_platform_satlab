@@ -20,17 +20,17 @@ FROM ${COMMON_CORE_URI}/remote_access:${COMMON_CORE_LABEL}
 WORKDIR /
 RUN /sbin/apk add git
 
-COPY dockerfiles/satlab_remote_access/tools/host_command.py /usr/local/bin
-COPY dockerfiles/satlab_remote_access/tools/force-update-cipd /usr/local/bin
-COPY dockerfiles/satlab_remote_access/tools/get_dns_hosts /usr/local/bin
-COPY dockerfiles/satlab_remote_access/tools/get_host_identifier /usr/local/bin
-COPY dockerfiles/satlab_remote_access/tools/get_host_ip /usr/local/bin
-COPY dockerfiles/satlab_remote_access/tools/get_host_os_version /usr/local/bin
-COPY dockerfiles/satlab_remote_access/tools/satlab_setup /usr/local/bin
-COPY dockerfiles/satlab_remote_access/tools/update_system /usr/local/bin
-COPY dockerfiles/satlab_remote_access/tools/update_satlab /usr/local/bin
-COPY dockerfiles/satlab_remote_access/tools/get_disk_info /usr/local/bin
-COPY dockerfiles/satlab_remote_access/tools/docker-system-summary.py /usr/local/bin
+COPY dockerfiles/satlab_remote_access/tools/host_command.py \
+    dockerfiles/satlab_remote_access/tools/force-update-cipd \
+    dockerfiles/satlab_remote_access/tools/get_dns_hosts \
+    dockerfiles/satlab_remote_access/tools/get_host_identifier \
+    dockerfiles/satlab_remote_access/tools/get_host_ip \
+    dockerfiles/satlab_remote_access/tools/get_host_os_version \
+    dockerfiles/satlab_remote_access/tools/satlab_setup \
+    dockerfiles/satlab_remote_access/tools/update_system \
+    dockerfiles/satlab_remote_access/tools/update_satlab \
+    dockerfiles/satlab_remote_access/tools/get_disk_info \
+    dockerfiles/satlab_remote_access/tools/docker-system-summary.py /usr/local/bin/
 
 # NOTE about cipd:
 # There are two cipd executables. One is located at /root/depot_tools/cipd and the
