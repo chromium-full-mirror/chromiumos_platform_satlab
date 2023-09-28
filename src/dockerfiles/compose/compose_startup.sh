@@ -22,19 +22,6 @@ echo "Command is ${1}"
 # Stop any old style docker containers that are named default_
 /usr/local/bin/docker stop $(/usr/local/bin/docker ps --filter name="default_" --format "{{.ID}}")
 
-SERVICE_ACCOUNT_KEY=/home/satlab/keys/pubsub-key-do-not-delete.json
-if [ -s "${SERVICE_ACCOUNT_KEY}" ]
-then
-  cat ${SERVICE_ACCOUNT_KEY} | docker login -u _json_key --password-stdin ${SFP_REGISTRY_URI}
-  if [ "$?" -ne 0 ]; then
-    echo "Failed to authenticate docker, please try again!"
-    exit
-  fi
-else
-   echo "Service account key missing, you need service account key to access Satlab images."
-   exit
-fi
-
 if [ "${1}" == "down" ]
 then
     docker-compose down -t 1
@@ -42,6 +29,23 @@ then
 
     docker-compose -f ./docker-compose.watchtower.yaml down -t 1
 else
+    docker rm -f satlab_rpcserver
+    docker-compose pull satlab_rpcserver
+    docker-compose up -d satlab_rpcserver
+
+    SERVICE_ACCOUNT_KEY=/home/satlab/keys/pubsub-key-do-not-delete.json
+    if [ -s "${SERVICE_ACCOUNT_KEY}" ]
+    then
+      cat ${SERVICE_ACCOUNT_KEY} | docker login -u _json_key --password-stdin ${SFP_REGISTRY_URI}
+      if [ "$?" -ne 0 ]; then
+        echo "Failed to authenticate docker, please try again!"
+        exit
+      fi
+    else
+      echo "Service account key missing, you need service account key to access Satlab images."
+      exit
+    fi
+
     # This is in case the device was not shutdown cleanly there might be
     # restarted containers (restarted by dockerd)
     docker-compose down -t 1

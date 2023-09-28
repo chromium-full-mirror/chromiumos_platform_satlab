@@ -17,6 +17,7 @@ substitutions:
   _NGINX: "${__BUILD_VERSION}"
   _SATLAB_DRONE: "${__BUILD_VERSION}"
   _WATCHTOWER_CMD: --enable-lifecycle-hooks --include-stopped --revive-stopped --interval 3600 --include-restarting --label-enable
+  _SATLAB_RPCSERVER: "${__BUILD_VERSION}"
 steps:
   - id: docker-compose
     name: "gcr.io/cloud-builders/docker"
@@ -130,6 +131,7 @@ steps:
         "--build-arg", "DOWNLOADER_VER=${_DOWNLOADER}",
         "--build-arg", "NGINX_VER=${_NGINX}",
         "--build-arg", "SATLAB_DRONE_VER=${_SATLAB_DRONE}",
+        "--build-arg", "SATLAB_RPCSERVER_VER=${_SATLAB_RPCSERVER}",
         "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
         "--build-arg", "SFP_REGISTRY_URI=${_SFP_REGISTRY_URI}",
         "--build-arg", "LABEL=${__LABEL}",
@@ -175,10 +177,33 @@ steps:
     waitFor:
       - "remote-access"
 
+  - id: satlab-rpcserver
+    name: "gcr.io/cloud-builders/docker"
+    dir: src
+    args:
+      [
+        "build",
+        "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
+        "--build-arg", "LABEL=${__LABEL}",
+        "--build-arg", "COMMON_CORE_LABEL=${_COMMON_CORE_LABEL}",
+        "--build-arg", "COMMON_CORE_URI=${_COMMON_CORE_URI}",
+        "--build-arg", "BASE_REGISTRY_URI=${_BASE_REGISTRY_URI}",
+        "--build-arg", "BUILD_VERSION=${__BUILD_VERSION}",
+        "-t", "${_REGISTRY_URI}/satlab-rpcserver:${__LABEL}",
+        "-f", "dockerfiles/satlab-rpcserver/Dockerfile",
+        "."
+      ]
+    env:
+      - "DOCKER_BUILDKIT=1"
+    waitFor:
+     - "moblab-common"
+     - conf-creator
+
 images:
   [
     "${_REGISTRY_URI}/satlab-compose:${__LABEL}",
     "${_REGISTRY_URI}/satlab_remote_access:${__LABEL}",
+    "${_REGISTRY_URI}/satlab-rpcserver:${__LABEL}",
     "${_SFP_REGISTRY_URI}/drone:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/downloader:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/nginx:${__BUILD_VERSION}",

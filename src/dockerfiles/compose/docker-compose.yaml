@@ -138,6 +138,31 @@ services:
       - "skip.while.pruning.docker.system=yes"
     volumes:
       - partner_testing_rsa:/creds/ssh_keys:rw
+  ##############################################################################rpc_server
+  satlab_rpcserver:
+    container_name: satlab_rpcserver
+    image: us-docker.pkg.dev/chromeos-partner-moblab/satlab/satlab-rpcserver:${SATLAB_RPCSERVER:-release}
+    networks:
+      satlab:
+        ipv4_address: 192.168.100.4
+    dns:
+      - 192.168.100.51
+    ports:
+      - "6003:6003"
+    environment:
+      - PUID=246
+      - PGID=246
+      - TZ=Etc/UTC
+      - SUDO_ACCESS=true
+      - USER_NAME=moblab
+      - DOCKER_MODS=linuxserver/mods:openssh-server-ssh-tunnel
+    volumes:
+      - logs:/var/log/satlab
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - /var/log/bootup:/var/log/bootup
+      - satlab_keys:/home/satlab/keys
+      - cache_server:/home/satlab/cache_server
+      - leases:/leases:ro
   ##############################################################################volumes
 volumes:
     logs: {}

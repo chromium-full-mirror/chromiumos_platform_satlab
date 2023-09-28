@@ -37,6 +37,7 @@ ARG SATLAB_DRONE_VER
 ARG DOWNLOADER_VER
 ARG NGINX_VER
 ARG OPENSSH_SERVER_VER
+ARG SATLAB_RPCSERVER_VER
 
 # These are re-defined because ARG has a different scope
 # before and after the FROM instruction.
@@ -87,6 +88,7 @@ RUN ./override_service_version.sh DOWNLOADER ${DOWNLOADER_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh NGINX ${NGINX_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh SATLAB_DRONE ${SATLAB_DRONE_VER:-${BUILD_VERSION}}
 RUN ./override_service_version.sh OPENSSH_SERVER ${OPENSSH_SERVER_VER:-${BUILD_VERSION}}
+RUN ./override_service_version.sh SATLAB_RPCSERVER ${SATLAB_RPCSERVER_VER:-${BUILD_VERSION}}
 
 # Add routine to check export environment variable from .env file
 COPY tools/export_env_file.sh /
