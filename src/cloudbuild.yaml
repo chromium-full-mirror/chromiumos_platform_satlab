@@ -14,6 +14,7 @@ substitutions:
   _NGINX: ""
   _SATLAB_DRONE: ""
   _SATLAB_RPCSERVER: ""
+  _ENVOY_PROXY: ""
 steps:
   - id: docker-compose
     name: "gcr.io/cloud-builders/docker"
@@ -27,6 +28,9 @@ steps:
     name: "gcr.io/cloud-builders/docker"
     args: ["pull", "${_COMMON_CORE_URI}/remote_access:${_COMMON_CORE_LABEL}"]
     waitFor: ['-']
+  - id: envoyproxy
+    name: "gcr.io/cloud-builders/docker"
+    args: ["pull", "${_BASE_REGISTRY_URI}/envoyproxy/envoy:v1.15.2"]
   - id: compose
     name: "gcr.io/cloud-builders/docker"
     dir: src
@@ -38,6 +42,7 @@ steps:
         "--build-arg", "NGINX_VER=${_NGINX}",
         "--build-arg", "SATLAB_DRONE_VER=${_SATLAB_DRONE}",
         "--build-arg", "SATLAB_RPCSERVER_VER=${_SATLAB_RPCSERVER}",
+        "--build-arg", "ENVOY_PROXY_VER=${_ENVOY_PROXY}",
         "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
         "--build-arg", "LABEL=${__LABEL}",
         "--build-arg", "COMMON_CORE_LABEL=${_COMMON_CORE_LABEL}",
@@ -100,11 +105,26 @@ steps:
     waitFor:
      - "moblab-common"
 
+  - id: envoy
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
+        "--build-arg", "LABEL=${__LABEL}",
+        "-t", "${_REGISTRY_URI}/envoy-proxy:${__LABEL}",
+        "-f", "/workspace/src/dockerfiles/envoy/Dockerfile",
+        "."
+      ]
+    waitFor:
+      - "envoyproxy"
+
 images:
   [
     "${_REGISTRY_URI}/satlab-compose:${__LABEL}",
     "${_REGISTRY_URI}/satlab_remote_access:${__LABEL}",
     "${_REGISTRY_URI}/satlab-rpcserver:${__LABEL}",
+    "${_REGISTRY_URI}/envoy-proxy:${__LABEL}",
   ]
 
 options:

@@ -18,6 +18,7 @@ substitutions:
   _SATLAB_DRONE: "${__BUILD_VERSION}"
   _WATCHTOWER_CMD: --enable-lifecycle-hooks --include-stopped --revive-stopped --interval 3600 --include-restarting --label-enable
   _SATLAB_RPCSERVER: "${__BUILD_VERSION}"
+  _ENVOY_PROXY: "${__BUILD_VERSION}"
 steps:
   - id: docker-compose
     name: "gcr.io/cloud-builders/docker"
@@ -30,6 +31,10 @@ steps:
   - id: remote-access
     name: "gcr.io/cloud-builders/docker"
     args: ["pull", "${_COMMON_CORE_URI}/remote_access:${_COMMON_CORE_LABEL}"]
+    waitFor: ['-']
+  - id: envoyproxy
+    name: "gcr.io/cloud-builders/docker"
+    args: ["pull", "${_BASE_REGISTRY_URI}/envoyproxy/envoy:v1.15.2"]
     waitFor: ['-']
 
   - id: drone-pull
@@ -132,6 +137,7 @@ steps:
         "--build-arg", "NGINX_VER=${_NGINX}",
         "--build-arg", "SATLAB_DRONE_VER=${_SATLAB_DRONE}",
         "--build-arg", "SATLAB_RPCSERVER_VER=${_SATLAB_RPCSERVER}",
+        "--build-arg", "ENVOY_PROXY_VER=${_ENVOY_PROXY}",
         "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
         "--build-arg", "SFP_REGISTRY_URI=${_SFP_REGISTRY_URI}",
         "--build-arg", "LABEL=${__LABEL}",
@@ -199,11 +205,26 @@ steps:
      - "moblab-common"
      - conf-creator
 
+  - id: envoy
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
+        "--build-arg", "LABEL=${__LABEL}",
+        "-t", "${_REGISTRY_URI}/envoy-proxy:${__LABEL}",
+        "-f", "/workspace/src/dockerfiles/envoy/Dockerfile",
+        "."
+      ]
+    waitFor:
+      - "envoyproxy"
+
 images:
   [
     "${_REGISTRY_URI}/satlab-compose:${__LABEL}",
     "${_REGISTRY_URI}/satlab_remote_access:${__LABEL}",
     "${_REGISTRY_URI}/satlab-rpcserver:${__LABEL}",
+    "${_REGISTRY_URI}/envoy-proxy:${__LABEL}",
     "${_SFP_REGISTRY_URI}/drone:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/downloader:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/nginx:${__BUILD_VERSION}",

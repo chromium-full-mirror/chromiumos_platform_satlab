@@ -142,6 +142,7 @@ services:
   satlab_rpcserver:
     container_name: satlab_rpcserver
     image: us-docker.pkg.dev/chromeos-partner-moblab/satlab/satlab-rpcserver:${SATLAB_RPCSERVER:-release}
+    hostname: satlab-rpcserver
     networks:
       satlab:
         ipv4_address: 192.168.100.4
@@ -163,6 +164,23 @@ services:
       - satlab_keys:/home/satlab/keys
       - cache_server:/home/satlab/cache_server
       - leases:/leases:ro
+  ##############################################################################envoy-proxy
+  envoy-proxy:
+    container_name: envoy-proxy
+    image: us-docker.pkg.dev/chromeos-partner-moblab/satlab/envoy-proxy:${ENVOY_PROXY:-release}
+    user: moblab
+    restart: unless-stopped
+    environment:
+      - ENVOY_UID=0
+    hostname: envoy-proxy
+    volumes:
+      - logs:/var/log/satlab
+    networks:
+      satlab:
+        ipv4_address: 192.168.100.5
+    ports:
+      - "80:6001"
+      - "6011:6011"
   ##############################################################################volumes
 volumes:
     logs: {}
