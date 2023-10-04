@@ -19,6 +19,7 @@ substitutions:
   _WATCHTOWER_CMD: --enable-lifecycle-hooks --include-stopped --revive-stopped --interval 3600 --include-restarting --label-enable
   _SATLAB_RPCSERVER: "${__BUILD_VERSION}"
   _ENVOY_PROXY: "${__BUILD_VERSION}"
+  _SATLAB_LOGROTATE: "${__BUILD_VERSION}"
 steps:
   - id: docker-compose
     name: "gcr.io/cloud-builders/docker"
@@ -91,6 +92,23 @@ steps:
       ]
     waitFor:
       - nginx-pull
+  - id: logrotate-pull
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "pull",
+        "${_REGISTRY_URI}/logrotate:${__BUILD_VERSION}",
+      ]
+    waitFor: ['-']
+  - id: logrotate
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "tag",
+        "${_REGISTRY_URI}/logrotate:${__BUILD_VERSION}",
+      ]
+    waitFor:
+      - logrotate-pull
   - id: conf-creator-pull
     name: "gcr.io/cloud-builders/docker"
     args:
@@ -138,6 +156,7 @@ steps:
         "--build-arg", "SATLAB_DRONE_VER=${_SATLAB_DRONE}",
         "--build-arg", "SATLAB_RPCSERVER_VER=${_SATLAB_RPCSERVER}",
         "--build-arg", "ENVOY_PROXY_VER=${_ENVOY_PROXY}",
+        "--build-arg", "LOGROTATE_VER=${_SATLAB_LOGROTATE}",
         "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
         "--build-arg", "SFP_REGISTRY_URI=${_SFP_REGISTRY_URI}",
         "--build-arg", "LABEL=${__LABEL}",
@@ -161,6 +180,7 @@ steps:
      - downloader
      - nginx
      - conf-creator
+     - logrotate
   - id: satlab-remote-access
     name: "gcr.io/cloud-builders/docker"
     dir: src
@@ -225,6 +245,7 @@ images:
     "${_REGISTRY_URI}/satlab_remote_access:${__LABEL}",
     "${_REGISTRY_URI}/satlab-rpcserver:${__LABEL}",
     "${_REGISTRY_URI}/envoy-proxy:${__LABEL}",
+    "${_REGISTRY_URI}/logrotate:${__LABEL}",
     "${_SFP_REGISTRY_URI}/drone:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/downloader:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/nginx:${__BUILD_VERSION}",

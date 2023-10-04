@@ -87,6 +87,8 @@ else
 
     docker-compose pull dns
     docker-compose up -d dns
+    docker-compoose pull logrotate
+    docker-compoose up -d logrotate
     docker-compose pull drone downloader openssh_server nginx
     docker-compose up -d drone downloader openssh_server nginx
 

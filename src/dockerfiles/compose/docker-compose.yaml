@@ -181,6 +181,26 @@ services:
     ports:
       - "80:6001"
       - "6011:6011"
+  ###########################################################################logrotate
+  satlab_logrotate:
+    container_name: logrotate
+    image: us-docker.pkg.dev/chromeos-partner-moblab/satlab/logrotate
+    environment:
+      # Rotate logs regardless of the extension.
+      - ALL_LOGS_DIRECTORIES=/var/log/chrome /var/log/ui
+      # No copies for rotated log files.
+      - LOGROTATE_COPIES=0
+      # Moves the rotated log files.
+      - LOGROTATE_MODE=move
+      # Rotate log files that are 10M or over.
+      - LOGROTATE_SIZE=10M
+      # Rotate log files if they are older than 5 days.
+      - LOGROTATE_MAXAGE=5
+      # Cronjob scheduled for every hour.
+      - LOGROTATE_CRONSCHEDULE=0 * * * *
+    volumes:
+      - /var/log/chrome:/var/log/chrome
+      - /var/log/ui:/var/log/ui
   ##############################################################################volumes
 volumes:
     logs: {}
