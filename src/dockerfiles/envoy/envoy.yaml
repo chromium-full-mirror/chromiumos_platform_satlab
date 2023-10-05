@@ -41,6 +41,10 @@ static_resources:
                   cluster: backend_grpc_service
                   max_grpc_timeout: 0s
                   prefix_rewrite: "/"
+              - match:
+                  prefix: "/"
+                route:
+                  cluster: ui_service
               cors:
                 allow_origin_string_match:
                 - prefix: "*"
@@ -69,3 +73,16 @@ static_resources:
               socket_address:
                 address: satlab-rpcserver
                 port_value: 6003
+  - name: ui_service
+    connect_timeout: 1s
+    type: STRICT_DNS
+    lb_policy: round_robin
+    load_assignment:
+      cluster_name: ui_service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: satlab-ui
+                port_value: 6010

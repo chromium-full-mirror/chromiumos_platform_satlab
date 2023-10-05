@@ -30,8 +30,8 @@ then
     docker-compose -f ./docker-compose.watchtower.yaml down -t 1
 else
     docker rm -f satlab_rpcserver
-    docker-compose pull satlab_rpcserver
-    docker-compose up -d satlab_rpcserver
+    docker-compose pull satlab_rpcserver satlab-ui
+    docker-compose up -d satlab_rpcserver satlab-ui
 
     SERVICE_ACCOUNT_KEY=/home/satlab/keys/pubsub-key-do-not-delete.json
     if [ -s "${SERVICE_ACCOUNT_KEY}" ]

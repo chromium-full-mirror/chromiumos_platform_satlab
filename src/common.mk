@@ -63,3 +63,17 @@ logrotate:
 	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/logrotate:${LABEL} \
 		-f dockerfiles/utilities/Dockerfile.logrotate dockerfiles/utilities
 	docker push ${REGISTRY_URI}/logrotate:${LABEL}
+
+protoc: export DOCKER_BUILDKIT := 1
+protoc:
+	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/protoc:${LABEL} \
+		-f dockerfiles/utilities/Dockerfile.protoc dockerfiles/utilities
+	docker push ${REGISTRY_URI}/protoc:${LABEL}
+
+ui: export DOCKER_BUILDKIT := 1
+ui: protoc
+	./satlab-ui/run_protogen_ui.sh
+	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/satlab-ui:${LABEL} \
+		-f dockerfiles/ui/Dockerfile .
+	docker push ${REGISTRY_URI}/moblab-ui:${LABEL}
+

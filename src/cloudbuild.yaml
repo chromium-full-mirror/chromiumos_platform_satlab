@@ -15,6 +15,7 @@ substitutions:
   _SATLAB_DRONE: ""
   _SATLAB_RPCSERVER: ""
   _ENVOY_PROXY: ""
+  _SATLAB_UI: ""
 steps:
   - id: docker-compose
     name: "gcr.io/cloud-builders/docker"
@@ -47,6 +48,7 @@ steps:
         "--build-arg", "SATLAB_DRONE_VER=${_SATLAB_DRONE}",
         "--build-arg", "SATLAB_RPCSERVER_VER=${_SATLAB_RPCSERVER}",
         "--build-arg", "ENVOY_PROXY_VER=${_ENVOY_PROXY}",
+        "--build-arg", "SATLAB_UI_VER=${_SATLAB_UI}",
         "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
         "--build-arg", "LABEL=${__LABEL}",
         "--build-arg", "COMMON_CORE_LABEL=${_COMMON_CORE_LABEL}",
@@ -141,6 +143,39 @@ steps:
     waitFor:
       - "blacklabelops_logrotate"
 
+  - id: protoc
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
+        "--build-arg", "LABEL=${__LABEL}",
+        "-t", "${_REGISTRY_URI}/protoc:${__LABEL}",
+        "-f", "/workspace/src/dockerfiles/utilities/Dockerfile.protoc",
+        "."
+      ]
+
+  - id: protogen-ui
+    name: "gcr.io/cloud-builders/docker"
+    entrypoint: bash
+    args: ["/workspace/src/satlab-ui/protogen_ui.sh"]
+    waitFor:
+      - "protoc"
+
+  - id: satlab-ui
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
+        "--build-arg", "LABEL=${__LABEL}",
+        "-t", "${_REGISTRY_URI}/satlab-ui:${__LABEL}",
+        "-f", "/workspace/src/dockerfiles/ui/Dockerfile",
+        "."
+      ]
+    waitFor:
+      - "protogen-ui"
+
 images:
   [
     "${_REGISTRY_URI}/satlab-compose:${__LABEL}",
@@ -148,6 +183,8 @@ images:
     "${_REGISTRY_URI}/satlab-rpcserver:${__LABEL}",
     "${_REGISTRY_URI}/envoy-proxy:${__LABEL}",
     "${_REGISTRY_URI}/logrotate:${__LABEL}",
+    "${_REGISTRY_URI}/protoc:${__LABEL}",
+    "${_REGISTRY_URI}/satlab-ui:${__LABEL}",
   ]
 
 options:

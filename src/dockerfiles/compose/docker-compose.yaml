@@ -200,6 +200,20 @@ services:
     volumes:
       - /var/log/chrome:/var/log/chrome
       - /var/log/ui:/var/log/ui
+  ##############################################################################satlab-ui
+  satlab-ui:
+    container_name: satlab-ui
+    image: us-docker.pkg.dev/chromeos-partner-moblab/satlab/satlab-ui:${SATLAB_UI:-release}
+    hostname: satlab-ui
+    restart: unless-stopped
+    networks:
+      satlab:
+        ipv4_address: 192.168.100.6
+    volumes:
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - dns
+      - envoy-proxy
   ##############################################################################volumes
 volumes:
     logs: {}
