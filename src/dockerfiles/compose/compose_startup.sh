@@ -87,10 +87,8 @@ else
 
     docker-compose pull dns
     docker-compose up -d dns
-    docker-compoose pull logrotate
-    docker-compoose up -d logrotate
-    docker-compose pull drone downloader openssh_server nginx
-    docker-compose up -d drone downloader openssh_server nginx
+    docker-compose pull drone downloader openssh_server nginx logrotate
+    docker-compose up -d drone downloader openssh_server nginx logrotate
 
     # set permission for ssp volume to create lxc containers
     # b/190623503
