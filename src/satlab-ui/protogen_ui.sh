@@ -8,21 +8,19 @@ set +x
 
 echo "Running Angular protogen"
 
-cd /workspace/src/moblab-ui
+cd /workspace/src/satlab-ui
 
 # temporary until we move all protos into protos directory
 mkdir -p protos_temp
-cp ../*/*.proto protos_temp/
-cp ../moblab_common/protos/*.proto protos_temp/
+cp /workspace/src/satlab-ui/src/app/protos/* protos_temp/
 
 protoc \
-    -I=/workspace/src/moblab-ui/protos_temp/ \
+    -I=/workspace/src/satlab-ui/protos_temp/ \
     -I=/protoc/include/ \
     --experimental_allow_proto3_optional \
-    --js_out=import_style=commonjs:/workspace/src/moblab-ui/src/app/services/ \
-    --grpc-web_out=import_style=commonjs+dts,mode=grpcwebtext:/workspace/src/moblab-ui/src/app/services/ \
-    /workspace/src/moblab-ui/protos_temp/moblabrpc.proto \
-    /workspace/src/moblab-ui/protos_temp/moblab_configuration_rpc.proto \
+    --js_out=import_style=commonjs:/workspace/src/satlab-ui/src/app/services/ \
+    --grpc-web_out=import_style=typescript,mode=grpcweb:/workspace/src/satlab-ui/src/app/services/ \
+    /workspace/src/satlab-ui/protos_temp/satlabrpc.proto \
     google/protobuf/duration.proto \
     google/protobuf/empty.proto \
     google/protobuf/any.proto

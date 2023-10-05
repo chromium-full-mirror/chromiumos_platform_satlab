@@ -1,0 +1,330 @@
+// Copyright 2023 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+syntax = "proto3";
+
+package satlabrpcserver;
+
+// We need to be in sync with the proto file int the infra satlab repo.
+
+import "google/protobuf/timestamp.proto";
+
+service SatlabRpcService {
+  rpc list_build_targets (ListBuildTargetsRequest) returns (ListBuildTargetsResponse);
+  rpc list_milestones (ListMilestonesRequest) returns (ListMilestonesResponse);
+  rpc list_accessible_models (ListAccessibleModelsRequest) returns (ListAccessibleModelsResponse);
+  rpc list_build_versions (ListBuildVersionsRequest) returns (ListBuildVersionsResponse);
+  rpc stage_build (StageBuildRequest) returns (StageBuildResponse);
+  rpc list_connected_duts_firmware (ListConnectedDutsFirmwareRequest) returns (ListConnectedDutsFirmwareResponse);
+  rpc get_system_info (GetSystemInfoRequest) returns (GetSystemInfoResponse);
+  rpc get_version_info (GetVersionInfoRequest) returns (GetVersionInfoResponse);
+  rpc get_peripheral_information (GetPeripheralInformationRequest) returns (GetPeripheralInformationResponse);
+  rpc update_duts_firmware (UpdateDutsFirmwareRequest)  returns (UpdateDutsFirmwareResponse);
+
+  // services to run different types of test suites
+  rpc run_suite (RunSuiteRequest) returns (RunSuiteResponse) {}
+  rpc run_test (RunTestRequest) returns (RunTestResponse);
+
+  // manage DUTs
+  rpc add_pool (AddPoolRequest) returns (AddPoolResponse);
+  rpc update_pool (UpdatePoolRequest) returns (UpdatePoolResponse);
+
+  // get DUTs information
+  rpc get_dut_detail (GetDutDetailRequest) returns (GetDutDetailResponse);
+  rpc list_dut_tasks (ListDutTasksRequest) returns (ListDutTasksResponse);
+  rpc list_dut_events (ListDutEventsRequest) returns (ListDutEventsResponse);
+  rpc list_enrolled_duts (ListEnrolledDutsRequest) returns (ListEnrolledDutsResponse);
+  rpc list_duts (ListDutsRequest) returns (ListDutsResponse);
+}
+
+message ListBuildTargetsRequest {
+}
+
+// NEXT_TAG = 2
+message ListBuildTargetsResponse {
+  repeated string build_targets = 1;
+}
+
+// NEXT_TAG = 4
+message BuildItem {
+  // NEXT_TAG = 4
+  enum BuildStatus {
+    BUILD_STATUS_PASS = 0;
+    BUILD_STATUS_FAIL = 1;
+    BUILD_STATUS_RUNNING = 2;
+    BUILD_STATUS_ABORTED = 3;
+  }
+  string value = 1;
+  bool is_staged = 2;
+  BuildStatus status = 3;
+}
+
+// NEXT_TAG = 3
+message ListMilestonesRequest {
+  string board = 1;
+  string model = 2;
+}
+
+// NEXT_TAG = 3
+message ListMilestonesResponse {
+  repeated BuildItem milestones = 1;
+}
+
+// NEXT_TAG = 2
+message ListAccessibleModelsRequest {
+  string board = 1;
+}
+
+// NEXT_TAG = 3
+message Model {
+  string name = 1;
+  repeated string boards = 2;
+}
+
+// NEXT_TAG = 2
+message ListAccessibleModelsResponse {
+  repeated Model models = 1;
+}
+
+// NEXT_TAG = 4
+message ListBuildVersionsRequest {
+  string board = 1;
+  string model = 2;
+  int32 milestone = 3;
+}
+
+// NEXT_TAG = 2
+message ListBuildVersionsResponse {
+  repeated BuildItem build_versions = 1;
+}
+
+// NEXT_TAG = 4
+message StageBuildRequest {
+  string board = 1;
+  string model = 2;
+  string build_version = 3;
+}
+
+// NEXT_TAG = 2
+message StageBuildResponse {
+  string build_bucket = 1;
+}
+
+// NEXT_TAG = 1
+message ListConnectedDutsFirmwareRequest {
+}
+
+// NEXT_TAG = 4
+message ConnectedDutFirmwareInfo {
+  string ip = 1;
+  string current_firmware = 2;
+  string update_firmware = 3;
+}
+
+// NEXT_TAG = 2
+message ListConnectedDutsFirmwareResponse {
+  repeated ConnectedDutFirmwareInfo duts = 1;
+}
+
+// NEXT_TAG = 1
+message GetSystemInfoRequest {
+}
+
+// NEXT_TAG = 2
+message GetSystemInfoResponse {
+  float cpu_temperature = 1;
+}
+
+// NEXT_TAG = 2
+message GetPeripheralInformationRequest {
+  string dut_hostname = 1;
+}
+
+// NEXT_TAG = 2
+message GetPeripheralInformationResponse {
+  string json_info = 1;
+}
+
+// NEXT_TAG = 2
+message UpdateDutsFirmwareRequest {
+  repeated string ips = 1;
+}
+
+// NEXT_TAG = 3
+message FirmwareUpdateCommandOutput {
+  string ip = 1;
+  string command_output = 2;
+}
+
+// NEXT_TAG = 2
+message UpdateDutsFirmwareResponse {
+  repeated FirmwareUpdateCommandOutput outputs = 1;
+}
+
+
+// NEXT_TAG = 7
+message RunSuiteRequest {
+  string suite = 1;
+  string build_target = 2;
+  string milestone = 3;
+  string build_version = 4;
+  string model = 5;
+  string pool = 6;
+}
+
+// NEXT_TAG = 2
+message RunSuiteResponse {
+  string build_link= 1;
+}
+
+// NEXT_TAG = 2
+message GetVersionInfoRequest {}
+
+// NEXT_TAG = 7
+message GetVersionInfoResponse {
+  reserved 5;
+  string version = 1;
+  string chromeos_version = 2;
+  string track = 3;
+  string description = 4;
+  string host_id = 6;
+}
+
+// NEXT_TAG = 3
+message AddPoolRequest {
+  repeated string addresses = 1;
+  string pool = 2;
+}
+
+// NEXT_TAG = 1
+message AddPoolResponse {}
+
+// NEXT_TAG = 2
+message UpdatePoolRequest {
+  // NEXT_TAG = 3
+  message Item {
+    string address = 1;
+    repeated string pools = 2;
+  }
+
+  repeated Item items = 1;
+}
+
+// NEXT_TAG = 1
+message UpdatePoolResponse {}
+
+// NEXT_TAG = 2
+message GetDutDetailRequest {
+  string address = 1;
+}
+
+// NEXT_TAG = 3
+message StringListPair {
+  string key = 1;
+  repeated string values = 2;
+}
+
+// NEXT_TAG = 13
+message GetDutDetailResponse {
+  string bot_id = 1;
+  string task_id = 2;
+  string external_ip = 3;
+  string authenticated_as = 4;
+  google.protobuf.Timestamp first_seen_ts = 5;
+  bool is_dead = 6;
+  google.protobuf.Timestamp last_seen_ts = 7;
+  bool quarantined = 8;
+  string maintenance_msg = 9;
+  repeated StringListPair dimensions = 10;
+  string task_name = 11;
+  string version = 12;
+}
+
+// NEXT_TAG = 4
+message ListDutTasksRequest {
+  string address = 1;
+  string cursor = 2;
+  int32 page_size = 3;
+}
+
+// NEXT_TAG = 7
+message Task {
+  string id = 1;
+  google.protobuf.Timestamp start_at = 2;
+  float duration = 3;
+  string url = 4;
+  bool is_success = 5;
+  string name = 6;
+}
+
+// NEXT_TAG = 4
+message ListDutTasksResponse {
+  string cursor = 1;
+  repeated Task tasks = 2;
+}
+
+// NEXT_TAG = 4
+message ListDutEventsRequest {
+  string address = 1;
+  string cursor = 2;
+  int32 page_size = 3;
+}
+
+// NEXT_TAG = 7
+message BotEvent {
+  string msg = 1;
+  string event_type = 2;
+  google.protobuf.Timestamp created_at = 3;
+  string task_id = 4;
+  string task_link = 5;
+  string version = 6;
+}
+
+// NEXT_TAG = 3
+message ListDutEventsResponse {
+  string cursor = 1;
+  repeated BotEvent events = 2;
+}
+
+// NEXT_TAG = 8
+message RunTestRequest {
+  repeated string tests = 1;
+  string test_args = 2;
+  string board = 3;
+  string model = 4;
+  string milestone = 5;
+  string build = 6;
+  string pool = 7;
+}
+// NEXT_TAG = 2
+message RunTestResponse {
+  string build_link = 1;
+}
+
+// NEXT_TAG = 1
+message ListEnrolledDutsRequest {}
+
+// NEXT_TAG = 9
+message Dut {
+  string address = 1;
+  string name = 2;
+  string hostname = 3;
+  string board = 4;
+  string model = 5;
+  repeated string pools = 6;
+  string mac_address = 7;
+  bool is_connected = 8;
+}
+
+// NEXT_TAG = 2
+message ListEnrolledDutsResponse {
+  repeated Dut duts = 1;
+}
+
+// NEXT_TAG = 1
+message ListDutsRequest {}
+
+// NEXT_TAG = 2
+message ListDutsResponse {
+  repeated Dut duts = 1;
+}

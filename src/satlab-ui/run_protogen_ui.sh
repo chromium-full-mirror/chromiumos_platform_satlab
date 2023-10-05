@@ -8,9 +8,9 @@ set +x
 
 echo "Running Angular protogen"
 
-moblab_dir="$(dirname "$(dirname "$(dirname "$(readlink -f "$0")")")")"
-echo "cd $moblab_dir"
-cd $moblab_dir
+satlab_dir="$(dirname "$(dirname "$(dirname "$(readlink -f "$0")")")")"
+echo "cd $satlab_dir"
+cd $satlab_dir
 
 if [ -z "${SOURCE_ROOT}" ]
 then
@@ -28,6 +28,6 @@ then
 fi
 
 docker run --rm \
--v ${SOURCE_ROOT}:/workspace \
-${REGISTRY}/protoc:${LABEL} \
-bash /workspace/src/moblab-ui/protogen_ui.sh
+  -v ${SOURCE_ROOT}:/workspace \
+  ${REGISTRY}/protoc:${LABEL} \
+  bash /workspace/src/satlab-ui/protogen_ui.sh
