@@ -162,7 +162,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - /var/log/bootup:/var/log/bootup
       - satlab_keys:/home/satlab/keys
-      - cache_server:/home/satlab/cache_server
       - leases:/leases:ro
   ##############################################################################envoy-proxy
   envoy-proxy:
@@ -204,6 +203,7 @@ services:
   ##############################################################################volumes
 volumes:
     logs: {}
+    leases: {}
     images: {}
     cache: {}
     dut_hosts: {}
