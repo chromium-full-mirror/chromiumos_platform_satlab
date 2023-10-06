@@ -1,0 +1,13 @@
+<div class="wrapper">
+  <app-build-select-form (allRequiredFieldsSet)="allRequiredFieldsSet($event)"> </app-build-select-form>
+
+  <div class="px-6">
+    <app-basic-selector #suiteSelector id="suiteSelector" title="Select Suite:"
+      placeholder="Please select available suite" (select)="onSuiteSelected($event)" [options]="suiteOptions">
+    </app-basic-selector>
+  </div>
+
+  <div class="flex justify-center py-4">
+    <button mat-raised-button color="primary" (click)="onRunSuiteClick()" [disabled]="disabled">Run Suite</button>
+  </div>
+</div>

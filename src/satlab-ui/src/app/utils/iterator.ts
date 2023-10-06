@@ -1,14 +1,3 @@
-import { environment } from './environments/environment';
-
-export function getRPCHost() {
-  const url = new URL(window.location.href);
-  const hostname = environment.defaultHostName || url.hostname;
-  const port = environment.defaultApiPort || url.port;
-  let serviceUrl = new String(url.protocol);
-  serviceUrl = serviceUrl.concat('//', hostname, ':', port, '/rpc');
-  return serviceUrl;
-}
-
 function* map<T, U>(iter: Iterator<T>, f: (elem: T) => U) {
   let next = iter.next();
 
@@ -67,7 +56,7 @@ function* fromArray<T>(array: T[]) {
 function collect<T>(iter: Iterator<T>) {
   const result: T[] = [];
   let next = iter.next();
-  while (next.done === false) {
+  while (next.done == false) {
     result.push(next.value);
     next = iter.next();
   }

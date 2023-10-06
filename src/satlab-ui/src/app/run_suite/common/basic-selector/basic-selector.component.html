@@ -1,0 +1,22 @@
+<ng-container *ngIf="isShown">
+  <div class="selector-wrapper" matTooltip="{{ disabledMessage }}">
+    <p class="title {{ disabled ? 'disabled': ''}}">{{ title }}</p>
+    <mat-select
+      #selector
+      [(value)]="selected"
+      (selectionChange)="onChange()"
+      class="selector"
+      [placeholder]="placeholder"
+      [disabled]="disabled"
+    >
+    <mat-option *ngFor="let option of options" [value]="option.value" disabled="{{ option.label === 'Failed' ? true : false }}">
+        <div class="option">
+          <p>{{ option.text }}</p>
+          <p *ngIf="option.label !== ''" class="{{ option.label | lowercase }}">
+            {{ option.label }}
+          </p>
+        </div>
+      </mat-option>
+    </mat-select>
+  </div>
+</ng-container>
