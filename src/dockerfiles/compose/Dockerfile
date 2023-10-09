@@ -96,6 +96,10 @@ RUN ./override_service_version.sh ENVOY_PROXY_VER ${ENVOY_PROXY_VER:-${BUILD_VER
 COPY tools/export_env_file.sh /
 RUN chmod 777 /export_env_file.sh
 
+# Add routine to create local stable version directory
+COPY tools/create_recovery_version_dir.sh /
+RUN chmod 777 /create_recovery_version_dir.sh
+
 ENTRYPOINT ["/compose_startup.sh"]
 
 # Test the config for syntax errors

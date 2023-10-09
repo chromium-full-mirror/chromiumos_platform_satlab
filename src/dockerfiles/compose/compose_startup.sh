@@ -85,6 +85,11 @@ else
       source ${ENV_SETUP_FILE}
     fi
 
+    STABLE_VERSION_SETUP_FILE=/create_recovery_version_dir.sh
+    if [[ -f "${STABLE_VERSION_SETUP_FILE}" ]]; then
+      source ${STABLE_VERSION_SETUP_FILE}
+    fi
+
     docker-compose pull dns
     docker-compose up -d dns
     docker-compose pull drone downloader openssh_server nginx logrotate
