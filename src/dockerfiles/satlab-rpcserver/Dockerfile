@@ -3,6 +3,13 @@
 # found in the LICENSE file.
 
 ARG BASE_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/base-containers
+ARG REGISTRY_URI=gcr.io/chromeos-partner-moblab
+ARG COMMON_CORE_LABEL=autopush
+ARG COMMON_CORE_URI=gcr.io/chromeos-partner-moblab
+###########################################################
+
+FROM ${COMMON_CORE_URI}/chromite:${COMMON_CORE_LABEL} as chromite
+
 ###########################################################
 
 FROM ${BASE_REGISTRY_URI}/debian:buster-slim
@@ -53,6 +60,11 @@ RUN /bin/chmod ugo+rx /cipd/satlabrpcserver
 RUN ln -s -t /usr/local/bin /cipd/satlabrpcserver
 # Add symlink to cipd executable itself.
 RUN ln -s -t /usr/local/bin /cipd/cipd
+
+# get the testing_rsa key for sshing into the DUTs
+RUN mkdir -p /home/moblab/.ssh
+COPY --from=chromite /chromite/ssh_keys/* /home/moblab/.ssh/
+RUN chmod -R 600 /home/moblab/.ssh/*
 
 # should this move to yaml file or somewhere else
 ENV GOOGLE_APPLICATION_CREDENTIALS="/home/satlab/keys/pubsub-key-do-not-delete.json"

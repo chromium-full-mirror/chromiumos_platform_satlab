@@ -20,3 +20,4 @@
 *dist/
 *service_account.json
 *pb*.go
+src/dockerfiles/compose/override.env
