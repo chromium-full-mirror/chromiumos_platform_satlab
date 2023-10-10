@@ -47,3 +47,9 @@ conf_creator:
 		-t ${SFP_REGISTRY_URI}/conf_creator:${LABEL} \
 		-f dockerfiles/conf_creator/Dockerfile .
 	docker push ${SFP_REGISTRY_URI}/conf_creator:${LABEL}
+
+envoy: export DOCKER_BUILDKIT := 1
+envoy:
+	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/envoy-proxy:${LABEL} \
+		-f dockerfiles/envoy/Dockerfile dockerfiles/envoy
+	docker push ${REGISTRY_URI}/envoy-proxy:${LABEL}
