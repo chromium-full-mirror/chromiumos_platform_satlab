@@ -1,0 +1,8 @@
+ARG BASE_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/base-containers
+
+FROM ${BASE_REGISTRY_URI}/blacklabelops/logrotate:latest
+
+ARG UID=246
+
+RUN addgroup --gid $UID moblab && adduser --ingroup moblab --uid $UID \
+    --disabled-password --gecos "" moblab

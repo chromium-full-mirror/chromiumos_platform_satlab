@@ -31,6 +31,10 @@ steps:
   - id: envoyproxy
     name: "gcr.io/cloud-builders/docker"
     args: ["pull", "${_BASE_REGISTRY_URI}/envoyproxy/envoy:v1.15.2"]
+  - id: blacklabelops_logrotate
+    name: "gcr.io/cloud-builders/docker"
+    args: ["pull", "${_BASE_REGISTRY_URI}/blacklabelops/logrotate:latest"]
+    waitFor: ['-']
   - id: compose
     name: "gcr.io/cloud-builders/docker"
     dir: src
@@ -113,11 +117,29 @@ steps:
         "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
         "--build-arg", "LABEL=${__LABEL}",
         "-t", "${_REGISTRY_URI}/envoy-proxy:${__LABEL}",
-        "-f", "/workspace/src/dockerfiles/envoy/Dockerfile",
+        "-f", "dockerfiles/envoy/Dockerfile",
         "."
       ]
     waitFor:
       - "envoyproxy"
+
+  - id: logrotate
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
+        "--build-arg", "LABEL=${__LABEL}",
+        "--build-arg", "BUILD_VERSION=${__BUILD_VERSION}",
+        "-t", "${_REGISTRY_URI}/logrotate:${__BUILD_VERSION}",
+        "-f", "/workspace/src/dockerfiles/utilities/Dockerfile.logrotate",
+        "/workspace/src/dockerfiles/utilities/",
+      ]
+    # TODO: add additional variables to the build process at later point
+    # env:
+    #   - "DOCKER_BUILDKIT=1"
+    waitFor:
+      - "blacklabelops_logrotate"
 
 images:
   [
@@ -125,6 +147,7 @@ images:
     "${_REGISTRY_URI}/satlab_remote_access:${__LABEL}",
     "${_REGISTRY_URI}/satlab-rpcserver:${__LABEL}",
     "${_REGISTRY_URI}/envoy-proxy:${__LABEL}",
+    "${_REGISTRY_URI}/logrotate:${__LABEL}",
   ]
 
 options:

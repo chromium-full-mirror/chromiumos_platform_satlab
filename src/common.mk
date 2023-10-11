@@ -14,7 +14,11 @@ EXTRA_ARGS+= --build-arg BUILD_VERSION="${BUILD_VERSION}"
 EXTRA_ARGS+= --build-arg WATCHTOWER_CMD="${WATCHTOWER_CMD}"
 
 all:	compose \
-		satlab-remote-access
+		conf_creator \
+		envoy \
+		logrotate \
+		satlab-remote-access \
+		satlab-rpcserver
 
 # Build and push satlab_remote_access container.
 satlab-remote-access: export DOCKER_BUILDKIT := 1
@@ -53,3 +57,9 @@ envoy:
 	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/envoy-proxy:${LABEL} \
 		-f dockerfiles/envoy/Dockerfile dockerfiles/envoy
 	docker push ${REGISTRY_URI}/envoy-proxy:${LABEL}
+
+logrotate: export DOCKER_BUILDKIT := 1
+logrotate:
+	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/logrotate:${LABEL} \
+		-f dockerfiles/utilities/Dockerfile.logrotate dockerfiles/utilities
+	docker push ${REGISTRY_URI}/logrotate:${LABEL}
