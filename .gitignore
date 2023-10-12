@@ -16,6 +16,8 @@
 *.idea/
 *pb*.ts
 *pb*.js
+*Pb*.ts
+*Pb*.js
 .vscode/*
 *dist/
 *service_account.json

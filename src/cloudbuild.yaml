@@ -172,7 +172,7 @@ steps:
         "--build-arg", "LABEL=${__LABEL}",
         "-t", "${_REGISTRY_URI}/satlab-ui:${__LABEL}",
         "-f", "/workspace/src/dockerfiles/ui/Dockerfile",
-        "."
+        "/workspace/src/"
       ]
     waitFor:
       - "protogen-ui"
