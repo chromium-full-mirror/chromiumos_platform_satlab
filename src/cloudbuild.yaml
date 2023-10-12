@@ -118,10 +118,12 @@ steps:
         "build",
         "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
         "--build-arg", "LABEL=${__LABEL}",
-        "-t", "${_REGISTRY_URI}/envoy-proxy:${__LABEL}",
-        "-f", "dockerfiles/envoy/Dockerfile",
-        "."
+        "-t", "${_REGISTRY_URI}/envoy-proxy:${__BUILD_VERSION}",
+        "-f", "/workspace/src/dockerfiles/envoy/Dockerfile",
+        "/workspace/src/dockerfiles/envoy"
       ]
+    env:
+      - "DOCKER_BUILDKIT=1"
     waitFor:
       - "envoyproxy"
 
@@ -137,9 +139,8 @@ steps:
         "-f", "/workspace/src/dockerfiles/utilities/Dockerfile.logrotate",
         "/workspace/src/dockerfiles/utilities/",
       ]
-    # TODO: add additional variables to the build process at later point
-    # env:
-    #   - "DOCKER_BUILDKIT=1"
+    env:
+      - "DOCKER_BUILDKIT=1"
     waitFor:
       - "blacklabelops_logrotate"
 
