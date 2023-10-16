@@ -1,0 +1,43 @@
+<div class="wrapper">
+  <div class="btn-group">
+
+    <button
+      mat-raised-button
+      color="primary"
+      [disabled]="!isDUTSelected || loading"
+      (click)="onEnrollClicked()"
+    >
+      Enroll Selected
+    </button>
+
+    <button
+      mat-raised-button
+      [disabled]="!isDUTSelected || loading"
+      (click)="onUnEnrollClicked()"
+    >
+      UnEnroll Selected
+    </button>
+
+    <button
+      mat-raised-button
+      [disabled]="!isDUTSelected || loading"
+      (click)="onReVerifyClicked()"
+    >
+      ReVerify Selected
+    </button>
+
+    <button
+      mat-raised-button
+      [disabled]="loading"
+      (click)="onProvisionDUTs()"
+    >
+      Provision DUTs
+    </button>
+  </div>
+
+  <app-view-duts
+    [DUTs]="DUTs"
+    (select)="onDUTsSelectionChanged($event)"
+    [loading]="loading"
+  ></app-view-duts>
+</div>

@@ -1,0 +1,19 @@
+@import "../../../constants.scss";
+
+.wrapper {
+  width: 100%;
+  position: relative;
+  padding: 1rem 1rem;
+
+  .btn-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1.5rem;
+    position: relative;
+
+    button {
+      height: 2.5rem;
+    }
+  }
+}

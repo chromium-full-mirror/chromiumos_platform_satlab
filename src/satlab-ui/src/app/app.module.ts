@@ -39,6 +39,7 @@ import {MatSnackBarModule} from '@angular/material/snack-bar';
 import {EditDutsComponent} from './manage-duts/edit-duts/edit-duts.component';
 import {ManageDutsComponent} from './manage-duts/manage-duts.component';
 import {ViewDutsComponent} from './manage-duts/view-duts/view-duts.component';
+import { EnrollmentComponent } from './manage-duts/enrollment/enrollment.component';
 
 @NgModule({
   declarations: [
@@ -52,6 +53,7 @@ import {ViewDutsComponent} from './manage-duts/view-duts/view-duts.component';
     EditDutsComponent,
     ManageDutsComponent,
     ViewDutsComponent,
+    EnrollmentComponent,
   ],
   imports: [
     AppRoutingModule,
