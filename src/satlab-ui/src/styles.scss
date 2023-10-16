@@ -66,6 +66,41 @@ body {
   }
 }
 
+.inputbox-container {
+  position: relative;
+  height: 4rem;
+
+  > .mat-mdc-form-field {
+    border: 1px solid $color-grey;
+    border-radius: 0.25rem;
+  }
+
+  > .mat-mdc-form-field.mat-form-field-invalid {
+    border-color: $color-error;
+  }
+
+  .without-underline .mdc-line-ripple {
+    display: none;
+  }
+
+  .mat-mdc-form-field-subscript-wrapper {
+    position: absolute;
+    top: 3.5rem;
+    .mat-mdc-form-field-error-wrapper {
+      padding: 0 0.75rem;
+    }
+  }
+
+  &.without-border {
+    > .mat-mdc-form-field {
+      border: none;
+    }
+    > .mat-mdc-form-field.mat-form-field-invalid {
+      border: none;
+    }
+  }
+}
+
 .full-width {
   width: 100%;
 }

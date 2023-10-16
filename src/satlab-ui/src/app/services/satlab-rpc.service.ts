@@ -3,14 +3,17 @@ import {SatlabRpcServiceClient} from './SatlabrpcServiceClientPb';
 import {getRPCHost} from '../utils/misc';
 import {toIterator} from '../utils/iterator';
 import {
+  AddPoolRequest,
+  Dut,
   GetDutDetailRequest,
   GetDutDetailResponse,
-  ListBuildVersionsRequest,
+  ListBuildVersionsRequest, ListDutsRequest,
   ListEnrolledDutsRequest,
   ListMilestonesRequest,
-  RunSuiteRequest,
+  RunSuiteRequest, UpdatePoolRequest,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
+import {IDut} from "../models/dut";
 
 @Injectable({
   providedIn: 'root',
@@ -119,5 +122,67 @@ export class SatlabRpcService {
     const resp = await this.client.run_suite(req, {});
 
     return resp.getBuildLink();
+  }
+
+  /**
+   * listDUTs list the DUTs that are enrolled or connected to the SatLab
+   */
+  public async listDUTs() {
+    const req = new ListDutsRequest();
+
+    const resp = await this.client.list_duts(req, {});
+
+    return toIterator(resp.getDutsList()).map(this.__toIDut).collect();
+  }
+
+  /**
+   * __toIDut is a parser to parse the proto class to an interface `IDut`
+   * @param e is the class of DUT in proto file.
+   * @private
+   */
+  private __toIDut(e: Dut) {
+    const  dut: IDut = {
+      address: e.getAddress(),
+      name: e.getName(),
+      hostname: e.getHostname(),
+      board: e.getBoard(),
+      model: e.getModel(),
+      pools: e.getPoolsList(),
+      poolString: e.getPoolsList().join(', '),
+      mac: e.getMacAddress(),
+      isConnected: e.getIsConnected(),
+    }
+
+    return dut
+  }
+
+  /**
+   * addPool add a pool the given DUTs
+   * @param p is a structure contains the information that we want to update
+   */
+  public async addPool(p: {addresses: string[], pool: string}) {
+    const req = new AddPoolRequest()
+      .setPool(p.pool)
+      .setAddressesList(p.addresses);
+
+    await this.client.add_pool(req, {});
+  }
+
+  /**
+   * updatePool update the pool list to the given DUTs
+   * @param p is a structure contains the information that we want to update.
+   */
+  public async updatePool(p: {address: string, pools: string[]}[]) {
+    const items = toIterator(p)
+      .map(elem => {
+        return new UpdatePoolRequest.Item()
+          .setAddress(elem.address)
+          .setPoolsList(elem.pools);
+      })
+      .collect();
+
+    const req = new UpdatePoolRequest().setItemsList(items);
+
+    await  this.client.update_pool(req, {});
   }
 }

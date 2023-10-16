@@ -47,6 +47,15 @@ function* flatten<T>(iter: Iterator<T>) {
   }
 }
 
+function forEach<T>(iter: Iterator<T>, f: (elem: T) => void) {
+  let next = iter.next();
+
+  while (next.done === false) {
+    f(next.value);
+    next = iter.next();
+  }
+}
+
 function* fromArray<T>(array: T[]) {
   for (const v of array) {
     yield v;
@@ -70,6 +79,7 @@ export const fromIter = <T>(iter: Iterator<T>) => {
     map: <U>(f: (elem: T) => U) => fromIter(map(iter, f)),
     unique_by: () => fromIter(uniqueBy(iter)),
     flatten: () => fromIter(flatten(iter)),
+    forEach: (f: (elem: T) => void) => forEach(iter, f),
     collect: () => collect(iter),
   };
 };

@@ -2,6 +2,7 @@ import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
 import {RunSuiteComponent} from './run_suite/run_suite.component';
 import {OtherComponent} from './run_suite/other/other.component';
+import {ManageDutsComponent} from "./manage-duts/manage-duts.component";
 
 const routes: Routes = [
   {
@@ -9,6 +10,10 @@ const routes: Routes = [
     component: RunSuiteComponent,
     children: [{path: 'other', component: OtherComponent}],
   },
+  {
+    path: 'manage_duts',
+    component: ManageDutsComponent,
+  }
 ];
 
 @NgModule({

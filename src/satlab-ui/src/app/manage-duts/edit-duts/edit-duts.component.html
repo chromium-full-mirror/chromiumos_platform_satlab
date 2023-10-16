@@ -1,0 +1,34 @@
+<div class="wrapper">
+  <div class="input-wrapper">
+    <div class="inputbox-container without-border w-48">
+      <b>Pool: </b>
+      <mat-form-field class="without-underline full-width">
+        <input id="pool" matInput [formControl]="pool" />
+      </mat-form-field>
+    </div>
+
+    <button
+      mat-raised-button
+      color="primary"
+      [disabled]="!(pool.value !== '' && isDUTSelected) || loading"
+      (click)="onAddClicked()"
+    >
+      Add
+    </button>
+
+    <button
+      mat-raised-button
+      color="primary"
+      [disabled]="!(pool.value !== '' && isDUTSelected) || loading"
+      (click)="onRemoveClicked()"
+    >
+      Remove
+    </button>
+  </div>
+
+  <app-view-duts
+    [DUTs]="DUTs"
+    (select)="onDUTsSelectionChanged($event)"
+    [loading]="loading"
+  ></app-view-duts>
+</div>

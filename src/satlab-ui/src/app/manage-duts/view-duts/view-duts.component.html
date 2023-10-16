@@ -1,0 +1,61 @@
+<div class="duts-wrapper">
+  <ng-container *ngIf="loading">
+    <div class="loading-overlay">
+      <mat-spinner class="spinner"></mat-spinner>
+    </div>
+  </ng-container>
+
+
+  <ng-container *ngIf="DUTs.length !== 0">
+    <div class="selection-hint-wrapper">
+      <p>Selected {{ selectionCount }} of {{ DUTs.length }}</p>
+    </div>
+
+    <table mat-table [dataSource]="DUTs">
+      <!-- CheckBox -->
+      <ng-container matColumnDef="check">
+        <th mat-header-cell *matHeaderCellDef>
+          <mat-checkbox (change)="onCheckboxChanged($event)"></mat-checkbox>
+        </th>
+        <td mat-cell *matCellDef="let element">
+          <mat-checkbox (change)="onDUTCheckboxChanged(element)" [checked]="selection.isSelected(element)"
+                        [disabled]="!element.isConnected">
+          </mat-checkbox>
+        </td>
+      </ng-container>
+
+      <!-- Address Column -->
+      <ng-container matColumnDef="ip">
+        <th mat-header-cell *matHeaderCellDef>DUT</th>
+        <td mat-cell *matCellDef="let element">{{ element.address }}</td>
+      </ng-container>
+
+      <!-- MAC Address Column -->
+      <ng-container matColumnDef="mac">
+        <th mat-header-cell *matHeaderCellDef>MAC</th>
+        <td mat-cell *matCellDef="let element">{{ element.mac }}</td>
+      </ng-container>
+
+      <!-- Build Target Column -->
+      <ng-container matColumnDef="board">
+        <th mat-header-cell *matHeaderCellDef>Build Target</th>
+        <td mat-cell *matCellDef="let element">{{ element.board }}</td>
+      </ng-container>
+
+      <!-- Model Column -->
+      <ng-container matColumnDef="model">
+        <th mat-header-cell *matHeaderCellDef>Model</th>
+        <td mat-cell *matCellDef="let element">{{ element.model }}</td>
+      </ng-container>
+
+      <!-- Pools Column -->
+      <ng-container matColumnDef="pools">
+        <th mat-header-cell *matHeaderCellDef>Pools</th>
+        <td mat-cell *matCellDef="let element">{{ element.poolString }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+  </ng-container>
+</div>

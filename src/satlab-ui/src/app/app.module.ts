@@ -35,7 +35,10 @@ import {BuildSelectFormComponent} from './run_suite/common/build-select-form/bui
 import {OtherComponent} from './run_suite/other/other.component';
 import {LoadingComponent} from './run_suite/common/loading/loading.component';
 import {RunSuiteComponent} from './run_suite/run_suite.component';
-import { MatSnackBarModule } from "@angular/material/snack-bar";
+import {MatSnackBarModule} from '@angular/material/snack-bar';
+import {EditDutsComponent} from './manage-duts/edit-duts/edit-duts.component';
+import {ManageDutsComponent} from './manage-duts/manage-duts.component';
+import {ViewDutsComponent} from './manage-duts/view-duts/view-duts.component';
 
 @NgModule({
   declarations: [
@@ -46,6 +49,9 @@ import { MatSnackBarModule } from "@angular/material/snack-bar";
     OtherComponent,
     LoadingComponent,
     RunSuiteComponent,
+    EditDutsComponent,
+    ManageDutsComponent,
+    ViewDutsComponent,
   ],
   imports: [
     AppRoutingModule,
