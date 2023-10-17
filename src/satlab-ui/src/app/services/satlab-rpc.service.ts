@@ -7,13 +7,13 @@ import {
   Dut,
   GetDutDetailRequest,
   GetDutDetailResponse,
-  ListBuildVersionsRequest, ListDutsRequest,
+  ListBuildVersionsRequest, ListConnectedDutsFirmwareRequest, ListDutsRequest,
   ListEnrolledDutsRequest,
   ListMilestonesRequest,
-  RunSuiteRequest, UpdatePoolRequest,
+  RunSuiteRequest, UpdateDutsFirmwareRequest, UpdatePoolRequest,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
-import {IDut} from "../models/dut";
+import {IDut, IFirmwareDUT, IUpdateFirmwareResult} from "../models/dut";
 
 @Injectable({
   providedIn: 'root',
@@ -72,7 +72,7 @@ export class SatlabRpcService {
    * list milestones by given model and board
    * @param p an object contains the information of model and board
    */
-  public async listMilestones(p: {model: string; board: string}) {
+  public async listMilestones(p: { model: string; board: string }) {
     const req = new ListMilestonesRequest().setModel(p.model).setBoard(p.board);
 
     const resp = await this.client.list_milestones(req, {});
@@ -141,7 +141,7 @@ export class SatlabRpcService {
    * @private
    */
   private __toIDut(e: Dut) {
-    const  dut: IDut = {
+    const dut: IDut = {
       address: e.getAddress(),
       name: e.getName(),
       hostname: e.getHostname(),
@@ -160,7 +160,7 @@ export class SatlabRpcService {
    * addPool add a pool the given DUTs
    * @param p is a structure contains the information that we want to update
    */
-  public async addPool(p: {addresses: string[], pool: string}) {
+  public async addPool(p: { addresses: string[], pool: string }) {
     const req = new AddPoolRequest()
       .setPool(p.pool)
       .setAddressesList(p.addresses);
@@ -172,7 +172,7 @@ export class SatlabRpcService {
    * updatePool update the pool list to the given DUTs
    * @param p is a structure contains the information that we want to update.
    */
-  public async updatePool(p: {address: string, pools: string[]}[]) {
+  public async updatePool(p: { address: string, pools: string[] }[]) {
     const items = toIterator(p)
       .map(elem => {
         return new UpdatePoolRequest.Item()
@@ -183,6 +183,47 @@ export class SatlabRpcService {
 
     const req = new UpdatePoolRequest().setItemsList(items);
 
-    await  this.client.update_pool(req, {});
+    await this.client.update_pool(req, {});
+  }
+
+  /**
+   * list the connected DUTs for firmware update
+   */
+  public async listDUTsForFirmware() {
+    const req = new ListConnectedDutsFirmwareRequest()
+
+    const resp = await this.client.list_connected_duts_firmware(req, {})
+
+    return toIterator(resp.getDutsList())
+      .map(e => {
+        const d: IFirmwareDUT = {
+          address: e.getIp(),
+          currentFirmware: e.getCurrentFirmware(),
+          newestFirmware: e.getUpdateFirmware(),
+        }
+        return d
+      })
+      .collect();
+  }
+
+  /**
+   * update DUTs by given an IP addresses
+   * @param addresses the IP addresses of DUTs
+   */
+  public async updateFirmware(addresses: string[]) {
+    const req = new UpdateDutsFirmwareRequest()
+      .setIpsList(addresses);
+
+    const resp = await this.client.update_duts_firmware(req, {});
+
+    return toIterator(resp.getOutputsList())
+      .map(e => {
+        const r: IUpdateFirmwareResult = {
+          address: e.getIp(),
+          message: e.getCommandOutput(),
+        }
+        return r;
+      })
+      .collect();
   }
 }

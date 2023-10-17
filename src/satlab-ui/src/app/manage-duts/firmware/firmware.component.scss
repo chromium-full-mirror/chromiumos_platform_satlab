@@ -1,0 +1,62 @@
+@import "../../../constants";
+
+.wrapper {
+  width: 100%;
+  position: relative;
+  padding: 1rem;
+
+  .duts-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: relative;
+    width: 100%;
+    min-height: 300px;
+
+    .loading-overlay {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: $color-loading-overlay;
+      height: 100%;
+      opacity: .6;
+      position: absolute;
+      top: 1rem;
+      width: 100%;
+      z-index: 1;
+    }
+
+    .selection-hint-wrapper {
+      display: inline-block;
+      margin-top: 1.5rem;
+      padding: .5rem 0;
+      font-size: .9rem;
+    }
+
+    .mat-mdc-table {
+      .mat-mdc-header-cell {
+        min-width: 10rem;
+        max-width: 10rem;
+        white-space: pre-wrap;
+      }
+
+      .mat-mdc-cell {
+        min-width: 10rem;
+        max-width: 10rem;
+        white-space: pre-wrap;
+      }
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 1.5rem;
+      position: relative;
+
+      button {
+        height: 2.5rem;
+      }
+    }
+  }
+}

@@ -7,6 +7,13 @@
       </ng-template>
     </mat-tab>
 
+    <!-- Firmware Tab -->
+    <mat-tab label="Firmware">
+      <ng-template matTabContent>
+        <app-firmware [DUTs]="firmwareDUTs" (onDUTsUpdated)="onFirmwareUpdated()" [loading]="listFirmwareLoading"></app-firmware>
+      </ng-template>
+    </mat-tab>
+
     <!-- Edit Pools Tab -->
     <mat-tab label="Edit Pools">
       <ng-template matTabContent>

@@ -1,5 +1,5 @@
 import {AfterViewInit, Component} from '@angular/core';
-import {IDut} from "../models/dut";
+import {IDut, IFirmwareDUT} from "../models/dut";
 import {SatlabRpcService} from "../services/satlab-rpc.service";
 import {finalize, from} from "rxjs";
 import {startWithTap} from "../utils/rxjs_operator";
@@ -15,13 +15,19 @@ export class ManageDutsComponent implements AfterViewInit {
   protected DUTs: IDut[] = [];
   // enrolledDUTs contains the duts are enrolled
   protected enrolledDUTs: IDut[] = [];
-  // listDUTsLoading use to indicate we make a API call to list DUTs
+  // firmwareDUTs contains the connected DUTs that including the firmware information
+  protected firmwareDUTs: IFirmwareDUT[] = [];
+  // listDUTsLoading use to indicate we make an API call to list DUTs
   protected listDUTsLoading = false;
+  // listFirmwareLoading use to indicate we make an API call to list DUTs for firmware update
+  protected listFirmwareLoading = false;
 
-  constructor(private service: SatlabRpcService) {}
+  constructor(private service: SatlabRpcService) {
+  }
 
   ngAfterViewInit() {
     this.listDUTs();
+    this.listDUTsForFirmware();
   }
 
   /**
@@ -53,6 +59,30 @@ export class ManageDutsComponent implements AfterViewInit {
   }
 
   /**
+   * list the DUTs for firmware update
+   * @private
+   */
+  private listDUTsForFirmware() {
+    from(this.service.listDUTsForFirmware())
+      .pipe(
+        startWithTap(() => {
+          this.listFirmwareLoading = true;
+        }),
+        finalize(() => {
+          this.listFirmwareLoading = false;
+        }),
+      ).subscribe({
+      next: e => {
+        this.firmwareDUTs = e;
+      },
+      error: e => {
+        // TODO handle error
+        console.error(e)
+      }
+    })
+  }
+
+  /**
    * check the DUT is enrolled
    * @param d the structure contains all information of DUT.
    * @private
@@ -62,10 +92,18 @@ export class ManageDutsComponent implements AfterViewInit {
   }
 
   /**
-   * onDUTsUpdate is an handler to handle when any DUTs are updated.
+   * onDUTsUpdate is a handler to handle when any DUTs are updated.
    * @protected
    */
   protected onDUTsUpdated() {
     this.listDUTs();
+  }
+
+  /**
+   * onFirmwareUpdated is a handler to handle when any DUTs update a firmware
+   * @protected
+   */
+  protected onFirmwareUpdated() {
+    this.listDUTsForFirmware();
   }
 }

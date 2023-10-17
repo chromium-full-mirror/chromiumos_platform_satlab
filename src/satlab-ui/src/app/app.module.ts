@@ -39,7 +39,8 @@ import {MatSnackBarModule} from '@angular/material/snack-bar';
 import {EditDutsComponent} from './manage-duts/edit-duts/edit-duts.component';
 import {ManageDutsComponent} from './manage-duts/manage-duts.component';
 import {ViewDutsComponent} from './manage-duts/view-duts/view-duts.component';
-import { EnrollmentComponent } from './manage-duts/enrollment/enrollment.component';
+import {EnrollmentComponent} from './manage-duts/enrollment/enrollment.component';
+import {FirmwareComponent} from './manage-duts/firmware/firmware.component';
 
 @NgModule({
   declarations: [
@@ -54,6 +55,7 @@ import { EnrollmentComponent } from './manage-duts/enrollment/enrollment.compone
     ManageDutsComponent,
     ViewDutsComponent,
     EnrollmentComponent,
+    FirmwareComponent,
   ],
   imports: [
     AppRoutingModule,
@@ -96,4 +98,5 @@ import { EnrollmentComponent } from './manage-duts/enrollment/enrollment.compone
   ],
   bootstrap: [AppComponent],
 })
-export class AppModule {}
+export class AppModule {
+}
