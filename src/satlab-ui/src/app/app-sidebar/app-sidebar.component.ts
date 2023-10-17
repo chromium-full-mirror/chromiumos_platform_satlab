@@ -9,6 +9,10 @@ import {SidebarEntry} from '../models/feature';
 export class AppSidebarComponent {
   protected navTabs: SidebarEntry[] = [
     {
+      route: '/manage_duts',
+      label: 'Manage DUTs'
+    },
+    {
       route: '/run_tests',
       label: 'Run Suite',
     },
