@@ -7,10 +7,17 @@ import {
   Dut,
   GetDutDetailRequest,
   GetDutDetailResponse,
-  ListBuildVersionsRequest, ListConnectedDutsFirmwareRequest, ListDutsRequest,
+  ListBuildVersionsRequest,
+  ListConnectedDutsFirmwareRequest,
+  ListDutsRequest,
   ListEnrolledDutsRequest,
   ListMilestonesRequest,
-  RunSuiteRequest, UpdateDutsFirmwareRequest, UpdatePoolRequest,
+  RunSuiteRequest,
+  UpdateDutsFirmwareRequest,
+  UpdatePoolRequest,
+  GetSystemInfoRequest,
+  GetVersionInfoRequest,
+  GetNetworkInfoRequest,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
 import {IDut, IFirmwareDUT, IUpdateFirmwareResult} from "../models/dut";
@@ -225,5 +232,39 @@ export class SatlabRpcService {
         return r;
       })
       .collect();
+  }
+
+  public async getSystemInfo() {
+    const req = new GetSystemInfoRequest();
+    const resp = await this.client.get_system_info(req, null);
+
+    return {
+      cpuTemperature: Math.round(resp.getCpuTemperature() * 100) / 100,
+      startTime: resp.getStartTime()?.toDate(),
+    };
+  }
+
+  public async getVersionInfo() {
+    const req = new GetVersionInfoRequest();
+    const resp = await this.client.get_version_info(req, null);
+
+    return {
+      version: resp.getVersion(),
+      chromeosVersion: resp.getChromeosVersion(),
+      track: resp.getTrack(),
+      description: resp.getDescription(),
+      hostId: resp.getHostId(),
+    };
+  }
+
+  public async getNetworkInfo() {
+    const req = new GetNetworkInfoRequest();
+    const resp = await this.client.get_network_info(req, null);
+
+    return {
+      hostname: resp.getHostname(),
+      macAddress: resp.getMacAddress(),
+      isConnectedToInternet: resp.getIsConnected(),
+    };
   }
 }

@@ -41,6 +41,8 @@ import {ManageDutsComponent} from './manage-duts/manage-duts.component';
 import {ViewDutsComponent} from './manage-duts/view-duts/view-duts.component';
 import {EnrollmentComponent} from './manage-duts/enrollment/enrollment.component';
 import {FirmwareComponent} from './manage-duts/firmware/firmware.component';
+import {AboutComponent} from './about/about.component';
+import {SpinnerLoadingComponent} from './common/spinner-loading/spinner-loading.component';
 
 @NgModule({
   declarations: [
@@ -56,6 +58,8 @@ import {FirmwareComponent} from './manage-duts/firmware/firmware.component';
     ViewDutsComponent,
     EnrollmentComponent,
     FirmwareComponent,
+    AboutComponent,
+    SpinnerLoadingComponent,
   ],
   imports: [
     AppRoutingModule,
