@@ -18,7 +18,9 @@ all:	compose \
 		envoy \
 		logrotate \
 		satlab-remote-access \
-		satlab-rpcserver
+		satlab-rpcserver \
+		protoc \
+		ui
 
 # Build and push satlab_remote_access container.
 satlab-remote-access: export DOCKER_BUILDKIT := 1
