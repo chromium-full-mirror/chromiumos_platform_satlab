@@ -80,6 +80,7 @@ RUN chmod uog+rx /usr/local/bin/get_host_ip
 COPY dockerfiles/compose/docker-compose.yaml .
 COPY dockerfiles/compose/docker-compose.watchtower.yaml .
 COPY dockerfiles/compose/.env main.env
+COPY dockerfiles/compose/override.env* .
 COPY dockerfiles/compose/compose_startup.sh .
 RUN chmod u+x compose_startup.sh
 

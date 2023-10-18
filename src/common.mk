@@ -77,5 +77,5 @@ ui: protoc
 	./satlab-ui/run_protogen_ui.sh
 	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/satlab-ui:${LABEL} \
 		-f dockerfiles/ui/Dockerfile .
-	docker push ${REGISTRY_URI}/moblab-ui:${LABEL}
+	docker push ${REGISTRY_URI}/satlab-ui:${LABEL}
 
