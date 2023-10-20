@@ -157,7 +157,7 @@ steps:
       ]
 
   - id: protogen-ui
-    name: "gcr.io/cloud-builders/docker"
+    name: "${_REGISTRY_URI}/protoc:${__LABEL}"
     entrypoint: bash
     args: ["/workspace/src/satlab-ui/protogen_ui.sh"]
     waitFor:
