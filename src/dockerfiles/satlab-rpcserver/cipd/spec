@@ -1,3 +1,12 @@
 $ServiceURL https://chrome-infra-packages.appspot.com/
 
+# This is the CIPD client itself
+infra/tools/cipd/${os}-${arch}  latest
+
+# TODO(gregorynisbet): Switch this to prod.
+infra/shivas/linux-amd64 satlab-2023-10-20
+
+# TODO(gregorynisbet): Switch this to prod.
+infra/cros/satlab/satlab/linux-amd64 latest
+
 infra/cros/satlab/satlabrpcserver/linux-amd64 latest

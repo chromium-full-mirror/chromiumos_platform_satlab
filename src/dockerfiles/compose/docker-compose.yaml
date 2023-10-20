@@ -159,12 +159,15 @@ services:
       - DOCKER_MODS=linuxserver/mods:openssh-server-ssh-tunnel
       - GCS_IMAGE_BUCKET=${GCS_IMAGE_BUCKET:-}
       - SERVICE_ACCOUNT_KEY_PATH=/home/satlab/keys/pubsub-key-do-not-delete.json
+      - UFS_NAMESPACE=${UFS_NAMESPACE:-os}
     volumes:
       - logs:/var/log/satlab
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - /var/log/bootup:/var/log/bootup
       - satlab_keys:/home/satlab/keys
       - leases:/leases:ro
+    extra_hosts:
+      - "dockerhost:192.168.100.1"
   ##############################################################################envoy-proxy
   envoy-proxy:
     container_name: envoy-proxy
