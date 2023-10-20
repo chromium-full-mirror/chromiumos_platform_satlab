@@ -157,6 +157,8 @@ services:
       - SUDO_ACCESS=true
       - USER_NAME=moblab
       - DOCKER_MODS=linuxserver/mods:openssh-server-ssh-tunnel
+      - GCS_IMAGE_BUCKET=${GCS_IMAGE_BUCKET:-}
+      - SERVICE_ACCOUNT_KEY_PATH=/home/satlab/keys/pubsub-key-do-not-delete.json
     volumes:
       - logs:/var/log/satlab
       - /var/run/docker.sock:/var/run/docker.sock:rw
