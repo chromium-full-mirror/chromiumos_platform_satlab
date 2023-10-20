@@ -1,6 +1,5 @@
 <div class="wrapper">
   <div class="btn-group">
-
     <button
       mat-raised-button
       color="primary"
@@ -15,7 +14,7 @@
       [disabled]="!isDUTSelected || loading"
       (click)="onUnEnrollClicked()"
     >
-      UnEnroll Selected
+      Unenroll Selected
     </button>
 
     <button
@@ -23,7 +22,7 @@
       [disabled]="!isDUTSelected || loading"
       (click)="onReVerifyClicked()"
     >
-      ReVerify Selected
+      Reverify Selected
     </button>
 
     <button
@@ -32,6 +31,35 @@
       (click)="onProvisionDUTs()"
     >
       Provision DUTs
+    </button>
+  </div>
+
+  <br/>
+
+  <div class="input-wrapper">
+    <div class="inputbox-container without-border w-48">
+      <b>Pool: </b>
+      <mat-form-field class="without-underline full-width">
+        <input id="pool" matInput [formControl]="pool"/>
+      </mat-form-field>
+    </div>
+
+    <button
+      mat-raised-button
+      color="primary"
+      [disabled]="!(pool.value !== '' && isDUTSelected) || loading"
+      (click)="onAddPoolClicked()"
+    >
+      Add
+    </button>
+
+    <button
+      mat-raised-button
+      color="primary"
+      [disabled]="!(pool.value !== '' && isDUTSelected) || loading"
+      (click)="onRemovePoolClicked()"
+    >
+      Remove
     </button>
   </div>
 

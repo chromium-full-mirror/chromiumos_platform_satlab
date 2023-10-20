@@ -30,15 +30,15 @@
         <td mat-cell *matCellDef="let element">{{ element.address }}</td>
       </ng-container>
 
-      <!-- MAC Address Column -->
-      <ng-container matColumnDef="mac">
-        <th mat-header-cell *matHeaderCellDef>MAC</th>
-        <td mat-cell *matCellDef="let element">{{ element.mac }}</td>
+      <!-- Hostname Column -->
+      <ng-container matColumnDef="hostname">
+        <th mat-header-cell *matHeaderCellDef>Hostname</th>
+        <td mat-cell *matCellDef="let element">{{ element.hostnameNoPrefix }}</td>
       </ng-container>
 
       <!-- Build Target Column -->
       <ng-container matColumnDef="board">
-        <th mat-header-cell *matHeaderCellDef>Build Target</th>
+        <th mat-header-cell *matHeaderCellDef>Board</th>
         <td mat-cell *matCellDef="let element">{{ element.board }}</td>
       </ng-container>
 
@@ -48,10 +48,22 @@
         <td mat-cell *matCellDef="let element">{{ element.model }}</td>
       </ng-container>
 
+      <!-- Servo serial Column -->
+      <ng-container matColumnDef="servo_serial">
+        <th mat-header-cell *matHeaderCellDef>Servo Serial</th>
+        <td mat-cell *matCellDef="let element">{{ element.servoSerial ?? '--' }}</td>
+      </ng-container>
+
       <!-- Pools Column -->
       <ng-container matColumnDef="pools">
         <th mat-header-cell *matHeaderCellDef>Pools</th>
         <td mat-cell *matCellDef="let element">{{ element.poolString }}</td>
+      </ng-container>
+
+      <!-- MAC Address Column -->
+      <ng-container matColumnDef="mac">
+        <th mat-header-cell *matHeaderCellDef>MAC</th>
+        <td mat-cell *matCellDef="let element">{{ element.mac }}</td>
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

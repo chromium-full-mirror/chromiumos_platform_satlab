@@ -29,7 +29,11 @@
   }
 
   .mat-mdc-table {
-    .mat-mdc-header-cell  {
+    .mdc-data-table__cell, .mdc-data-table__header-cell {
+      padding: 0 .5rem;
+    }
+
+    .mat-mdc-header-cell {
       min-width: 10rem;
       max-width: 10rem;
       white-space: pre-wrap;
@@ -39,6 +43,29 @@
       min-width: 10rem;
       max-width: 10rem;
       white-space: pre-wrap;
+    }
+
+    .mat-mdc-cell.cdk-column-check, .mat-mdc-header-cell.cdk-column-check {
+      max-width: 3.5rem;
+      min-width: 3.5rem;
+    }
+
+    .mat-mdc-cell.cdk-column-board, .mat-mdc-header-cell.cdk-column-board,
+    .mat-mdc-cell.cdk-column-model, .mat-mdc-header-cell.cdk-column-model {
+      min-width: 5rem;
+      max-width: 10rem;
+    }
+
+    .mat-mdc-cell.cdk-column-servo_serial, .mat-mdc-header-cell.cdk-column-servo_serial {
+      max-width: 13rem;
+      min-width: 13rem;
+      white-space: nowrap;
+    }
+
+    .mat-mdc-cell.cdk-column-ip, .mat-mdc-header-cell.cdk-column-ip,
+    .mat-mdc-cell.cdk-column-mac, .mat-mdc-header-cell.cdk-column-mac {
+      max-width: 7.5rem;
+      min-width: 7.5rem;
     }
   }
 }

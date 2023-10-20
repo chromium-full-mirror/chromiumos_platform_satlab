@@ -148,15 +148,22 @@ export class SatlabRpcService {
    * @private
    */
   private __toIDut(e: Dut) {
+    const n = e.getHostname().split("-")
+    let hostname = e.getHostname()
+    if (n.length >= 3) {
+      hostname = n.slice(2).join("-")
+    }
     const dut: IDut = {
       address: e.getAddress(),
       name: e.getName(),
       hostname: e.getHostname(),
+      hostnameNoPrefix: hostname,
       board: e.getBoard(),
       model: e.getModel(),
       pools: e.getPoolsList(),
       poolString: e.getPoolsList().join(', '),
       mac: e.getMacAddress(),
+      servoSerial: e.getServoSerial(),
       isConnected: e.getIsConnected(),
     }
 

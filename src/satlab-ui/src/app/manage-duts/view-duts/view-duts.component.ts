@@ -22,10 +22,12 @@ export class ViewDutsComponent implements OnInit, OnDestroy, OnChanges {
   protected displayedColumns = [
     'check',
     'ip',
-    'mac',
+    'hostname',
     'board',
     'model',
+    'servo_serial',
     'pools',
+    'mac',
   ];
 
   constructor() {}

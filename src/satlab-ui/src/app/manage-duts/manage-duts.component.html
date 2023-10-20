@@ -14,12 +14,5 @@
       </ng-template>
     </mat-tab>
 
-    <!-- Edit Pools Tab -->
-    <mat-tab label="Edit Pools">
-      <ng-template matTabContent>
-        <app-edit-duts [DUTs]="enrolledDUTs" (onDUTsUpdated)="onDUTsUpdated()" [loading]="listDUTsLoading"></app-edit-duts>
-      </ng-template>
-    </mat-tab>
-
   </mat-tab-group>
 </div>

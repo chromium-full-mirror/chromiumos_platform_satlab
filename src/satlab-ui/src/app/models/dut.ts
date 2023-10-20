@@ -8,11 +8,13 @@ export interface IDut {
   address: string;
   name: string;
   hostname: string;
+  hostnameNoPrefix: string;
   board: string;
   model: string;
   pools: string[];
   poolString: string;
   mac: string;
+  servoSerial?: string;
   isConnected: boolean;
 }
 
