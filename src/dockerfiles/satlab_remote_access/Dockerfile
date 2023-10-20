@@ -17,6 +17,9 @@ FROM ${COMMON_CORE_URI}/remote_access:${COMMON_CORE_LABEL}
 # All paths that are intended to be interpreted inside the container are absolute.
 
 # Add external package dependencies and add local tools to /usr/local/bin.
+
+# Set default OAuth Scopes
+ENV OAUTH_SCOPES "https://www.googleapis.com/auth/userinfo.email"
 WORKDIR /
 RUN /sbin/apk add git
 
