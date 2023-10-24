@@ -16,6 +16,12 @@ export interface IDut {
   mac: string;
   servoSerial?: string;
   isConnected: boolean;
+
+  // use this flag in the UI to indicate
+  // the dut was deployed and isConnected is false
+  // if the dut was deployed before and now is not connected,
+  // it can access.
+  isAccessible: boolean;
 }
 
 /**

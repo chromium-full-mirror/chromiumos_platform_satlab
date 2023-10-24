@@ -67,5 +67,13 @@
       max-width: 7.5rem;
       min-width: 7.5rem;
     }
+
+    .without-access {
+      background-color: $color-without-access;
+    }
+
+    .checkbox-disable {
+      opacity: .2;
+    }
   }
 }
