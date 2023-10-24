@@ -46,6 +46,8 @@ import {ProvisionComponent} from './dialogs/provision/provision.component';
 import {MatDialogModule} from "@angular/material/dialog";
 import {NotificationComponent} from './common/notification/notification.component';
 import {ConfigurationComponent} from './configuration/configuration.component';
+import {TestplanComponent} from './run_suite/testplan/testplan.component';
+import {AutocompleteSelectorComponent} from './run_suite/common/autocomplete-selector/autocomplete-selector.component';
 
 @NgModule({
   declarations: [
@@ -65,6 +67,8 @@ import {ConfigurationComponent} from './configuration/configuration.component';
     ProvisionComponent,
     NotificationComponent,
     ConfigurationComponent,
+    TestplanComponent,
+    AutocompleteSelectorComponent,
   ],
   imports: [
     AppRoutingModule,

@@ -31,6 +31,8 @@ import {NotificationService} from '../../../services/notification.service';
 export class BuildSelectFormComponent
   implements AfterViewInit, OnDestroy, OnInit {
   @Output() allRequiredFieldsSet = new EventEmitter<IBuildSelectFields>();
+  @Output() onInitComplete = new EventEmitter();
+
   @ViewChild('boardSelector') boardSelector?: BasicSelectorComponent;
   @ViewChild('milestoneSelector') milestoneSelector?: BasicSelectorComponent;
   @ViewChild('buildSelector') buildSelector?: BasicSelectorComponent;
@@ -64,7 +66,10 @@ export class BuildSelectFormComponent
     from(this.service.listEnrolledDUTs())
       .pipe(
         startWithTap(() => this.showLoading('fetching models...')),
-        finalize(() => this.hideLoading())
+        finalize(() => {
+          this.hideLoading();
+          this.onInitComplete.emit();
+        })
       )
       .subscribe({
         next: duts => this.parseAPIResponse(duts),

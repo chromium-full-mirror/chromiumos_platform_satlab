@@ -33,11 +33,10 @@ export class BasicSelectorComponent implements OnInit, OnChanges {
   @Input() placeholder = '';
   // the label that show to a user
   @Input() title = '';
-
   // the event that parent component can listen the selected element change.
-  @Output() select = new EventEmitter<string>();
+  @Output() select = new EventEmitter();
 
-  selected = '';
+  selected: unknown = '';
 
   ngOnInit(): void {
     this.autoSelectedSingleOption();

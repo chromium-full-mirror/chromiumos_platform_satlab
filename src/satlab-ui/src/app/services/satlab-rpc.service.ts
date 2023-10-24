@@ -12,6 +12,7 @@ import {
   ListDutsRequest,
   ListEnrolledDutsRequest,
   ListMilestonesRequest,
+  ListTestPlansRequest,
   RunSuiteRequest,
   UpdateDutsFirmwareRequest,
   UpdatePoolRequest,
@@ -21,6 +22,7 @@ import {
   DeleteDutsRequest,
   AddDutsRequest,
   RunTestRequest,
+  RunTestPlanRequest,
   SetCloudConfigurationRequest,
   GetCloudConfigurationRequest,
 } from './satlabrpc_pb';
@@ -85,7 +87,7 @@ export class SatlabRpcService {
    * list milestones by given model and board
    * @param p an object contains the information of model and board
    */
-  public async listMilestones(p: { model: string; board: string }) {
+  public async listMilestones(p: {model: string; board: string}) {
     const req = new ListMilestonesRequest().setModel(p.model).setBoard(p.board);
 
     const resp = await this.client.list_milestones(req, {});
@@ -176,7 +178,7 @@ export class SatlabRpcService {
    * addPool add a pool the given DUTs
    * @param p is a structure contains the information that we want to update
    */
-  public async addPool(p: { addresses: string[], pool: string }) {
+  public async addPool(p: {addresses: string[], pool: string}) {
     const req = new AddPoolRequest()
       .setPool(p.pool)
       .setAddressesList(p.addresses);
@@ -188,7 +190,7 @@ export class SatlabRpcService {
    * updatePool update the pool list to the given DUTs
    * @param p is a structure contains the information that we want to update.
    */
-  public async updatePool(p: { address: string, pools: string[] }[]) {
+  public async updatePool(p: {address: string, pools: string[]}[]) {
     const items = toIterator(p)
       .map(elem => {
         return new UpdatePoolRequest.Item()
@@ -380,6 +382,41 @@ export class SatlabRpcService {
       ...params,
       tests: ["stub_Pass"]
     })
+  }
+
+  /**
+ * list testplans fetch the names of testplans from bucket
+ */
+  public async listTestPlans(): Promise<string[]> {
+    const req = new ListTestPlansRequest();
+    const resp = await this.client.list_test_plans(req, {});
+
+    return resp.getNamesList();
+  }
+
+  /**
+   * run a testplan by given model, board, milestone, build, pool and testplan
+   * @param params object with required information
+   */
+  public async runTestPlan(params: {
+    model: string;
+    board: string;
+    milestone: string;
+    build: string;
+    pool: string;
+    plan: string;
+  }) {
+    const req = new RunTestPlanRequest()
+      .setModel(params.model)
+      .setBoard(params.board)
+      .setMilestone(params.milestone)
+      .setBuild(params.build)
+      .setPool(params.pool)
+      .setTestPlanName(params.plan);
+
+    const resp = await this.client.run_test_plan(req, {});
+
+    return resp.getBuildLink();
   }
 
   /**

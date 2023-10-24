@@ -5,16 +5,20 @@ import {OtherComponent} from './run_suite/other/other.component';
 import {ManageDutsComponent} from "./manage-duts/manage-duts.component";
 import {AboutComponent} from './about/about.component';
 import {ConfigurationComponent} from "./configuration/configuration.component";
+import {TestplanComponent} from './run_suite/testplan/testplan.component';
 
 const routes: Routes = [
   {
-    path: 'run_tests',
-    component: RunSuiteComponent,
-    children: [{path: 'other', component: OtherComponent}],
-  },
-  {
     path: 'manage_duts',
     component: ManageDutsComponent,
+  },
+  {
+    path: 'run_tests',
+    component: RunSuiteComponent,
+    children: [
+      {path: 'other', component: OtherComponent},
+      {path: 'testplan', component: TestplanComponent},
+    ],
   },
   {
     path: 'about',

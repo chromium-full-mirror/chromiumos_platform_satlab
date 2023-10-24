@@ -1,6 +1,6 @@
 interface ISelectableItem {
   text: string;
-  value: string;
+  value: unknown;
   label: string;
 }
 
