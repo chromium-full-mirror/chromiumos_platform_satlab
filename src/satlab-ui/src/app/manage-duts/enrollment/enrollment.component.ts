@@ -20,57 +20,83 @@ export class EnrollmentComponent {
   protected isDUTSelected = false;
   protected pool = new FormControl('');
 
-  constructor(private service: SatlabRpcService) {}
+  constructor(private service: SatlabRpcService) {
+  }
 
   protected onDUTsSelectionChanged(d: IDut[]) {
     this.selectedDUTs = d;
     this.isDUTSelected = d.length > 0;
   }
 
-  private __validateSelection() {
-    return this.selectedDUTs.length > 0;
+  private __validateSelection(data: unknown[]) {
+    return data.length > 0;
   }
 
-  private __validateEditPool() {
-    return this.__validateSelection() && this.pool.value;
+  private __validateEditPool(data: unknown[]) {
+    return this.__validateSelection(data) && this.pool.value;
   }
 
   protected onEnrollClicked() {
-    if (!this.__validateSelection()) {
-      return ;
+    if (!this.__validateSelection(this.selectedDUTs)) {
+      return;
     }
 
     // TODO call an API to add DUTs
   }
 
   protected onUnEnrollClicked() {
-    if (!this.__validateSelection()) {
-      return ;
+    const d = toIterator(this.selectedDUTs)
+      .filter(e => e.address !== '')
+      .map(e => e.address)
+      .collect();
+
+    if (!this.__validateSelection(d)) {
+      return;
     }
 
-    // TODO call an API to delete DUTs
+    from(this.service.deleteDUTs(d))
+      .pipe(
+        startWithTap(() => {
+          this.loading = true;
+        }),
+        finalize(() => {
+          this.loading = false;
+        }),
+      )
+      .subscribe({
+        next: res => {
+          console.log(res.pass)
+          console.log(res.fail)
+          this.onDUTsUpdated.emit();
+        },
+        error: e => {
+          // TODO: handle error
+          console.error(e);
+        }
+      })
   }
 
   protected onReVerifyClicked() {
-    if (!this.__validateSelection()) {
-      return ;
+    if (!this.__validateSelection(this.selectedDUTs)) {
+      return;
     }
 
     // TODO call an API to verify the DUTs
   }
 
-  protected onProvisionDUTs () {
+  protected onProvisionDUTs() {
     // TODO show an dialog to let user to provision.
   }
 
   protected onAddPoolClicked() {
-    if (!this.__validateEditPool()) {
-      return ;
-    }
-
     const addresses = toIterator(this.selectedDUTs)
+      .filter(e => e.address !== '')
       .map(e => e.address)
       .collect();
+
+    if (!this.__validateEditPool(addresses)) {
+      return;
+    }
 
     from(this.service.addPool({addresses: addresses, pool: this.pool.value!}))
       .pipe(
@@ -94,22 +120,22 @@ export class EnrollmentComponent {
   }
 
   protected onRemovePoolClicked() {
-    if (!this.__validateEditPool()) {
-      return ;
-    }
-
     const items = toIterator(this.selectedDUTs)
       .filter(e => {
-        return e.pools.includes(this.pool.value!);
+        return e.address !== '' && e.pools.includes(this.pool.value!);
       })
       .map(e => {
         const idx = e.pools.indexOf(this.pool.value!);
         return {
           address: e.address,
-          pools: [...e.pools.slice(0, idx), ...e.pools.slice(idx+1)]
+          pools: [...e.pools.slice(0, idx), ...e.pools.slice(idx + 1)]
         }
       })
       .collect();
+
+    if (!this.__validateEditPool(items)) {
+      return;
+    }
 
     from(this.service.updatePool(items))
       .pipe(

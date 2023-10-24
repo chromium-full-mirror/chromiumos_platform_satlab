@@ -18,6 +18,7 @@ import {
   GetSystemInfoRequest,
   GetVersionInfoRequest,
   GetNetworkInfoRequest,
+  DeleteDutsRequest,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
 import {IDut, IFirmwareDUT, IUpdateFirmwareResult} from "../models/dut";
@@ -274,5 +275,22 @@ export class SatlabRpcService {
       macAddress: resp.getMacAddress(),
       isConnectedToInternet: resp.getIsConnected(),
     };
+  }
+
+  /**
+   * deleteDUTs delete the DUTs by given IP addresses
+   *
+   * return an object contains the hostnames have been deleted successfully
+   * or failed.
+   */
+  public async deleteDUTs(addresses: string[]) {
+    const req = new DeleteDutsRequest()
+      .setAddressesList(addresses);
+    const resp = await this.client.delete_duts(req, {});
+
+    return {
+      pass: resp.getPassList(),
+      fail: resp.getFailList(),
+    }
   }
 }

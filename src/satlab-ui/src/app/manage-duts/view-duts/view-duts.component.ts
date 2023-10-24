@@ -30,7 +30,8 @@ export class ViewDutsComponent implements OnInit, OnDestroy, OnChanges {
     'mac',
   ];
 
-  constructor() {}
+  constructor() {
+  }
 
   ngOnInit() {
     this.disposer = this.selection
@@ -74,7 +75,7 @@ export class ViewDutsComponent implements OnInit, OnDestroy, OnChanges {
     this.selection.clear();
     if (e.checked) {
       toIterator(this.DUTs)
-        .filter(e => e.isConnected)
+        .filter(e => e.isAccessible)
         .forEach(e => {
           this.selection.toggle(e);
         })

@@ -23,8 +23,9 @@ service SatlabRpcService {
   rpc update_duts_firmware (UpdateDutsFirmwareRequest)  returns (UpdateDutsFirmwareResponse);
 
   // services to run different types of test suites
-  rpc run_suite (RunSuiteRequest) returns (RunSuiteResponse) {}
+  rpc run_suite (RunSuiteRequest) returns (RunSuiteResponse);
   rpc run_test (RunTestRequest) returns (RunTestResponse);
+  rpc delete_duts (DeleteDutsRequest) returns (DeleteDutsResponse);
 
   // manage DUTs
   rpc add_pool (AddPoolRequest) returns (AddPoolResponse);
@@ -339,4 +340,19 @@ message GetNetworkInfoResponse {
   string hostname = 1;
   string mac_address = 2;
   bool is_connected = 3;
+}
+
+// NEXT_TAG = 2
+message DeleteDutsRequest {
+  repeated string addresses = 1;
+}
+
+// NEXT_TAG = 4
+message DeleteDutsResponse {
+  // pass contains the hostnames that we have deleted DUTs successfully
+  repeated string pass = 1;
+  // fail contains the hostnames that we failed to delete DUTs
+  repeated string fail = 2;
+  // invalid_addresses contain the information that we can not convert the IPs to the hostnames.
+  repeated string invalid_addresses = 3;
 }
