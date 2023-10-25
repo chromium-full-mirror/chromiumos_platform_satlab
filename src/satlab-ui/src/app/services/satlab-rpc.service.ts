@@ -19,6 +19,7 @@ import {
   GetVersionInfoRequest,
   GetNetworkInfoRequest,
   DeleteDutsRequest,
+  AddDutsRequest,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
 import {IDut, IFirmwareDUT, IUpdateFirmwareResult} from "../models/dut";
@@ -273,6 +274,7 @@ export class SatlabRpcService {
 
   /**
    * deleteDUTs delete the DUTs by given IP addresses
+   * @param addresses the IP addresses we want to delete
    *
    * return an object contains the hostnames have been deleted successfully
    * or failed.
@@ -285,6 +287,48 @@ export class SatlabRpcService {
     return {
       pass: resp.getPassList(),
       fail: resp.getFailList(),
+    }
+  }
+
+  /**
+   * addDUTs add the DUTs by given information
+   * @param d the information of DUTs
+   *
+   * return an object contains the hostnames have been deleted successfully
+   * or failed.
+   */
+  public async addDUTs(d: IDut[]) {
+    const items = toIterator(d)
+      .map(e => {
+        return new AddDutsRequest.Param()
+          .setModel(e.model)
+          .setBoard(e.board)
+          .setAddress(e.address)
+          .setHostname(e.inputHostname)
+      })
+      .collect();
+
+    const req = new AddDutsRequest().setDutsList(items)
+
+    const resp = await this.client.add_duts(req, {});
+
+    return {
+      pass: toIterator(resp.getPassList())
+        .map(e => {
+          return {
+            hostname: e.getHostname(),
+            url: e.getUrl(),
+          }
+        })
+        .collect(),
+      fail: toIterator(resp.getFailList())
+        .map(e => {
+          return {
+            hostname: e.getHostname(),
+            reason: e.getReason(),
+          }
+        })
+        .collect()
     }
   }
 }

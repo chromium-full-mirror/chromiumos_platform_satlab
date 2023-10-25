@@ -37,11 +37,35 @@ export class EnrollmentComponent {
   }
 
   protected onEnrollClicked() {
-    if (!this.__validateSelection(this.selectedDUTs)) {
+    const d = toIterator(this.selectedDUTs)
+      .filter(e => e.inputHostname !== '' && e.board !== '' && e.model !== '' && e.isConnected && e.hostname === '')
+      .collect();
+
+    if (!this.__validateSelection(d)) {
       return;
     }
 
-    // TODO call an API to add DUTs
+    from(this.service.addDUTs(d))
+      .pipe(
+        startWithTap(() => {
+          this.loading = true;
+        }),
+        finalize(() => {
+          this.loading = false;
+        }),
+      )
+      .subscribe({
+        next: res => {
+          // TODO: handle response
+          console.log(res.pass)
+          console.log(res.fail)
+          this.onDUTsUpdated.emit();
+        },
+        error: e => {
+          // TODO: handle error
+          console.error(e);
+        }
+      })
   }
 
   protected onUnEnrollClicked() {
@@ -65,6 +89,7 @@ export class EnrollmentComponent {
       )
       .subscribe({
         next: res => {
+          // TODO: handle response
           console.log(res.pass)
           console.log(res.fail)
           this.onDUTsUpdated.emit();

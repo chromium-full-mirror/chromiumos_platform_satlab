@@ -6,12 +6,12 @@
   </ng-container>
 
 
-  <ng-container *ngIf="DUTs.length !== 0">
+  <ng-container *ngIf="duts.length !== 0">
     <div class="selection-hint-wrapper">
-      <p>Selected {{ selectionCount }} of {{ DUTs.length }}</p>
+      <p>Selected {{ selectionCount }} of {{ duts.length }}</p>
     </div>
 
-    <table mat-table [dataSource]="DUTs">
+    <table mat-table [dataSource]="duts">
       <!-- CheckBox -->
       <ng-container matColumnDef="check">
         <th mat-header-cell *matHeaderCellDef>
@@ -34,7 +34,17 @@
       <ng-container matColumnDef="hostname">
         <th mat-header-cell *matHeaderCellDef>Hostname</th>
         <td mat-cell *matCellDef="let element">
-          {{ element.hostname }}
+          <!-- Hostname is not empty means the DUT has been enrolled -->
+          <ng-container *ngIf="element.hostname !== ''">
+            {{ element.hostname }}
+          </ng-container>
+
+          <ng-container
+            *ngIf="element.hostname === '' && element.board !== '' && element.model !== '' && element.isConnected"
+          >
+            <input matInput placeholder="Please input hostname" (focusout)="onInputFocusout(element, $event)"
+                   [value]="element.inputHostname ?? ''"/>
+          </ng-container>
         </td>
       </ng-container>
 

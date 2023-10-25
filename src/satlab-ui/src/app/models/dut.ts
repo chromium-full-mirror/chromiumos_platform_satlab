@@ -21,6 +21,10 @@ export interface IDut {
   // if the dut was deployed before and now is not connected,
   // it can access.
   isAccessible: boolean;
+
+  // this field for enroll dut
+  // user need to assign the hostname
+  inputHostname?: string;
 }
 
 /**
