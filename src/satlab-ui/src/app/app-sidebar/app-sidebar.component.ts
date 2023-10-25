@@ -16,6 +16,10 @@ export class AppSidebarComponent {
       route: '/run_tests',
       label: 'Run Suite',
     },
+    {
+      route: '/about',
+      label: 'About',
+    },
   ];
 
   constructor() {}
