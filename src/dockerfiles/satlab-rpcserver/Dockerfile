@@ -13,6 +13,9 @@ FROM ${COMMON_CORE_URI}/chromite:${COMMON_CORE_LABEL} as chromite
 
 ###########################################################
 
+# Set default OAuth Scopes
+ENV OAUTH_SCOPES "https://www.googleapis.com/auth/userinfo.email"
+
 FROM ${REGISTRY_URI}/satlab_remote_access:${COMMON_CORE_LABEL}
 # Set up CIPD and run CIPD ensure.
 WORKDIR /
