@@ -258,11 +258,11 @@ export class SatlabRpcService {
     const resp = await this.client.get_version_info(req, null);
 
     return {
-      version: resp.getVersion(),
-      chromeosVersion: resp.getChromeosVersion(),
-      track: resp.getTrack(),
-      description: resp.getDescription(),
-      hostId: resp.getHostId(),
+      version: resp.getVersion().trim(),
+      chromeosVersion: resp.getChromeosVersion().trim(),
+      track: resp.getTrack().replace(/\\n+$/, '').trim(),
+      description: resp.getDescription().replace(/\\n+$/, '').trim(),
+      hostId: resp.getHostId().trim(),
     };
   }
 
