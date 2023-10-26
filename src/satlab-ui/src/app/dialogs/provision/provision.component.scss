@@ -1,0 +1,20 @@
+.wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 480px;
+
+  .content {
+    padding: 0.5rem 1.5rem 0 1.5rem;
+    display: flex;
+    flex-direction: column;
+    row-gap: 1rem;
+
+    .btn-group {
+      padding: 1.5rem 1.5rem 1rem 1.5rem;
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+    }
+  }
+}

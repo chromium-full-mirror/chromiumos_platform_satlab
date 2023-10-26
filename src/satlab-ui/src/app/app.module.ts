@@ -42,6 +42,8 @@ import {EnrollmentComponent} from './manage-duts/enrollment/enrollment.component
 import {FirmwareComponent} from './manage-duts/firmware/firmware.component';
 import {AboutComponent} from './about/about.component';
 import {SpinnerLoadingComponent} from './common/spinner-loading/spinner-loading.component';
+import {ProvisionComponent} from './dialogs/provision/provision.component';
+import {MatDialogModule} from "@angular/material/dialog";
 
 @NgModule({
   declarations: [
@@ -58,6 +60,7 @@ import {SpinnerLoadingComponent} from './common/spinner-loading/spinner-loading.
     FirmwareComponent,
     AboutComponent,
     SpinnerLoadingComponent,
+    ProvisionComponent,
   ],
   imports: [
     AppRoutingModule,
@@ -90,6 +93,7 @@ import {SpinnerLoadingComponent} from './common/spinner-loading/spinner-loading.
     ReactiveFormsModule,
     RouterModule,
     MatSnackBarModule,
+    MatDialogModule,
   ],
   exports: [
     AppRoutingModule,

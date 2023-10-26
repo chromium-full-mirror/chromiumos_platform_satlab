@@ -20,6 +20,7 @@ import {
   GetNetworkInfoRequest,
   DeleteDutsRequest,
   AddDutsRequest,
+  RunTestRequest,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
 import {IDut, IFirmwareDUT, IUpdateFirmwareResult} from "../models/dut";
@@ -331,5 +332,45 @@ export class SatlabRpcService {
         })
         .collect()
     }
+  }
+
+  /**
+   * run a test by given model, board, milestone, build version, pool, test, and test_args.
+   * @param params an object contains the required information
+   */
+  public async runTest(params: {
+    model: string;
+    board: string;
+    milestone: string;
+    build: string;
+    pool: string;
+    tests: string[];
+    test_args?: string;
+  }) {
+    const req = new RunTestRequest()
+      .setModel(params.model)
+      .setBoard(params.board)
+      .setMilestone(params.milestone)
+      .setBuild(params.build)
+      .setPool(params.pool)
+      .setTestsList(params.tests)
+    if (params.test_args !== undefined) {
+      req.setTestArgs(params.test_args)
+    }
+    const resp = await this.client.run_test(req, {});
+    return resp.getBuildLink();
+  }
+
+  public async provision(params: {
+    model: string;
+    board: string;
+    milestone: string;
+    build: string;
+    pool: string;
+  }) {
+    return this.runTest({
+      ...params,
+      tests: ["stub_Pass"]
+    })
   }
 }

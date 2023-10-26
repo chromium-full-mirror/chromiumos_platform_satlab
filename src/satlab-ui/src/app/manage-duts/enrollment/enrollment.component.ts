@@ -5,6 +5,8 @@ import {FormControl} from "@angular/forms";
 import {toIterator} from "../../utils/iterator";
 import {finalize, from} from "rxjs";
 import {startWithTap} from "../../utils/rxjs_operator";
+import {MatDialog} from "@angular/material/dialog";
+import {ProvisionComponent} from "../../dialogs/provision/provision.component";
 
 @Component({
   selector: 'app-enrollment',
@@ -20,7 +22,7 @@ export class EnrollmentComponent {
   protected isDUTSelected = false;
   protected pool = new FormControl('');
 
-  constructor(private service: SatlabRpcService) {
+  constructor(private service: SatlabRpcService, protected dialog: MatDialog) {
   }
 
   protected onDUTsSelectionChanged(d: IDut[]) {
@@ -110,7 +112,64 @@ export class EnrollmentComponent {
   }
 
   protected onProvisionDUTs() {
-    // TODO show an dialog to let user to provision.
+    const d = toIterator(this.DUTs)
+      .filter(e => e.hostname !== '')
+      .map(e => {
+        return {
+          board: e.board,
+          model: e.model,
+          pools: e.pools
+        }
+      })
+      .collect();
+
+    if (!this.__validateSelection(d)) {
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ProvisionComponent, {data: {duts: d}});
+
+    dialogRef
+      .afterClosed()
+      .subscribe(res => {
+        if (res) {
+          const pool = res.pool;
+          const milestone = res.milestone;
+          const build = res.build;
+
+          toIterator(d)
+            .filter(e => e.pools.includes(pool))
+            .unique_by_where((a, b) => {
+              return a.board === b.board && a.model === b.model;
+            })
+            .map(e => {
+              return {
+                board: e.board,
+                model: e.model,
+              }
+            })
+            .collect()
+            .forEach(e => {
+              from(
+                this.service.provision({
+                  ...e,
+                  milestone: milestone,
+                  build: build,
+                  pool: pool,
+                })
+              ).subscribe({
+                next: e => {
+                  // TODO: handle response
+                  console.log(e)
+                },
+                error: e => {
+                  // TODO: handle error
+                  console.error(e)
+                }
+              })
+            })
+        }
+      });
   }
 
   protected onAddPoolClicked() {

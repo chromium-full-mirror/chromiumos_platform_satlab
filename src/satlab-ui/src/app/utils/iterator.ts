@@ -31,6 +31,26 @@ function* uniqueBy<T>(iter: Iterator<T>) {
   }
 }
 
+function* uniqueByWhere<T>(iter: Iterator<T>, f: (a: T, b: T) => boolean) {
+  const seen: T[] = [];
+  let next = iter.next();
+
+  while (next.done === false) {
+    if (seen.length === 0) {
+      seen.push(next.value);
+      yield next.value
+    } else {
+      for (const s of seen) {
+        if (!f(s, next.value)) {
+          seen.push(next.value)
+          yield next.value
+        }
+      }
+    }
+    next = iter.next();
+  }
+}
+
 function* flatten<T>(iter: Iterator<T>) {
   let next = iter.next();
 
@@ -56,6 +76,25 @@ function forEach<T>(iter: Iterator<T>, f: (elem: T) => void) {
   }
 }
 
+/**
+ * find the first element that match the condition. If we don't find
+ * it, we will return null.
+ * @param iter the iterator object.
+ * @param f the filter function
+ */
+function firstWhere<T>(iter: Iterator<T>, f: (elem: T) => boolean) {
+  let next = iter.next();
+
+  while (next.done === false) {
+    if (f(next.value)) {
+      return next.value;
+    }
+    next = iter.next();
+  }
+
+  return null
+}
+
 function* fromArray<T>(array: T[]) {
   for (const v of array) {
     yield v;
@@ -78,7 +117,9 @@ export const fromIter = <T>(iter: Iterator<T>) => {
     filter: (f: (elem: T) => boolean) => fromIter(filter(iter, f)),
     map: <U>(f: (elem: T) => U) => fromIter(map(iter, f)),
     unique_by: () => fromIter(uniqueBy(iter)),
+    unique_by_where: (f: (a: T, b: T) => boolean) => fromIter(uniqueByWhere(iter, f)),
     flatten: () => fromIter(flatten(iter)),
+    first_where: (f: (elem: T) => boolean) => firstWhere(iter, f),
     forEach: (f: (elem: T) => void) => forEach(iter, f),
     collect: () => collect(iter),
   };

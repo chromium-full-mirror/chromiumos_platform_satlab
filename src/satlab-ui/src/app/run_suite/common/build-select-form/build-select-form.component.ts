@@ -64,7 +64,7 @@ export class BuildSelectFormComponent
         finalize(() => this.hideLoading())
       )
       .subscribe({
-        next: duts => this.praseAPIResponse(duts),
+        next: duts => this.parseAPIResponse(duts),
         error: e => {
           // TODO: handle error
           console.error(`fetching model got an error: ${e}`);
@@ -95,7 +95,7 @@ export class BuildSelectFormComponent
     this.resetSelector(this.fields);
     this.fileds$.next(this.fields);
     this.poolOptions = [];
-    this.praseBoardOptionsFromDUTs(this.duts);
+    this.parseBoardOptionsFromDUTs(this.duts);
   }
 
   protected onBoardChanged(newBoard: string) {
@@ -139,7 +139,7 @@ export class BuildSelectFormComponent
     this.fileds$.next(this.fields);
   }
 
-  private praseAPIResponse(duts: Dut[]): void {
+  private parseAPIResponse(duts: Dut[]): void {
     this.duts = duts.map(e => {
       const dut: ISimpleDUT = {
         model: e.getModel(),
@@ -160,7 +160,7 @@ export class BuildSelectFormComponent
       .collect();
   }
 
-  private praseBoardOptionsFromDUTs(duts: ISimpleDUT[]): void {
+  private parseBoardOptionsFromDUTs(duts: ISimpleDUT[]): void {
     this.boardOptions = [];
     if (this.fields.model !== '') {
       this.boardOptions = toIterator(duts)
