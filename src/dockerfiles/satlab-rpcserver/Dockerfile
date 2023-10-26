@@ -17,6 +17,14 @@ FROM ${COMMON_CORE_URI}/chromite:${COMMON_CORE_LABEL} as chromite
 ENV OAUTH_SCOPES "https://www.googleapis.com/auth/userinfo.email"
 
 FROM ${REGISTRY_URI}/satlab_remote_access:${COMMON_CORE_LABEL}
+
+# TODO(anhdle): Move this to separate image
+RUN mkdir /gcloud/
+WORKDIR /gcloud
+RUN curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-452.0.1-linux-x86_64.tar.gz
+RUN tar -xf google-cloud-cli-452.0.1-linux-x86_64.tar.gz
+RUN ./google-cloud-sdk/install.sh --path-update true -q
+
 # Set up CIPD and run CIPD ensure.
 WORKDIR /
 RUN apk add --no-cache --upgrade \
