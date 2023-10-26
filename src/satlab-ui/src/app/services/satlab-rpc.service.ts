@@ -274,14 +274,15 @@ export class SatlabRpcService {
 
   /**
    * deleteDUTs delete the DUTs by given IP addresses
-   * @param addresses the IP addresses we want to delete
+   * @param hostnames the hostnames we want to delete
    *
    * return an object contains the hostnames have been deleted successfully
    * or failed.
    */
-  public async deleteDUTs(addresses: string[]) {
+  public async deleteDUTs(hostnames: string[]) {
     const req = new DeleteDutsRequest()
-      .setAddressesList(addresses);
+      .setHostnamesList(hostnames);
+
     const resp = await this.client.delete_duts(req, {});
 
     return {
