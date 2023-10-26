@@ -43,7 +43,7 @@ export class AboutComponent implements OnInit {
   protected usefulLinks: ILinkInfo[] = [
     {
       name: 'Instruction Manual',
-      url: 'https://docs.google.com/document/d/e/2PACX-1vQKDTDTQFKjNxJatFkFUSjCPdVzgry9vkLLvxL8vwqasrKMP2KReEMZ3iva9GX8EzQYo-kANnzPlFG_/pub?urp=gmail_link',
+      url: 'https://chromeos.google.com/partner/dlm/docs/infrastructure/satlab-for-partners-early-access.html',
     },
     {
       name: 'Report a Bug',
