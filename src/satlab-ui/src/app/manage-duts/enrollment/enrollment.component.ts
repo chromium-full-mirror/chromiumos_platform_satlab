@@ -16,6 +16,7 @@ import {ProvisionComponent} from "../../dialogs/provision/provision.component";
 export class EnrollmentComponent {
   @Input() DUTs: IDut[] = [];
   @Input() loading = false;
+  @Input() hostnamePrefix = "";
   @Output() onDUTsUpdated = new EventEmitter();
 
   protected selectedDUTs: IDut[] = [];

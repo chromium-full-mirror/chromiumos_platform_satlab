@@ -42,8 +42,12 @@
           <ng-container
             *ngIf="element.hostname === '' && element.board !== '' && element.model !== '' && element.isConnected"
           >
-            <input matInput placeholder="Please input hostname" (focusout)="onInputFocusout(element, $event)"
-                   [value]="element.inputHostname ?? ''"/>
+            <mat-form-field>
+              <span matPrefix>{{ hostnamePrefix }}</span>
+              <input matInput placeholder="Please input hostname" (focusout)="onInputFocusout(element, $event)"
+                     [value]="element.inputHostname ?? ''"/>
+            </mat-form-field>
+
           </ng-container>
         </td>
       </ng-container>

@@ -3,7 +3,6 @@ import {IDut, IFirmwareDUT} from "../models/dut";
 import {SatlabRpcService} from "../services/satlab-rpc.service";
 import {finalize, from} from "rxjs";
 import {startWithTap} from "../utils/rxjs_operator";
-import {toIterator} from "../utils/iterator";
 
 @Component({
   selector: 'app-manage-duts',
@@ -13,28 +12,46 @@ import {toIterator} from "../utils/iterator";
 export class ManageDutsComponent implements AfterViewInit {
   // duts contains the all duts are enrolled and connected to the SatLab
   protected DUTs: IDut[] = [];
-  // enrolledDUTs contains the duts are enrolled
-  protected enrolledDUTs: IDut[] = [];
   // firmwareDUTs contains the connected DUTs that including the firmware information
   protected firmwareDUTs: IFirmwareDUT[] = [];
   // listDUTsLoading use to indicate we make an API call to list DUTs
   protected listDUTsLoading = false;
   // listFirmwareLoading use to indicate we make an API call to list DUTs for firmware update
   protected listFirmwareLoading = false;
+  // hostnamePrefix the prefix of hostname when a user want to input a hostname.
+  // we need to show a prefix.
+  protected hostnamePrefix = "";
 
   constructor(private service: SatlabRpcService) {
   }
 
   ngAfterViewInit() {
-    this.listDUTs();
-    this.listDUTsForFirmware();
+    this.__getHostnamePrefix();
+    this.__listDUTs();
+    this.__listDUTsForFirmware();
+  }
+
+  /**
+   * onDUTsUpdate is a handler to handle when any DUTs are updated.
+   * @protected
+   */
+  protected onDUTsUpdated() {
+    this.__listDUTs();
+  }
+
+  /**
+   * onFirmwareUpdated is a handler to handle when any DUTs update a firmware
+   * @protected
+   */
+  protected onFirmwareUpdated() {
+    this.__listDUTsForFirmware();
   }
 
   /**
    * listDUTs call an API to list all duts are connected and enrolled.
    * @private
    */
-  private listDUTs() {
+  private __listDUTs() {
     from(this.service.listDUTs())
       .pipe(
         startWithTap(() => {
@@ -47,9 +64,6 @@ export class ManageDutsComponent implements AfterViewInit {
       .subscribe({
         next: e => {
           this.DUTs = e;
-          this.enrolledDUTs = toIterator(this.DUTs)
-            .filter(this.__isEnrolled)
-            .collect();
         },
         error: e => {
           // TODO: handle error
@@ -62,7 +76,7 @@ export class ManageDutsComponent implements AfterViewInit {
    * list the DUTs for firmware update
    * @private
    */
-  private listDUTsForFirmware() {
+  private __listDUTsForFirmware() {
     from(this.service.listDUTsForFirmware())
       .pipe(
         startWithTap(() => {
@@ -82,28 +96,16 @@ export class ManageDutsComponent implements AfterViewInit {
     })
   }
 
-  /**
-   * check the DUT is enrolled
-   * @param d the structure contains all information of DUT.
-   * @private
-   */
-  private __isEnrolled(d: IDut) {
-    return d.model !== '' && d.board !== '';
-  }
-
-  /**
-   * onDUTsUpdate is a handler to handle when any DUTs are updated.
-   * @protected
-   */
-  protected onDUTsUpdated() {
-    this.listDUTs();
-  }
-
-  /**
-   * onFirmwareUpdated is a handler to handle when any DUTs update a firmware
-   * @protected
-   */
-  protected onFirmwareUpdated() {
-    this.listDUTsForFirmware();
+  private __getHostnamePrefix() {
+    from(this.service.getVersionInfo())
+      .subscribe({
+        next: e => {
+          this.hostnamePrefix = `satlab-${e.hostId}-`
+        },
+        error: e => {
+          // TODO: handle error
+          console.error(e)
+        }
+      })
   }
 }

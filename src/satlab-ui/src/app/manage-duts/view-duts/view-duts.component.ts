@@ -13,6 +13,7 @@ import { toIterator } from "../../utils/iterator";
 export class ViewDutsComponent implements OnInit, OnDestroy, OnChanges {
   @Input() DUTs: IDut[] = [];
   @Input() loading = false;
+  @Input() hostnamePrefix = "";
   @Output() select = new EventEmitter<IDut[]>();
 
   protected selection = new SelectionModel<IDut>(true, []);

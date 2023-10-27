@@ -3,14 +3,16 @@
     <!-- Enrollment Tab -->
     <mat-tab label="Enrollment">
       <ng-template matTabContent>
-        <app-enrollment [DUTs]="DUTs" (onDUTsUpdated)="onDUTsUpdated()" [loading]="listDUTsLoading"></app-enrollment>
+        <app-enrollment [DUTs]="DUTs" (onDUTsUpdated)="onDUTsUpdated()" [loading]="listDUTsLoading"
+                        [hostnamePrefix]="hostnamePrefix"></app-enrollment>
       </ng-template>
     </mat-tab>
 
     <!-- Firmware Tab -->
     <mat-tab label="Firmware">
       <ng-template matTabContent>
-        <app-firmware [DUTs]="firmwareDUTs" (onDUTsUpdated)="onFirmwareUpdated()" [loading]="listFirmwareLoading"></app-firmware>
+        <app-firmware [DUTs]="firmwareDUTs" (onDUTsUpdated)="onFirmwareUpdated()"
+                      [loading]="listFirmwareLoading"></app-firmware>
       </ng-template>
     </mat-tab>
 

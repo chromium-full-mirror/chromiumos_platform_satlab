@@ -37,6 +37,8 @@
       min-width: 10rem;
       max-width: 10rem;
       white-space: pre-wrap;
+      font-size: $font-size-title;
+      font-weight: $font-size-title;
     }
 
     .mat-mdc-cell {
@@ -48,6 +50,11 @@
     .mat-mdc-cell.cdk-column-check, .mat-mdc-header-cell.cdk-column-check {
       max-width: 3.5rem;
       min-width: 3.5rem;
+    }
+
+    .mat-mdc-cell.cdk-column-hostname, .mat-mdc-header-cell.cdk-column-hostname {
+      max-width: 400px;
+      min-width: 400px;
     }
 
     .mat-mdc-cell.cdk-column-board, .mat-mdc-header-cell.cdk-column-board,
@@ -64,8 +71,8 @@
 
     .mat-mdc-cell.cdk-column-ip, .mat-mdc-header-cell.cdk-column-ip,
     .mat-mdc-cell.cdk-column-mac, .mat-mdc-header-cell.cdk-column-mac {
-      max-width: 7.5rem;
-      min-width: 7.5rem;
+      max-width: 8.5rem;
+      min-width: 8.5rem;
     }
 
     .unconnected {
