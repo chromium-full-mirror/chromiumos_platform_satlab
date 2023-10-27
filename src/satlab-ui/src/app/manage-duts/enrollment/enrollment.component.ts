@@ -72,8 +72,8 @@ export class EnrollmentComponent {
 
   protected onUnEnrollClicked() {
     const d = toIterator(this.selectedDUTs)
-      .filter(e => e.address !== '')
-      .map(e => e.address)
+      .filter(e => e.hostname !== '')
+      .map(e => e.hostname)
       .collect();
 
     if (!this.__validateSelection(d)) {
