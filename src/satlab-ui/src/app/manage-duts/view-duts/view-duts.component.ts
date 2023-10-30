@@ -110,6 +110,10 @@ export class ViewDutsComponent implements OnInit, OnDestroy, OnChanges {
    */
   protected onInputFocusout(dut: IDut, e: Event) {
     const v = (e.target as HTMLInputElement).value
+    if (!this.__validateHostname(v)) {
+      return;
+    }
+    
     if (dut.inputHostname === v) {
       return;
     }
@@ -138,5 +142,9 @@ export class ViewDutsComponent implements OnInit, OnDestroy, OnChanges {
       ]);
       this.select.emit(this.selection.selected);
     }
+  }
+
+  private __validateHostname(s: string) {
+    return /^[a-z0-9-]{1,32}$/.test(s)
   }
 }

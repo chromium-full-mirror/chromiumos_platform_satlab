@@ -44,10 +44,29 @@
           >
             <mat-form-field>
               <span matPrefix>{{ hostnamePrefix }}</span>
-              <input matInput placeholder="Please input hostname" (focusout)="onInputFocusout(element, $event)"
-                     [value]="element.inputHostname ?? ''"/>
+              <input matInput
+                     placeholder="Please input hostname"
+                     (focusout)="onInputFocusout(element, $event)"
+                     [value]="element.inputHostname ?? ''"
+                     [(ngModel)]="element.inputHostname"
+                     #name="ngModel"
+                     name="hostname"
+                     minlength="1"
+                     maxlength="32"
+                     pattern="[a-z0-9-]+"
+              />
             </mat-form-field>
-
+            <div *ngIf="name.errors && (name.dirty || name.touched)" class="invalid-hostname error">
+              <div [hidden]="!name.errors.minlength">
+                Hostname must be at least 1 characters long.
+              </div>
+              <div [hidden]="!name.errors.maxlength">
+                Hostname cannot be more than 32 characters long.
+              </div>
+              <div [hidden]="!name.errors.pattern" >
+                Hostname should be a-z, 0-9, - characters.
+              </div>
+            </div>
           </ng-container>
         </td>
       </ng-container>
