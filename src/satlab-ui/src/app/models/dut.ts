@@ -15,6 +15,8 @@ export interface IDut {
   mac: string;
   servoSerial?: string;
   isConnected: boolean;
+  // the status from UFS
+  status: string;
 
   // use this flag in the UI to indicate
   // the dut was deployed and isConnected is false

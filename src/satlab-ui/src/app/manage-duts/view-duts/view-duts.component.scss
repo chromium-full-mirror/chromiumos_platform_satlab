@@ -70,7 +70,8 @@
     }
 
     .mat-mdc-cell.cdk-column-ip, .mat-mdc-header-cell.cdk-column-ip,
-    .mat-mdc-cell.cdk-column-mac, .mat-mdc-header-cell.cdk-column-mac {
+    .mat-mdc-cell.cdk-column-mac, .mat-mdc-header-cell.cdk-column-mac,
+    .mat-mdc-cell.cdk-column-status, .mat-mdc-header-cell.cdk-column-status {
       max-width: 8.5rem;
       min-width: 8.5rem;
     }

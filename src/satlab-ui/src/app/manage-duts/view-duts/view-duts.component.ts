@@ -1,9 +1,9 @@
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
-import { IDut } from "../../models/dut";
-import { SelectionModel } from "@angular/cdk/collections";
-import { distinctUntilChanged, map, Subscription } from "rxjs";
-import { MatCheckboxChange } from "@angular/material/checkbox";
-import { toIterator } from "../../utils/iterator";
+import {Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from '@angular/core';
+import {IDut} from "../../models/dut";
+import {SelectionModel} from "@angular/cdk/collections";
+import {distinctUntilChanged, map, Subscription} from "rxjs";
+import {MatCheckboxChange} from "@angular/material/checkbox";
+import {toIterator} from "../../utils/iterator";
 
 @Component({
   selector: 'app-view-duts',
@@ -29,11 +29,13 @@ export class ViewDutsComponent implements OnInit, OnDestroy, OnChanges {
     'board',
     'model',
     'servo_serial',
+    'status',
     'pools',
     'mac',
   ];
 
-  constructor() { }
+  constructor() {
+  }
 
   ngOnInit() {
     this.disposer = this.selection
@@ -113,7 +115,7 @@ export class ViewDutsComponent implements OnInit, OnDestroy, OnChanges {
     if (!this.__validateHostname(v)) {
       return;
     }
-    
+
     if (dut.inputHostname === v) {
       return;
     }
