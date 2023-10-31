@@ -1,4 +1,4 @@
-<div>
+<div class="wrapper">
   <mat-toolbar color="primary" opened="true" #topToolbar class="top-bar-wrapper">
     <button mat-icon-button color="accent" aria-label="sidenav button" (click)="drawer.toggle()">
       <mat-icon class="white-color">menu</mat-icon>
@@ -20,6 +20,15 @@
     </mat-drawer>
 
     <div class="content-wrapper">
+      <div class="notification-wrapper">
+        <app-notification
+          *ngFor="let n of this.notificationService.notification$ | async; trackBy: trackNotification"
+          [notification]="n"
+          [showDismissButton]="n.type !== 'error'"
+          (clicked)="dismiss(n)"
+        ></app-notification>
+      </div>
+
       <div class="content">
         <router-outlet></router-outlet>
       </div>

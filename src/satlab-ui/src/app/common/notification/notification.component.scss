@@ -1,0 +1,37 @@
+@import "constants";
+
+.notification-wrapper {
+  height: 48px;
+
+  .content {
+    padding: 0 .5rem;
+    font-size: $font-size-normal;
+    font-weight: $font-weight-normal;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border-radius: 4px;
+    column-gap: 1rem;
+    height: 100%;
+
+    &.warn {
+      background-color: $color-notification-warn-layout;
+    }
+
+    &.error {
+      background-color: $color-notification-error-layout;
+    }
+
+    &.info {
+      background-color: $color-notification-info-layout;
+
+      .dismiss-btn {
+        color: $color-black;
+      }
+    }
+
+    .dismiss-btn {
+      color: $color-white;
+    }
+  }
+}

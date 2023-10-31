@@ -1,10 +1,12 @@
+@import "constants";
+
 .white-color {
-  color: rgb(255, 255, 255);
+  color: $color-white;
 }
 
 .wrapper {
   width: 100%;
-  height: 100vh;
+  position: relative;
 
   .sidebar-wrapper {
     min-width: 13rem;
@@ -15,7 +17,7 @@
       font-weight: 400;
 
       &:hover {
-        background-color: rgba(200, 200, 200, 0.6);
+        background-color: $color-sidebar-hover;
       }
 
       padding: 1rem;
@@ -25,7 +27,20 @@
 
   .content-wrapper {
     display: flex;
-    height: 100%;
+    height: calc(100vh - 64px);
+    overflow: auto;
+    position: relative;
+
+    .notification-wrapper {
+      position: absolute;
+      display: flex;
+      flex-direction: column-reverse;
+      row-gap: 1rem;
+      align-items: center;
+      z-index: $notification-layout;
+      width: 100%;
+      top: 1rem;
+    }
 
     .content {
       width: 100vw;

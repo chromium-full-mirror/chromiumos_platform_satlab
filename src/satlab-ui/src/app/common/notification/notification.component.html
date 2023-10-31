@@ -1,0 +1,18 @@
+<div class="notification-wrapper">
+  <div
+    [class.info]="notification.type === 'info'"
+    [class.error]="notification.type === 'error'"
+    [class.warn]="notification.type === 'warning'"
+    class="content"
+  >
+    <p>{{ notification.message }}</p>
+    <button
+      *ngIf="showDismissButton"
+      mat-button
+      (click)="onDismissClick()"
+      class="dismiss-btn"
+    >
+      Dismiss
+    </button>
+  </div>
+</div>

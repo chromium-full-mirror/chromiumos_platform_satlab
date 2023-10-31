@@ -1,5 +1,7 @@
 import {Component} from '@angular/core';
 import {SidebarEntry} from '../models/feature';
+import {NotificationService} from "../services/notification.service";
+import {INotification} from "../models/notification";
 
 @Component({
   selector: 'app-sidebar',
@@ -22,5 +24,14 @@ export class AppSidebarComponent {
     },
   ];
 
-  constructor() {}
+  constructor(public notificationService: NotificationService) {
+  }
+
+  protected trackNotification(_, n: INotification) {
+    return n.id;
+  }
+
+  protected dismiss(n: INotification) {
+    this.notificationService.dismiss(n.id)
+  }
 }
