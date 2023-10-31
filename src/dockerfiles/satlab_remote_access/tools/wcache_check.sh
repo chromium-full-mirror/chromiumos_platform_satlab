@@ -38,7 +38,7 @@ if test "${disk_usage}" -gt "90"; then
       if ($5 >= stateful_partition_treshold) {
        warning = sprintf("%s\n", red "Please take action to clear out volumes and containers, below are images/containers above 10GB.");
        warning = warning sprintf("%s\n", "If the issue persists, please file a bug report to the Distributed Team.");
-       warning = warning printf("%s", nc);
+       warning = warning sprintf("%s", nc);
       }
     }
 
