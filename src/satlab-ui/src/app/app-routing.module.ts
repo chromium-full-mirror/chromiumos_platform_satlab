@@ -4,6 +4,7 @@ import {RunSuiteComponent} from './run_suite/run_suite.component';
 import {OtherComponent} from './run_suite/other/other.component';
 import {ManageDutsComponent} from "./manage-duts/manage-duts.component";
 import {AboutComponent} from './about/about.component';
+import {ConfigurationComponent} from "./configuration/configuration.component";
 
 const routes: Routes = [
   {
@@ -19,6 +20,10 @@ const routes: Routes = [
     path: 'about',
     component: AboutComponent,
   },
+  {
+    path: 'configuration',
+    component: ConfigurationComponent,
+  }
 ];
 
 @NgModule({
@@ -26,4 +31,5 @@ const routes: Routes = [
   exports: [RouterModule],
   providers: [],
 })
-export class AppRoutingModule {}
+export class AppRoutingModule {
+}

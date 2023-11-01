@@ -113,3 +113,17 @@ body {
 .mat-mdc-form-field-subscript-wrapper {
   height: .5rem;
 }
+
+.loading-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: $color-loading-overlay;
+  height: 100%;
+  opacity: .6;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1;
+}

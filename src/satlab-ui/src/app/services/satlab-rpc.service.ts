@@ -21,9 +21,12 @@ import {
   DeleteDutsRequest,
   AddDutsRequest,
   RunTestRequest,
+  SetCloudConfigurationRequest,
+  GetCloudConfigurationRequest,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
 import {IDut, IFirmwareDUT, IUpdateFirmwareResult} from "../models/dut";
+import {IBoto} from "../models/boto";
 
 @Injectable({
   providedIn: 'root',
@@ -362,6 +365,10 @@ export class SatlabRpcService {
     return resp.getBuildLink();
   }
 
+  /**
+   * run a provision test on the DUTs that fit the parameters
+   * @param params an object contains the information that we want to run on some DUTs
+   */
   public async provision(params: {
     model: string;
     board: string;
@@ -373,5 +380,35 @@ export class SatlabRpcService {
       ...params,
       tests: ["stub_Pass"]
     })
+  }
+
+  /**
+   * Setup SatLab cloud configuration
+   * @param b the parameters of boto (boto_key, boto_secret, bucket_name)
+   */
+  public async setCloudConfiguration(b: IBoto) {
+    const req = new SetCloudConfigurationRequest()
+      .setBotoKeyId(b.key)
+      .setBotoKeySecret(b.secret)
+      .setGcsBucketUrl(b.bucket)
+
+    const _ = await this.client.set_cloud_configuration(req, {});
+
+    return true
+  }
+
+  /**
+   * Get cloud configuration
+   */
+  public async getCloudConfiguration(): Promise<IBoto> {
+    const req = new GetCloudConfigurationRequest()
+
+    const resp = await this.client.get_cloud_configuration(req, {})
+
+    return {
+      key: resp.getBotoKeyId(),
+      bucket: resp.getGcsBucketUrl(),
+      secret: 'secret'
+    }
   }
 }

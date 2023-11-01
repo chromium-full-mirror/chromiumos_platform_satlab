@@ -44,7 +44,8 @@ import {AboutComponent} from './about/about.component';
 import {SpinnerLoadingComponent} from './common/spinner-loading/spinner-loading.component';
 import {ProvisionComponent} from './dialogs/provision/provision.component';
 import {MatDialogModule} from "@angular/material/dialog";
-import { NotificationComponent } from './common/notification/notification.component';
+import {NotificationComponent} from './common/notification/notification.component';
+import {ConfigurationComponent} from './configuration/configuration.component';
 
 @NgModule({
   declarations: [
@@ -63,6 +64,7 @@ import { NotificationComponent } from './common/notification/notification.compon
     SpinnerLoadingComponent,
     ProvisionComponent,
     NotificationComponent,
+    ConfigurationComponent,
   ],
   imports: [
     AppRoutingModule,

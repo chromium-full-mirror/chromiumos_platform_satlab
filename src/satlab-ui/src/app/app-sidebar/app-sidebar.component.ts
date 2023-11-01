@@ -19,6 +19,10 @@ export class AppSidebarComponent {
       label: 'Run Suite',
     },
     {
+      route: '/configuration',
+      label: 'Configuration'
+    },
+    {
       route: '/about',
       label: 'About',
     },
