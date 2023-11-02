@@ -7,6 +7,7 @@ import {finalize, from} from "rxjs";
 import {startWithTap} from "../../utils/rxjs_operator";
 import {MatDialog} from "@angular/material/dialog";
 import {ProvisionComponent} from "../../dialogs/provision/provision.component";
+import {NotificationService} from '../../services/notification.service';
 
 @Component({
   selector: 'app-enrollment',
@@ -23,7 +24,10 @@ export class EnrollmentComponent {
   protected isDUTSelected = false;
   protected pool = new FormControl('');
 
-  constructor(private service: SatlabRpcService, protected dialog: MatDialog) {
+  constructor(
+    private service: SatlabRpcService,
+    protected dialog: MatDialog,
+    private notification: NotificationService) {
   }
 
   protected onDUTsSelectionChanged(d: IDut[]) {
@@ -59,14 +63,16 @@ export class EnrollmentComponent {
       )
       .subscribe({
         next: res => {
-          // TODO: handle response
-          console.log(res.pass)
-          console.log(res.fail)
+          res.pass.map(
+            p => this.notification.info(`Start enrolling ${p.hostname}. Link: ${p.url}`, {dismiss: false})
+          )
+          res.fail.map(
+            f => this.notification.info(`Failed to enroll ${f.hostname}. Reason: ${f.reason}`, {dismiss: false})
+          )
           this.onDUTsUpdated.emit();
         },
         error: e => {
-          // TODO: handle error
-          console.error(e);
+          this.notification.error(`Something wrong with enroll: ${e}`, {dismiss: false})
         }
       })
   }
@@ -92,14 +98,16 @@ export class EnrollmentComponent {
       )
       .subscribe({
         next: res => {
-          // TODO: handle response
-          console.log(res.pass)
-          console.log(res.fail)
+          res.pass.map(
+            p => this.notification.info(`Successfully unenrolled ${p}`, {dismiss: false})
+          )
+          res.fail.map(
+            f => this.notification.info(`Failed to unenroll ${f}`, {dismiss: false})
+          )
           this.onDUTsUpdated.emit();
         },
         error: e => {
-          // TODO: handle error
-          console.error(e);
+          this.notification.error(`Something wrong with unenroll: ${e}`, {dismiss: false})
         }
       })
   }
@@ -160,12 +168,10 @@ export class EnrollmentComponent {
                 })
               ).subscribe({
                 next: e => {
-                  // TODO: handle response
-                  console.log(e)
+                  this.notification.info(`Provision succeed: ${e}`, {dismiss: false})
                 },
                 error: e => {
-                  // TODO: handle error
-                  console.error(e)
+                  this.notification.error(`Provision failed: ${e}`, {dismiss: false})
                 }
               })
             })
@@ -195,11 +201,11 @@ export class EnrollmentComponent {
       )
       .subscribe({
         next: _ => {
+          this.notification.info(`Add pool ${this.pool.value} successfully.`)
           this.onDUTsUpdated.emit();
         },
         error: e => {
-          // TODO: handle error
-          console.error(e);
+          this.notification.info(`Failed to add pool ${this.pool.value}: ${e}`, {dismiss: false})
         }
       })
   }
@@ -234,11 +240,11 @@ export class EnrollmentComponent {
       )
       .subscribe({
         next: _ => {
+          this.notification.info(`Remove pool ${this.pool.value} successfully`)
           this.onDUTsUpdated.emit();
         },
         error: e => {
-          // TODO: handle error
-          console.error(e);
+          this.notification.error(`Failed to remove pool ${this.pool.value}: ${e}`, {dismiss: false})
         }
       })
   }

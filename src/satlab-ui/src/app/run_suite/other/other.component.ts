@@ -9,6 +9,7 @@ import {BuildSelectFormComponent} from '../common/build-select-form/build-select
 import {finalize, from} from 'rxjs';
 import {startWithTap} from '../../utils/rxjs_operator';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {NotificationService} from 'app/services/notification.service';
 
 @Component({
   selector: 'app-other',
@@ -27,7 +28,7 @@ export class OtherComponent {
 
   constructor(
     private service: SatlabRpcService,
-    private __snackBar: MatSnackBar
+    private notification: NotificationService,
   ) {
     this.suiteOptions = this.suiteList.map(e => {
       return {
@@ -66,15 +67,10 @@ export class OtherComponent {
       )
       .subscribe({
         next: buildLink => {
-          this.__snackBar.open(
-            `Running a suite successful: Here is the link: ${buildLink}`,
-            'Ok',
-            {panelClass: 'normal'}
-          );
+          this.notification.info(`Trigger job successfully! Job link: ${buildLink}`, {dismiss: false})
         },
         error: e => {
-          // Handle an error
-          console.error(`Running a suite got an error: ${e}`);
+          this.notification.error(`Trigger job failed: ${e}`, {dismiss: false})
         },
       });
   }

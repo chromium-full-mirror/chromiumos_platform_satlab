@@ -8,6 +8,7 @@ import {
 } from '../models/about';
 import {from, finalize} from 'rxjs';
 import {startWithTap} from '../utils/rxjs_operator';
+import {NotificationService} from '../services/notification.service';
 
 @Component({
   selector: 'app-about',
@@ -51,7 +52,10 @@ export class AboutComponent implements OnInit {
     },
   ];
 
-  constructor(private satlabRpcService: SatlabRpcService) {}
+  constructor(
+    private satlabRpcService: SatlabRpcService,
+    private notification: NotificationService,
+  ) {}
 
   ngOnInit(): void {
     this.getVersionInfo();
@@ -74,8 +78,7 @@ export class AboutComponent implements OnInit {
           this.systemInfo = res;
         },
         error: e => {
-          // TODO: show error to user.
-          console.error(`Get system info got an error: ${e}`);
+          this.notification.error(`Get system info got an error: ${e}`, {dismiss: false});
         },
       });
   }
@@ -95,8 +98,7 @@ export class AboutComponent implements OnInit {
           this.versionInfo = res;
         },
         error: e => {
-          // TODO: show error to user.
-          console.error(`Get version info got an error: ${e}`);
+          this.notification.error(`Get version info got an error: ${e}`, {dismiss: false})
         },
       });
   }
@@ -116,8 +118,7 @@ export class AboutComponent implements OnInit {
           this.networkInfo = res;
         },
         error: e => {
-          // TODO: show error to user.
-          console.error(`Get network info got an error: ${e}`);
+          this.notification.error(`Get network info got an error: ${e}`, {dismiss: false})
         },
       });
   }

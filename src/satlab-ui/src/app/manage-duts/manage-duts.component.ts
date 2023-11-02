@@ -3,6 +3,7 @@ import {IDut, IFirmwareDUT} from "../models/dut";
 import {SatlabRpcService} from "../services/satlab-rpc.service";
 import {finalize, from} from "rxjs";
 import {startWithTap} from "../utils/rxjs_operator";
+import {NotificationService} from '../services/notification.service';
 
 @Component({
   selector: 'app-manage-duts',
@@ -22,7 +23,7 @@ export class ManageDutsComponent implements AfterViewInit {
   // we need to show a prefix.
   protected hostnamePrefix = "";
 
-  constructor(private service: SatlabRpcService) {
+  constructor(private service: SatlabRpcService, private notification: NotificationService) {
   }
 
   ngAfterViewInit() {
@@ -66,8 +67,7 @@ export class ManageDutsComponent implements AfterViewInit {
           this.DUTs = e;
         },
         error: e => {
-          // TODO: handle error
-          console.error(e);
+          this.notification.error(`List DUTs failed: ${e}`, {dismiss: false})
         }
       })
   }
@@ -86,14 +86,13 @@ export class ManageDutsComponent implements AfterViewInit {
           this.listFirmwareLoading = false;
         }),
       ).subscribe({
-      next: e => {
-        this.firmwareDUTs = e;
-      },
-      error: e => {
-        // TODO handle error
-        console.error(e)
-      }
-    })
+        next: e => {
+          this.firmwareDUTs = e;
+        },
+        error: e => {
+          this.notification.error(`List firmware failed: ${e}`, {dismiss: false})
+        }
+      })
   }
 
   private __getHostnamePrefix() {
@@ -103,8 +102,7 @@ export class ManageDutsComponent implements AfterViewInit {
           this.hostnamePrefix = `satlab-${e.hostId}-`
         },
         error: e => {
-          // TODO: handle error
-          console.error(e)
+          this.notification.error(`Get hostname failed: ${e}`, {dismiss: false})
         }
       })
   }

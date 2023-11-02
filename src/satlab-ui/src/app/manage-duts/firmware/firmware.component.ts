@@ -6,6 +6,7 @@ import {SatlabRpcService} from "../../services/satlab-rpc.service";
 import {MatCheckboxChange} from "@angular/material/checkbox";
 import {toIterator} from "../../utils/iterator";
 import {startWithTap} from "../../utils/rxjs_operator";
+import {NotificationService} from '../../services/notification.service';
 
 @Component({
   selector: 'app-firmware',
@@ -29,7 +30,7 @@ export class FirmwareComponent implements OnInit, OnChanges, OnDestroy {
     'newest',
   ];
 
-  constructor(private service: SatlabRpcService) {}
+  constructor(private service: SatlabRpcService, private notification: NotificationService) {}
 
   ngOnInit() {
     this.disposer = this.selection
@@ -109,15 +110,13 @@ export class FirmwareComponent implements OnInit, OnChanges, OnDestroy {
           this.loading = false;
         })
       ).subscribe({
-      next: e => {
-        // TODO show the command output to notification
-        console.log(e);
-        this.onDUTsUpdated.emit();
-      },
-      error: e => {
-        // TODO handle error
-        console.error(e);
-      }
-    })
+        next: e => {
+          e.map(res => this.notification.info(`IP: ${res.address}, Message: ${res.message}`, {dismiss: false}))
+          this.onDUTsUpdated.emit();
+        },
+        error: e => {
+          this.notification.error(`Update firmware failed: ${e}`, {dismiss: false})
+        }
+      })
   }
 }

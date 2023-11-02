@@ -21,6 +21,7 @@ import {toIterator} from '../../../utils/iterator';
 import {filter, finalize, from, Subject, Subscription} from 'rxjs';
 import {startWithTap} from '../../../utils/rxjs_operator';
 import {BasicSelectorComponent} from '../basic-selector/basic-selector.component';
+import {NotificationService} from '../../../services/notification.service';
 
 @Component({
   selector: 'app-build-select-form',
@@ -28,8 +29,7 @@ import {BasicSelectorComponent} from '../basic-selector/basic-selector.component
   styleUrls: ['./build-select-form.component.scss'],
 })
 export class BuildSelectFormComponent
-  implements AfterViewInit, OnDestroy, OnInit
-{
+  implements AfterViewInit, OnDestroy, OnInit {
   @Output() allRequiredFieldsSet = new EventEmitter<IBuildSelectFields>();
   @ViewChild('boardSelector') boardSelector?: BasicSelectorComponent;
   @ViewChild('milestoneSelector') milestoneSelector?: BasicSelectorComponent;
@@ -49,7 +49,10 @@ export class BuildSelectFormComponent
   private fileds$ = new Subject<IBuildSelectFields>();
   private disposer?: Subscription;
 
-  constructor(private service: SatlabRpcService) {}
+  constructor(
+    private service: SatlabRpcService,
+    private notification: NotificationService
+  ) {}
 
   ngOnInit() {
     this.disposer = this.fileds$
@@ -66,8 +69,7 @@ export class BuildSelectFormComponent
       .subscribe({
         next: duts => this.parseAPIResponse(duts),
         error: e => {
-          // TODO: handle error
-          console.error(`fetching model got an error: ${e}`);
+          this.notification.error(`Fetching model got an error: ${e}`, {dismiss: false})
         },
       });
   }
@@ -206,8 +208,7 @@ export class BuildSelectFormComponent
               .collect();
           },
           error: e => {
-            //TODO: handle error
-            console.log(`fetching milestones got an error: ${e}`);
+            this.notification.error(`Fetching milestones got an error: ${e}`, {dismiss: false})
           },
         });
     }
@@ -242,8 +243,7 @@ export class BuildSelectFormComponent
               .collect();
           },
           error: e => {
-            //TODO: handle error
-            console.log(`fetching builds got an error: ${e}`);
+            this.notification.error(`Fetching builds got an error: ${e}`, {dismiss: false})
           },
         });
     }

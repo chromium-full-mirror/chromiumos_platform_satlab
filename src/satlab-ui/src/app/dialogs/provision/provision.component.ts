@@ -13,6 +13,7 @@ import {finalize, from} from "rxjs";
 import {startWithTap} from "../../utils/rxjs_operator";
 import {toIterator} from "../../utils/iterator";
 import {MAT_DIALOG_DATA} from "@angular/material/dialog";
+import {NotificationService} from '../../services/notification.service';
 
 @Component({
   selector: 'app-provision',
@@ -38,8 +39,9 @@ export class ProvisionComponent {
   public fields = defaultBuildSelectFields;
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) data: { duts: ISimpleDUT[] },
-    private service: SatlabRpcService
+    @Inject(MAT_DIALOG_DATA) data: {duts: ISimpleDUT[]},
+    private service: SatlabRpcService,
+    private notification: NotificationService,
   ) {
     this.duts = data.duts;
     this.__parsePoolOptionsFromDUTs(data.duts);
@@ -56,7 +58,7 @@ export class ProvisionComponent {
       .first_where(e => e.pools.includes(newPool))
 
     if (d == null) {
-      console.error(`unexpected: ${JSON.stringify(this.duts)}, pools: ${newPool}`);
+      this.notification.error(`Unexpected: ${JSON.stringify(this.duts)}, pools: ${newPool}`, {dismiss: false})
       return;
     }
 
@@ -121,8 +123,7 @@ export class ProvisionComponent {
               .collect();
           },
           error: e => {
-            //TODO: handle error
-            console.log(`fetching milestones got an error: ${e}`);
+            this.notification.error(`Fetching milestones got an error: ${e}`, {dismiss: false})
           },
         });
     }
@@ -157,8 +158,7 @@ export class ProvisionComponent {
               .collect();
           },
           error: e => {
-            //TODO: handle error
-            console.log(`fetching builds got an error: ${e}`);
+            this.notification.error(`Fetching builds got an error: ${e}`, {dismiss: false})
           },
         });
     }
