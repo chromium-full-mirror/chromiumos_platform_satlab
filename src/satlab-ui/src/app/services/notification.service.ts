@@ -46,17 +46,6 @@ export class NotificationService {
   }
 
   /**
-   * notify the warning message in the UI.
-   * @param message the warning message
-   * @param options the options of control dismiss a message.
-   * Otherwise, it will keep on the UI.
-   */
-  public warning(message: string, options: { ms?: number, dismiss: boolean } = {ms: 5000, dismiss: true}) {
-    const n = this.__addAndEmit(message, 'warning');
-    this.__dismiss(n.id, options);
-  }
-
-  /**
    * __dismiss a function controls how to dismiss the message.
    * @param id the id of notification.
    * @param options the options of control dismiss a message. default delay time is 5s.
