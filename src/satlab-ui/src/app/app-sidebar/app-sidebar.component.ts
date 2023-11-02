@@ -2,6 +2,7 @@ import {Component} from '@angular/core';
 import {SidebarEntry} from '../models/feature';
 import {NotificationService} from "../services/notification.service";
 import {INotification} from "../models/notification";
+import {AuthService} from '../services/auth.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -20,16 +21,20 @@ export class AppSidebarComponent {
     },
     {
       route: '/configuration',
-      label: 'Configuration'
+      label: 'Configuration',
+      disabled: false,
     },
     {
       route: '/about',
       label: 'About',
+      disabled: false,
     },
   ];
 
-  constructor(public notificationService: NotificationService) {
-  }
+  constructor(
+    public notificationService: NotificationService,
+    protected auth: AuthService,
+  ) {}
 
   protected trackNotification(_, n: INotification) {
     return n.id;

@@ -6,11 +6,14 @@ import {ManageDutsComponent} from "./manage-duts/manage-duts.component";
 import {AboutComponent} from './about/about.component';
 import {ConfigurationComponent} from "./configuration/configuration.component";
 import {TestplanComponent} from './run_suite/testplan/testplan.component';
+import {checkLoggedIn} from './utils/auth-guard';
+
 
 const routes: Routes = [
   {
     path: 'manage_duts',
     component: ManageDutsComponent,
+    canActivate: [checkLoggedIn]
   },
   {
     path: 'run_tests',
@@ -19,6 +22,7 @@ const routes: Routes = [
       {path: 'other', component: OtherComponent},
       {path: 'testplan', component: TestplanComponent},
     ],
+    canActivate: [checkLoggedIn]
   },
   {
     path: 'about',

@@ -9,7 +9,7 @@
     <mat-drawer #drawer mode="side" opened="true">
       <div class="sidebar-wrapper">
         <a *ngFor="let tab of navTabs" mat-list-item routerLink="{{ tab.route }}" routerLinkActive="active-route">
-          <div class="sidebar-item">
+          <div [class.disabled]="tab.disabled ?? !(auth.loginState$ | async)" class="sidebar-item">
             <div class="flex flex-row items-center gap-2">
               <mat-icon class="sidebar-icon">{{ tab.icon }} </mat-icon>
               <p>{{ tab.label }}</p>

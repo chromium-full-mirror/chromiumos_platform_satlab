@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, OnInit} from '@angular/core';
+import {AfterViewInit, Component} from '@angular/core';
 import {SatlabRpcService} from "../services/satlab-rpc.service";
 import {NotificationService} from "../services/notification.service";
 import {IBoto} from "../models/boto";

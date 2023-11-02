@@ -26,6 +26,11 @@
 
       padding: 1rem;
       min-height: 4rem;
+
+      &.disabled {
+        color: gray;
+        cursor: not-allowed;
+      }
     }
   }
 
