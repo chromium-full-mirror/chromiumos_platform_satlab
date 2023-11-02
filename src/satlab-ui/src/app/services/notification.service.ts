@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {createNotification, INotification} from "../models/notification";
+import {createNotification, INotification, NotificationNodes} from "../models/notification";
 import {BehaviorSubject, Observable, timer} from "rxjs";
 import {toIterator} from "../utils/iterator";
 
@@ -20,7 +20,7 @@ export class NotificationService {
    * @param options the options of control dismiss a message.
    * Otherwise, it will keep on the UI.
    */
-  public info(message: string, options: { ms?: number, dismiss: boolean } = {ms: 5000, dismiss: true}) {
+  public info(message: NotificationNodes, options: { ms?: number, dismiss: boolean } = {ms: 5000, dismiss: true}) {
     const n = this.__addAndEmit(message, 'info');
     this.__dismiss(n.id, options);
   }
@@ -64,7 +64,7 @@ export class NotificationService {
    * @param type the type of notification.
    * @private
    */
-  private __addAndEmit(message: string, type: INotification['type']) {
+  private __addAndEmit(message: NotificationNodes, type: INotification['type']) {
     const n = createNotification(message, type);
     const notifications = [...this.__n.value, n];
     this.__n.next(notifications);

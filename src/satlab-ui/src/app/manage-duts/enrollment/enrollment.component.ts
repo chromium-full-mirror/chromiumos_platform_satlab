@@ -64,7 +64,10 @@ export class EnrollmentComponent {
       .subscribe({
         next: res => {
           res.pass.map(
-            p => this.notification.info(`Start enrolling ${p.hostname}. Link: ${p.url}`, {dismiss: false})
+            p => this.notification.info([`Start enrolling ${p.hostname} Link:`, {
+              type: 'url',
+              url: p.url
+            }], {dismiss: false})
           )
           res.fail.map(
             f => this.notification.info(`Failed to enroll ${f.hostname}. Reason: ${f.reason}`, {dismiss: false})
@@ -168,7 +171,7 @@ export class EnrollmentComponent {
                 })
               ).subscribe({
                 next: e => {
-                  this.notification.info(`Provision succeed: ${e}`, {dismiss: false})
+                  this.notification.info(['Provision succeed: ', {type: 'url', url: e}], {dismiss: false})
                 },
                 error: e => {
                   this.notification.error(`Provision failed: ${e}`, {dismiss: false})

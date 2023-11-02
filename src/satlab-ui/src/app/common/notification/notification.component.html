@@ -4,7 +4,17 @@
     [class.error]="notification.type === 'error'"
     class="content"
   >
-    <p>{{ notification.message }}</p>
+    <div class="message">
+      <ng-container *ngFor="let n of notification.message">
+        <ng-container *ngIf="n.type === 'url'">
+          <a href="{{ n.url }}" target="_blank">{{ n.url }}</a>
+        </ng-container>
+        <ng-container *ngIf="n.type !== 'url'">
+          <p>{{ n }}</p>
+        </ng-container>
+      </ng-container>
+    </div>
+
     <button
       *ngIf="showDismissButton"
       mat-button

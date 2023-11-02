@@ -67,7 +67,10 @@ export class OtherComponent {
       )
       .subscribe({
         next: buildLink => {
-          this.notification.info(`Trigger job successfully! Job link: ${buildLink}`, {dismiss: false})
+          this.notification.info(['Trigger job successfully! Job link: ', {
+            type: 'url',
+            url: buildLink
+          }], {dismiss: false})
         },
         error: e => {
           this.notification.error(`Trigger job failed: ${e}`, {dismiss: false})
