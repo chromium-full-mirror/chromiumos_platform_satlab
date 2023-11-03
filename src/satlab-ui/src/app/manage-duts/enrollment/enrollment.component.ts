@@ -35,24 +35,26 @@ export class EnrollmentComponent {
     this.isDUTSelected = d.length > 0;
   }
 
-  private __validateSelection(data: unknown[]) {
-    return data.length > 0;
-  }
-
-  private __validateEditPool(data: unknown[]) {
-    return this.__validateSelection(data) && this.pool.value;
-  }
-
   protected onEnrollClicked() {
     const d = toIterator(this.selectedDUTs)
-      .filter(e =>
-        e.inputHostname
-        && e.inputHostname !== ''
-        && e.board !== ''
-        && e.model !== ''
-        && e.isConnected
-        && e.hostname === '')
+      .filter(this.__canBeEnrolled)
       .collect();
+
+    // Show some error notification to user
+    // when user doesn't input a hostname or servo is not wired correctky.
+    toIterator(this.selectedDUTs)
+      .filter(e => e.hostname === '')
+      .filter(e =>
+        !e.inputHostname || !e.isServoWiredCorrectly
+      )
+      .forEach(e => {
+        if (!e.inputHostname && e.hostname) {
+          this.notification.error(`Please input a hostname on ${e.address}`)
+        }
+        if (!e.isServoWiredCorrectly) {
+          this.notification.error(`Please make sure you are connecting Servo to the right port for ${e.address} : ${e.hostname}`)
+        }
+      })
 
     if (!this.__validateSelection(d)) {
       return;
@@ -256,5 +258,38 @@ export class EnrollmentComponent {
           this.notification.error(`Failed to remove pool ${this.pool.value}: ${e}`, {dismiss: false})
         }
       })
+  }
+
+  /**
+   * __canBeEnrolled checks the DUT can be enrolled.
+   * @param d the information of DUT
+   * @private
+   */
+  private __canBeEnrolled(d: IDut) {
+    return d.inputHostname         // input hostname isn't empty
+      && d.model                   // model isn't empty
+      && d.board                   // board isn't empty
+      && d.isConnected             // DUT is connected
+      && d.hostname                // DUT doesn't been deployed
+      && d.isServoWiredCorrectly;  // servo is empty or servo works
+  }
+
+  /**
+   * __validateSelection checks the given data is empty or not
+   * @param data
+   * @private
+   */
+  private __validateSelection(data: unknown[]) {
+    return data.length > 0;
+  }
+
+  /**
+   * __validateEditPool checks the given data is empty or not and
+   * the pool is empty or not
+   * @param data
+   * @private
+   */
+  private __validateEditPool(data: unknown[]) {
+    return this.__validateSelection(data) && this.pool.value;
   }
 }

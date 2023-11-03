@@ -27,6 +27,14 @@ export interface IDut {
   // this field for enroll dut
   // user need to assign the hostname
   inputHostname?: string;
+
+  // isServoWiredCorrectly: This boolean helps figure out any wrong wiring connections
+  //
+  // if true: it means DUT is connected with servo and servo is in working condition
+  //          or DUT is not connect to network with servo
+  // if false: it means DUT is connected with servo but servo is not wired properly
+  //           and DUT can't be deployed with this servo
+  isServoWiredCorrectly: boolean;
 }
 
 /**

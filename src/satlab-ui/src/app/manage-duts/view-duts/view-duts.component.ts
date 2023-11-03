@@ -111,7 +111,7 @@ export class ViewDutsComponent implements OnInit, OnDestroy, OnChanges {
    * @protected
    */
   protected onInputFocusout(dut: IDut, e: Event) {
-    const v = (e.target as HTMLInputElement).value
+    const v = (e.target as HTMLInputElement).value.trim()
     if (!this.__validateHostname(v)) {
       return;
     }
@@ -123,7 +123,7 @@ export class ViewDutsComponent implements OnInit, OnDestroy, OnChanges {
     // make a new DUT
     const newDut = {
       ...dut,
-      inputHostname: v,
+      inputHostname: v.trim(),
     }
     // find the dut in the DUTs list
     const idx = this.duts.indexOf(dut);
