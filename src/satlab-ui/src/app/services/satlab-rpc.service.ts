@@ -168,7 +168,7 @@ export class SatlabRpcService {
       servoSerial: e.getServoSerial(),
       isConnected: e.getIsConnected(),
       isAccessible: !(e.getHostname() == '' && !e.getIsConnected()),
-      status: e.getStatus(),
+      status: e.getState(),
     }
 
     return dut

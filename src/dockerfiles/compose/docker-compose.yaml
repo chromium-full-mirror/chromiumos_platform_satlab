@@ -164,6 +164,7 @@ services:
       - SERIVCE_ACCOUNT:${SERIVCE_ACCOUNT:-}
       - CTP_BUILDER_BUCKET:${CTP_BUILDER_BUCKET:-}
       - DEPLOY_BUILDER_BUCKET:${DEPLOY_BUILDER_BUCKET:-}
+      - SATLAB_RPCSERVER_LOGFILE=${SATLAB_RPCSERVER_LOGFILE:-/var/log/satlab/satlab_rpcserver.log}
     volumes:
       - logs:/var/log/satlab
       - /var/run/docker.sock:/var/run/docker.sock:rw

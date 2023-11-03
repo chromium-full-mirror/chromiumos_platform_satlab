@@ -10,21 +10,23 @@ package satlabrpcserver;
 import "google/protobuf/timestamp.proto";
 
 service SatlabRpcService {
-  rpc list_build_targets (ListBuildTargetsRequest) returns (ListBuildTargetsResponse);
-  rpc list_milestones (ListMilestonesRequest) returns (ListMilestonesResponse);
   rpc list_accessible_models (ListAccessibleModelsRequest) returns (ListAccessibleModelsResponse);
   rpc list_build_versions (ListBuildVersionsRequest) returns (ListBuildVersionsResponse);
   rpc stage_build (StageBuildRequest) returns (StageBuildResponse);
   rpc list_connected_duts_firmware (ListConnectedDutsFirmwareRequest) returns (ListConnectedDutsFirmwareResponse);
-  rpc list_test_plans (ListTestPlansRequest) returns (ListTestPlansResponse);
   rpc get_system_info (GetSystemInfoRequest) returns (GetSystemInfoResponse);
   rpc get_version_info (GetVersionInfoRequest) returns (GetVersionInfoResponse);
   rpc get_network_info (GetNetworkInfoRequest) returns (GetNetworkInfoResponse);
   rpc get_peripheral_information (GetPeripheralInformationRequest) returns (GetPeripheralInformationResponse);
   rpc update_duts_firmware (UpdateDutsFirmwareRequest)  returns (UpdateDutsFirmwareResponse);
 
+  // Run Suite
+  rpc list_build_targets (ListBuildTargetsRequest) returns (ListBuildTargetsResponse);
+  rpc list_milestones (ListMilestonesRequest) returns (ListMilestonesResponse);
+  rpc list_test_plans (ListTestPlansRequest) returns (ListTestPlansResponse);
+
   // services to run different types of test suites
-  rpc run_suite (RunSuiteRequest) returns (RunSuiteResponse) {}
+  rpc run_suite (RunSuiteRequest) returns (RunSuiteResponse);
   rpc run_test (RunTestRequest) returns (RunTestResponse);
   rpc run_test_plan (RunTestPlanRequest) returns (RunTestPlanResponse);
 
@@ -349,7 +351,7 @@ message Dut {
   string servo_serial = 9;
   string servo_type = 10;
   int32 servo_port = 11;
-  string status = 12;
+  string state = 12;
 }
 
 // NEXT_TAG = 2
@@ -369,14 +371,13 @@ message ListDutsResponse {
 message DeleteDutsRequest {
   repeated string hostnames = 1;
 }
+
 // NEXT_TAG = 4
 message DeleteDutsResponse {
   // pass contains the hostnames that we have deleted DUTs successfully
   repeated string pass = 1;
-
   // fail contains the hostnames that we failed to delete DUTs
   repeated string fail = 2;
-
   reserved 3;
 }
 
@@ -402,6 +403,10 @@ message AddDutsRequest {
     string board = 3;
     // The model of the DUT
     string model = 4;
+    // The label pool that user wants to add
+    repeated string pools = 5;
+    // The servo serial number that connected with DUT
+    string servo_serial = 6;
   }
 
   repeated Param duts = 1;
@@ -421,7 +426,7 @@ message AddDutsResponse {
   // NEXT_TAG = 3
   message FailedData {
     string hostname = 1;
-    // the url of of deploying job
+    // the reason that why we can not add the DUT.
     string reason = 2;
   }
 
@@ -447,6 +452,7 @@ message RunTestPlanRequest {
   string build = 5;
   string pool = 6;
 }
+
 // NEXT_TAG = 2
 message RunTestPlanResponse {
   string build_link = 1;
