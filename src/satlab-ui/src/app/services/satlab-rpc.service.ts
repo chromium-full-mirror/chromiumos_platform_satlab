@@ -309,11 +309,17 @@ export class SatlabRpcService {
   public async addDUTs(d: IDut[]) {
     const items = toIterator(d)
       .map(e => {
-        return new AddDutsRequest.Param()
-          .setModel(e.model)
-          .setBoard(e.board)
-          .setAddress(e.address)
-          .setHostname(e.inputHostname)
+        const p =new AddDutsRequest.Param()
+        .setModel(e.model)
+        .setBoard(e.board)
+        .setAddress(e.address)
+        .setHostname(e.inputHostname)
+
+      if (e.isServoWiredCorrectly && e.servoSerial !== '') {
+        p.setServoSerial(e.servoSerial)
+      }
+
+      return p
       })
       .collect();
 
