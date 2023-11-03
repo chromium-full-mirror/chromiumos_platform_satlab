@@ -39,6 +39,7 @@
             {{ element.hostname }}
           </ng-container>
 
+          <!-- Show the input box when DUT can be enrolled -->
           <ng-container
             *ngIf="element.hostname === '' && element.board !== '' && element.model !== '' && element.isConnected"
           >
@@ -67,6 +68,11 @@
                 Hostname should be a-z, 0-9, - characters.
               </div>
             </div>
+          </ng-container>
+
+          <!-- Show the Access Test Build Button when DUT hasn't been deployed and isn't connected -->
+          <ng-container *ngIf="!element.isConnected && element.hostname === ''">
+            <button mat-button (click)="onAccessTestBuildClicked()" class="access-build-button">Access Test Build</button>
           </ng-container>
         </td>
       </ng-container>

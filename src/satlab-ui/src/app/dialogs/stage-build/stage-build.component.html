@@ -1,0 +1,64 @@
+<div class="wrapper">
+  <app-loading [loading]="loading"></app-loading>
+
+  <div class="content">
+    <h2 class="title">Access Test Build</h2>
+
+    <ng-container *ngIf="stageUrl !== ''">
+      <div class="message">
+        <mat-icon fontIcon="check_circle" class="icon"></mat-icon>
+        <p>Successfully staged the test build.</p>
+      </div>
+    </ng-container>
+
+    <p class="build-link">If your DUT does not appear below, request for board access
+      <a href="{{ build_access_request_link }}"
+         target="_blank"
+
+      >here</a>
+    </p>
+    <app-basic-selector #boardSelector id="boardSelector" title="Select Board:" placeholder="Please select a board"
+                        [options]="boardOptions" (select)="onBoardChanged($event)"
+                        [disabled]="boardOptions.length === 0">
+    </app-basic-selector>
+
+    <app-basic-selector #modelSelector id="modelSelector" title="Select Model:" placeholder="Please select a model"
+                        [options]="modelOptions" (select)="onModelChanged($event)" [disabled]="fields.board === ''">
+    </app-basic-selector>
+
+    <app-basic-selector #milestoneSelector id="milestoneSelector" title="Select Milestone:"
+                        placeholder="Please select a milestone" [options]="milestoneOptions"
+                        (select)="onMilestoneChanged($event)"
+                        [disabled]="!(fields.model !== '' && fields.board != '')" [disabledMessage]="
+        !(fields.model !== '' && fields.board)
+          ? 'Please select a model and board'
+          : ''
+      ">
+    </app-basic-selector>
+
+    <app-basic-selector #buildSelector id="buildSelector" title="Select Build Version:"
+                        placeholder="Please select a build version" [options]="buildOptions"
+                        (select)="onBuildChanged($event)" [disabled]="
+        !(fields.model !== '' && fields.board != '' && fields.milestone)
+      " [disabledMessage]="
+        !(fields.model !== '' && fields.board !== '' && fields.milestone !== '')
+          ? 'Please select a milestone'
+          : ''
+      ">
+    </app-basic-selector>
+  </div>
+
+  <div class="btn-group">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-button *ngIf="stageUrl === ''" (click)="onStageClicked()" [disabled]="
+    !(this.fields.board !== ''
+    && this.fields.model !== ''
+    && this.fields.milestone !== ''
+    && this.fields.build !== '')">
+      Start
+    </button>
+    <a mat-button *ngIf="stageUrl !== ''" target="_blank" href="{{ stageUrl }}">
+      Go to build bucket
+    </a>
+  </div>
+</div>

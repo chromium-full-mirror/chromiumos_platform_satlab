@@ -48,6 +48,7 @@ import {NotificationComponent} from './common/notification/notification.componen
 import {ConfigurationComponent} from './configuration/configuration.component';
 import {TestplanComponent} from './run_suite/testplan/testplan.component';
 import {AutocompleteSelectorComponent} from './run_suite/common/autocomplete-selector/autocomplete-selector.component';
+import { StageBuildComponent } from './dialogs/stage-build/stage-build.component';
 
 @NgModule({
   declarations: [
@@ -69,6 +70,7 @@ import {AutocompleteSelectorComponent} from './run_suite/common/autocomplete-sel
     ConfigurationComponent,
     TestplanComponent,
     AutocompleteSelectorComponent,
+    StageBuildComponent,
   ],
   imports: [
     AppRoutingModule,

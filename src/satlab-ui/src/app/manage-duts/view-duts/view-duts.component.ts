@@ -4,6 +4,8 @@ import {SelectionModel} from "@angular/cdk/collections";
 import {distinctUntilChanged, map, Subscription} from "rxjs";
 import {MatCheckboxChange} from "@angular/material/checkbox";
 import {toIterator} from "../../utils/iterator";
+import {MatDialog} from "@angular/material/dialog";
+import {StageBuildComponent} from "../../dialogs/stage-build/stage-build.component";
 
 @Component({
   selector: 'app-view-duts',
@@ -34,7 +36,7 @@ export class ViewDutsComponent implements OnInit, OnDestroy, OnChanges {
     'mac',
   ];
 
-  constructor() {
+  constructor(protected dialog: MatDialog,) {
   }
 
   ngOnInit() {
@@ -148,5 +150,13 @@ export class ViewDutsComponent implements OnInit, OnDestroy, OnChanges {
 
   private __validateHostname(s: string) {
     return /^[a-z0-9-]{1,32}$/.test(s)
+  }
+
+  /**
+   * a handler handles a user clicks on the `AccessTestBuild` Button
+   * @protected
+   */
+  protected onAccessTestBuildClicked() {
+    this.dialog.open(StageBuildComponent);
   }
 }

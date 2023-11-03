@@ -25,10 +25,14 @@ import {
   RunTestPlanRequest,
   SetCloudConfigurationRequest,
   GetCloudConfigurationRequest,
+  ListBuildTargetsRequest,
+  ListAccessibleModelsRequest,
+  StageBuildRequest,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
 import {IDut, IFirmwareDUT, IUpdateFirmwareResult} from "../models/dut";
 import {IBoto} from "../models/boto";
+import {IBuildSelectFields} from "../models/selectable_item";
 
 @Injectable({
   providedIn: 'root',
@@ -87,7 +91,7 @@ export class SatlabRpcService {
    * list milestones by given model and board
    * @param p an object contains the information of model and board
    */
-  public async listMilestones(p: {model: string; board: string}) {
+  public async listMilestones(p: { model: string; board: string }) {
     const req = new ListMilestonesRequest().setModel(p.model).setBoard(p.board);
 
     const resp = await this.client.list_milestones(req, {});
@@ -179,7 +183,7 @@ export class SatlabRpcService {
    * addPool add a pool the given DUTs
    * @param p is a structure contains the information that we want to update
    */
-  public async addPool(p: {addresses: string[], pool: string}) {
+  public async addPool(p: { addresses: string[], pool: string }) {
     const req = new AddPoolRequest()
       .setPool(p.pool)
       .setAddressesList(p.addresses);
@@ -191,7 +195,7 @@ export class SatlabRpcService {
    * updatePool update the pool list to the given DUTs
    * @param p is a structure contains the information that we want to update.
    */
-  public async updatePool(p: {address: string, pools: string[]}[]) {
+  public async updatePool(p: { address: string, pools: string[] }[]) {
     const items = toIterator(p)
       .map(elem => {
         return new UpdatePoolRequest.Item()
@@ -309,17 +313,17 @@ export class SatlabRpcService {
   public async addDUTs(d: IDut[]) {
     const items = toIterator(d)
       .map(e => {
-        const p =new AddDutsRequest.Param()
-        .setModel(e.model)
-        .setBoard(e.board)
-        .setAddress(e.address)
-        .setHostname(e.inputHostname)
+        const p = new AddDutsRequest.Param()
+          .setModel(e.model)
+          .setBoard(e.board)
+          .setAddress(e.address)
+          .setHostname(e.inputHostname)
 
-      if (e.isServoWiredCorrectly && e.servoSerial !== '') {
-        p.setServoSerial(e.servoSerial)
-      }
+        if (e.isServoWiredCorrectly && e.servoSerial !== '') {
+          p.setServoSerial(e.servoSerial)
+        }
 
-      return p
+        return p
       })
       .collect();
 
@@ -392,8 +396,8 @@ export class SatlabRpcService {
   }
 
   /**
- * list testplans fetch the names of testplans from bucket
- */
+   * list testplans fetch the names of testplans from bucket
+   */
   public async listTestPlans(): Promise<string[]> {
     const req = new ListTestPlansRequest();
     const resp = await this.client.list_test_plans(req, {});
@@ -454,5 +458,46 @@ export class SatlabRpcService {
       bucket: resp.getGcsBucketUrl(),
       secret: 'secret'
     }
+  }
+
+  /**
+   * list all boards, return the board list
+   */
+  public async listBoards() {
+    const req = new ListBuildTargetsRequest();
+
+    const resp = await this.client.list_build_targets(req, {});
+
+    return resp.getBuildTargetsList()
+  }
+
+  /**
+   * list all models. return the model list
+   * @param board
+   */
+  public async listModels(board: string) {
+    const req = new ListAccessibleModelsRequest()
+      .setBoard(board)
+
+    const resp = await this.client.list_accessible_models(req, {});
+
+    return toIterator(resp.getModelsList())
+      .map(e => e.getName())
+      .collect();
+  }
+
+  /**
+   * stage a build in the partner bucket
+   * @param f
+   */
+  public async stageBuild(f: { board: string, model: string, build: string }) {
+    const req = new StageBuildRequest()
+      .setBoard(f.board)
+      .setModel(f.model)
+      .setBuildVersion(f.build)
+
+    const resp = await this.client.stage_build(req, {})
+
+    return resp.getBuildBucket();
   }
 }

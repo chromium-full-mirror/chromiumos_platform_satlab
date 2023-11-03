@@ -1,0 +1,44 @@
+@import "constants";
+
+.wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 480px;
+
+  .content {
+    padding: 0.5rem 1.5rem 0 1.5rem;
+    display: flex;
+    flex-direction: column;
+    row-gap: 1rem;
+
+    .message {
+      display: flex;
+      flex-direction: row;
+      column-gap: 6px;
+      align-items: center;
+      color: $color-deep-green;
+
+      .icon {
+        color: $color-deep-green;
+      }
+    }
+
+    .title {
+      font-size: $font-size-extra;
+      font-weight: $font-weight-extra;
+    }
+
+    .build-link {
+      font-size: $font-size-small;
+      font-weight: $font-weight-normal;
+    }
+  }
+
+  .btn-group {
+    padding: 1.5rem 1.5rem 1rem 1.5rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
