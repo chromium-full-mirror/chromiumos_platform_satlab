@@ -6,11 +6,16 @@ export interface INotification {
   message: NotificationNodes;
 }
 
-export type NotificationNodes = IURLNode | string | (string | IURLNode)[];
+export type NotificationNodes = IStringNode | IURLNode | string | (string | IURLNode | IStringNode)[];
 
 export interface IURLNode {
   type: 'url',
   url: string
+}
+
+export interface IStringNode {
+  type: 'string',
+  value: string,
 }
 
 export function createNotification(message: NotificationNodes, type: INotification['type']): INotification {

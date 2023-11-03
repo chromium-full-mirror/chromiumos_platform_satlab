@@ -5,12 +5,12 @@
     class="content"
   >
     <div class="message">
-      <ng-container *ngFor="let n of notification.message">
+      <ng-container *ngFor="let n of notifications">
         <ng-container *ngIf="n.type === 'url'">
           <a href="{{ n.url }}" target="_blank">{{ n.url }}</a>
         </ng-container>
-        <ng-container *ngIf="n.type !== 'url'">
-          <p>{{ n }}</p>
+        <ng-container *ngIf="n.type === 'string'">
+          <p>{{ n.value }}</p>
         </ng-container>
       </ng-container>
     </div>

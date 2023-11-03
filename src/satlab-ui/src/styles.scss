@@ -127,3 +127,15 @@ body {
   width: 100%;
   z-index: 1;
 }
+
+a:link {
+  color: $color-link;
+}
+
+a:visited {
+  color: $color-link-visited;
+}
+
+a:hover {
+  color: $color-link-hover;
+}

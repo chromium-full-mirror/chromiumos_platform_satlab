@@ -24,7 +24,6 @@
         <app-notification
           *ngFor="let n of this.notificationService.notification$ | async; trackBy: trackNotification"
           [notification]="n"
-          [showDismissButton]="n.type !== 'error'"
           (clicked)="dismiss(n)"
         ></app-notification>
       </div>
