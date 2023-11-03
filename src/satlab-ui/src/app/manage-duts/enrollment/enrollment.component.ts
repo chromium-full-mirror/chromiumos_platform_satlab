@@ -45,7 +45,13 @@ export class EnrollmentComponent {
 
   protected onEnrollClicked() {
     const d = toIterator(this.selectedDUTs)
-      .filter(e => e.inputHostname !== '' && e.board !== '' && e.model !== '' && e.isConnected && e.hostname === '')
+      .filter(e =>
+        e.inputHostname
+        && e.inputHostname !== ''
+        && e.board !== ''
+        && e.model !== ''
+        && e.isConnected
+        && e.hostname === '')
       .collect();
 
     if (!this.__validateSelection(d)) {
