@@ -42,6 +42,8 @@ RUN /bin/chmod ugo+rx /cipd/shivas /cipd/satlab /cipd/satlabrpcserver
 
 # Add links to executables stored in /cipd.
 RUN ln -s -t /usr/local/bin /cipd/satlabrpcserver
+# Debugging line for dev - override the file with locally built version
+# COPY dockerfiles/satlab-rpcserver/satlabrpcserver /usr/local/bin
 
 # Make everything in /usr/local/bin executable for good measure.
 RUN /bin/chmod ugo+rx /usr/local/bin/*
@@ -57,4 +59,5 @@ RUN touch /var/log/moblab/remote_access.log
 
 EXPOSE 6003
 CMD ["satlabrpcserver"]
-# CMD ["tail", "-f", "/dev/null"] # for testing purposes
+# For testing purposes
+# CMD ["tail", "-f", "/dev/null"]
