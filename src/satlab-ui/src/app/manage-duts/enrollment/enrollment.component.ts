@@ -78,7 +78,7 @@ export class EnrollmentComponent {
             }], {dismiss: false})
           )
           res.fail.map(
-            f => this.notification.info(`Failed to enroll ${f.hostname}. Reason: ${f.reason}`, {dismiss: false})
+            f => this.notification.error(`Failed to enroll ${f.hostname}. Reason: ${f.reason}`, {dismiss: false})
           )
           this.onDUTsUpdated.emit();
         },
