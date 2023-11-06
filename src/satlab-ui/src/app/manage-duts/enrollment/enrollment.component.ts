@@ -270,7 +270,7 @@ export class EnrollmentComponent {
       && d.model                   // model isn't empty
       && d.board                   // board isn't empty
       && d.isConnected             // DUT is connected
-      && d.hostname                // DUT doesn't been deployed
+      && d.hostname === ""         // DUT has not been deployed/enrolled already
       && d.isServoWiredCorrectly;  // servo is empty or servo works
   }
 
