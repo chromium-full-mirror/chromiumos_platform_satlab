@@ -48,7 +48,7 @@ export class EnrollmentComponent {
         !e.inputHostname || !e.isServoWiredCorrectly
       )
       .forEach(e => {
-        if (!e.inputHostname && e.hostname) {
+        if (!e.inputHostname) {
           this.notification.error(`Please input a hostname on ${e.address}`)
         }
         if (!e.isServoWiredCorrectly) {
