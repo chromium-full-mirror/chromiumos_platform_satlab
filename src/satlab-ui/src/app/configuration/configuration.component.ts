@@ -67,9 +67,11 @@ export class ConfigurationComponent implements AfterViewInit {
         })
       )
       .subscribe({
-        next: _ => {
-          this.notification.info("login successful", {dismiss: true})
+        next: async _ => {
+          this.notification.info("login successful, rebooting...", {dismiss: true})
           this.cloudConfigurationDisable = true;
+          // reboot after we log in successfully
+          await this.service.reboot()
         },
         error: e => {
           this.notification.error(e, {dismiss: true})

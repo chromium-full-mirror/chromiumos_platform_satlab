@@ -54,7 +54,7 @@
       <button
         mat-raised-button
         color="primary"
-        [disabled]="!(boto.key !== '' && boto.secret !== '' && boto.bucket !== '')"
+        [disabled]="!(boto.key !== '' && boto.secret !== '' && boto.bucket !== '') || cloudConfigurationDisable"
         (click)="onSetCloudConfigurationClicked()"
       >
         Submit

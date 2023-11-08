@@ -28,6 +28,7 @@ import {
   ListBuildTargetsRequest,
   ListAccessibleModelsRequest,
   StageBuildRequest,
+  RebootRequest,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
 import {IDut, IFirmwareDUT, IUpdateFirmwareResult} from "../models/dut";
@@ -499,5 +500,14 @@ export class SatlabRpcService {
     const resp = await this.client.stage_build(req, {})
 
     return resp.getBuildBucket();
+  }
+
+  /**
+   * reboot the system
+   */
+  public async reboot() {
+    const req = new RebootRequest()
+
+    await this.client.reboot(req, {})
   }
 }
