@@ -30,33 +30,30 @@ export class EnrollmentComponent {
     private notification: NotificationService) {
   }
 
+  /**
+   * A event listener listens the selection changed.
+   * @param d
+   * @protected
+   */
   protected onDUTsSelectionChanged(d: IDut[]) {
     this.selectedDUTs = d;
     this.isDUTSelected = d.length > 0;
   }
 
+  /**
+   * A handler handles the DUTs that user wants to enroll
+   * @protected
+   */
   protected onEnrollClicked() {
     const d = toIterator(this.selectedDUTs)
       .filter(this.__canBeEnrolled)
       .collect();
 
-    // Show some error notification to user
-    // when user doesn't input a hostname or servo is not wired correctky.
-    toIterator(this.selectedDUTs)
-      .filter(e => e.hostname === '')
-      .filter(e =>
-        !e.inputHostname || !e.isServoWiredCorrectly
-      )
-      .forEach(e => {
-        if (!e.inputHostname) {
-          this.notification.error(`Please input a hostname on ${e.address}`)
-        }
-        if (!e.isServoWiredCorrectly) {
-          this.notification.error(`Please make sure you are connecting Servo to the right port for ${e.address} : ${e.hostname}`)
-        }
-      })
+    const duplicateHostname = this.__checkDuplicatedHostname(d)
+    const emptyHostname = this.__checkEmptyHostname(d)
+    const isServoWired = this.__checkServoWired(d)
 
-    if (!this.__validateSelection(d)) {
+    if (d.length > 0 || duplicateHostname || emptyHostname || isServoWired) {
       return;
     }
 
@@ -88,13 +85,17 @@ export class EnrollmentComponent {
       })
   }
 
+  /**
+   * A handler handles un-enrolled the selected DUTs
+   * @protected
+   */
   protected onUnEnrollClicked() {
     const d = toIterator(this.selectedDUTs)
       .filter(e => e.hostname !== '')
       .map(e => e.hostname)
       .collect();
 
-    if (!this.__validateSelection(d)) {
+    if (d.length === 0) {
       return;
     }
 
@@ -123,14 +124,10 @@ export class EnrollmentComponent {
       })
   }
 
-  protected onReVerifyClicked() {
-    if (!this.__validateSelection(this.selectedDUTs)) {
-      return;
-    }
-
-    // TODO call an API to verify the DUTs
-  }
-
+  /**
+   * A handler handles provision the DUTs that have been deployed.
+   * @protected
+   */
   protected onProvisionDUTs() {
     const d = toIterator(this.DUTs)
       .filter(e => e.hostname !== '')
@@ -143,7 +140,7 @@ export class EnrollmentComponent {
       })
       .collect();
 
-    if (!this.__validateSelection(d)) {
+    if (d.length === 0) {
       return;
     }
 
@@ -190,13 +187,17 @@ export class EnrollmentComponent {
       });
   }
 
+  /**
+   * A handler handles adding pool to the selected DUTs
+   * @protected
+   */
   protected onAddPoolClicked() {
     const addresses = toIterator(this.selectedDUTs)
       .filter(e => e.address !== '')
       .map(e => e.address)
       .collect();
 
-    if (!this.__validateEditPool(addresses)) {
+    if (addresses.length === 0 || !this.pool.value) {
       return;
     }
 
@@ -221,6 +222,10 @@ export class EnrollmentComponent {
       })
   }
 
+  /**
+   * a handler handles removing pool from selected DUTs
+   * @protected
+   */
   protected onRemovePoolClicked() {
     let items = toIterator(this.selectedDUTs)
       .filter(e => {
@@ -240,7 +245,7 @@ export class EnrollmentComponent {
       .filter(e => e.pools.length > 0)
       .collect();
 
-    if (!this.__validateEditPool(items)) {
+    if (items.length === 0 || !this.pool.value) {
       return;
     }
 
@@ -271,31 +276,80 @@ export class EnrollmentComponent {
    * @private
    */
   private __canBeEnrolled(d: IDut) {
-    return d.inputHostname         // input hostname isn't empty
-      && d.model                   // model isn't empty
+    return d.model                   // model isn't empty
       && d.board                   // board isn't empty
       && d.isConnected             // DUT is connected
       && d.hostname === ""         // DUT has not been deployed/enrolled already
-      && d.isServoWiredCorrectly;  // servo is empty or servo works
   }
 
   /**
-   * __validateSelection checks the given data is empty or not
-   * @param data
+   * check a user input a duplicated hostname
+   * @param d the list of DUTs that a user wants to deploy
    * @private
    */
-  private __validateSelection(data: unknown[]) {
-    return data.length > 0;
+  private __checkDuplicatedHostname(d: IDut[]) {
+    const e: IDut[] = [];
+    const hostnames = toIterator(this.DUTs)
+      .filter(e => e.hostname !== '')
+      .map(e => e.hostname)
+      .collect();
+
+    for (let i = 0; i < d.length; i++) {
+      const cur = d[i];
+
+      // check the user input hostname is in the list of deployed
+      if (hostnames.includes(`${this.hostnamePrefix}${cur.inputHostname}`)) {
+        e.push(cur)
+      } else {
+        // check the user is in the list of hostnames provided by the user again.
+        const others = toIterator(d)
+          .filter(e => e.address !== cur.address)
+          .collect();
+
+        for (const o of others) {
+          if (o.inputHostname === cur.inputHostname) {
+            e.push(cur)
+            break
+          }
+        }
+      }
+    }
+
+    for (const m of e) {
+      this.notification.error(`duplicate hostname: ${m.inputHostname} of DUT: ${m.address}`)
+    }
+
+    return e.length !== 0;
   }
 
   /**
-   * __validateEditPool checks the given data is empty or not and
-   * the pool is empty or not
-   * @param data
+   * check a user input a hostname is empty
+   * @param d the list of DUTs that a user wants to deploy
    * @private
    */
-  private __validateEditPool(data: unknown[]) {
-    return this.__validateSelection(data) && this.pool.value;
+  private __checkEmptyHostname(d: IDut[]) {
+    const e = toIterator(d)
+      .filter(e => !e.inputHostname)
+      .collect();
+
+    e.forEach(d => this.notification.error(`Please input a hostname on ${d.address}`))
+
+    return e.length !== 0;
+  }
+
+  /**
+   * check the DUTs' servo is wired
+   * @param d the list of DUTs that a user wants to deploy
+   * @private
+   */
+  private __checkServoWired(d: IDut[]) {
+    const e = toIterator(d)
+      .filter(e => !e.isServoWiredCorrectly)
+      .collect();
+
+    e.forEach(d => this.notification.error(`Please make sure you are connecting Servo to the right port for ${d.address} : ${d.hostname}`))
+
+    return e.length !== 0;
   }
 
   /**

@@ -19,14 +19,6 @@
 
     <button
       mat-raised-button
-      [disabled]="!isDUTSelected || loading"
-      (click)="onReVerifyClicked()"
-    >
-      Reverify Selected
-    </button>
-
-    <button
-      mat-raised-button
       [disabled]="loading"
       (click)="onProvisionDUTs()"
     >
