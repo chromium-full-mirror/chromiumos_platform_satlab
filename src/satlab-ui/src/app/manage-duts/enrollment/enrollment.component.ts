@@ -222,7 +222,7 @@ export class EnrollmentComponent {
   }
 
   protected onRemovePoolClicked() {
-    const items = toIterator(this.selectedDUTs)
+    let items = toIterator(this.selectedDUTs)
       .filter(e => {
         return e.address !== '' && e.pools.includes(this.pool.value!);
       })
@@ -233,6 +233,11 @@ export class EnrollmentComponent {
           pools: [...e.pools.slice(0, idx), ...e.pools.slice(idx + 1)]
         }
       })
+      .collect();
+
+    this.__checkPoolsIsEmpty(items)
+    items = toIterator(items)
+      .filter(e => e.pools.length > 0)
       .collect();
 
     if (!this.__validateEditPool(items)) {
@@ -291,5 +296,18 @@ export class EnrollmentComponent {
    */
   private __validateEditPool(data: unknown[]) {
     return this.__validateSelection(data) && this.pool.value;
+  }
+
+  /**
+   * check and send a notification when a user attempt to remove all pools from a DUT
+   * @param d
+   * @private
+   */
+  private __checkPoolsIsEmpty(d: { address: string, pools: string[] }[]) {
+    toIterator(d)
+      .filter(e => e.pools.length === 0)
+      .forEach(e => {
+        this.notification.error(`can not remove pool: ${this.pool.value} for ${e.address} because pools cannot be empty.`)
+      })
   }
 }
