@@ -58,11 +58,6 @@ function start_private_containers () {
     export SATLAB_HOST_IP
   fi
 
-  ENV_SETUP_FILE=/export_env_file.sh
-  if [[ -f "${ENV_SETUP_FILE}" ]]; then
-    source ${ENV_SETUP_FILE}
-  fi
-
   STABLE_VERSION_SETUP_FILE=/create_recovery_version_dir.sh
   if [[ -f "${STABLE_VERSION_SETUP_FILE}" ]]; then
     source ${STABLE_VERSION_SETUP_FILE}
@@ -103,6 +98,12 @@ then
 
   docker-compose -f ./docker-compose.watchtower.yaml down -t 1
 else
+  # Set the environement from satlab-config.json before any container start.
+  ENV_SETUP_FILE=/export_env_file.sh
+  if [[ -f "${ENV_SETUP_FILE}" ]]; then
+    source ${ENV_SETUP_FILE}
+  fi
+
   docker rm -f satlab_rpcserver
   docker-compose pull satlab_rpcserver satlab-ui
   docker-compose up -d satlab_rpcserver satlab-ui
