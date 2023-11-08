@@ -3,6 +3,8 @@
   height: auto;
 
   .container-wrapper {
+    display: flex;
+    flex-direction: column;
     max-width: 640px;
     margin: 1.25rem;
     padding: 1.25rem;
@@ -31,6 +33,7 @@
       cursor: pointer;
       text-decoration: underline;
       font-size: 14px;
+      width: fit-content;
     }
   }
 
