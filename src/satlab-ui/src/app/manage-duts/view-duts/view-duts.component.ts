@@ -18,6 +18,7 @@ export class ViewDutsComponent implements OnInit, OnDestroy, OnChanges {
   @Input() hostnamePrefix = "";
   @Output() select = new EventEmitter<IDut[]>();
 
+  protected allSelected = false;
   protected selection = new SelectionModel<IDut>(true, []);
   protected selectionCount = 0;
   private disposer?: Subscription;
@@ -55,6 +56,7 @@ export class ViewDutsComponent implements OnInit, OnDestroy, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['DUTs'] && changes['DUTs'].previousValue !== changes['DUTs'].currentValue) {
       this.selection.clear();
+      this.allSelected = false;
     }
     if (changes['DUTs']) {
       this.duts = changes['DUTs'].currentValue;
@@ -72,6 +74,7 @@ export class ViewDutsComponent implements OnInit, OnDestroy, OnChanges {
    */
   protected onDUTCheckboxChanged(e: IDut) {
     this.selection.toggle(e);
+    this.__updateAllSelected();
   }
 
   /**
@@ -89,6 +92,7 @@ export class ViewDutsComponent implements OnInit, OnDestroy, OnChanges {
           this.selection.toggle(e);
         })
     }
+    this.__updateAllSelected();
   }
 
   /**
@@ -103,6 +107,13 @@ export class ViewDutsComponent implements OnInit, OnDestroy, OnChanges {
       }
     }
     return false;
+  }
+
+  private __updateAllSelected() {
+    this.allSelected = this.selectionCount > 0 && toIterator(this.duts)
+      .filter(e => e.isAccessible)
+      .collect()
+      .length === this.selectionCount;
   }
 
   /**
