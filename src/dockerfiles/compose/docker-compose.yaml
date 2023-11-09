@@ -166,6 +166,7 @@ services:
       - DEPLOY_BUILDER_BUCKET=${DEPLOY_BUILDER_BUCKET:-}
       - SATLAB_RPCSERVER_LOGFILE=${SATLAB_RPCSERVER_LOGFILE:-/var/log/satlab/satlab_rpcserver.log}
       - BOTO_PATH=/home/satlab/keys/boto_config
+      - BOT_PREFIX=${BOT_PREFIX:-}
     volumes:
       - logs:/var/log/satlab
       - /var/run/docker.sock:/var/run/docker.sock:rw
