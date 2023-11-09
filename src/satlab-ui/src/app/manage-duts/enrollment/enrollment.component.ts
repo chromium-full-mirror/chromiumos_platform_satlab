@@ -53,9 +53,11 @@ export class EnrollmentComponent {
     const emptyHostname = this.__checkEmptyHostname(d)
     const isServoWired = this.__checkServoWired(d)
 
-    if (d.length > 0 || duplicateHostname || emptyHostname || isServoWired) {
+    if (d.length == 0 || duplicateHostname || emptyHostname || isServoWired) {
+      console.log("no DUTs to enroll or one of the DUTs has an issue")
       return;
     }
+    console.log("proceeding to trigger addDUTs")
 
     from(this.service.addDUTs(d))
       .pipe(
