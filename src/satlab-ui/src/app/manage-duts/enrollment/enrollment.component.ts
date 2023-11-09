@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {IDut} from "../../models/dut";
 import {SatlabRpcService} from "../../services/satlab-rpc.service";
-import {FormControl} from "@angular/forms";
+import {FormControl, Validators} from "@angular/forms";
 import {toIterator} from "../../utils/iterator";
 import {finalize, from} from "rxjs";
 import {startWithTap} from "../../utils/rxjs_operator";
@@ -22,7 +22,7 @@ export class EnrollmentComponent {
 
   protected selectedDUTs: IDut[] = [];
   protected isDUTSelected = false;
-  protected pool = new FormControl('');
+  protected pool = new FormControl('', [Validators.pattern('[^ ]*')]);
 
   constructor(
     private service: SatlabRpcService,
@@ -195,9 +195,11 @@ export class EnrollmentComponent {
    */
   protected onAddPoolClicked() {
     const addresses = toIterator(this.selectedDUTs)
-      .filter(e => e.address !== '')
+      .filter(e => e.address !== '' && e.hostname !== '')
       .map(e => e.address)
       .collect();
+
+    this.__checkIsDUTDeployed(this.selectedDUTs)
 
     if (addresses.length === 0 || !this.pool.value) {
       return;
@@ -231,7 +233,7 @@ export class EnrollmentComponent {
   protected onRemovePoolClicked() {
     let items = toIterator(this.selectedDUTs)
       .filter(e => {
-        return e.address !== '' && e.pools.includes(this.pool.value!);
+        return e.address !== '' && e.pools.includes(this.pool.value!) && e.hostname !== '';
       })
       .map(e => {
         const idx = e.pools.indexOf(this.pool.value!);
@@ -242,7 +244,9 @@ export class EnrollmentComponent {
       })
       .collect();
 
+    this.__checkIsDUTDeployed(this.selectedDUTs)
     this.__checkPoolsIsEmpty(items)
+
     items = toIterator(items)
       .filter(e => e.pools.length > 0)
       .collect();
@@ -365,5 +369,16 @@ export class EnrollmentComponent {
       .forEach(e => {
         this.notification.error(`can not remove pool: ${this.pool.value} for ${e.address} because pools cannot be empty.`)
       })
+  }
+
+  /**
+   * check and send a notification when a user attempt to add/remove pools on an un-enrolled DUTs
+   * @param d
+   * @private
+   */
+  private __checkIsDUTDeployed(d: IDut[]) {
+    toIterator(d)
+      .filter(e => e.hostname === '')
+      .forEach(e => this.notification.error(`can not add/remove pool on a DUT ${e.address} that hasn't been enrolled`))
   }
 }

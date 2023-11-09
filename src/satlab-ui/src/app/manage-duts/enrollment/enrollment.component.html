@@ -28,31 +28,38 @@
 
   <br/>
 
-  <div class="input-wrapper">
-    <div class="inputbox-container without-border w-48">
-      <b>Pool: </b>
-      <mat-form-field class="without-underline full-width">
-        <input id="pool" matInput [formControl]="pool"/>
-      </mat-form-field>
+  <div class="pool-wrapper">
+    <div class="input-wrapper">
+      <div class="inputbox-container without-border w-48">
+        <b>Pool: </b>
+        <mat-form-field class="without-underline full-width">
+          <input id="pool" matInput [formControl]="pool"/>
+
+        </mat-form-field>
+      </div>
+
+      <button
+        mat-raised-button
+        color="primary"
+        [disabled]="!(pool.value !== '' && isDUTSelected) || loading || (pool.invalid && (pool.dirty || pool.touched))"
+        (click)="onAddPoolClicked()"
+      >
+        Add
+      </button>
+
+      <button
+        mat-raised-button
+        color="primary"
+        [disabled]="!(pool.value !== '' && isDUTSelected) || loading || (pool.invalid && (pool.dirty || pool.touched))"
+        (click)="onRemovePoolClicked()"
+      >
+        Remove
+      </button>
+
     </div>
-
-    <button
-      mat-raised-button
-      color="primary"
-      [disabled]="!(pool.value !== '' && isDUTSelected) || loading"
-      (click)="onAddPoolClicked()"
-    >
-      Add
-    </button>
-
-    <button
-      mat-raised-button
-      color="primary"
-      [disabled]="!(pool.value !== '' && isDUTSelected) || loading"
-      (click)="onRemovePoolClicked()"
-    >
-      Remove
-    </button>
+    <ng-container *ngIf="(pool.invalid && (pool.dirty || pool.touched))">
+      <div class="error">input should not include any whitespace.</div>
+    </ng-container>
   </div>
 
   <app-view-duts

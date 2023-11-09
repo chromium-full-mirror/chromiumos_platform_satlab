@@ -17,21 +17,32 @@
     }
   }
 
-  .input-wrapper {
+  .pool-wrapper {
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5rem;
-    position: relative;
-    border: 1px solid $color-grey;
-    border-radius: 0.25rem;
-    width: fit-content;
-    padding: 0.25rem 0.5rem;
+    flex-direction: column;
+    row-gap: 0.5rem;
 
-    .inputbox-container {
+    .input-wrapper {
       display: flex;
       flex-direction: row;
       align-items: center;
+      gap: 0.5rem;
+      position: relative;
+      border: 1px solid $color-grey;
+      border-radius: 0.25rem;
+      width: fit-content;
+      padding: 0.25rem 0.5rem;
+
+      .inputbox-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+      }
+    }
+
+    .error {
+      color: $color-error;
     }
   }
+
 }
