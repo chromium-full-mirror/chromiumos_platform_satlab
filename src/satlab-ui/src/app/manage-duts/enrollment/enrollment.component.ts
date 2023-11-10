@@ -202,18 +202,18 @@ export class EnrollmentComponent {
    * @protected
    */
   protected onAddPoolClicked() {
-    const addresses = toIterator(this.selectedDUTs)
-      .filter(e => e.address !== '' && e.hostname !== '')
-      .map(e => e.address)
+    const hostnames = toIterator(this.selectedDUTs)
+      .filter(e => e.hostname !== '')
+      .map(e => e.hostname)
       .collect();
 
     this.__checkIsDUTDeployed(this.selectedDUTs);
 
-    if (addresses.length === 0 || !this.pool.value) {
+    if (hostnames.length === 0 || !this.pool.value) {
       return;
     }
 
-    from(this.service.addPool({addresses: addresses, pool: this.pool.value!}))
+    from(this.service.addPool({hostnames: hostnames, pool: this.pool.value!}))
       .pipe(
         startWithTap(() => {
           this.loading = true;
@@ -244,16 +244,12 @@ export class EnrollmentComponent {
   protected onRemovePoolClicked() {
     let items = toIterator(this.selectedDUTs)
       .filter(e => {
-        return (
-          e.address !== '' &&
-          e.pools.includes(this.pool.value!) &&
-          e.hostname !== ''
-        );
+        return e.hostname !== '' && e.pools.includes(this.pool.value!);
       })
       .map(e => {
         const idx = e.pools.indexOf(this.pool.value!);
         return {
-          address: e.address,
+          hostname: e.hostname,
           pools: [...e.pools.slice(0, idx), ...e.pools.slice(idx + 1)],
         };
       })
@@ -449,12 +445,12 @@ export class EnrollmentComponent {
    * @param d
    * @private
    */
-  private __checkPoolsIsEmpty(d: {address: string; pools: string[]}[]) {
+  private __checkPoolsIsEmpty(d: {hostname: string, pools: string[]}[]) {
     toIterator(d)
       .filter(e => e.pools.length === 0)
       .forEach(e => {
         this.notification.error(
-          `can not remove pool: ${this.pool.value} for ${e.address} because pools cannot be empty.`
+          `can not remove pool: ${this.pool.value} for ${e.hostname} because pools cannot be empty.`
         );
       });
   }
