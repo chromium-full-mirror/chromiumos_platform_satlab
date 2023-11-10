@@ -20,6 +20,9 @@ FROM ${COMMON_CORE_URI}/remote_access:${COMMON_CORE_LABEL}
 
 # Set default OAuth Scopes
 ENV OAUTH_SCOPES "https://www.googleapis.com/auth/userinfo.email"
+COPY dockerfiles/satlab_remote_access/tools/export_oauth.sh /etc/profile.d
+RUN chmod 777 /etc/profile.d/export_oauth.sh
+
 WORKDIR /
 RUN /sbin/apk add git
 
