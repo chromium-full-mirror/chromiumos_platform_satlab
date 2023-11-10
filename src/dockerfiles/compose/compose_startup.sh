@@ -63,8 +63,6 @@ function start_private_containers () {
     source ${STABLE_VERSION_SETUP_FILE}
   fi
 
-  docker-compose pull dns
-  docker-compose up -d dns
   docker-compose pull drone downloader openssh_server nginx logrotate
   docker-compose up -d drone downloader openssh_server nginx logrotate
 
@@ -76,19 +74,6 @@ function start_private_containers () {
   docker exec drone chmod 777 /var/servod/profile/
   # Remove old CFT docker test image.
   docker exec drone docker image prune -a -f
-
-  # Connect satlab_remote_access container to satlab network
-  # so that user can use the local dns serice to resolve
-  # DUT hostname and allow SSH to DUTs
-  docker network connect --ip 192.168.100.50 default_satlab satlab_remote_access
-
-  docker-compose pull
-  docker-compose up -d
-  # Use labels to filter out containers that shouldn't be pruned.
-  docker system prune --filter "label!=skip.while.pruning.docker.system=yes" -f
-
-  # Prune unused/dangling images.
-  docker image prune -a -f
 }
 
 if [ "${1}" == "down" ]
@@ -104,9 +89,17 @@ else
     source ${ENV_SETUP_FILE}
   fi
 
+  docker-compose pull dns
+  docker-compose up -d dns
+
   docker rm -f satlab_rpcserver
   docker-compose pull satlab_rpcserver satlab-ui
   docker-compose up -d satlab_rpcserver satlab-ui
+
+  # Connect satlab_remote_access container to satlab network
+  # so that user can use the local dns serice to resolve
+  # DUT hostname and allow SSH to DUTs
+  docker network connect --ip 192.168.100.50 default_satlab satlab_remote_access
 
   SERVICE_ACCOUNT_KEY=/home/satlab/keys/pubsub-key-do-not-delete.json
   # Check if the service acout key is NOT an existing non-empty file.
@@ -122,6 +115,15 @@ else
       start_private_containers
     fi
   fi
+
+  docker-compose pull
+  docker-compose up -d
+  # Use labels to filter out containers that shouldn't be pruned.
+  docker system prune --filter "label!=skip.while.pruning.docker.system=yes" -f
+
+  # Prune unused/dangling images.
+  docker image prune -a -f
+
   # docker-compose logs with follow will keep the compose container running.
   docker-compose logs -f -t
 fi
