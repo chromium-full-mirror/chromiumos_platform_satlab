@@ -101,7 +101,7 @@ fi
 # Create directory to store recovery versions
 sudo mkdir -p ${KEYS_FOLDER}/${RECOVERY_VERSIONS_FOLDER}
 sudo chmod 777 ${KEYS_FOLDER}/${RECOVERY_VERSIONS_FOLDER}
-echo -e "\nRecovery Versions directory created/n"
+echo -e "\nRecovery Versions directory created\n"
 
 echo -e "\nSatlab setup successful, please reboot\n"
 
