@@ -31,7 +31,12 @@ const routes: Routes = [
   {
     path: 'configuration',
     component: ConfigurationComponent,
-  }
+  },
+  {
+    path: '**',
+    component: ManageDutsComponent,
+    canActivate: [checkLoggedIn]
+  },
 ];
 
 @NgModule({
