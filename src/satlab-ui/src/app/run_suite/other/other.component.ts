@@ -19,7 +19,7 @@ import {NotificationService} from 'app/services/notification.service';
 export class OtherComponent {
   @ViewChild(BuildSelectFormComponent) form!: BuildSelectFormComponent;
 
-  public suiteList: string[] = ['bvt-perbuild', 'audio'];
+  public suiteList: string[] = ['audio', 'bvt-perbuild', 'crosbolt_perf_perbuild', 'graphics_per-build', 'labqual', 'labqual_informational'];
 
   protected suiteOptions: SelectableItem[] = [];
   protected disabled = true;
