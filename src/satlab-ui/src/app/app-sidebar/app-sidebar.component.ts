@@ -14,19 +14,23 @@ export class AppSidebarComponent {
     {
       route: '/manage_duts',
       label: 'Manage DUTs',
+      icon: 'devices',
     },
     {
       route: '/run_tests',
       label: 'Run Tests',
+      icon: 'play_arrow',
     },
     {
       route: '/configuration',
       label: 'Configuration',
+      icon: 'settings',
       disabled: false,
     },
     {
       route: '/about',
       label: 'About',
+      icon: 'info',
       disabled: false,
     },
   ];

@@ -33,7 +33,65 @@
       <!-- Address Column -->
       <ng-container matColumnDef="ip">
         <th mat-header-cell *matHeaderCellDef>DUT</th>
-        <td mat-cell *matCellDef="let element">{{ element.address }}</td>
+        <td mat-cell *matCellDef="let element">
+          <div class="address-wrapper">
+            <!-- Enrolled DUT -->
+            <ng-container *ngIf="element.hostname !== ''">
+              <!-- Enrolled and Connected DUT -->
+              <div
+                *ngIf="element.isConnected"
+                class="material-icon icon green"
+                matTooltip="DUT Connected"
+              >
+                sync_alt
+              </div>
+
+              <!-- Enrolled and disconnected DUT -->
+              <div
+                *ngIf="!element.isConnected"
+                class="material-icon icon grey"
+                matTooltip="DUT Disconnected"
+              >
+                sync_alt
+              </div>
+            </ng-container>
+
+            <!-- Un-enrolled DUT -->
+            <ng-container *ngIf="element.hostname === ''">
+              <ng-container *ngIf="element.isServoWiredCorrectly">
+                <!-- Un-enrolled and connected DUT -->
+                <div
+                  *ngIf="element.isAccessible"
+                  class="material-icon icon orange"
+                  matTooltip="Hostname Needed"
+                >
+                  add
+                </div>
+
+                <!-- Un-enrolled and disconnected -->
+                <div
+                  *ngIf="!element.isAccessible"
+                  class="material-icon icon red"
+                  matTooltip="Check dongle connectivity or ensure installed Test Image"
+                >
+                  upload_2
+                </div>
+              </ng-container>
+
+              <!-- Un-enrolled and servo not detected -->
+              <ng-container *ngIf="!element.isServoWiredCorrectly">
+                <div
+                  class="material-icon icon red"
+                  matTooltip="Servo not detected"
+                >
+                  priority_high
+                </div>
+              </ng-container>
+            </ng-container>
+
+            <p>{{ element.address }}</p>
+          </div>
+        </td>
       </ng-container>
 
       <!-- Hostname Column -->
@@ -137,12 +195,7 @@
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr
-        mat-row
-        *matRowDef="let row; columns: displayedColumns"
-        [class.without-access]="!row.isAccessible"
-        [class.unconnected]="!row.isConnected && row.hostname !== ''"
-      ></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
     </table>
   </ng-container>
 </div>

@@ -66,8 +66,6 @@
       white-space: nowrap;
     }
 
-    .mat-mdc-cell.cdk-column-ip,
-    .mat-mdc-header-cell.cdk-column-ip,
     .mat-mdc-cell.cdk-column-mac,
     .mat-mdc-header-cell.cdk-column-mac,
     .mat-mdc-cell.cdk-column-status,
@@ -76,12 +74,10 @@
       min-width: 8.5rem;
     }
 
-    .unconnected {
-      background-color: $color-warn;
-    }
-
-    .without-access {
-      background-color: $color-without-access;
+    .mat-mdc-cell.cdk-column-ip,
+    .mat-mdc-header-cell.cdk-column-ip {
+      max-width: 164px;
+      min-width: 164px;
     }
 
     .checkbox-disable {
@@ -98,6 +94,35 @@
     .access-build-button {
       color: $color-link;
       font-size: $font-size-small;
+    }
+
+    .address-wrapper {
+      display: flex;
+      flex-direction: row;
+      column-gap: 0.25rem;
+      align-items: center;
+    }
+
+    .icon {
+      width: 24px;
+      height: 24px;
+
+      &.green {
+        color: $color-deep-green;
+      }
+
+      &.grey {
+        color: $color-deep-grey;
+        opacity: 30%;
+      }
+
+      &.red {
+        color: $color-error;
+      }
+
+      &.orange {
+        color: $color-warn;
+      }
     }
   }
 }
