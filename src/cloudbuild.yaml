@@ -57,6 +57,7 @@ steps:
         "--build-arg", "SFP_REGISTRY_URI=${_SFP_REGISTRY_URI}",
         "--build-arg", "BUILD_VERSION=${__BUILD_VERSION}",
         "--label=version=${__BUILD_VERSION}",
+        "-t", "${_REGISTRY_URI}/satlab-compose:${__BUILD_VERSION}",
         "-t", "${_REGISTRY_URI}/satlab-compose:${__LABEL}",
         "-f", "dockerfiles/compose/Dockerfile",
         "."
@@ -80,6 +81,7 @@ steps:
         "--build-arg", "COMMON_CORE_URI=${_COMMON_CORE_URI}",
         "--build-arg", "BASE_REGISTRY_URI=${_BASE_REGISTRY_URI}",
         "--build-arg", "BUILD_VERSION=${__BUILD_VERSION}",
+        "-t", "${_REGISTRY_URI}/satlab_remote_access:${__BUILD_VERSION}",
         "-t", "${_REGISTRY_URI}/satlab_remote_access:${__LABEL}",
         "-f", "dockerfiles/satlab_remote_access/Dockerfile",
         "."
@@ -102,6 +104,7 @@ steps:
         "--build-arg", "COMMON_CORE_URI=${_COMMON_CORE_URI}",
         "--build-arg", "BASE_REGISTRY_URI=${_BASE_REGISTRY_URI}",
         "--build-arg", "BUILD_VERSION=${__BUILD_VERSION}",
+        "-t", "${_REGISTRY_URI}/satlab-rpcserver:${__BUILD_VERSION}",
         "-t", "${_REGISTRY_URI}/satlab-rpcserver:${__LABEL}",
         "-f", "dockerfiles/satlab-rpcserver/Dockerfile",
         "."
@@ -119,6 +122,7 @@ steps:
         "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
         "--build-arg", "LABEL=${__LABEL}",
         "-t", "${_REGISTRY_URI}/envoy-proxy:${__BUILD_VERSION}",
+        "-t", "${_REGISTRY_URI}/envoy-proxy:${__LABEL}",
         "-f", "/workspace/src/dockerfiles/envoy/Dockerfile",
         "/workspace/src/dockerfiles/envoy"
       ]
@@ -136,6 +140,7 @@ steps:
         "--build-arg", "LABEL=${__LABEL}",
         "--build-arg", "BUILD_VERSION=${__BUILD_VERSION}",
         "-t", "${_REGISTRY_URI}/logrotate:${__BUILD_VERSION}",
+        "-t", "${_REGISTRY_URI}/logrotate:${__LABEL}",
         "-f", "/workspace/src/dockerfiles/utilities/Dockerfile.logrotate",
         "/workspace/src/dockerfiles/utilities/",
       ]
@@ -151,6 +156,7 @@ steps:
         "build",
         "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
         "--build-arg", "LABEL=${__LABEL}",
+        "-t", "${_REGISTRY_URI}/protoc:${__BUILD_VERSION}",
         "-t", "${_REGISTRY_URI}/protoc:${__LABEL}",
         "-f", "/workspace/src/dockerfiles/utilities/Dockerfile.protoc",
         "."
@@ -170,6 +176,7 @@ steps:
         "build",
         "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
         "--build-arg", "LABEL=${__LABEL}",
+        "-t", "${_REGISTRY_URI}/satlab-ui:${__BUILD_VERSION}",
         "-t", "${_REGISTRY_URI}/satlab-ui:${__LABEL}",
         "-f", "/workspace/src/dockerfiles/ui/Dockerfile",
         "/workspace/src/"
@@ -179,12 +186,19 @@ steps:
 
 images:
   [
+    "${_REGISTRY_URI}/satlab-compose:${__BUILD_VERSION}",
     "${_REGISTRY_URI}/satlab-compose:${__LABEL}",
+    "${_REGISTRY_URI}/satlab_remote_access:${__BUILD_VERSION}",
     "${_REGISTRY_URI}/satlab_remote_access:${__LABEL}",
+    "${_REGISTRY_URI}/satlab-rpcserver:${__BUILD_VERSION}",
     "${_REGISTRY_URI}/satlab-rpcserver:${__LABEL}",
+    "${_REGISTRY_URI}/envoy-proxy:${__BUILD_VERSION}",
     "${_REGISTRY_URI}/envoy-proxy:${__LABEL}",
+    "${_REGISTRY_URI}/logrotate:${__BUILD_VERSION}",
     "${_REGISTRY_URI}/logrotate:${__LABEL}",
+    "${_REGISTRY_URI}/protoc:${__BUILD_VERSION}",
     "${_REGISTRY_URI}/protoc:${__LABEL}",
+    "${_REGISTRY_URI}/satlab-ui:${__BUILD_VERSION}",
     "${_REGISTRY_URI}/satlab-ui:${__LABEL}",
   ]
 
