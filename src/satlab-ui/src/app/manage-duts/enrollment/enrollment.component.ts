@@ -22,7 +22,11 @@ export class EnrollmentComponent {
 
   protected selectedDUTs: IDut[] = [];
   protected isDUTSelected = false;
-  protected pool = new FormControl('', [Validators.pattern('[^ ]*')]);
+  protected pool = new FormControl('', [
+      Validators.pattern('[a-zA-Z0-9]+[a-zA-Z0-9-]*?'),
+      Validators.maxLength(20),
+    ]
+  );
 
   constructor(
     private service: SatlabRpcService,

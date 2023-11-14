@@ -58,7 +58,7 @@
 
     </div>
     <ng-container *ngIf="(pool.invalid && (pool.dirty || pool.touched))">
-      <div class="error">input should not include any whitespace.</div>
+      <div class="error">Must be less than 20 characters and contains letters, 0-9, or '-'</div>
     </ng-container>
   </div>
 
