@@ -18,11 +18,18 @@ import {NotificationService} from 'app/services/notification.service';
 export class OtherComponent {
   @ViewChild(BuildSelectFormComponent) form!: BuildSelectFormComponent;
 
-  public suiteList: string[] = ['audio', 'bvt-perbuild', 'crosbolt_perf_perbuild', 'graphics_per-build', 'labqual', 'labqual_informational'];
+  public suiteList: string[] = [
+    'audio',
+    'bvt-perbuild',
+    'crosbolt_perf_perbuild',
+    'graphics_per-build',
+    'labqual',
+    'labqual_informational',
+  ];
 
   protected suiteOptions: SelectableItem[] = [];
   protected disabled = true;
-  private selectedSuite = '';
+  private suite = '';
   private fields: IBuildSelectFields = defaultBuildSelectFields;
 
   constructor(
@@ -43,8 +50,8 @@ export class OtherComponent {
     this.canRun();
   }
 
-  protected onSuiteSelected(value: string) {
-    this.selectedSuite = value;
+  protected onSuiteChanged(value: string) {
+    this.suite = value.trim();
     this.canRun();
   }
 
@@ -53,7 +60,7 @@ export class OtherComponent {
       return;
     }
 
-    from(this.service.runSuite({...this.fields, suite: this.selectedSuite}))
+    from(this.service.runSuite({...this.fields, suite: this.suite}))
       .pipe(
         startWithTap(() => {
           this.disabled = true;
@@ -86,7 +93,7 @@ export class OtherComponent {
       return p && v !== '';
     }, true);
 
-    const isSuiteValid = this.selectedSuite !== '';
+    const isSuiteValid = this.suite !== '';
 
     return isFieldsValid && isSuiteValid;
   }

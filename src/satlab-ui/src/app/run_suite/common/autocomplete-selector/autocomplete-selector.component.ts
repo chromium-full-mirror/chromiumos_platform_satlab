@@ -55,6 +55,7 @@ export class AutocompleteSelectorComponent implements OnChanges, OnInit, OnDestr
         distinctUntilChanged(),
       )
       .subscribe(v => {
+        this.inputChanged.emit(v);
         if (!v) {
           this.filteredOptions = this.options;
           return;
@@ -65,8 +66,6 @@ export class AutocompleteSelectorComponent implements OnChanges, OnInit, OnDestr
             return item.text.includes(v);
           })
           .collect();
-
-        this.inputChanged.emit(v);
       })
   }
 
