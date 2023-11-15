@@ -18,7 +18,7 @@ import {
 import {SatlabRpcService} from '../../../services/satlab-rpc.service';
 import {Dut} from '../../../services/satlabrpc_pb';
 import {toIterator} from '../../../utils/iterator';
-import {filter, finalize, from, Subject, Subscription} from 'rxjs';
+import {finalize, from, Subject, Subscription} from 'rxjs';
 import {startWithTap} from '../../../utils/rxjs_operator';
 import {BasicSelectorComponent} from '../basic-selector/basic-selector.component';
 import {NotificationService} from '../../../services/notification.service';
@@ -48,17 +48,17 @@ export class BuildSelectFormComponent
     message: '',
   };
   private duts: ISimpleDUT[] = [];
-  private fileds$ = new Subject<IBuildSelectFields>();
+  private fields$ = new Subject<IBuildSelectFields>();
   private disposer?: Subscription;
 
   constructor(
     private service: SatlabRpcService,
     private notification: NotificationService
-  ) {}
+  ) {
+  }
 
   ngOnInit() {
-    this.disposer = this.fileds$
-      .pipe(filter(e => this.validate(e)))
+    this.disposer = this.fields$
       .subscribe(e => this.allRequiredFieldsSet.emit(e));
   }
 
@@ -100,7 +100,7 @@ export class BuildSelectFormComponent
       pool: '',
     };
     this.resetSelector(this.fields);
-    this.fileds$.next(this.fields);
+    this.fields$.next(this.fields);
     this.poolOptions = [];
     this.parseBoardOptionsFromDUTs(this.duts);
   }
@@ -114,7 +114,7 @@ export class BuildSelectFormComponent
       pool: '',
     };
     this.resetSelector(this.fields);
-    this.fileds$.next(this.fields);
+    this.fields$.next(this.fields);
     this.parsePoolOptionsFromDUTs(this.duts);
     this.getMilestones();
   }
@@ -126,7 +126,7 @@ export class BuildSelectFormComponent
       build: '',
     };
     this.resetSelector(this.fields);
-    this.fileds$.next(this.fields);
+    this.fields$.next(this.fields);
     this.getBuilds();
   }
 
@@ -135,7 +135,7 @@ export class BuildSelectFormComponent
       ...this.fields,
       build: newBuild,
     };
-    this.fileds$.next(this.fields);
+    this.fields$.next(this.fields);
   }
 
   protected onPoolChanged(newPool: string) {
@@ -143,7 +143,7 @@ export class BuildSelectFormComponent
       ...this.fields,
       pool: newPool,
     };
-    this.fileds$.next(this.fields);
+    this.fields$.next(this.fields);
   }
 
   private parseAPIResponse(duts: Dut[]): void {
@@ -279,9 +279,5 @@ export class BuildSelectFormComponent
     if (fields.pool === '') {
       this.poolSelector?.clearSelection();
     }
-  }
-
-  private validate(fields: IBuildSelectFields) {
-    return Object.entries(fields).reduce((p, [_, v]) => p && v !== '', true);
   }
 }

@@ -1,5 +1,9 @@
 import {Component, ViewChild} from '@angular/core';
-import {IBuildSelectFields, SelectableItem, defaultBuildSelectFields} from 'app/models/selectable_item';
+import {
+  IBuildSelectFields,
+  SelectableItem,
+  defaultBuildSelectFields
+} from 'app/models/selectable_item';
 import {ITestPlan} from 'app/models/testplan';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
 import {startWithTap} from 'app/utils/rxjs_operator';
@@ -7,6 +11,7 @@ import {finalize, from} from 'rxjs';
 import {BuildSelectFormComponent} from '../common/build-select-form/build-select-form.component';
 import {toIterator} from 'app/utils/iterator';
 import {NotificationService} from "../../services/notification.service";
+import {checkSelectFields} from "../../utils/validators";
 
 @Component({
   selector: 'app-testplan',
@@ -103,10 +108,7 @@ export class TestplanComponent {
   }
 
   private validate() {
-    const isFieldsValid = Object.entries(this.fields).reduce((p, [_, v]) => {
-      return p && v !== '';
-    }, true);
-
+    const isFieldsValid = checkSelectFields(this.fields)
 
     const isTestPlanValid = toIterator(this.testPlanOptions)
       .filter(e => e.value === this.selectedTestPlan?.name)

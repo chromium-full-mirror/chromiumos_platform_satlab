@@ -9,6 +9,7 @@ import {BuildSelectFormComponent} from '../common/build-select-form/build-select
 import {finalize, from} from 'rxjs';
 import {startWithTap} from '../../utils/rxjs_operator';
 import {NotificationService} from 'app/services/notification.service';
+import {checkSelectFields} from "../../utils/validators";
 
 @Component({
   selector: 'app-other',
@@ -89,9 +90,7 @@ export class OtherComponent {
   }
 
   private validate() {
-    const isFieldsValid = Object.entries(this.fields).reduce((p, [_, v]) => {
-      return p && v !== '';
-    }, true);
+    const isFieldsValid = checkSelectFields(this.fields)
 
     const isSuiteValid = this.suite !== '';
 

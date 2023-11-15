@@ -1,6 +1,6 @@
 <div class="wrapper" matTooltip="{{disabledMessage}}" matTooltipPosition="right">
   <div class="selector-wrapper">
-    <mat-form-field class="full-width">
+    <mat-form-field class="full-width zero-padding">
       <mat-label>{{ title }}</mat-label>
       <input #search matInput [formControl]="searchFormControl" (focusin)="onInputFocusIn()"
              (focusout)="onInputFocusout()" placeholder="Please input some letters to filter">
