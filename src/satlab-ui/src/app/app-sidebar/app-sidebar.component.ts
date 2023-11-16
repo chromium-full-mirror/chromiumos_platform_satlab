@@ -17,7 +17,7 @@ export class AppSidebarComponent {
     },
     {
       route: '/run_tests',
-      label: 'Run Suite',
+      label: 'Run Tests',
     },
     {
       route: '/configuration',
