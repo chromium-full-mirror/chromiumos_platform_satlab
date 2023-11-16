@@ -18,7 +18,7 @@
 
     .sidebar-item {
       font-size: 1.1rem;
-      font-weight: 400;
+      font-weight: $font-weight-normal;
 
       &:hover {
         background-color: $color-sidebar-hover;
@@ -30,6 +30,13 @@
       &.disabled {
         color: gray;
         cursor: not-allowed;
+      }
+    }
+
+    .active-route {
+      .sidebar-item {
+        background-color: $color-grey;
+        font-weight: $font-weight-title;
       }
     }
   }
