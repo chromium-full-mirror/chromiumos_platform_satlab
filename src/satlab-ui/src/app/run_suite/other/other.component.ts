@@ -8,7 +8,6 @@ import {SatlabRpcService} from '../../services/satlab-rpc.service';
 import {BuildSelectFormComponent} from '../common/build-select-form/build-select-form.component';
 import {finalize, from} from 'rxjs';
 import {startWithTap} from '../../utils/rxjs_operator';
-import {MatSnackBar} from '@angular/material/snack-bar';
 import {NotificationService} from 'app/services/notification.service';
 
 @Component({
