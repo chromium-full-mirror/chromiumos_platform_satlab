@@ -1,5 +1,4 @@
 import {Component, ViewChild} from '@angular/core';
-import {MatSnackBar} from '@angular/material/snack-bar';
 import {IBuildSelectFields, SelectableItem, defaultBuildSelectFields} from 'app/models/selectable_item';
 import {ITestPlan} from 'app/models/testplan';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
@@ -7,6 +6,7 @@ import {startWithTap} from 'app/utils/rxjs_operator';
 import {finalize, from} from 'rxjs';
 import {BuildSelectFormComponent} from '../common/build-select-form/build-select-form.component';
 import {toIterator} from 'app/utils/iterator';
+import {NotificationService} from "../../services/notification.service";
 
 @Component({
   selector: 'app-testplan',
@@ -24,8 +24,9 @@ export class TestplanComponent {
 
   constructor(
     private service: SatlabRpcService,
-    private __snackBar: MatSnackBar
-  ) {}
+    private notification: NotificationService,
+  ) {
+  }
 
   protected allRequiredFieldsSet(fields: IBuildSelectFields) {
     this.fields = fields;
@@ -85,15 +86,14 @@ export class TestplanComponent {
       )
       .subscribe({
         next: buildLink => {
-          this.__snackBar.open(
-            `Running a testplan successful: Here is the link: ${buildLink}`,
-            'Ok',
-            {panelClass: 'normal'}
-          );
+          this.notification.info(['Trigger job successfully! Job link: ', {
+            type: 'url',
+            url: buildLink
+          }], {dismiss: false})
         },
         error: e => {
           // Handle an error
-          console.error(`Running a testplan got an error: ${e}`);
+          this.notification.error(`Trigger job failed: ${e}`, {dismiss: false})
         }
       })
   }
