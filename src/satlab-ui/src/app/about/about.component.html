@@ -44,4 +44,8 @@
         <div class="title">Useful Links</div>
         <a *ngFor="let usefulLink of usefulLinks" href="{{usefulLink.url}}" target="_blank">{{usefulLink.name}}</a>
     </div>
+
+    <div class="btn-group">
+      <button mat-raised-button color="primary" (click)="onRebootClicked()">Reboot</button>
+    </div>
 </div>
