@@ -55,12 +55,29 @@ export class AboutComponent implements OnInit {
   constructor(
     private satlabRpcService: SatlabRpcService,
     private notification: NotificationService,
-  ) {}
+  ) {
+  }
 
   ngOnInit(): void {
     this.getVersionInfo();
     this.getSystemInfo();
     this.getNetworkInfo();
+  }
+
+  /**
+   * An event handler handles a user clicks a reboot button.
+   * @protected
+   */
+  protected onRebootClicked() {
+    from(this.satlabRpcService.reboot())
+      .subscribe({
+        next: _ => {
+          this.notification.info('rebooting...', {dismiss: false})
+        },
+        error: err => {
+          this.notification.error(`failed to reboot, ${err}`, {dismiss: false})
+        }
+      })
   }
 
   private getSystemInfo() {

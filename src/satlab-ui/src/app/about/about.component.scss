@@ -37,7 +37,10 @@
     }
   }
 
-  .button-wrapper {
-    margin: 0 0 0 1.25rem;
+  .btn-group {
+    display: flex;
+    flex-direction: row;
+    column-gap: .5rem;
+    padding: 0 20px;
   }
 }
