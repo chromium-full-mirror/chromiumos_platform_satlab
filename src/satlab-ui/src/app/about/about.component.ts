@@ -9,6 +9,7 @@ import {
 import {from, finalize} from 'rxjs';
 import {startWithTap} from '../utils/rxjs_operator';
 import {NotificationService} from '../services/notification.service';
+import {INSTRUCTION_URL, REPORT_BUG_URL} from "../constants";
 
 @Component({
   selector: 'app-about',
@@ -44,11 +45,11 @@ export class AboutComponent implements OnInit {
   protected usefulLinks: ILinkInfo[] = [
     {
       name: 'Instruction Manual',
-      url: 'https://chromeos.google.com/partner/dlm/docs/infrastructure/satlab-for-partners-early-access.html',
+      url: INSTRUCTION_URL,
     },
     {
       name: 'Report a Bug',
-      url: 'https://issuetracker.google.com/issues/new?component=1038089&template=1569787',
+      url: REPORT_BUG_URL,
     },
   ];
 
