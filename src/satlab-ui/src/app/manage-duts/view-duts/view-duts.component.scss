@@ -15,6 +15,10 @@
     font-size: .9rem;
   }
 
+  .loading-overlay {
+    align-items: start;
+  }
+
   .mat-mdc-table {
     .mdc-data-table__cell, .mdc-data-table__header-cell {
       padding: 0 .5rem;

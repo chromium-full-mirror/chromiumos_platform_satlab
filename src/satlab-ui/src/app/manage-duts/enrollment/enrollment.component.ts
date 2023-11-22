@@ -149,6 +149,7 @@ export class EnrollmentComponent {
       .afterClosed()
       .subscribe(async res => {
         if (res) {
+          this.loading = true
           const result = await runProvisionOnIndividualDUT(
             this.service,
             d,
@@ -169,6 +170,8 @@ export class EnrollmentComponent {
               this.notification.error(`Provision failed: ${e}`, {dismiss: false})
             }
           }
+
+          this.loading = false
         }
       });
   }
