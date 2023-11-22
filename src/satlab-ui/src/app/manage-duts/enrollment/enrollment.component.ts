@@ -8,6 +8,7 @@ import {startWithTap} from "../../utils/rxjs_operator";
 import {MatDialog} from "@angular/material/dialog";
 import {ProvisionComponent} from "../../dialogs/provision/provision.component";
 import {NotificationService} from '../../services/notification.service';
+import {runProvisionOnIndividualDUT} from "../../utils/run_tests_helper";
 
 @Component({
   selector: 'app-enrollment',
@@ -137,58 +138,37 @@ export class EnrollmentComponent {
   protected onProvisionDUTs() {
     const d = toIterator(this.DUTs)
       .filter(e => e.hostname !== '')
-      .map(e => {
-        return {
-          board: e.board,
-          model: e.model,
-          pools: e.pools
-        }
-      })
       .collect();
 
     if (d.length === 0) {
       return;
     }
-
     const dialogRef = this.dialog.open(ProvisionComponent, {data: {duts: d}});
 
     dialogRef
       .afterClosed()
-      .subscribe(res => {
+      .subscribe(async res => {
         if (res) {
-          const pool = res.pool;
-          const milestone = res.milestone;
-          const build = res.build;
+          const result = await runProvisionOnIndividualDUT(
+            this.service,
+            d,
+            res.milestone,
+            res.build,
+            res.pool
+          )
 
-          toIterator(d)
-            .filter(e => e.pools.includes(pool))
-            .unique_by_where((a, b) => {
-              return a.board === b.board && a.model === b.model;
-            })
-            .map(e => {
-              return {
-                board: e.board,
-                model: e.model,
+          for (const f of result) {
+            try {
+              const r = await f
+              if (r.link) {
+                this.notification.info(['Provision succeed: ', {type: 'url', url: r.link}], {dismiss: false})
+              } else {
+                this.notification.error(`${r.hostname} Provision failed`, {dismiss: false})
               }
-            })
-            .collect()
-            .forEach(e => {
-              from(
-                this.service.provision({
-                  ...e,
-                  milestone: milestone,
-                  build: build,
-                  pool: pool,
-                })
-              ).subscribe({
-                next: e => {
-                  this.notification.info(['Provision succeed: ', {type: 'url', url: e}], {dismiss: false})
-                },
-                error: e => {
-                  this.notification.error(`Provision failed: ${e}`, {dismiss: false})
-                }
-              })
-            })
+            } catch (e) {
+              this.notification.error(`Provision failed: ${e}`, {dismiss: false})
+            }
+          }
         }
       });
   }

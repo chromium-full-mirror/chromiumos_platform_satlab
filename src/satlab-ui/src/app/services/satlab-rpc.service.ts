@@ -29,11 +29,12 @@ import {
   ListAccessibleModelsRequest,
   StageBuildRequest,
   RebootRequest,
+  Dim,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
-import {IDut, IFirmwareDUT, IUpdateFirmwareResult} from "../models/dut";
-import {IBoto} from "../models/boto";
-import {IBuildSelectFields} from "../models/selectable_item";
+import {IDut, IFirmwareDUT, IUpdateFirmwareResult} from '../models/dut';
+import {IBoto} from '../models/boto';
+import {IDims} from '../models/dims';
 
 @Injectable({
   providedIn: 'root',
@@ -92,7 +93,7 @@ export class SatlabRpcService {
    * list milestones by given model and board
    * @param p an object contains the information of model and board
    */
-  public async listMilestones(p: { model: string; board: string }) {
+  public async listMilestones(p: {model: string; board: string}) {
     const req = new ListMilestonesRequest().setModel(p.model).setBoard(p.board);
 
     const resp = await this.client.list_milestones(req, {});
@@ -119,6 +120,16 @@ export class SatlabRpcService {
     return resp.getBuildVersionsList();
   }
 
+  private toDims(input?: IDims) {
+    if (!input) {
+      return [];
+    }
+
+    return Object.keys(input).map(k => {
+      return new Dim().setKey(k).setValue(input[k]);
+    });
+  }
+
   /**
    * run a suite by given model, board, milestone, build version, pool, and suite.
    * @param params an object contains the required information
@@ -130,6 +141,7 @@ export class SatlabRpcService {
     build: string;
     pool: string;
     suite: string;
+    dims?: IDims;
   }) {
     const req = new RunSuiteRequest()
       .setModel(params.model)
@@ -137,7 +149,8 @@ export class SatlabRpcService {
       .setMilestone(params.milestone)
       .setBuildVersion(params.build)
       .setPool(params.pool)
-      .setSuite(params.suite);
+      .setSuite(params.suite)
+      .setDimsList(this.toDims(params.dims));
 
     const resp = await this.client.run_suite(req, {});
 
@@ -172,19 +185,20 @@ export class SatlabRpcService {
       mac: e.getMacAddress(),
       servoSerial: e.getServoSerial(),
       isConnected: e.getIsConnected(),
-      isAccessible: !(e.getHostname() == '' && !e.getIsConnected()),
+      isAccessible: !(e.getHostname() === '' && !e.getIsConnected()),
       status: e.getState(),
-      isServoWiredCorrectly: e.getServoSerial() === '' || (e.getServoSerial() !== 'NOT DETECTED')
-    }
+      isServoWiredCorrectly:
+        e.getServoSerial() === '' || e.getServoSerial() !== 'NOT DETECTED',
+    };
 
-    return dut
+    return dut;
   }
 
   /**
    * addPool add a pool the given DUTs
    * @param p is a structure contains the information that we want to update
    */
-  public async addPool(p: { addresses: string[], pool: string }) {
+  public async addPool(p: {addresses: string[]; pool: string}) {
     const req = new AddPoolRequest()
       .setPool(p.pool)
       .setAddressesList(p.addresses);
@@ -196,7 +210,7 @@ export class SatlabRpcService {
    * updatePool update the pool list to the given DUTs
    * @param p is a structure contains the information that we want to update.
    */
-  public async updatePool(p: { address: string, pools: string[] }[]) {
+  public async updatePool(p: {address: string; pools: string[]}[]) {
     const items = toIterator(p)
       .map(elem => {
         return new UpdatePoolRequest.Item()
@@ -214,9 +228,9 @@ export class SatlabRpcService {
    * list the connected DUTs for firmware update
    */
   public async listDUTsForFirmware() {
-    const req = new ListConnectedDutsFirmwareRequest()
+    const req = new ListConnectedDutsFirmwareRequest();
 
-    const resp = await this.client.list_connected_duts_firmware(req, {})
+    const resp = await this.client.list_connected_duts_firmware(req, {});
 
     return toIterator(resp.getDutsList())
       .map(e => {
@@ -224,8 +238,8 @@ export class SatlabRpcService {
           address: e.getIp(),
           currentFirmware: e.getCurrentFirmware(),
           newestFirmware: e.getUpdateFirmware(),
-        }
-        return d
+        };
+        return d;
       })
       .collect();
   }
@@ -235,8 +249,7 @@ export class SatlabRpcService {
    * @param addresses the IP addresses of DUTs
    */
   public async updateFirmware(addresses: string[]) {
-    const req = new UpdateDutsFirmwareRequest()
-      .setIpsList(addresses);
+    const req = new UpdateDutsFirmwareRequest().setIpsList(addresses);
 
     const resp = await this.client.update_duts_firmware(req, {});
 
@@ -245,7 +258,7 @@ export class SatlabRpcService {
         const r: IUpdateFirmwareResult = {
           address: e.getIp(),
           message: e.getCommandOutput(),
-        }
+        };
         return r;
       })
       .collect();
@@ -293,15 +306,14 @@ export class SatlabRpcService {
    * or failed.
    */
   public async deleteDUTs(hostnames: string[]) {
-    const req = new DeleteDutsRequest()
-      .setHostnamesList(hostnames);
+    const req = new DeleteDutsRequest().setHostnamesList(hostnames);
 
     const resp = await this.client.delete_duts(req, {});
 
     return {
       pass: resp.getPassList(),
       fail: resp.getFailList(),
-    }
+    };
   }
 
   /**
@@ -318,17 +330,17 @@ export class SatlabRpcService {
           .setModel(e.model)
           .setBoard(e.board)
           .setAddress(e.address)
-          .setHostname(e.inputHostname)
+          .setHostname(e.inputHostname);
 
         if (e.isServoWiredCorrectly && e.servoSerial !== '') {
-          p.setServoSerial(e.servoSerial)
+          p.setServoSerial(e.servoSerial);
         }
 
-        return p
+        return p;
       })
       .collect();
 
-    const req = new AddDutsRequest().setDutsList(items)
+    const req = new AddDutsRequest().setDutsList(items);
 
     const resp = await this.client.add_duts(req, {});
 
@@ -338,7 +350,7 @@ export class SatlabRpcService {
           return {
             hostname: e.getHostname(),
             url: e.getUrl(),
-          }
+          };
         })
         .collect(),
       fail: toIterator(resp.getFailList())
@@ -346,10 +358,10 @@ export class SatlabRpcService {
           return {
             hostname: e.getHostname(),
             reason: e.getReason(),
-          }
+          };
         })
-        .collect()
-    }
+        .collect(),
+    };
   }
 
   /**
@@ -364,6 +376,7 @@ export class SatlabRpcService {
     pool: string;
     tests: string[];
     test_args?: string;
+    dims?: IDims;
   }) {
     const req = new RunTestRequest()
       .setModel(params.model)
@@ -372,8 +385,10 @@ export class SatlabRpcService {
       .setBuild(params.build)
       .setPool(params.pool)
       .setTestsList(params.tests)
+      .setDimsList(this.toDims(params.dims));
+
     if (params.test_args !== undefined) {
-      req.setTestArgs(params.test_args)
+      req.setTestArgs(params.test_args);
     }
     const resp = await this.client.run_test(req, {});
     return resp.getBuildLink();
@@ -389,11 +404,12 @@ export class SatlabRpcService {
     milestone: string;
     build: string;
     pool: string;
+    dims?: IDims;
   }) {
     return this.runTest({
       ...params,
-      tests: ["stub_Pass"]
-    })
+      tests: ['stub_Pass'],
+    });
   }
 
   /**
@@ -417,6 +433,7 @@ export class SatlabRpcService {
     build: string;
     pool: string;
     plan: string;
+    dims?: IDims;
   }) {
     const req = new RunTestPlanRequest()
       .setModel(params.model)
@@ -424,7 +441,8 @@ export class SatlabRpcService {
       .setMilestone(params.milestone)
       .setBuild(params.build)
       .setPool(params.pool)
-      .setTestPlanName(params.plan);
+      .setTestPlanName(params.plan)
+      .setDimsList(this.toDims(params.dims));
 
     const resp = await this.client.run_test_plan(req, {});
 
@@ -439,26 +457,26 @@ export class SatlabRpcService {
     const req = new SetCloudConfigurationRequest()
       .setBotoKeyId(b.key)
       .setBotoKeySecret(b.secret)
-      .setGcsBucketUrl(b.bucket)
+      .setGcsBucketUrl(b.bucket);
 
-    const _ = await this.client.set_cloud_configuration(req, {});
+    await this.client.set_cloud_configuration(req, {});
 
-    return true
+    return true;
   }
 
   /**
    * Get cloud configuration
    */
   public async getCloudConfiguration(): Promise<IBoto> {
-    const req = new GetCloudConfigurationRequest()
+    const req = new GetCloudConfigurationRequest();
 
-    const resp = await this.client.get_cloud_configuration(req, {})
+    const resp = await this.client.get_cloud_configuration(req, {});
 
     return {
       key: resp.getBotoKeyId(),
       bucket: resp.getGcsBucketUrl(),
-      secret: 'secret'
-    }
+      secret: 'secret',
+    };
   }
 
   /**
@@ -469,7 +487,7 @@ export class SatlabRpcService {
 
     const resp = await this.client.list_build_targets(req, {});
 
-    return resp.getBuildTargetsList()
+    return resp.getBuildTargetsList();
   }
 
   /**
@@ -477,8 +495,7 @@ export class SatlabRpcService {
    * @param board
    */
   public async listModels(board: string) {
-    const req = new ListAccessibleModelsRequest()
-      .setBoard(board)
+    const req = new ListAccessibleModelsRequest().setBoard(board);
 
     const resp = await this.client.list_accessible_models(req, {});
 
@@ -491,13 +508,13 @@ export class SatlabRpcService {
    * stage a build in the partner bucket
    * @param f
    */
-  public async stageBuild(f: { board: string, model: string, build: string }) {
+  public async stageBuild(f: {board: string; model: string; build: string}) {
     const req = new StageBuildRequest()
       .setBoard(f.board)
       .setModel(f.model)
-      .setBuildVersion(f.build)
+      .setBuildVersion(f.build);
 
-    const resp = await this.client.stage_build(req, {})
+    const resp = await this.client.stage_build(req, {});
 
     return resp.getBuildBucket();
   }
@@ -506,8 +523,8 @@ export class SatlabRpcService {
    * reboot the system
    */
   public async reboot() {
-    const req = new RebootRequest()
+    const req = new RebootRequest();
 
-    await this.client.reboot(req, {})
+    await this.client.reboot(req, {});
   }
 }
