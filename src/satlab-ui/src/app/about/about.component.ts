@@ -69,7 +69,14 @@ export class AboutComponent implements OnInit {
    * @protected
    */
   protected onRebootClicked() {
+    const isReboot = confirm('Are you sure you want to reboot?');
+
+    if (!isReboot) {
+      return;
+    }
+
     from(this.satlabRpcService.reboot()).subscribe({
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       next: _ => {
         this.notification.info('rebooting...', {dismiss: false});
       },
