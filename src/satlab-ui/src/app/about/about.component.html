@@ -1,4 +1,7 @@
 <div class="wrapper">
+  <app-spinner-loading
+    [isLoading]="loadingStatus.logProcess"
+  ></app-spinner-loading>
   <div class="container-wrapper" id="satlab-about-card">
     <app-spinner-loading
       [isLoading]="loadingStatus.versionInfo"
@@ -61,6 +64,17 @@
   <div class="btn-group">
     <button mat-raised-button color="primary" (click)="onRebootClicked()">
       Reboot
+    </button>
+    <button mat-raised-button color="primary" (click)="onDownloadLogClicked()">
+      Download Log
+    </button>
+    <button
+      *ngIf="auth.loginState$ | async"
+      mat-raised-button
+      color="primary"
+      (click)="onSendLogClicked()"
+    >
+      Send Log
     </button>
   </div>
 </div>

@@ -29,6 +29,8 @@ import {
   ListAccessibleModelsRequest,
   StageBuildRequest,
   RebootRequest,
+  UploadLogRequest,
+  DownloadLogRequest,
   Dim,
   RepairDutsRequest,
   RepairDutsResponse,
@@ -605,6 +607,44 @@ export class SatlabRpcService {
     const res = await this.client.runStorageQual(req, {});
 
     return res.getBuildLink();
+  }
+
+  /**
+   * upload logs to partner bucket
+   */
+  public async uploadLog() {
+    const req = new UploadLogRequest();
+
+    const resp = await this.client.uploadLog(req, {});
+
+    return resp.getBucketLink();
+  }
+
+  /**
+   * download logs to local
+   */
+  public downloadLog(p: {
+    onSuccess: (blob: Blob) => void;
+    onError: (e: unknown) => void;
+    finalize: () => void;
+  }) {
+    const bytes = [];
+    const req = new DownloadLogRequest();
+    this.client
+      .downloadLog(req, {})
+      .on('error', e => {
+        p.onError(e);
+        p.finalize();
+      })
+      .on('data', resp => bytes.push(resp.getFileChunk_asU8()))
+      .on('end', () => {
+        p.onSuccess(
+          new Blob([...bytes], {
+            type: 'application/x-download',
+          })
+        );
+        p.finalize();
+      });
   }
 }
 

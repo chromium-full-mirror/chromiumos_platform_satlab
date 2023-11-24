@@ -51,6 +51,8 @@ service SatlabRpcService {
 
   // system
   rpc Reboot (RebootRequest) returns (RebootResponse);
+  rpc UploadLog (UploadLogRequest) returns (UploadLogResponse);
+  rpc DownloadLog (DownloadLogRequest) returns (stream DownloadLogResponse);
 
   // Jobs/Tasks information
   rpc ListJobs (ListJobsRequest) returns (ListJobsResponse);
@@ -702,7 +704,25 @@ message RunStorageQualRequest {
   repeated Dim dims = 7;
   string bug_id = 8;
 }
+
 // NEXT_TAG = 2
 message RunStorageQualResponse {
   string build_link= 1;
+}
+
+// NEXT_TAG = 1
+message UploadLogRequest {}
+
+// NEXT_TAG = 2
+message UploadLogResponse {
+  // the link of visit the tar file in bucket
+  string bucket_link = 1;
+}
+
+// NEXT_TAG = 1
+message DownloadLogRequest {}
+
+// NEXT_TAG = 2
+message DownloadLogResponse {
+  bytes file_chunk  = 1;
 }

@@ -10,6 +10,8 @@ import {from, finalize} from 'rxjs';
 import {startWithTap} from '../utils/rxjs_operator';
 import {NotificationService} from '../services/notification.service';
 import {INSTRUCTION_URL, REPORT_BUG_URL} from '../constants';
+import {AuthService} from 'app/services/auth.service';
+import {saveAs} from 'file-saver';
 
 @Component({
   selector: 'app-about',
@@ -21,6 +23,7 @@ export class AboutComponent implements OnInit {
     systemInfo: false,
     versionInfo: false,
     networkInfo: false,
+    logProcess: false,
   };
 
   protected systemInfo: ISystemInfo = {
@@ -55,7 +58,8 @@ export class AboutComponent implements OnInit {
 
   constructor(
     private satlabRpcService: SatlabRpcService,
-    private notification: NotificationService
+    private notification: NotificationService,
+    protected auth: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -150,5 +154,33 @@ export class AboutComponent implements OnInit {
           });
         },
       });
+  }
+
+  protected onSendLogClicked() {
+    from(this.satlabRpcService.uploadLog())
+      .pipe(
+        startWithTap(
+          () => (this.loadingStatus = {...this.loadingStatus, logProcess: true})
+        ),
+        finalize(
+          () =>
+            (this.loadingStatus = {...this.loadingStatus, logProcess: false})
+        )
+      )
+      .subscribe({
+        next: link => window.open(link, '_blank'),
+        error: e => this.notification.error(`Upload log failed: ${e}`),
+      });
+  }
+
+  protected onDownloadLogClicked() {
+    this.loadingStatus = {...this.loadingStatus, logProcess: true};
+    this.satlabRpcService.downloadLog({
+      onSuccess: blob => saveAs(blob, 'log.tar.gz'),
+      onError: e =>
+        this.notification.error(`Download log failed: ${e}`, {dismiss: false}),
+      finalize: () =>
+        (this.loadingStatus = {...this.loadingStatus, logProcess: false}),
+    });
   }
 }
