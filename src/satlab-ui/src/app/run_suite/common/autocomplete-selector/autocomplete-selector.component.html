@@ -1,19 +1,39 @@
-<div class="wrapper" matTooltip="{{disabledMessage}}" matTooltipPosition="right">
+<div
+  class="wrapper"
+  matTooltip="{{ disabledMessage }}"
+  matTooltipPosition="right"
+>
   <div class="selector-wrapper">
     <mat-form-field class="full-width zero-padding">
       <mat-label>{{ title }}</mat-label>
-      <input #search matInput [formControl]="searchFormControl" (focusin)="onInputFocusIn()"
-             (focusout)="onInputFocusout()" placeholder="Please input some letters to filter">
-      <mat-hint class="error" *ngIf="errorMessage !== ''">{{ errorMessage }}</mat-hint>
+      <input
+        #search
+        matInput
+        [formControl]="searchFormControl"
+        (focusin)="onInputFocusIn()"
+        (focusout)="onInputFocusout()"
+        placeholder="Please input some letters to filter"
+      />
+      <mat-hint class="error" *ngIf="errorMessage !== ''">{{
+        errorMessage
+      }}</mat-hint>
     </mat-form-field>
   </div>
 
   <ng-container *ngIf="isShown">
-    <div class="items-wrapper" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
+    <div
+      class="items-wrapper"
+      (mouseenter)="onMouseEnter()"
+      (mouseleave)="onMouseLeave()"
+    >
       <mat-list role="list">
-        <mat-list-item class="item"  role="listitem" *ngFor="let option of filteredOptions"
-                       (click)="onOptionClicked(option.label === 'Failed' ? null : option)"
-                       [disabled]="option.label === 'Failed'">
+        <mat-list-item
+          class="item"
+          role="listitem"
+          *ngFor="let option of filteredOptions"
+          (click)="onOptionClicked(option.label === 'Failed' ? null : option)"
+          [disabled]="option.label === 'Failed'"
+        >
           {{ option.text }}
         </mat-list-item>
       </mat-list>

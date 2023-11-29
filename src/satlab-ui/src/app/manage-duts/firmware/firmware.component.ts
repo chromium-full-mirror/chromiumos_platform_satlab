@@ -1,17 +1,26 @@
-import {Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from '@angular/core';
-import {IFirmwareDUT} from "../../models/dut";
-import {SelectionModel} from "@angular/cdk/collections";
-import {distinctUntilChanged, finalize, from, map, Subscription} from "rxjs";
-import {SatlabRpcService} from "../../services/satlab-rpc.service";
-import {MatCheckboxChange} from "@angular/material/checkbox";
-import {toIterator} from "../../utils/iterator";
-import {startWithTap} from "../../utils/rxjs_operator";
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
+import {IFirmwareDUT} from '../../models/dut';
+import {SelectionModel} from '@angular/cdk/collections';
+import {distinctUntilChanged, finalize, from, map, Subscription} from 'rxjs';
+import {SatlabRpcService} from '../../services/satlab-rpc.service';
+import {MatCheckboxChange} from '@angular/material/checkbox';
+import {toIterator} from '../../utils/iterator';
+import {startWithTap} from '../../utils/rxjs_operator';
 import {NotificationService} from '../../services/notification.service';
 
 @Component({
   selector: 'app-firmware',
   templateUrl: './firmware.component.html',
-  styleUrls: ['./firmware.component.scss']
+  styleUrls: ['./firmware.component.scss'],
 })
 export class FirmwareComponent implements OnInit, OnChanges, OnDestroy {
   @Input() DUTs: IFirmwareDUT[] = [];
@@ -23,29 +32,29 @@ export class FirmwareComponent implements OnInit, OnChanges, OnDestroy {
   private disposer?: Subscription;
   protected checked = false;
 
-  protected displayedColumns = [
-    'check',
-    'ip',
-    'current',
-    'newest',
-  ];
+  protected displayedColumns = ['check', 'ip', 'current', 'newest'];
 
-  constructor(private service: SatlabRpcService, private notification: NotificationService) {}
+  constructor(
+    private service: SatlabRpcService,
+    private notification: NotificationService
+  ) {}
 
   ngOnInit() {
-    this.disposer = this.selection
-      .changed
+    this.disposer = this.selection.changed
       .pipe(
         map(e => e.source.selected.length),
-        distinctUntilChanged(),
+        distinctUntilChanged()
       )
       .subscribe(_ => {
         this.selectionCount = this.selection.selected.length;
-      })
+      });
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['DUTs'] && changes['DUTs'].previousValue !== changes['DUTs'].currentValue) {
+    if (
+      changes['DUTs'] &&
+      changes['DUTs'].previousValue !== changes['DUTs'].currentValue
+    ) {
       this.selection.clear();
       this.checked = false;
     }
@@ -73,10 +82,9 @@ export class FirmwareComponent implements OnInit, OnChanges, OnDestroy {
   protected onCheckboxChanged(e: MatCheckboxChange) {
     this.selection.clear();
     if (e.checked) {
-      toIterator(this.DUTs)
-        .forEach(e => {
-          this.selection.toggle(e);
-        })
+      toIterator(this.DUTs).forEach(e => {
+        this.selection.toggle(e);
+      });
     }
   }
 
@@ -109,14 +117,22 @@ export class FirmwareComponent implements OnInit, OnChanges, OnDestroy {
         finalize(() => {
           this.loading = false;
         })
-      ).subscribe({
+      )
+      .subscribe({
         next: e => {
-          e.map(res => this.notification.info(`IP: ${res.address}, Message: ${res.message}`, {dismiss: false}))
+          e.map(res =>
+            this.notification.info(
+              `IP: ${res.address}, Message: ${res.message}`,
+              {dismiss: false}
+            )
+          );
           this.onDUTsUpdated.emit();
         },
         error: e => {
-          this.notification.error(`Update firmware failed: ${e}`, {dismiss: false})
-        }
-      })
+          this.notification.error(`Update firmware failed: ${e}`, {
+            dismiss: false,
+          });
+        },
+      });
   }
 }

@@ -17,7 +17,6 @@
       </div>
     </ng-container>
 
-
     <ng-container *ngIf="DUTs.length !== 0">
       <div class="selection-hint-wrapper">
         <p>Selected {{ selectionCount }} of {{ DUTs.length }}</p>
@@ -27,10 +26,16 @@
         <!-- CheckBox -->
         <ng-container matColumnDef="check">
           <th mat-header-cell *matHeaderCellDef>
-            <mat-checkbox (change)="onCheckboxChanged($event)" [(ngModel)]="checked"></mat-checkbox>
+            <mat-checkbox
+              (change)="onCheckboxChanged($event)"
+              [(ngModel)]="checked"
+            ></mat-checkbox>
           </th>
           <td mat-cell *matCellDef="let element">
-            <mat-checkbox (change)="onDUTCheckboxChanged(element)" [checked]="selection.isSelected(element)">
+            <mat-checkbox
+              (change)="onDUTCheckboxChanged(element)"
+              [checked]="selection.isSelected(element)"
+            >
             </mat-checkbox>
           </td>
         </ng-container>
@@ -44,13 +49,17 @@
         <!-- Current Firmware Column -->
         <ng-container matColumnDef="current">
           <th mat-header-cell *matHeaderCellDef>Current Firmware</th>
-          <td mat-cell *matCellDef="let element">{{ element.currentFirmware }}</td>
+          <td mat-cell *matCellDef="let element">
+            {{ element.currentFirmware }}
+          </td>
         </ng-container>
 
         <!-- Updater Firmware Column -->
         <ng-container matColumnDef="newest">
           <th mat-header-cell *matHeaderCellDef>Updater Firmware</th>
-          <td mat-cell *matCellDef="let element">{{ element.newestFirmware }}</td>
+          <td mat-cell *matCellDef="let element">
+            {{ element.newestFirmware }}
+          </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
@@ -59,4 +68,3 @@
     </ng-container>
   </div>
 </div>
-

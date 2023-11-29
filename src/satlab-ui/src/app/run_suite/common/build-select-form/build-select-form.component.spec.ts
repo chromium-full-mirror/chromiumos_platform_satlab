@@ -1,6 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { BuildSelectFormComponent } from './build-select-form.component';
+import {BuildSelectFormComponent} from './build-select-form.component';
 
 describe('BuildSelectFormComponent', () => {
   let component: BuildSelectFormComponent;
@@ -8,7 +8,7 @@ describe('BuildSelectFormComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [BuildSelectFormComponent]
+      declarations: [BuildSelectFormComponent],
     });
     fixture = TestBed.createComponent(BuildSelectFormComponent);
     component = fixture.componentInstance;

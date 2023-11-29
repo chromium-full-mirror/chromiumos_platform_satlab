@@ -1,6 +1,6 @@
-import { TestBed } from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 
-import { SatlabRpcService } from './satlab-rpc.service';
+import {SatlabRpcService} from './satlab-rpc.service';
 
 describe('SatlabRpcService', () => {
   let service: SatlabRpcService;

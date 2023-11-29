@@ -1,6 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { BasicSelectorComponent } from './basic-selector.component';
+import {BasicSelectorComponent} from './basic-selector.component';
 
 describe('BasicSelectorComponent', () => {
   let component: BasicSelectorComponent;
@@ -8,7 +8,7 @@ describe('BasicSelectorComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [BasicSelectorComponent]
+      declarations: [BasicSelectorComponent],
     });
     fixture = TestBed.createComponent(BasicSelectorComponent);
     component = fixture.componentInstance;

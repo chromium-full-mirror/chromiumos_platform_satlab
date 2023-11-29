@@ -6,22 +6,29 @@ export interface INotification {
   message: NotificationNodes;
 }
 
-export type NotificationNodes = IStringNode | IURLNode | string | (string | IURLNode | IStringNode)[];
+export type NotificationNodes =
+  | IStringNode
+  | IURLNode
+  | string
+  | (string | IURLNode | IStringNode)[];
 
 export interface IURLNode {
-  type: 'url',
-  url: string
+  type: 'url';
+  url: string;
 }
 
 export interface IStringNode {
-  type: 'string',
-  value: string,
+  type: 'string';
+  value: string;
 }
 
-export function createNotification(message: NotificationNodes, type: INotification['type']): INotification {
+export function createNotification(
+  message: NotificationNodes,
+  type: INotification['type']
+): INotification {
   return {
     id: uuidv4(),
     type: type,
     message: message,
-  }
+  };
 }

@@ -1,9 +1,9 @@
 import {Injectable} from '@angular/core';
-import {SatlabRpcService} from './satlab-rpc.service'
+import {SatlabRpcService} from './satlab-rpc.service';
 import {BehaviorSubject, Observable} from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
   private logSub = new BehaviorSubject<boolean>(false);
@@ -32,11 +32,11 @@ export class AuthService {
    */
   private async __getConfiguration() {
     try {
-      const v = await this.service.getCloudConfiguration()
-      this.__loaded = true
+      const v = await this.service.getCloudConfiguration();
+      this.__loaded = true;
       this.logSub.next(v.key !== '');
     } catch (e) {
-      console.error(e)
+      console.error(e);
     }
   }
 

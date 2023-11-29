@@ -9,7 +9,7 @@ import {
 import {from, finalize} from 'rxjs';
 import {startWithTap} from '../utils/rxjs_operator';
 import {NotificationService} from '../services/notification.service';
-import {INSTRUCTION_URL, REPORT_BUG_URL} from "../constants";
+import {INSTRUCTION_URL, REPORT_BUG_URL} from '../constants';
 
 @Component({
   selector: 'app-about',
@@ -55,9 +55,8 @@ export class AboutComponent implements OnInit {
 
   constructor(
     private satlabRpcService: SatlabRpcService,
-    private notification: NotificationService,
-  ) {
-  }
+    private notification: NotificationService
+  ) {}
 
   ngOnInit(): void {
     this.getVersionInfo();
@@ -70,15 +69,14 @@ export class AboutComponent implements OnInit {
    * @protected
    */
   protected onRebootClicked() {
-    from(this.satlabRpcService.reboot())
-      .subscribe({
-        next: _ => {
-          this.notification.info('rebooting...', {dismiss: false})
-        },
-        error: err => {
-          this.notification.error(`failed to reboot, ${err}`, {dismiss: false})
-        }
-      })
+    from(this.satlabRpcService.reboot()).subscribe({
+      next: _ => {
+        this.notification.info('rebooting...', {dismiss: false});
+      },
+      error: err => {
+        this.notification.error(`failed to reboot, ${err}`, {dismiss: false});
+      },
+    });
   }
 
   private getSystemInfo() {
@@ -96,7 +94,9 @@ export class AboutComponent implements OnInit {
           this.systemInfo = res;
         },
         error: e => {
-          this.notification.error(`Get system info got an error: ${e}`, {dismiss: false});
+          this.notification.error(`Get system info got an error: ${e}`, {
+            dismiss: false,
+          });
         },
       });
   }
@@ -116,7 +116,9 @@ export class AboutComponent implements OnInit {
           this.versionInfo = res;
         },
         error: e => {
-          this.notification.error(`Get version info got an error: ${e}`, {dismiss: false})
+          this.notification.error(`Get version info got an error: ${e}`, {
+            dismiss: false,
+          });
         },
       });
   }
@@ -136,7 +138,9 @@ export class AboutComponent implements OnInit {
           this.networkInfo = res;
         },
         error: e => {
-          this.notification.error(`Get network info got an error: ${e}`, {dismiss: false})
+          this.notification.error(`Get network info got an error: ${e}`, {
+            dismiss: false,
+          });
         },
       });
   }

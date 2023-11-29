@@ -8,18 +8,19 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
-import {SelectableItem} from "../../../models/selectable_item";
-import {FormControl} from "@angular/forms";
-import {toIterator} from "../../../utils/iterator";
-import {debounceTime, distinctUntilChanged, Subscription} from "rxjs";
+import {SelectableItem} from '../../../models/selectable_item';
+import {FormControl} from '@angular/forms';
+import {toIterator} from '../../../utils/iterator';
+import {debounceTime, distinctUntilChanged, Subscription} from 'rxjs';
 
 @Component({
   selector: 'app-autocomplete-selector',
   templateUrl: './autocomplete-selector.component.html',
-  styleUrls: ['./autocomplete-selector.component.scss']
+  styleUrls: ['./autocomplete-selector.component.scss'],
 })
-export class AutocompleteSelectorComponent implements OnChanges, OnInit, OnDestroy {
-
+export class AutocompleteSelectorComponent
+  implements OnChanges, OnInit, OnDestroy
+{
   @Input() isShown = false;
   // the flag to control the selector can be selected
   @Input() disabled = false;
@@ -48,12 +49,8 @@ export class AutocompleteSelectorComponent implements OnChanges, OnInit, OnDestr
     if (this.disabled) {
       this.searchFormControl.disable();
     }
-    this.disposer = this.searchFormControl
-      .valueChanges
-      .pipe(
-        debounceTime(200),
-        distinctUntilChanged(),
-      )
+    this.disposer = this.searchFormControl.valueChanges
+      .pipe(debounceTime(200), distinctUntilChanged())
       .subscribe(v => {
         this.inputChanged.emit(v);
         if (!v) {
@@ -66,11 +63,15 @@ export class AutocompleteSelectorComponent implements OnChanges, OnInit, OnDestr
             return item.text.includes(v);
           })
           .collect();
-      })
+      });
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if ('options' in changes && changes['options'] && changes['options'].currentValue) {
+    if (
+      'options' in changes &&
+      changes['options'] &&
+      changes['options'].currentValue
+    ) {
       this.options = changes['options'].currentValue;
       this.filteredOptions = changes['options'].currentValue;
       this.searchFormControl.reset();
@@ -82,7 +83,7 @@ export class AutocompleteSelectorComponent implements OnChanges, OnInit, OnDestr
   }
 
   protected onInputFocusIn() {
-    this.isShown = true
+    this.isShown = true;
   }
 
   protected onInputFocusout() {

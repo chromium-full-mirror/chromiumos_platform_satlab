@@ -1,24 +1,24 @@
 import {Component, Inject, ViewChild} from '@angular/core';
-import {BasicSelectorComponent} from "../../run_suite/common/basic-selector/basic-selector.component";
+import {BasicSelectorComponent} from '../../run_suite/common/basic-selector/basic-selector.component';
 import {
   BUILD_STATUS_MAPPINGS,
   BuildStatus,
   defaultBuildSelectFields,
   IBuildSelectFields,
-  SelectableItem
-} from "../../models/selectable_item";
-import {ISimpleDUT} from "../../models/dut";
-import {SatlabRpcService} from "../../services/satlab-rpc.service";
-import {finalize, from} from "rxjs";
-import {startWithTap} from "../../utils/rxjs_operator";
-import {toIterator} from "../../utils/iterator";
-import {MAT_DIALOG_DATA} from "@angular/material/dialog";
+  SelectableItem,
+} from '../../models/selectable_item';
+import {ISimpleDUT} from '../../models/dut';
+import {SatlabRpcService} from '../../services/satlab-rpc.service';
+import {finalize, from} from 'rxjs';
+import {startWithTap} from '../../utils/rxjs_operator';
+import {toIterator} from '../../utils/iterator';
+import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import {NotificationService} from '../../services/notification.service';
 
 @Component({
   selector: 'app-provision',
   templateUrl: './provision.component.html',
-  styleUrls: ['./provision.component.scss']
+  styleUrls: ['./provision.component.scss'],
 })
 export class ProvisionComponent {
   @ViewChild('milestoneSelector') milestoneSelector?: BasicSelectorComponent;
@@ -41,12 +41,11 @@ export class ProvisionComponent {
   constructor(
     @Inject(MAT_DIALOG_DATA) data: {duts: ISimpleDUT[]},
     private service: SatlabRpcService,
-    private notification: NotificationService,
+    private notification: NotificationService
   ) {
     this.duts = data.duts;
     this.__parsePoolOptionsFromDUTs(data.duts);
   }
-
 
   /**
    * onPoolChanged an event handler handles on pool changed.
@@ -54,11 +53,13 @@ export class ProvisionComponent {
    * @protected
    */
   protected onPoolChanged(newPool: string) {
-    const d = toIterator(this.duts)
-      .first_where(e => e.pools.includes(newPool))
+    const d = toIterator(this.duts).first_where(e => e.pools.includes(newPool));
 
     if (d == null) {
-      this.notification.error(`Unexpected: ${JSON.stringify(this.duts)}, pools: ${newPool}`, {dismiss: false})
+      this.notification.error(
+        `Unexpected: ${JSON.stringify(this.duts)}, pools: ${newPool}`,
+        {dismiss: false}
+      );
       return;
     }
 
@@ -67,7 +68,7 @@ export class ProvisionComponent {
       board: d.board,
       pool: newPool,
       milestone: '',
-      build: ''
+      build: '',
     };
     this.__resetSelector(this.fields);
     this.__getMilestones();
@@ -123,7 +124,9 @@ export class ProvisionComponent {
               .collect();
           },
           error: e => {
-            this.notification.error(`Fetching milestones got an error: ${e}`, {dismiss: false})
+            this.notification.error(`Fetching milestones got an error: ${e}`, {
+              dismiss: false,
+            });
           },
         });
     }
@@ -134,7 +137,11 @@ export class ProvisionComponent {
    * @private
    */
   private __getBuilds() {
-    if (this.fields.model !== '' && this.fields.board !== '' && this.fields.milestone !== '') {
+    if (
+      this.fields.model !== '' &&
+      this.fields.board !== '' &&
+      this.fields.milestone !== ''
+    ) {
       from(
         this.service.listBuilds({
           ...this.fields,
@@ -158,7 +165,9 @@ export class ProvisionComponent {
               .collect();
           },
           error: e => {
-            this.notification.error(`Fetching builds got an error: ${e}`, {dismiss: false})
+            this.notification.error(`Fetching builds got an error: ${e}`, {
+              dismiss: false,
+            });
           },
         });
     }
@@ -185,7 +194,11 @@ export class ProvisionComponent {
    * @param label
    * @private
    */
-  private __toSelectableItem(text: string, value: string, label: BuildStatus): SelectableItem {
+  private __toSelectableItem(
+    text: string,
+    value: string,
+    label: BuildStatus
+  ): SelectableItem {
     return {
       text: text,
       value: value,

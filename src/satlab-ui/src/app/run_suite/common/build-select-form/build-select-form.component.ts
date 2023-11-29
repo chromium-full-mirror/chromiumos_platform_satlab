@@ -29,7 +29,8 @@ import {NotificationService} from '../../../services/notification.service';
   styleUrls: ['./build-select-form.component.scss'],
 })
 export class BuildSelectFormComponent
-  implements AfterViewInit, OnDestroy, OnInit {
+  implements AfterViewInit, OnDestroy, OnInit
+{
   @Output() allRequiredFieldsSet = new EventEmitter<IBuildSelectFields>();
   @Output() onInitComplete = new EventEmitter();
 
@@ -54,12 +55,12 @@ export class BuildSelectFormComponent
   constructor(
     private service: SatlabRpcService,
     private notification: NotificationService
-  ) {
-  }
+  ) {}
 
   ngOnInit() {
-    this.disposer = this.fields$
-      .subscribe(e => this.allRequiredFieldsSet.emit(e));
+    this.disposer = this.fields$.subscribe(e =>
+      this.allRequiredFieldsSet.emit(e)
+    );
   }
 
   ngAfterViewInit() {
@@ -74,7 +75,9 @@ export class BuildSelectFormComponent
       .subscribe({
         next: duts => this.parseAPIResponse(duts),
         error: e => {
-          this.notification.error(`Fetching model got an error: ${e}`, {dismiss: false})
+          this.notification.error(`Fetching model got an error: ${e}`, {
+            dismiss: false,
+          });
         },
       });
   }
@@ -213,7 +216,9 @@ export class BuildSelectFormComponent
               .collect();
           },
           error: e => {
-            this.notification.error(`Fetching milestones got an error: ${e}`, {dismiss: false})
+            this.notification.error(`Fetching milestones got an error: ${e}`, {
+              dismiss: false,
+            });
           },
         });
     }
@@ -248,7 +253,9 @@ export class BuildSelectFormComponent
               .collect();
           },
           error: e => {
-            this.notification.error(`Fetching builds got an error: ${e}`, {dismiss: false})
+            this.notification.error(`Fetching builds got an error: ${e}`, {
+              dismiss: false,
+            });
           },
         });
     }

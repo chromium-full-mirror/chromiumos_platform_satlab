@@ -1,6 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { StageBuildComponent } from './stage-build.component';
+import {StageBuildComponent} from './stage-build.component';
 
 describe('StageBuildComponent', () => {
   let component: StageBuildComponent;
@@ -8,7 +8,7 @@ describe('StageBuildComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [StageBuildComponent]
+      declarations: [StageBuildComponent],
     });
     fixture = TestBed.createComponent(StageBuildComponent);
     component = fixture.componentInstance;

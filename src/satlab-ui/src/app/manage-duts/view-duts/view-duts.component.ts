@@ -1,20 +1,27 @@
-import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from '@angular/core';
-import {IDut} from "../../models/dut";
-import {SelectionModel} from "@angular/cdk/collections";
-import {MatCheckboxChange} from "@angular/material/checkbox";
-import {toIterator} from "../../utils/iterator";
-import {MatDialog} from "@angular/material/dialog";
-import {StageBuildComponent} from "../../dialogs/stage-build/stage-build.component";
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
+import {IDut} from '../../models/dut';
+import {SelectionModel} from '@angular/cdk/collections';
+import {MatCheckboxChange} from '@angular/material/checkbox';
+import {toIterator} from '../../utils/iterator';
+import {MatDialog} from '@angular/material/dialog';
+import {StageBuildComponent} from '../../dialogs/stage-build/stage-build.component';
 
 @Component({
   selector: 'app-view-duts',
   templateUrl: './view-duts.component.html',
-  styleUrls: ['./view-duts.component.scss']
+  styleUrls: ['./view-duts.component.scss'],
 })
 export class ViewDutsComponent implements OnChanges {
   @Input() DUTs: IDut[] = [];
   @Input() loading = false;
-  @Input() hostnamePrefix = "";
+  @Input() hostnamePrefix = '';
   @Output() select = new EventEmitter<IDut[]>();
 
   protected allSelected = false;
@@ -35,11 +42,13 @@ export class ViewDutsComponent implements OnChanges {
     'mac',
   ];
 
-  constructor(protected dialog: MatDialog) {
-  }
+  constructor(protected dialog: MatDialog) {}
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['DUTs'] && changes['DUTs'].previousValue !== changes['DUTs'].currentValue) {
+    if (
+      changes['DUTs'] &&
+      changes['DUTs'].previousValue !== changes['DUTs'].currentValue
+    ) {
       this.selection.clear();
       this.allSelected = false;
     }
@@ -71,7 +80,7 @@ export class ViewDutsComponent implements OnChanges {
         .filter(e => e.isAccessible)
         .forEach(e => {
           this.selection.toggle(e);
-        })
+        });
     }
     this.__selectionChanged();
   }
@@ -90,7 +99,6 @@ export class ViewDutsComponent implements OnChanges {
     return false;
   }
 
-
   /**
    * onInputChange this is event that a user change the input
    * value and lost focus.
@@ -99,7 +107,7 @@ export class ViewDutsComponent implements OnChanges {
    * @protected
    */
   protected onInputFocusout(dut: IDut, e: Event) {
-    const v = (e.target as HTMLInputElement).value.trim()
+    const v = (e.target as HTMLInputElement).value.trim();
     if (!this.__validateHostname(v)) {
       return;
     }
@@ -112,7 +120,7 @@ export class ViewDutsComponent implements OnChanges {
     const newDut = {
       ...dut,
       inputHostname: v.trim(),
-    }
+    };
     // find the dut in the DUTs list
     const idx = this.duts.indexOf(dut);
     // replace it to a new DUT
@@ -120,22 +128,24 @@ export class ViewDutsComponent implements OnChanges {
       ...this.duts.slice(0, idx),
       newDut,
       ...this.duts.slice(idx + 1),
-    ]
+    ];
 
     if (fire) {
       // find the dut in the selection
       const idx = this.selection.selected.indexOf(dut);
-      this.selection.setSelection(...[
-        ...this.selection.selected.slice(0, idx),
-        newDut,
-        ...this.selection.selected.slice(idx + 1),
-      ]);
+      this.selection.setSelection(
+        ...[
+          ...this.selection.selected.slice(0, idx),
+          newDut,
+          ...this.selection.selected.slice(idx + 1),
+        ]
+      );
       this.select.emit(this.selection.selected);
     }
   }
 
   private __validateHostname(s: string) {
-    return /^[a-z0-9-]{1,32}$/.test(s)
+    return /^[a-z0-9-]{1,32}$/.test(s);
   }
 
   /**
@@ -165,12 +175,13 @@ export class ViewDutsComponent implements OnChanges {
    * @private
    */
   private __updateSelectionCount() {
-    this.selectionCount = this.selection.selected.length
+    this.selectionCount = this.selection.selected.length;
 
-    this.allSelected = this.selectionCount > 0 && toIterator(this.duts)
-      .filter(e => e.isAccessible)
-      .collect()
-      .length === this.selectionCount;
+    this.allSelected =
+      this.selectionCount > 0 &&
+      toIterator(this.duts)
+        .filter(e => e.isAccessible)
+        .collect().length === this.selectionCount;
   }
 
   /**
@@ -178,6 +189,6 @@ export class ViewDutsComponent implements OnChanges {
    * @private
    */
   private __emitSelectionChanged() {
-    this.select.emit(this.selection.selected)
+    this.select.emit(this.selection.selected);
   }
 }

@@ -9,7 +9,7 @@ import {BuildSelectFormComponent} from '../common/build-select-form/build-select
 import {finalize, from} from 'rxjs';
 import {startWithTap} from '../../utils/rxjs_operator';
 import {NotificationService} from 'app/services/notification.service';
-import {checkSelectFields} from "../../utils/validators";
+import {checkSelectFields} from '../../utils/validators';
 
 @Component({
   selector: 'app-other',
@@ -35,7 +35,7 @@ export class OtherComponent {
 
   constructor(
     private service: SatlabRpcService,
-    private notification: NotificationService,
+    private notification: NotificationService
   ) {
     this.suiteOptions = this.suiteList.map(e => {
       return {
@@ -74,13 +74,19 @@ export class OtherComponent {
       )
       .subscribe({
         next: buildLink => {
-          this.notification.info(['Trigger job successfully! Job link: ', {
-            type: 'url',
-            url: buildLink
-          }], {dismiss: false})
+          this.notification.info(
+            [
+              'Trigger job successfully! Job link: ',
+              {
+                type: 'url',
+                url: buildLink,
+              },
+            ],
+            {dismiss: false}
+          );
         },
         error: e => {
-          this.notification.error(`Trigger job failed: ${e}`, {dismiss: false})
+          this.notification.error(`Trigger job failed: ${e}`, {dismiss: false});
         },
       });
   }
@@ -90,7 +96,7 @@ export class OtherComponent {
   }
 
   private validate() {
-    const isFieldsValid = checkSelectFields(this.fields)
+    const isFieldsValid = checkSelectFields(this.fields);
 
     const isSuiteValid = this.suite !== '';
 

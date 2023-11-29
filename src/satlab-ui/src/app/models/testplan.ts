@@ -1,4 +1,4 @@
 export interface ITestPlan {
-    name: string,
-    content: unknown,
+  name: string;
+  content: unknown;
 }

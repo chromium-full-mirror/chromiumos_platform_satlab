@@ -42,7 +42,7 @@ export interface IDut {
  * of calling the GRPC `list_connected_duts_firmware`
  */
 export interface IFirmwareDUT {
-  address: string,
+  address: string;
   currentFirmware: string;
   newestFirmware: string;
 }

@@ -1,6 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { ViewDutsComponent } from './view-duts.component';
+import {ViewDutsComponent} from './view-duts.component';
 
 describe('ViewDutsComponent', () => {
   let component: ViewDutsComponent;
@@ -8,7 +8,7 @@ describe('ViewDutsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [ViewDutsComponent]
+      declarations: [ViewDutsComponent],
     });
     fixture = TestBed.createComponent(ViewDutsComponent);
     component = fixture.componentInstance;

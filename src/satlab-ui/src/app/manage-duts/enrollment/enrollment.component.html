@@ -17,31 +17,30 @@
       Unenroll Selected
     </button>
 
-    <button
-      mat-raised-button
-      [disabled]="loading"
-      (click)="onProvisionDUTs()"
-    >
+    <button mat-raised-button [disabled]="loading" (click)="onProvisionDUTs()">
       Provision DUTs
     </button>
   </div>
 
-  <br/>
+  <br />
 
   <div class="pool-wrapper">
     <div class="input-wrapper">
       <div class="inputbox-container without-border w-48">
         <b>Pool: </b>
         <mat-form-field class="without-underline full-width">
-          <input id="pool" matInput [formControl]="pool"/>
-
+          <input id="pool" matInput [formControl]="pool" />
         </mat-form-field>
       </div>
 
       <button
         mat-raised-button
         color="primary"
-        [disabled]="!(pool.value !== '' && isDUTSelected) || loading || (pool.invalid && (pool.dirty || pool.touched))"
+        [disabled]="
+          !(pool.value !== '' && isDUTSelected) ||
+          loading ||
+          (pool.invalid && (pool.dirty || pool.touched))
+        "
         (click)="onAddPoolClicked()"
       >
         Add
@@ -50,15 +49,20 @@
       <button
         mat-raised-button
         color="primary"
-        [disabled]="!(pool.value !== '' && isDUTSelected) || loading || (pool.invalid && (pool.dirty || pool.touched))"
+        [disabled]="
+          !(pool.value !== '' && isDUTSelected) ||
+          loading ||
+          (pool.invalid && (pool.dirty || pool.touched))
+        "
         (click)="onRemovePoolClicked()"
       >
         Remove
       </button>
-
     </div>
-    <ng-container *ngIf="(pool.invalid && (pool.dirty || pool.touched))">
-      <div class="error">Must be less than 20 characters and contains letters, 0-9, or '-'</div>
+    <ng-container *ngIf="pool.invalid && (pool.dirty || pool.touched)">
+      <div class="error">
+        Must be less than 20 characters and contains letters, 0-9, or '-'
+      </div>
     </ng-container>
   </div>
 

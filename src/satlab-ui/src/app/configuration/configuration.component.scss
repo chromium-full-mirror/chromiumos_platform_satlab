@@ -1,4 +1,4 @@
-@import "constants";
+@import 'constants';
 
 .wrapper {
   .cloud-configuration-wrapper {
@@ -37,7 +37,7 @@
           column-gap: 0.5rem;
 
           .link-icon {
-            scale: .8;
+            scale: 0.8;
           }
         }
       }

@@ -1,18 +1,34 @@
 <div class="wrapper">
-    <app-build-select-form (allRequiredFieldsSet)="allRequiredFieldsSet($event)" (onInitComplete)="listTestPlans()"></app-build-select-form>
+  <app-build-select-form
+    (allRequiredFieldsSet)="allRequiredFieldsSet($event)"
+    (onInitComplete)="listTestPlans()"
+  ></app-build-select-form>
 
-    <div class="px-6">
-        <app-autocomplete-selector #testPlanSelector id="testPlanSelector" title="Please select a testplan:"
-          placeholder="Please select available testplan" (inputChanged)="onTestPlanChanged($event)"
-          [options]="testPlanOptions" [errorMessage]="errorMessage">
-        </app-autocomplete-selector>
-    </div>
+  <div class="px-6">
+    <app-autocomplete-selector
+      #testPlanSelector
+      id="testPlanSelector"
+      title="Please select a testplan:"
+      placeholder="Please select available testplan"
+      (inputChanged)="onTestPlanChanged($event)"
+      [options]="testPlanOptions"
+      [errorMessage]="errorMessage"
+    >
+    </app-autocomplete-selector>
+  </div>
 
-    <div class="flex justify-center py-4">
-        <button mat-raised-button color="primary" (click)="onRunTestPlanClick()" [disabled]="disabled">Run TestPlan</button>
-    </div>
+  <div class="flex justify-center py-4">
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="onRunTestPlanClick()"
+      [disabled]="disabled"
+    >
+      Run TestPlan
+    </button>
+  </div>
 
-    <div class="px-6" *ngIf="selectedTestPlan">
-        <pre class="whitespace-pre-wrap">{{ selectedTestPlan.content}}</pre>
-    </div>
+  <div class="px-6" *ngIf="selectedTestPlan">
+    <pre class="whitespace-pre-wrap">{{ selectedTestPlan.content }}</pre>
+  </div>
 </div>

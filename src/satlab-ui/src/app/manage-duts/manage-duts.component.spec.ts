@@ -1,6 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { ManageDutsComponent } from './manage-duts.component';
+import {ManageDutsComponent} from './manage-duts.component';
 
 describe('ManageDutsComponent', () => {
   let component: ManageDutsComponent;
@@ -8,7 +8,7 @@ describe('ManageDutsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [ManageDutsComponent]
+      declarations: [ManageDutsComponent],
     });
     fixture = TestBed.createComponent(ManageDutsComponent);
     component = fixture.componentInstance;

@@ -2,18 +2,17 @@ import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
 import {RunSuiteComponent} from './run_suite/run_suite.component';
 import {OtherComponent} from './run_suite/other/other.component';
-import {ManageDutsComponent} from "./manage-duts/manage-duts.component";
+import {ManageDutsComponent} from './manage-duts/manage-duts.component';
 import {AboutComponent} from './about/about.component';
-import {ConfigurationComponent} from "./configuration/configuration.component";
+import {ConfigurationComponent} from './configuration/configuration.component';
 import {TestplanComponent} from './run_suite/testplan/testplan.component';
 import {checkLoggedIn} from './utils/auth-guard';
-
 
 const routes: Routes = [
   {
     path: 'manage_duts',
     component: ManageDutsComponent,
-    canActivate: [checkLoggedIn]
+    canActivate: [checkLoggedIn],
   },
   {
     path: 'run_tests',
@@ -22,7 +21,7 @@ const routes: Routes = [
       {path: 'other', component: OtherComponent},
       {path: 'testplan', component: TestplanComponent},
     ],
-    canActivate: [checkLoggedIn]
+    canActivate: [checkLoggedIn],
   },
   {
     path: 'about',
@@ -35,7 +34,7 @@ const routes: Routes = [
   {
     path: '**',
     component: ManageDutsComponent,
-    canActivate: [checkLoggedIn]
+    canActivate: [checkLoggedIn],
   },
 ];
 
@@ -44,5 +43,4 @@ const routes: Routes = [
   exports: [RouterModule],
   providers: [],
 })
-export class AppRoutingModule {
-}
+export class AppRoutingModule {}

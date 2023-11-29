@@ -1,6 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { FirmwareComponent } from './firmware.component';
+import {FirmwareComponent} from './firmware.component';
 
 describe('FirmwareComponent', () => {
   let component: FirmwareComponent;
@@ -8,7 +8,7 @@ describe('FirmwareComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [FirmwareComponent]
+      declarations: [FirmwareComponent],
     });
     fixture = TestBed.createComponent(FirmwareComponent);
     component = fixture.componentInstance;

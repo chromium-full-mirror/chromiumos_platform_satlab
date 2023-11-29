@@ -1,39 +1,38 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {IDut} from "../../models/dut";
-import {SatlabRpcService} from "../../services/satlab-rpc.service";
-import {FormControl, Validators} from "@angular/forms";
-import {toIterator} from "../../utils/iterator";
-import {finalize, from} from "rxjs";
-import {startWithTap} from "../../utils/rxjs_operator";
-import {MatDialog} from "@angular/material/dialog";
-import {ProvisionComponent} from "../../dialogs/provision/provision.component";
+import {IDut} from '../../models/dut';
+import {SatlabRpcService} from '../../services/satlab-rpc.service';
+import {FormControl, Validators} from '@angular/forms';
+import {toIterator} from '../../utils/iterator';
+import {finalize, from} from 'rxjs';
+import {startWithTap} from '../../utils/rxjs_operator';
+import {MatDialog} from '@angular/material/dialog';
+import {ProvisionComponent} from '../../dialogs/provision/provision.component';
 import {NotificationService} from '../../services/notification.service';
-import {runProvisionOnIndividualDUT} from "../../utils/run_tests_helper";
+import {runProvisionOnIndividualDUT} from '../../utils/run_tests_helper';
 
 @Component({
   selector: 'app-enrollment',
   templateUrl: './enrollment.component.html',
-  styleUrls: ['./enrollment.component.scss']
+  styleUrls: ['./enrollment.component.scss'],
 })
 export class EnrollmentComponent {
   @Input() DUTs: IDut[] = [];
   @Input() loading = false;
-  @Input() hostnamePrefix = "";
+  @Input() hostnamePrefix = '';
   @Output() onDUTsUpdated = new EventEmitter();
 
   protected selectedDUTs: IDut[] = [];
   protected isDUTSelected = false;
   protected pool = new FormControl('', [
-      Validators.pattern('[a-zA-Z0-9]+[a-zA-Z0-9-]*?'),
-      Validators.maxLength(20),
-    ]
-  );
+    Validators.pattern('[a-zA-Z0-9]+[a-zA-Z0-9-]*?'),
+    Validators.maxLength(20),
+  ]);
 
   constructor(
     private service: SatlabRpcService,
     protected dialog: MatDialog,
-    private notification: NotificationService) {
-  }
+    private notification: NotificationService
+  ) {}
 
   /**
    * A event listener listens the selection changed.
@@ -54,15 +53,15 @@ export class EnrollmentComponent {
       .filter(this.__canBeEnrolled)
       .collect();
 
-    const duplicateHostname = this.__checkDuplicatedHostname(d)
-    const emptyHostname = this.__checkEmptyHostname(d)
-    const isServoWired = this.__checkServoWired(d)
+    const duplicateHostname = this.__checkDuplicatedHostname(d);
+    const emptyHostname = this.__checkEmptyHostname(d);
+    const isServoWired = this.__checkServoWired(d);
 
     if (d.length == 0 || duplicateHostname || emptyHostname || isServoWired) {
-      console.log("no DUTs to enroll or one of the DUTs has an issue")
+      console.log('no DUTs to enroll or one of the DUTs has an issue');
       return;
     }
-    console.log("proceeding to trigger addDUTs")
+    console.log('proceeding to trigger addDUTs');
 
     from(this.service.addDUTs(d))
       .pipe(
@@ -71,25 +70,36 @@ export class EnrollmentComponent {
         }),
         finalize(() => {
           this.loading = false;
-        }),
+        })
       )
       .subscribe({
         next: res => {
-          res.pass.map(
-            p => this.notification.info([`Start enrolling ${p.hostname} Link:`, {
-              type: 'url',
-              url: p.url
-            }], {dismiss: false})
-          )
-          res.fail.map(
-            f => this.notification.error(`Failed to enroll ${f.hostname}. Reason: ${f.reason}`, {dismiss: false})
-          )
+          res.pass.map(p =>
+            this.notification.info(
+              [
+                `Start enrolling ${p.hostname} Link:`,
+                {
+                  type: 'url',
+                  url: p.url,
+                },
+              ],
+              {dismiss: false}
+            )
+          );
+          res.fail.map(f =>
+            this.notification.error(
+              `Failed to enroll ${f.hostname}. Reason: ${f.reason}`,
+              {dismiss: false}
+            )
+          );
           this.onDUTsUpdated.emit();
         },
         error: e => {
-          this.notification.error(`Something wrong with enroll: ${e}`, {dismiss: false})
-        }
-      })
+          this.notification.error(`Something wrong with enroll: ${e}`, {
+            dismiss: false,
+          });
+        },
+      });
   }
 
   /**
@@ -113,22 +123,26 @@ export class EnrollmentComponent {
         }),
         finalize(() => {
           this.loading = false;
-        }),
+        })
       )
       .subscribe({
         next: res => {
-          res.pass.map(
-            p => this.notification.info(`Successfully unenrolled ${p}`, {dismiss: false})
-          )
-          res.fail.map(
-            f => this.notification.info(`Failed to unenroll ${f}`, {dismiss: false})
-          )
+          res.pass.map(p =>
+            this.notification.info(`Successfully unenrolled ${p}`, {
+              dismiss: false,
+            })
+          );
+          res.fail.map(f =>
+            this.notification.info(`Failed to unenroll ${f}`, {dismiss: false})
+          );
           this.onDUTsUpdated.emit();
         },
         error: e => {
-          this.notification.error(`Something wrong with unenroll: ${e}`, {dismiss: false})
-        }
-      })
+          this.notification.error(`Something wrong with unenroll: ${e}`, {
+            dismiss: false,
+          });
+        },
+      });
   }
 
   /**
@@ -145,35 +159,38 @@ export class EnrollmentComponent {
     }
     const dialogRef = this.dialog.open(ProvisionComponent, {data: {duts: d}});
 
-    dialogRef
-      .afterClosed()
-      .subscribe(async res => {
-        if (res) {
-          this.loading = true
-          const result = await runProvisionOnIndividualDUT(
-            this.service,
-            d,
-            res.milestone,
-            res.build,
-            res.pool
-          )
+    dialogRef.afterClosed().subscribe(async res => {
+      if (res) {
+        this.loading = true;
+        const result = await runProvisionOnIndividualDUT(
+          this.service,
+          d,
+          res.milestone,
+          res.build,
+          res.pool
+        );
 
-          for (const f of result) {
-            try {
-              const r = await f
-              if (r.link) {
-                this.notification.info(['Provision succeed: ', {type: 'url', url: r.link}], {dismiss: false})
-              } else {
-                this.notification.error(`${r.hostname} Provision failed`, {dismiss: false})
-              }
-            } catch (e) {
-              this.notification.error(`Provision failed: ${e}`, {dismiss: false})
+        for (const f of result) {
+          try {
+            const r = await f;
+            if (r.link) {
+              this.notification.info(
+                ['Provision succeed: ', {type: 'url', url: r.link}],
+                {dismiss: false}
+              );
+            } else {
+              this.notification.error(`${r.hostname} Provision failed`, {
+                dismiss: false,
+              });
             }
+          } catch (e) {
+            this.notification.error(`Provision failed: ${e}`, {dismiss: false});
           }
-
-          this.loading = false
         }
-      });
+
+        this.loading = false;
+      }
+    });
   }
 
   /**
@@ -186,7 +203,7 @@ export class EnrollmentComponent {
       .map(e => e.address)
       .collect();
 
-    this.__checkIsDUTDeployed(this.selectedDUTs)
+    this.__checkIsDUTDeployed(this.selectedDUTs);
 
     if (addresses.length === 0 || !this.pool.value) {
       return;
@@ -200,17 +217,20 @@ export class EnrollmentComponent {
         finalize(() => {
           this.loading = false;
           this.pool.setValue('');
-        }),
+        })
       )
       .subscribe({
         next: _ => {
-          this.notification.info(`Add pool ${this.pool.value} successfully.`)
+          this.notification.info(`Add pool ${this.pool.value} successfully.`);
           this.onDUTsUpdated.emit();
         },
         error: e => {
-          this.notification.info(`Failed to add pool ${this.pool.value}: ${e}`, {dismiss: false})
-        }
-      })
+          this.notification.info(
+            `Failed to add pool ${this.pool.value}: ${e}`,
+            {dismiss: false}
+          );
+        },
+      });
   }
 
   /**
@@ -220,19 +240,23 @@ export class EnrollmentComponent {
   protected onRemovePoolClicked() {
     let items = toIterator(this.selectedDUTs)
       .filter(e => {
-        return e.address !== '' && e.pools.includes(this.pool.value!) && e.hostname !== '';
+        return (
+          e.address !== '' &&
+          e.pools.includes(this.pool.value!) &&
+          e.hostname !== ''
+        );
       })
       .map(e => {
         const idx = e.pools.indexOf(this.pool.value!);
         return {
           address: e.address,
-          pools: [...e.pools.slice(0, idx), ...e.pools.slice(idx + 1)]
-        }
+          pools: [...e.pools.slice(0, idx), ...e.pools.slice(idx + 1)],
+        };
       })
       .collect();
 
-    this.__checkIsDUTDeployed(this.selectedDUTs)
-    this.__checkPoolsIsEmpty(items)
+    this.__checkIsDUTDeployed(this.selectedDUTs);
+    this.__checkPoolsIsEmpty(items);
 
     items = toIterator(items)
       .filter(e => e.pools.length > 0)
@@ -250,17 +274,20 @@ export class EnrollmentComponent {
         finalize(() => {
           this.loading = false;
           this.pool.setValue('');
-        }),
+        })
       )
       .subscribe({
         next: _ => {
-          this.notification.info(`Remove pool ${this.pool.value} successfully`)
+          this.notification.info(`Remove pool ${this.pool.value} successfully`);
           this.onDUTsUpdated.emit();
         },
         error: e => {
-          this.notification.error(`Failed to remove pool ${this.pool.value}: ${e}`, {dismiss: false})
-        }
-      })
+          this.notification.error(
+            `Failed to remove pool ${this.pool.value}: ${e}`,
+            {dismiss: false}
+          );
+        },
+      });
   }
 
   /**
@@ -269,10 +296,12 @@ export class EnrollmentComponent {
    * @private
    */
   private __canBeEnrolled(d: IDut) {
-    return d.model                   // model isn't empty
-      && d.board                   // board isn't empty
-      && d.isConnected             // DUT is connected
-      && d.hostname === ""         // DUT has not been deployed/enrolled already
+    return (
+      d.model && // model isn't empty
+      d.board && // board isn't empty
+      d.isConnected && // DUT is connected
+      d.hostname === ''
+    ); // DUT has not been deployed/enrolled already
   }
 
   /**
@@ -292,7 +321,7 @@ export class EnrollmentComponent {
 
       // check the user input hostname is in the list of deployed
       if (hostnames.includes(`${this.hostnamePrefix}${cur.inputHostname}`)) {
-        e.push(cur)
+        e.push(cur);
       } else {
         // check the user is in the list of hostnames provided by the user again.
         const others = toIterator(d)
@@ -301,15 +330,17 @@ export class EnrollmentComponent {
 
         for (const o of others) {
           if (o.inputHostname === cur.inputHostname) {
-            e.push(cur)
-            break
+            e.push(cur);
+            break;
           }
         }
       }
     }
 
     for (const m of e) {
-      this.notification.error(`duplicate hostname: ${m.inputHostname} of DUT: ${m.address}`)
+      this.notification.error(
+        `duplicate hostname: ${m.inputHostname} of DUT: ${m.address}`
+      );
     }
 
     return e.length !== 0;
@@ -325,7 +356,9 @@ export class EnrollmentComponent {
       .filter(e => !e.inputHostname)
       .collect();
 
-    e.forEach(d => this.notification.error(`Please input a hostname on ${d.address}`))
+    e.forEach(d =>
+      this.notification.error(`Please input a hostname on ${d.address}`)
+    );
 
     return e.length !== 0;
   }
@@ -340,7 +373,11 @@ export class EnrollmentComponent {
       .filter(e => !e.isServoWiredCorrectly)
       .collect();
 
-    e.forEach(d => this.notification.error(`Please make sure you are connecting Servo to the right port for ${d.address} : ${d.hostname}`))
+    e.forEach(d =>
+      this.notification.error(
+        `Please make sure you are connecting Servo to the right port for ${d.address} : ${d.hostname}`
+      )
+    );
 
     return e.length !== 0;
   }
@@ -350,12 +387,14 @@ export class EnrollmentComponent {
    * @param d
    * @private
    */
-  private __checkPoolsIsEmpty(d: { address: string, pools: string[] }[]) {
+  private __checkPoolsIsEmpty(d: {address: string; pools: string[]}[]) {
     toIterator(d)
       .filter(e => e.pools.length === 0)
       .forEach(e => {
-        this.notification.error(`can not remove pool: ${this.pool.value} for ${e.address} because pools cannot be empty.`)
-      })
+        this.notification.error(
+          `can not remove pool: ${this.pool.value} for ${e.address} because pools cannot be empty.`
+        );
+      });
   }
 
   /**
@@ -366,6 +405,10 @@ export class EnrollmentComponent {
   private __checkIsDUTDeployed(d: IDut[]) {
     toIterator(d)
       .filter(e => e.hostname === '')
-      .forEach(e => this.notification.error(`can not add/remove pool on a DUT ${e.address} that hasn't been enrolled`))
+      .forEach(e =>
+        this.notification.error(
+          `can not add/remove pool on a DUT ${e.address} that hasn't been enrolled`
+        )
+      );
   }
 }

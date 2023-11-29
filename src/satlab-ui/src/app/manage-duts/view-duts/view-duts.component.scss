@@ -1,4 +1,4 @@
-@import "../../../constants";
+@import '../../../constants';
 
 .duts-wrapper {
   display: flex;
@@ -11,8 +11,8 @@
   .selection-hint-wrapper {
     display: inline-block;
     margin-top: 1.5rem;
-    padding: .5rem 0;
-    font-size: .9rem;
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
   }
 
   .loading-overlay {
@@ -20,8 +20,9 @@
   }
 
   .mat-mdc-table {
-    .mdc-data-table__cell, .mdc-data-table__header-cell {
-      padding: 0 .5rem;
+    .mdc-data-table__cell,
+    .mdc-data-table__header-cell {
+      padding: 0 0.5rem;
     }
 
     .mat-mdc-header-cell {
@@ -38,31 +39,39 @@
       white-space: pre-wrap;
     }
 
-    .mat-mdc-cell.cdk-column-check, .mat-mdc-header-cell.cdk-column-check {
+    .mat-mdc-cell.cdk-column-check,
+    .mat-mdc-header-cell.cdk-column-check {
       max-width: 3.5rem;
       min-width: 3.5rem;
     }
 
-    .mat-mdc-cell.cdk-column-hostname, .mat-mdc-header-cell.cdk-column-hostname {
+    .mat-mdc-cell.cdk-column-hostname,
+    .mat-mdc-header-cell.cdk-column-hostname {
       max-width: 400px;
       min-width: 400px;
     }
 
-    .mat-mdc-cell.cdk-column-board, .mat-mdc-header-cell.cdk-column-board,
-    .mat-mdc-cell.cdk-column-model, .mat-mdc-header-cell.cdk-column-model {
+    .mat-mdc-cell.cdk-column-board,
+    .mat-mdc-header-cell.cdk-column-board,
+    .mat-mdc-cell.cdk-column-model,
+    .mat-mdc-header-cell.cdk-column-model {
       min-width: 5rem;
       max-width: 10rem;
     }
 
-    .mat-mdc-cell.cdk-column-servo_serial, .mat-mdc-header-cell.cdk-column-servo_serial {
+    .mat-mdc-cell.cdk-column-servo_serial,
+    .mat-mdc-header-cell.cdk-column-servo_serial {
       max-width: 13rem;
       min-width: 13rem;
       white-space: nowrap;
     }
 
-    .mat-mdc-cell.cdk-column-ip, .mat-mdc-header-cell.cdk-column-ip,
-    .mat-mdc-cell.cdk-column-mac, .mat-mdc-header-cell.cdk-column-mac,
-    .mat-mdc-cell.cdk-column-status, .mat-mdc-header-cell.cdk-column-status {
+    .mat-mdc-cell.cdk-column-ip,
+    .mat-mdc-header-cell.cdk-column-ip,
+    .mat-mdc-cell.cdk-column-mac,
+    .mat-mdc-header-cell.cdk-column-mac,
+    .mat-mdc-cell.cdk-column-status,
+    .mat-mdc-header-cell.cdk-column-status {
       max-width: 8.5rem;
       min-width: 8.5rem;
     }
@@ -76,11 +85,11 @@
     }
 
     .checkbox-disable {
-      opacity: .2;
+      opacity: 0.2;
     }
 
     .invalid-hostname.error {
-      padding-bottom: .5rem;
+      padding-bottom: 0.5rem;
       color: $color-error;
       font-size: $font-size-small;
       font-weight: $font-weight-small;

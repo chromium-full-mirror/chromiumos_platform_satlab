@@ -43,12 +43,12 @@ import {FirmwareComponent} from './manage-duts/firmware/firmware.component';
 import {AboutComponent} from './about/about.component';
 import {SpinnerLoadingComponent} from './common/spinner-loading/spinner-loading.component';
 import {ProvisionComponent} from './dialogs/provision/provision.component';
-import {MatDialogModule} from "@angular/material/dialog";
+import {MatDialogModule} from '@angular/material/dialog';
 import {NotificationComponent} from './common/notification/notification.component';
 import {ConfigurationComponent} from './configuration/configuration.component';
 import {TestplanComponent} from './run_suite/testplan/testplan.component';
 import {AutocompleteSelectorComponent} from './run_suite/common/autocomplete-selector/autocomplete-selector.component';
-import { StageBuildComponent } from './dialogs/stage-build/stage-build.component';
+import {StageBuildComponent} from './dialogs/stage-build/stage-build.component';
 
 @NgModule({
   declarations: [
@@ -114,5 +114,4 @@ import { StageBuildComponent } from './dialogs/stage-build/stage-build.component
   ],
   bootstrap: [AppComponent],
 })
-export class AppModule {
-}
+export class AppModule {}

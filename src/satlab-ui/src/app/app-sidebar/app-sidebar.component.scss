@@ -1,4 +1,4 @@
-@import "constants";
+@import 'constants';
 
 .white-color {
   color: $color-white;
@@ -12,7 +12,9 @@
     min-width: 13rem;
     height: 100%;
 
-    a:link, a:visited, a:hover {
+    a:link,
+    a:visited,
+    a:hover {
       color: $color-black;
     }
 
@@ -63,4 +65,3 @@
     }
   }
 }
-

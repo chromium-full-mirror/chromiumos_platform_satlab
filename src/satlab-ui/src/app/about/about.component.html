@@ -1,51 +1,66 @@
 <div class="wrapper">
-    <div class="container-wrapper" id="satlab-about-card">
-        <app-spinner-loading [isLoading]="loadingStatus.versionInfo"></app-spinner-loading>
-        <div class="title">Satlab Information</div>
-        <div class="items">
-            <div>Satlab Version:</div>
-            <div>{{versionInfo.version}}</div>
-            <div>Chrome OS Version:</div>
-            <div>{{versionInfo.chromeosVersion}}</div>
-            <div>Track:</div>
-            <div>{{versionInfo.track}}</div>
-            <div>Description:</div>
-            <div>{{versionInfo.description}}</div>
-            <div>Satlab Host ID:</div>
-            <div>{{versionInfo.hostId}}</div>
-        </div>
+  <div class="container-wrapper" id="satlab-about-card">
+    <app-spinner-loading
+      [isLoading]="loadingStatus.versionInfo"
+    ></app-spinner-loading>
+    <div class="title">Satlab Information</div>
+    <div class="items">
+      <div>Satlab Version:</div>
+      <div>{{ versionInfo.version }}</div>
+      <div>Chrome OS Version:</div>
+      <div>{{ versionInfo.chromeosVersion }}</div>
+      <div>Track:</div>
+      <div>{{ versionInfo.track }}</div>
+      <div>Description:</div>
+      <div>{{ versionInfo.description }}</div>
+      <div>Satlab Host ID:</div>
+      <div>{{ versionInfo.hostId }}</div>
     </div>
+  </div>
 
-    <div class="container-wrapper" id="network-informaion-card">
-        <app-spinner-loading [isLoading]="loadingStatus.networkInfo"></app-spinner-loading>
-        <div class="title">Network Information</div>
-        <div class="items">
-            <div>Satlab Hostname:</div>
-            <div>{{ networkInfo.hostname }}</div>
-            <div>Satlab MAC Address:</div>
-            <div>{{ networkInfo.macAddress }}</div>
-            <div>Connected to Internet:</div>
-            <div>{{ networkInfo.isConnectedToInternet }}</div>
-        </div>
+  <div class="container-wrapper" id="network-informaion-card">
+    <app-spinner-loading
+      [isLoading]="loadingStatus.networkInfo"
+    ></app-spinner-loading>
+    <div class="title">Network Information</div>
+    <div class="items">
+      <div>Satlab Hostname:</div>
+      <div>{{ networkInfo.hostname }}</div>
+      <div>Satlab MAC Address:</div>
+      <div>{{ networkInfo.macAddress }}</div>
+      <div>Connected to Internet:</div>
+      <div>{{ networkInfo.isConnectedToInternet }}</div>
     </div>
+  </div>
 
-    <div class="container-wrapper" id="system-informaion-card">
-        <app-spinner-loading [isLoading]="loadingStatus.systemInfo"></app-spinner-loading>
-        <div class="title">System Information</div>
-        <div class="items">
-            <div>Satlab Start Time:</div>
-            <div>{{ systemInfo.startTime | date: 'yyyy-MM-dd HH:mm:ss': 'UTC +0' }} UTC</div>
-            <div>CPU Temperature:</div>
-            <div>{{ systemInfo.cpuTemperature }}&deg;C (average over 30 mins)</div>
-        </div>
+  <div class="container-wrapper" id="system-informaion-card">
+    <app-spinner-loading
+      [isLoading]="loadingStatus.systemInfo"
+    ></app-spinner-loading>
+    <div class="title">System Information</div>
+    <div class="items">
+      <div>Satlab Start Time:</div>
+      <div>
+        {{ systemInfo.startTime | date: 'yyyy-MM-dd HH:mm:ss' : 'UTC +0' }} UTC
+      </div>
+      <div>CPU Temperature:</div>
+      <div>{{ systemInfo.cpuTemperature }}&deg;C (average over 30 mins)</div>
     </div>
+  </div>
 
-    <div class="container-wrapper" id="useful-links">
-        <div class="title">Useful Links</div>
-        <a *ngFor="let usefulLink of usefulLinks" href="{{usefulLink.url}}" target="_blank">{{usefulLink.name}}</a>
-    </div>
+  <div class="container-wrapper" id="useful-links">
+    <div class="title">Useful Links</div>
+    <a
+      *ngFor="let usefulLink of usefulLinks"
+      href="{{ usefulLink.url }}"
+      target="_blank"
+      >{{ usefulLink.name }}</a
+    >
+  </div>
 
-    <div class="btn-group">
-      <button mat-raised-button color="primary" (click)="onRebootClicked()">Reboot</button>
-    </div>
+  <div class="btn-group">
+    <button mat-raised-button color="primary" (click)="onRebootClicked()">
+      Reboot
+    </button>
+  </div>
 </div>

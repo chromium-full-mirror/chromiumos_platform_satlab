@@ -1,7 +1,7 @@
 import {Component} from '@angular/core';
 import {SidebarEntry} from '../models/feature';
-import {NotificationService} from "../services/notification.service";
-import {INotification} from "../models/notification";
+import {NotificationService} from '../services/notification.service';
+import {INotification} from '../models/notification';
 import {AuthService} from '../services/auth.service';
 
 @Component({
@@ -13,7 +13,7 @@ export class AppSidebarComponent {
   protected navTabs: SidebarEntry[] = [
     {
       route: '/manage_duts',
-      label: 'Manage DUTs'
+      label: 'Manage DUTs',
     },
     {
       route: '/run_tests',
@@ -33,7 +33,7 @@ export class AppSidebarComponent {
 
   constructor(
     public notificationService: NotificationService,
-    protected auth: AuthService,
+    protected auth: AuthService
   ) {}
 
   protected trackNotification(_, n: INotification) {
@@ -41,6 +41,6 @@ export class AppSidebarComponent {
   }
 
   protected dismiss(n: INotification) {
-    this.notificationService.dismiss(n.id)
+    this.notificationService.dismiss(n.id);
   }
 }

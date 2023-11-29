@@ -1,6 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { AutocompleteSelectorComponent } from './autocomplete-selector.component';
+import {AutocompleteSelectorComponent} from './autocomplete-selector.component';
 
 describe('AutocompleteSelectorComponent', () => {
   let component: AutocompleteSelectorComponent;
@@ -8,7 +8,7 @@ describe('AutocompleteSelectorComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [AutocompleteSelectorComponent]
+      declarations: [AutocompleteSelectorComponent],
     });
     fixture = TestBed.createComponent(AutocompleteSelectorComponent);
     component = fixture.componentInstance;

@@ -1,10 +1,14 @@
 import {Injectable} from '@angular/core';
-import {createNotification, INotification, NotificationNodes} from "../models/notification";
-import {BehaviorSubject, Observable, timer} from "rxjs";
-import {toIterator} from "../utils/iterator";
+import {
+  createNotification,
+  INotification,
+  NotificationNodes,
+} from '../models/notification';
+import {BehaviorSubject, Observable, timer} from 'rxjs';
+import {toIterator} from '../utils/iterator';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class NotificationService {
   private __n = new BehaviorSubject<INotification[]>([]);
@@ -20,7 +24,10 @@ export class NotificationService {
    * @param options the options of control dismiss a message.
    * Otherwise, it will keep on the UI.
    */
-  public info(message: NotificationNodes, options: { ms?: number, dismiss: boolean } = {ms: 5000, dismiss: true}) {
+  public info(
+    message: NotificationNodes,
+    options: {ms?: number; dismiss: boolean} = {ms: 5000, dismiss: true}
+  ) {
     const n = this.__addAndEmit(message, 'info');
     this.__dismiss(n.id, options);
   }
@@ -31,12 +38,19 @@ export class NotificationService {
    * @param options the options of control dismiss a message.
    * Otherwise, it will keep on the UI.
    */
-  public error(e: unknown, options: { ms?: number, dismiss: boolean } = {ms: 5000, dismiss: true}) {
+  public error(
+    e: unknown,
+    options: {ms?: number; dismiss: boolean} = {ms: 5000, dismiss: true}
+  ) {
     let s: string;
     if (typeof e === 'string') {
-      s = e
-    } else if (typeof e === 'object' && 'message' in e && typeof e.message === 'string') {
-      s = e.message
+      s = e;
+    } else if (
+      typeof e === 'object' &&
+      'message' in e &&
+      typeof e.message === 'string'
+    ) {
+      s = e.message;
     }
 
     if (s) {
@@ -51,7 +65,10 @@ export class NotificationService {
    * @param options the options of control dismiss a message. default delay time is 5s.
    * @private
    */
-  private __dismiss(id: string, options: { ms?: number, dismiss: boolean } = {ms: 5000, dismiss: true}) {
+  private __dismiss(
+    id: string,
+    options: {ms?: number; dismiss: boolean} = {ms: 5000, dismiss: true}
+  ) {
     if (options.dismiss) {
       this.__delayDismiss(id, options.ms ?? 5000);
     }
@@ -64,7 +81,10 @@ export class NotificationService {
    * @param type the type of notification.
    * @private
    */
-  private __addAndEmit(message: NotificationNodes, type: INotification['type']) {
+  private __addAndEmit(
+    message: NotificationNodes,
+    type: INotification['type']
+  ) {
     const n = createNotification(message, type);
     const notifications = [...this.__n.value, n];
     this.__n.next(notifications);
@@ -90,7 +110,6 @@ export class NotificationService {
    */
   private __delayDismiss(id: string, ms: number) {
     // emit after the given seconds and complete.
-    timer(ms)
-      .subscribe(_ => this.dismiss(id));
+    timer(ms).subscribe(_ => this.dismiss(id));
   }
 }

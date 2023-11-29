@@ -1,14 +1,14 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {INotification, IStringNode, IURLNode} from "../../models/notification";
-import {toIterator} from "../../utils/iterator";
+import {INotification, IStringNode, IURLNode} from '../../models/notification';
+import {toIterator} from '../../utils/iterator';
 
 @Component({
   selector: 'app-notification',
   templateUrl: './notification.component.html',
-  styleUrls: ['./notification.component.scss']
+  styleUrls: ['./notification.component.scss'],
 })
 export class NotificationComponent implements OnInit {
-  @Input() notification: INotification
+  @Input() notification: INotification;
   @Input() showDismissButton: boolean = true;
   @Output() clicked = new EventEmitter<INotification>();
 
@@ -16,7 +16,7 @@ export class NotificationComponent implements OnInit {
 
   ngOnInit() {
     if (typeof this.notification.message === 'string') {
-      this.notifications = [{type: 'string', value: this.notification.message}]
+      this.notifications = [{type: 'string', value: this.notification.message}];
     } else if (this.__isINode(this.notification.message)) {
       this.notifications = [this.notification.message];
     } else if (this.__isStringNode(this.notification.message)) {
@@ -27,11 +27,11 @@ export class NotificationComponent implements OnInit {
           if (typeof e === 'string') {
             const p: IStringNode = {
               type: 'string',
-              value: e
-            }
-            return p
+              value: e,
+            };
+            return p;
           }
-          return e
+          return e;
         })
         .collect();
     }
@@ -46,10 +46,10 @@ export class NotificationComponent implements OnInit {
   }
 
   private __isINode(x: unknown): x is IURLNode {
-    return typeof x === 'object' && "type" in x && x.type === "url"
+    return typeof x === 'object' && 'type' in x && x.type === 'url';
   }
 
   private __isStringNode(x: unknown): x is IStringNode {
-    return typeof x === 'object' && "type" in x && x.type === 'string'
+    return typeof x === 'object' && 'type' in x && x.type === 'string';
   }
 }

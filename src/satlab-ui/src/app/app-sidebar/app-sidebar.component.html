@@ -1,6 +1,16 @@
 <div class="wrapper">
-  <mat-toolbar color="primary" opened="true" #topToolbar class="top-bar-wrapper">
-    <button mat-icon-button color="accent" aria-label="sidenav button" (click)="drawer.toggle()">
+  <mat-toolbar
+    color="primary"
+    opened="true"
+    #topToolbar
+    class="top-bar-wrapper"
+  >
+    <button
+      mat-icon-button
+      color="accent"
+      aria-label="sidenav button"
+      (click)="drawer.toggle()"
+    >
       <mat-icon class="white-color">menu</mat-icon>
     </button>
   </mat-toolbar>
@@ -8,8 +18,16 @@
   <mat-drawer-container autosize>
     <mat-drawer #drawer mode="side" opened="true">
       <div class="sidebar-wrapper">
-        <a *ngFor="let tab of navTabs" mat-list-item routerLink="{{ tab.route }}" routerLinkActive="active-route">
-          <div [class.disabled]="tab.disabled ?? !(auth.loginState$ | async)" class="sidebar-item">
+        <a
+          *ngFor="let tab of navTabs"
+          mat-list-item
+          routerLink="{{ tab.route }}"
+          routerLinkActive="active-route"
+        >
+          <div
+            [class.disabled]="tab.disabled ?? !(auth.loginState$ | async)"
+            class="sidebar-item"
+          >
             <div class="flex flex-row items-center gap-2">
               <mat-icon class="sidebar-icon">{{ tab.icon }} </mat-icon>
               <p>{{ tab.label }}</p>
@@ -22,7 +40,10 @@
     <div class="content-wrapper">
       <div class="notification-wrapper">
         <app-notification
-          *ngFor="let n of this.notificationService.notification$ | async; trackBy: trackNotification"
+          *ngFor="
+            let n of this.notificationService.notification$ | async;
+            trackBy: trackNotification
+          "
           [notification]="n"
           (clicked)="dismiss(n)"
         ></app-notification>

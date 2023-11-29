@@ -2,42 +2,67 @@
   <app-loading [loading]="loading"></app-loading>
 
   <div class="content">
-    <app-basic-selector #poolSelector id="poolSelector" title="Select Pool:" placeholder="Please select a pool"
-                        [options]="poolOptions" (select)="onPoolChanged($event)">
+    <app-basic-selector
+      #poolSelector
+      id="poolSelector"
+      title="Select Pool:"
+      placeholder="Please select a pool"
+      [options]="poolOptions"
+      (select)="onPoolChanged($event)"
+    >
     </app-basic-selector>
 
-    <app-basic-selector #milestoneSelector id="milestoneSelector" title="Select Milestone:"
-                        placeholder="Please select a milestone" [options]="milestoneOptions"
-                        (select)="onMilestoneChanged($event)"
-                        [disabled]="!(fields.model !== '' && fields.board != '')" [disabledMessage]="
+    <app-basic-selector
+      #milestoneSelector
+      id="milestoneSelector"
+      title="Select Milestone:"
+      placeholder="Please select a milestone"
+      [options]="milestoneOptions"
+      (select)="onMilestoneChanged($event)"
+      [disabled]="!(fields.model !== '' && fields.board != '')"
+      [disabledMessage]="
         !(fields.model !== '' && fields.board)
           ? 'Please select a model and board'
           : ''
-      ">
+      "
+    >
     </app-basic-selector>
 
-    <app-basic-selector #buildSelector id="buildSelector" title="Select Build Version:"
-                        placeholder="Please select a build version" [options]="buildOptions"
-                        (select)="onBuildChanged($event)" [disabled]="
+    <app-basic-selector
+      #buildSelector
+      id="buildSelector"
+      title="Select Build Version:"
+      placeholder="Please select a build version"
+      [options]="buildOptions"
+      (select)="onBuildChanged($event)"
+      [disabled]="
         !(fields.model !== '' && fields.board != '' && fields.milestone)
-      " [disabledMessage]="
+      "
+      [disabledMessage]="
         !(fields.model !== '' && fields.board !== '' && fields.milestone !== '')
           ? 'Please select a milestone'
           : ''
-      ">
+      "
+    >
     </app-basic-selector>
 
     <div class="btn-group">
       <button mat-button mat-dialog-close>Cancel</button>
-      <button mat-button [mat-dialog-close]="fields" [disabled]="
-    !(this.fields.board !== ''
-    && this.fields.model !== ''
-    && this.fields.milestone !== ''
-    && this.fields.build !== ''
-    && this.fields.pool !== '')">
+      <button
+        mat-button
+        [mat-dialog-close]="fields"
+        [disabled]="
+          !(
+            this.fields.board !== '' &&
+            this.fields.model !== '' &&
+            this.fields.milestone !== '' &&
+            this.fields.build !== '' &&
+            this.fields.pool !== ''
+          )
+        "
+      >
         Start
       </button>
     </div>
   </div>
 </div>
-
