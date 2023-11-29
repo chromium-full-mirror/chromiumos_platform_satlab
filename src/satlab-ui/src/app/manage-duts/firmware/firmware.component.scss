@@ -5,6 +5,18 @@
   position: relative;
   padding: 1rem;
 
+  .btn-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1.5rem;
+    position: relative;
+
+    button {
+      height: 2.5rem;
+    }
+  }
+
   .duts-wrapper {
     display: flex;
     flex-direction: column;
@@ -31,18 +43,6 @@
         min-width: 10rem;
         max-width: 10rem;
         white-space: pre-wrap;
-      }
-    }
-
-    .btn-group {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      gap: 1.5rem;
-      position: relative;
-
-      button {
-        height: 2.5rem;
       }
     }
   }

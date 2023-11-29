@@ -238,6 +238,7 @@ export class SatlabRpcService {
           address: e.getIp(),
           currentFirmware: e.getCurrentFirmware(),
           newestFirmware: e.getUpdateFirmware(),
+          isLatest: e.getCurrentFirmware() === e.getUpdateFirmware(),
         };
         return d;
       })

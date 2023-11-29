@@ -35,6 +35,7 @@
             <mat-checkbox
               (change)="onDUTCheckboxChanged(element)"
               [checked]="selection.isSelected(element)"
+              [disabled]="element.isLatest"
             >
             </mat-checkbox>
           </td>

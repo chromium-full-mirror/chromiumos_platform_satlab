@@ -45,6 +45,7 @@ export interface IFirmwareDUT {
   address: string;
   currentFirmware: string;
   newestFirmware: string;
+  isLatest: boolean;
 }
 
 /**
