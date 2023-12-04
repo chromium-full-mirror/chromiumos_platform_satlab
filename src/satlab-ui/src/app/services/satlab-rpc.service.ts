@@ -35,6 +35,15 @@ import {IDUTDetail} from '../models/dut_detail';
 import {IDut, IFirmwareDUT, IUpdateFirmwareResult} from '../models/dut';
 import {IBoto} from '../models/boto';
 import {IDims} from '../models/dims';
+import {
+  DUT_STATUS_NEEDS_DEPLOY,
+  DUT_STATUS_NEEDS_MANUAL_REPAIR,
+  DUT_STATUS_NEEDS_REPAIR,
+  DUT_STATUS_NEEDS_REPLACEMENT,
+  DUT_STATUS_READY,
+  DUT_STATUS_REPAIR_FAILED,
+  DUT_STATUS_UNKNOWN,
+} from 'app/constants';
 
 @Injectable({
   providedIn: 'root',
@@ -189,6 +198,7 @@ export class SatlabRpcService {
       status: e.getState(),
       isServoWiredCorrectly:
         e.getServoSerial() === '' || e.getServoSerial() !== 'NOT DETECTED',
+      statusHintText: __toStatusHintText(e.getState()),
     };
 
     return dut;
@@ -527,5 +537,25 @@ export class SatlabRpcService {
     const req = new RebootRequest();
 
     await this.client.reboot(req, {});
+  }
+}
+
+function __toStatusHintText(status: string) {
+  if (status === DUT_STATUS_UNKNOWN) {
+    return 'Please enroll DUT then wait for the deploy task to finish';
+  } else if (status === DUT_STATUS_READY) {
+    return 'Ready for testing';
+  } else if (status === DUT_STATUS_NEEDS_REPAIR) {
+    return 'DUT will auto-repair, please wait';
+  } else if (status === DUT_STATUS_REPAIR_FAILED) {
+    return 'Auto-repair will continue to attempt repairs';
+  } else if (status === DUT_STATUS_NEEDS_DEPLOY) {
+    return 'Please Unenroll, then Enroll DUT';
+  } else if (status === DUT_STATUS_NEEDS_MANUAL_REPAIR) {
+    return 'Please menually repair the dut, Auto-repair is not be fix it';
+  } else if (status === DUT_STATUS_NEEDS_REPLACEMENT) {
+    return 'Hardware issues found, please unenroll and replace DUT';
+  } else {
+    return '';
   }
 }

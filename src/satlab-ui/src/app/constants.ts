@@ -7,3 +7,11 @@ export const REPORT_BUG_URL =
 
 // define a interval to 1 min.
 export const AUTO_REFRESH_INTERVAL = 60 * 1000;
+
+export const DUT_STATUS_UNKNOWN = 'unknown';
+export const DUT_STATUS_READY = 'ready';
+export const DUT_STATUS_NEEDS_REPAIR = 'needs_repair';
+export const DUT_STATUS_REPAIR_FAILED = 'repair_failed';
+export const DUT_STATUS_NEEDS_DEPLOY = 'needs_deploy';
+export const DUT_STATUS_NEEDS_MANUAL_REPAIR = 'needs_manual_repair';
+export const DUT_STATUS_NEEDS_REPLACEMENT = 'needs_replacement';

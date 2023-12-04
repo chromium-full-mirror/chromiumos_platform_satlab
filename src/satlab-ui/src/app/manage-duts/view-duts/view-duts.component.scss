@@ -67,10 +67,14 @@
     }
 
     .mat-mdc-cell.cdk-column-mac,
-    .mat-mdc-header-cell.cdk-column-mac,
+    .mat-mdc-header-cell.cdk-column-mac {
+      max-width: 8.5rem;
+      min-width: 8.5rem;
+    }
+
     .mat-mdc-cell.cdk-column-status,
     .mat-mdc-header-cell.cdk-column-status {
-      max-width: 8.5rem;
+      max-width: 10rem;
       min-width: 8.5rem;
     }
 
@@ -106,7 +110,6 @@
     .icon {
       width: 24px;
       height: 24px;
-
       &.green {
         color: $color-deep-green;
       }
@@ -123,6 +126,18 @@
       &.orange {
         color: $color-warn;
       }
+    }
+
+    .status-red {
+      color: $color-dut-status-red;
+    }
+
+    .status-orange {
+      color: $color-dut-status-orange;
+    }
+
+    .status-green {
+      color: $color-dut-status-green;
     }
   }
 }

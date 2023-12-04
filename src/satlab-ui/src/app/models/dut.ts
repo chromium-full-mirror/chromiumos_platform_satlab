@@ -35,6 +35,9 @@ export interface IDut {
   // if false: it means DUT is connected with servo but servo is not wired properly
   //           and DUT can't be deployed with this servo
   isServoWiredCorrectly: boolean;
+
+  // this field is used for status hint text
+  statusHintText: string;
 }
 
 /**
