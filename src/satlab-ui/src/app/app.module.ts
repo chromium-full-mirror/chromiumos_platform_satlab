@@ -50,6 +50,7 @@ import {TestplanComponent} from './run_suite/testplan/testplan.component';
 import {AutocompleteSelectorComponent} from './run_suite/common/autocomplete-selector/autocomplete-selector.component';
 import {StageBuildComponent} from './dialogs/stage-build/stage-build.component';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {SingleTestComponent} from './run_suite/single-test/single-test.component';
 
 @NgModule({
   declarations: [
@@ -72,6 +73,7 @@ import {MatSlideToggleModule} from '@angular/material/slide-toggle';
     TestplanComponent,
     AutocompleteSelectorComponent,
     StageBuildComponent,
+    SingleTestComponent,
   ],
   imports: [
     AppRoutingModule,
