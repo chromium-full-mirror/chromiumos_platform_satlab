@@ -5,4 +5,4 @@ infra/tools/cipd/${os}-${arch}  latest
 
 infra/shivas/linux-amd64 prod
 
-infra/cros/satlab/satlab/linux-amd64 latest
+infra/cros/satlab/satlab/linux-amd64 prod
