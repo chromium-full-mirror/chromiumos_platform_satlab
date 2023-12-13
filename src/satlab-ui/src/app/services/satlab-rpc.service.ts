@@ -37,6 +37,7 @@ import {
   StateQuery,
   SortBy,
   Tag,
+  RunStorageQualRequest,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
 import {
@@ -66,6 +67,10 @@ import {
   RequestStateQuery,
 } from '../models/job';
 import {Timestamp} from 'google-protobuf/google/protobuf/timestamp_pb';
+import {
+  IBuildSelectFields,
+  IStorageQualFields,
+} from '../models/run_suite_fields';
 
 @Injectable({
   providedIn: 'root',
@@ -604,6 +609,26 @@ export class SatlabRpcService {
       token: resp.getNextPageToken(),
       jobs: toIterator(resp.getJobsList()).map(toJob).collect(),
     };
+  }
+
+  /** Run a storage qualification suite by specify the bug_id.
+   * @param params the basic parameters with bug_id
+   */
+  public async runStorageQualification(
+    params: IBuildSelectFields & IStorageQualFields
+  ) {
+    const req = new RunStorageQualRequest()
+      .setBoard(params.board)
+      .setModel(params.model)
+      .setMilestone(params.milestone)
+      .setBuild(params.build)
+      .setBugId(params.bugID)
+      .setPool(params.pool)
+      .setSuite(params.suite);
+
+    const res = await this.client.runStorageQual(req, {});
+
+    return res.getBuildLink();
   }
 }
 

@@ -3,8 +3,6 @@ import {BasicSelectorComponent} from '../../run_suite/common/basic-selector/basi
 import {
   BUILD_STATUS_MAPPINGS,
   BuildStatus,
-  defaultBuildSelectFields,
-  IBuildSelectFields,
   SelectableItem,
 } from '../../models/selectable_item';
 import {ISimpleDUT} from '../../models/dut';
@@ -14,6 +12,10 @@ import {startWithTap} from '../../utils/rxjs_operator';
 import {toIterator} from '../../utils/iterator';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import {NotificationService} from '../../services/notification.service';
+import {
+  defaultBuildSelectFields,
+  IBuildSelectFields,
+} from '../../models/run_suite_fields';
 
 @Component({
   selector: 'app-provision',

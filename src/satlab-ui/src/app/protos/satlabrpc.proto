@@ -24,6 +24,7 @@ service SatlabRpcService {
   rpc ListBuildTargets (ListBuildTargetsRequest) returns (ListBuildTargetsResponse);
   rpc ListMilestones (ListMilestonesRequest) returns (ListMilestonesResponse);
   rpc ListTestPlans (ListTestPlansRequest) returns (ListTestPlansResponse);
+  rpc RunStorageQual (RunStorageQualRequest) returns (RunStorageQualResponse);
 
   // services to run different types of test suites
   rpc RunSuite (RunSuiteRequest) returns (RunSuiteResponse);
@@ -650,4 +651,23 @@ message ListJobsResponse {
   // that we can read from the bucket
   string next_page_token = 1;
   repeated Job jobs = 2;
+}
+
+// NEXT_TAG = 9
+message RunStorageQualRequest {
+  string suite = 1;
+  string board = 2;
+  string model = 3;
+  string milestone = 4;
+  string build = 5;
+  string pool = 6;
+  // We use `repeated Dim` (not `map<string, string>`) in here
+  // because the generated files in Typescript do not
+  // have a setter function.
+  repeated Dim dims = 7;
+  string bug_id = 8;
+}
+// NEXT_TAG = 2
+message RunStorageQualResponse {
+  string build_link= 1;
 }

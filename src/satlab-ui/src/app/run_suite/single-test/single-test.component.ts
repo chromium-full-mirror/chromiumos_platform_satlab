@@ -1,9 +1,5 @@
 import {Component, ViewChild} from '@angular/core';
 import {BuildSelectFormComponent} from '../common/build-select-form/build-select-form.component';
-import {
-  IBuildSelectFields,
-  defaultBuildSelectFields,
-} from 'app/models/selectable_item';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
 import {NotificationService} from 'app/services/notification.service';
 import {checkSelectFields} from 'app/utils/validators';
@@ -11,6 +7,8 @@ import {FormControl} from '@angular/forms';
 import {catchError, from, map, mergeAll, of, tap} from 'rxjs';
 import {startWithTap} from 'app/utils/rxjs_operator';
 import {ITestCase} from 'app/models/testcase';
+import {defaultBuildSelectFields} from 'app/models/run_suite_fields';
+import {IBuildSelectFields} from '../../models/run_suite_fields';
 
 @Component({
   selector: 'app-single-test',

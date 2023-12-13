@@ -4,8 +4,6 @@ import {BasicSelectorComponent} from '../../run_suite/common/basic-selector/basi
 import {
   BUILD_STATUS_MAPPINGS,
   BuildStatus,
-  defaultBuildSelectFields,
-  IBuildSelectFields,
   SelectableItem,
 } from '../../models/selectable_item';
 import {finalize, from} from 'rxjs';
@@ -13,6 +11,10 @@ import {toIterator} from '../../utils/iterator';
 import {NotificationService} from '../../services/notification.service';
 import {startWithTap} from '../../utils/rxjs_operator';
 import {BUILD_ACCESS_REQUEST_URL} from '../../constants';
+import {
+  defaultBuildSelectFields,
+  IBuildSelectFields,
+} from '../../models/run_suite_fields';
 
 @Component({
   selector: 'app-stage-build',

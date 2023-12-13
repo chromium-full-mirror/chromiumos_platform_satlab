@@ -1,0 +1,42 @@
+<div class="suite-wrapper">
+  <div class="wrapper">
+    <app-build-select-form
+      (allRequiredFieldsSet)="allRequiredFieldsSet($event)"
+    ></app-build-select-form>
+
+    <div class="px-6">
+      <app-basic-selector
+        #suiteSelector
+        id="suiteSelector"
+        title="Select a suite"
+        placeholder="Select a suite"
+        [options]="suiteOptions"
+        (select)="onSuiteChanged($event)"
+      >
+      </app-basic-selector>
+    </div>
+
+    <div class="part-wrapper">
+      <mat-form-field class="full-width zero-padding">
+        <mat-label>AVL Process Bug ID</mat-label>
+        <input
+          name="bugID"
+          matInput
+          required
+          (change)="onBugIDChanged($event)"
+        />
+      </mat-form-field>
+    </div>
+
+    <div class="flex justify-center py-4">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="onRunSuiteClick()"
+        [disabled]="disabled"
+      >
+        Run Suite
+      </button>
+    </div>
+  </div>
+</div>

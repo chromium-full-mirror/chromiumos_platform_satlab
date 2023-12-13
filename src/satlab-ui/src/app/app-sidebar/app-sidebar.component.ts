@@ -22,6 +22,12 @@ export class AppSidebarComponent {
       icon: 'play_arrow',
     },
     {
+      route: '/storage_qualification',
+      label: 'PVS',
+      icon: 'science',
+    },
+
+    {
       route: 'view_jobs',
       label: 'View Jobs',
       icon: 'visibility',

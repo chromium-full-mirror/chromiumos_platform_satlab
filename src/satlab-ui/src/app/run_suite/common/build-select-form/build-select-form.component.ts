@@ -11,8 +11,6 @@ import {IDut, ISimpleDUT} from '../../../models/dut';
 import {
   BUILD_STATUS_MAPPINGS,
   BuildStatus,
-  defaultBuildSelectFields,
-  IBuildSelectFields,
   SelectableItem,
 } from '../../../models/selectable_item';
 import {SatlabRpcService} from '../../../services/satlab-rpc.service';
@@ -21,6 +19,10 @@ import {finalize, from, Subject, Subscription} from 'rxjs';
 import {startWithTap} from '../../../utils/rxjs_operator';
 import {BasicSelectorComponent} from '../basic-selector/basic-selector.component';
 import {NotificationService} from '../../../services/notification.service';
+import {
+  defaultBuildSelectFields,
+  IBuildSelectFields,
+} from '../../../models/run_suite_fields';
 
 @Component({
   selector: 'app-build-select-form',

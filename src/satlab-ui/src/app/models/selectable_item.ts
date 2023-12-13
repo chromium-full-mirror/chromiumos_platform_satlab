@@ -42,19 +42,3 @@ export const BUILD_STATUS_MAPPINGS: {
   3: 'Aborted',
   4: 'Recommended',
 };
-
-export interface IBuildSelectFields {
-  model: string;
-  board: string;
-  milestone: string;
-  build: string;
-  pool: string;
-}
-
-export const defaultBuildSelectFields: IBuildSelectFields = {
-  model: '',
-  board: '',
-  milestone: '',
-  build: '',
-  pool: '',
-};

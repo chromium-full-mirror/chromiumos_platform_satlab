@@ -1,9 +1,5 @@
 import {Component, ViewChild} from '@angular/core';
-import {
-  IBuildSelectFields,
-  SelectableItem,
-  defaultBuildSelectFields,
-} from 'app/models/selectable_item';
+import {SelectableItem} from 'app/models/selectable_item';
 import {ITestPlan} from 'app/models/testplan';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
 import {startWithTap} from 'app/utils/rxjs_operator';
@@ -12,6 +8,10 @@ import {BuildSelectFormComponent} from '../common/build-select-form/build-select
 import {toIterator} from 'app/utils/iterator';
 import {NotificationService} from '../../services/notification.service';
 import {checkSelectFields} from '../../utils/validators';
+import {
+  defaultBuildSelectFields,
+  IBuildSelectFields,
+} from '../../models/run_suite_fields';
 
 @Component({
   selector: 'app-testplan',

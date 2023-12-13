@@ -54,19 +54,11 @@ import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {SingleTestComponent} from './run_suite/single-test/single-test.component';
 import {ViewJobsComponent} from './view-jobs/view-jobs.component';
 import {ClickDetectorDirective} from './click-detector.directive';
-import {
-  MAT_MOMENT_DATE_FORMATS,
-  MatMomentDateModule,
-  MomentDateAdapter,
-} from '@angular/material-moment-adapter';
-import {
-  DateAdapter,
-  MAT_DATE_FORMATS,
-  MAT_DATE_LOCALE,
-} from '@angular/material/core';
+import {MatMomentDateModule} from '@angular/material-moment-adapter';
 import {CustomDatepickerComponent} from './custom-datepicker/custom-datepicker.component';
 import {InfiniteScrollDirective} from './infinite-scroll.directive';
 import {JobTableComponent} from './view-jobs/job-table/job-table.component';
+import {StorageQualComponent} from './run_suite/pvs/storage-qual/storage-qual.component';
 
 @NgModule({
   declarations: [
@@ -95,6 +87,7 @@ import {JobTableComponent} from './view-jobs/job-table/job-table.component';
     CustomDatepickerComponent,
     InfiniteScrollDirective,
     JobTableComponent,
+    StorageQualComponent,
   ],
   imports: [
     AppRoutingModule,
