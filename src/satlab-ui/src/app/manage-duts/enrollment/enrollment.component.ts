@@ -1,14 +1,15 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
 import {IDut} from '../../models/dut';
 import {SatlabRpcService} from '../../services/satlab-rpc.service';
 import {FormControl, Validators} from '@angular/forms';
 import {toIterator} from '../../utils/iterator';
-import {finalize, from} from 'rxjs';
+import {finalize, from, interval, Subscription} from 'rxjs';
 import {startWithTap} from '../../utils/rxjs_operator';
 import {MatDialog} from '@angular/material/dialog';
 import {ProvisionComponent} from '../../dialogs/provision/provision.component';
 import {NotificationService} from '../../services/notification.service';
 import {runProvisionOnIndividualDUT} from '../../utils/run_tests_helper';
+import {MatSlideToggleChange} from '@angular/material/slide-toggle';
 
 @Component({
   selector: 'app-enrollment',
@@ -19,7 +20,10 @@ export class EnrollmentComponent {
   @Input() DUTs: IDut[] = [];
   @Input() loading = false;
   @Input() hostnamePrefix = '';
-  @Output() onDUTsUpdated = new EventEmitter();
+  @Input() autoRefreshFlag = false;
+
+  @Output() updateDUTs = new EventEmitter();
+  @Output() autoRefresh = new EventEmitter<boolean>();
 
   protected selectedDUTs: IDut[] = [];
   protected isDUTSelected = false;
@@ -57,7 +61,7 @@ export class EnrollmentComponent {
     const emptyHostname = this.__checkEmptyHostname(d);
     const isServoWired = this.__checkServoWired(d);
 
-    if (d.length == 0 || duplicateHostname || emptyHostname || isServoWired) {
+    if (d.length === 0 || duplicateHostname || emptyHostname || isServoWired) {
       console.log('no DUTs to enroll or one of the DUTs has an issue');
       return;
     }
@@ -92,7 +96,7 @@ export class EnrollmentComponent {
               {dismiss: false}
             )
           );
-          this.onDUTsUpdated.emit();
+          this.updateDUTs.emit();
         },
         error: e => {
           this.notification.error(`Something wrong with enroll: ${e}`, {
@@ -135,7 +139,7 @@ export class EnrollmentComponent {
           res.fail.map(f =>
             this.notification.info(`Failed to unenroll ${f}`, {dismiss: false})
           );
-          this.onDUTsUpdated.emit();
+          this.updateDUTs.emit();
         },
         error: e => {
           this.notification.error(`Something wrong with unenroll: ${e}`, {
@@ -222,7 +226,7 @@ export class EnrollmentComponent {
       .subscribe({
         next: _ => {
           this.notification.info(`Add pool ${this.pool.value} successfully.`);
-          this.onDUTsUpdated.emit();
+          this.updateDUTs.emit();
         },
         error: e => {
           this.notification.info(
@@ -279,7 +283,7 @@ export class EnrollmentComponent {
       .subscribe({
         next: _ => {
           this.notification.info(`Remove pool ${this.pool.value} successfully`);
-          this.onDUTsUpdated.emit();
+          this.updateDUTs.emit();
         },
         error: e => {
           this.notification.error(
@@ -288,6 +292,15 @@ export class EnrollmentComponent {
           );
         },
       });
+  }
+
+  /**
+   * an event handler handles a user wants to auto-refresh the page.
+   * @param c the slide toggle change
+   * @protected
+   */
+  protected autoRefreshChanged(c: MatSlideToggleChange) {
+    this.autoRefresh.emit(c.checked);
   }
 
   /**

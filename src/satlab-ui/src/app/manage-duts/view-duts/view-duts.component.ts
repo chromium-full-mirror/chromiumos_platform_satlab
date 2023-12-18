@@ -49,11 +49,17 @@ export class ViewDutsComponent implements OnChanges {
       changes['DUTs'] &&
       changes['DUTs'].previousValue !== changes['DUTs'].currentValue
     ) {
-      this.selection.clear();
-      this.allSelected = false;
-    }
-    if (changes['DUTs']) {
-      this.duts = changes['DUTs'].currentValue;
+      if (changes['DUTs'].previousValue) {
+        this.duts = merge(this.duts, changes['DUTs'].currentValue);
+      } else {
+        this.duts = [...changes['DUTs'].currentValue];
+      }
+
+      if (this.selection && this.selection.selected.length > 0) {
+        const s = find(this.selection, this.duts);
+        this.selection.clear();
+        s.forEach(e => this.#toggleDUT(e));
+      }
     }
   }
 
@@ -63,7 +69,16 @@ export class ViewDutsComponent implements OnChanges {
    * @protected
    */
   protected onDUTCheckboxChanged(e: IDut) {
-    this.selection.toggle(e);
+    this.#toggleDUT(e);
+  }
+
+  /**
+   * select a DUT.
+   * @param d the DUT that we want to select.
+   * @private
+   */
+  #toggleDUT(d: IDut) {
+    this.selection.toggle(d);
     this.__selectionChanged();
   }
 
@@ -191,4 +206,88 @@ export class ViewDutsComponent implements OnChanges {
   private __emitSelectionChanged() {
     this.select.emit(this.selection.selected);
   }
+}
+
+/**
+ * merge new DUTs.
+ * if DUT has been enrolled, we use new one.
+ * if DUT doesn't have test image, we use new one.
+ * if DUT isn't enrolled. we merge the old state (e.g. the hostname that a user has input) to new one.
+ * @param from the list of old DUTs
+ * @param to the list of new DUTs
+ */
+function merge(from: IDut[], to: IDut[]) {
+  // filter the DUTs that have been enrolled.
+  const enrolled = toIterator(to)
+    .filter(e => e.hostname !== '')
+    .collect();
+
+  // filter the DUTs are not enrolled and do not have test image.
+  const withOutTestImage = toIterator(to)
+    .filter(e => e.hostname === '' && !e.isConnected)
+    .collect();
+
+  // filter the DUTs that are not enrolled from old, we need copy the state from here.
+  const old = toIterator(from)
+    .filter(e => e.hostname === '' && e.isConnected)
+    .collect();
+
+  // filter the DUTs that are not enrolled from new, we need to update the state from old.
+  const updated = toIterator(to)
+    .filter(e => e.hostname === '' && e.isConnected)
+    .collect();
+
+  // update the new DUTs.
+  const merged = toIterator(updated)
+    .map(n => {
+      return updateState(
+        old.find(
+          e =>
+            e.address === n.address &&
+            e.board === n.board &&
+            e.model === n.model
+        ),
+        n
+      );
+    })
+    .collect();
+
+  return [...enrolled, ...merged, ...withOutTestImage];
+}
+
+/**
+ * update the DUT state from old to new.
+ * @param from the old DUT state
+ * @param to the new DUT state
+ */
+function updateState(from: IDut | undefined, to: IDut) {
+  return {
+    ...to,
+    inputHostname: from?.inputHostname,
+  };
+}
+
+/**
+ * find the old reference from the selection. the DUTs that we have selected.
+ * @param selection the DUTs that we have selected
+ * @param from the new reference of new DUTs
+ */
+function find(selection: SelectionModel<IDut>, from: IDut[]) {
+  return toIterator(from)
+    .filter(
+      e =>
+        selection.selected.find(obj => {
+          if (obj.hostname === e.hostname && obj.hostname !== '') {
+            return true;
+          } else if (
+            obj.address === e.address &&
+            obj.board === e.board &&
+            obj.model === e.model
+          ) {
+            return true;
+          }
+          return false;
+        }) !== undefined
+    )
+    .collect();
 }

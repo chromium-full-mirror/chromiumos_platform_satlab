@@ -1,16 +1,17 @@
-import {AfterViewInit, Component} from '@angular/core';
+import {AfterViewInit, Component, OnDestroy} from '@angular/core';
 import {IDut, IFirmwareDUT} from '../models/dut';
 import {SatlabRpcService} from '../services/satlab-rpc.service';
-import {finalize, from} from 'rxjs';
+import {finalize, from, interval, Subscription} from 'rxjs';
 import {startWithTap} from '../utils/rxjs_operator';
 import {NotificationService} from '../services/notification.service';
+import {AUTO_REFRESH_INTERVAL} from '../constants';
 
 @Component({
   selector: 'app-manage-duts',
   templateUrl: './manage-duts.component.html',
   styleUrls: ['./manage-duts.component.scss'],
 })
-export class ManageDutsComponent implements AfterViewInit {
+export class ManageDutsComponent implements AfterViewInit, OnDestroy {
   // duts contains the all duts are enrolled and connected to the SatLab
   protected DUTs: IDut[] = [];
   // firmwareDUTs contains the connected DUTs that including the firmware information
@@ -22,6 +23,10 @@ export class ManageDutsComponent implements AfterViewInit {
   // hostnamePrefix the prefix of hostname when a user want to input a hostname.
   // we need to show a prefix.
   protected hostnamePrefix = '';
+  // the flag to indicate a user wants to auto-refresh
+  // define here is to keep the state of auto-refresh button.
+  protected autoRefreshListDUTs = false;
+  private disposer?: Subscription;
 
   constructor(
     private service: SatlabRpcService,
@@ -32,6 +37,10 @@ export class ManageDutsComponent implements AfterViewInit {
     this.__getHostnamePrefix();
     this.__listDUTs();
     this.__listDUTsForFirmware();
+  }
+
+  ngOnDestroy() {
+    this.disposer?.unsubscribe();
   }
 
   /**
@@ -48,6 +57,23 @@ export class ManageDutsComponent implements AfterViewInit {
    */
   protected onFirmwareUpdated() {
     this.__listDUTsForFirmware();
+  }
+
+  /**
+   * onAutoRefreshBtnClicked is an event handler handles the auto-refresh button
+   * clicked.
+   * @param checked
+   * @protected
+   */
+  protected onAutoRefreshBtnClicked(checked: boolean) {
+    this.autoRefreshListDUTs = checked;
+    if (checked) {
+      this.disposer = interval(AUTO_REFRESH_INTERVAL).subscribe({
+        next: _ => this.__listDUTs(),
+      });
+    } else {
+      this.disposer = null;
+    }
   }
 
   /**

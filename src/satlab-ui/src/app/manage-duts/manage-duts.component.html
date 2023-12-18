@@ -5,9 +5,11 @@
       <ng-template matTabContent>
         <app-enrollment
           [DUTs]="DUTs"
-          (onDUTsUpdated)="onDUTsUpdated()"
+          (updateDUTs)="onDUTsUpdated()"
           [loading]="listDUTsLoading"
           [hostnamePrefix]="hostnamePrefix"
+          [autoRefreshFlag]="autoRefreshListDUTs"
+          (autoRefresh)="onAutoRefreshBtnClicked($event)"
         ></app-enrollment>
       </ng-template>
     </mat-tab>

@@ -49,6 +49,7 @@ import {ConfigurationComponent} from './configuration/configuration.component';
 import {TestplanComponent} from './run_suite/testplan/testplan.component';
 import {AutocompleteSelectorComponent} from './run_suite/common/autocomplete-selector/autocomplete-selector.component';
 import {StageBuildComponent} from './dialogs/stage-build/stage-build.component';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 
 @NgModule({
   declarations: [
@@ -104,6 +105,7 @@ import {StageBuildComponent} from './dialogs/stage-build/stage-build.component';
     RouterModule,
     MatSnackBarModule,
     MatDialogModule,
+    MatSlideToggleModule,
   ],
   exports: [
     AppRoutingModule,

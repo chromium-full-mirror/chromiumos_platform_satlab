@@ -47,7 +47,9 @@ export class FirmwareComponent implements OnInit, OnChanges, OnDestroy {
       )
       .subscribe(_ => {
         this.selectionCount = this.selection.selected.length;
-        this.checked = this.selectionCount > 0 && this.DUTs.filter(e => !e.isLatest).length === this.selectionCount;
+        this.checked =
+          this.selectionCount > 0 &&
+          this.DUTs.filter(e => !e.isLatest).length === this.selectionCount;
       });
   }
 
@@ -87,7 +89,7 @@ export class FirmwareComponent implements OnInit, OnChanges, OnDestroy {
         .filter(e => !e.isLatest)
         .forEach(e => {
           this.selection.toggle(e);
-        })
+        });
     }
   }
 

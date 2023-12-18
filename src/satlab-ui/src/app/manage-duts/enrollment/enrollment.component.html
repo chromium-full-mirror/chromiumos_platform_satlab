@@ -66,6 +66,14 @@
     </ng-container>
   </div>
 
+  <div class="function-tools-wrapper">
+    <mat-slide-toggle
+      (change)="autoRefreshChanged($event)"
+      [(ngModel)]="autoRefreshFlag"
+      >Auto refresh
+    </mat-slide-toggle>
+  </div>
+
   <app-view-duts
     [DUTs]="DUTs"
     (select)="onDUTsSelectionChanged($event)"
