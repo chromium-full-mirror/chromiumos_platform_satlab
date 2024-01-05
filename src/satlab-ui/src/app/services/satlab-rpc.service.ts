@@ -58,10 +58,7 @@ export class SatlabRpcService {
   public async getDutDetail(address: string) {
     const req = new GetDutDetailRequest().setAddress(address);
 
-    const resp: GetDutDetailResponse = await this.client.get_dut_detail(
-      req,
-      {}
-    );
+    const resp: GetDutDetailResponse = await this.client.getDutDetail(req, {});
 
     const detail: IDUTDetail = {
       botId: resp.getBotId(),
@@ -93,9 +90,9 @@ export class SatlabRpcService {
    */
   public async listEnrolledDUTs() {
     const req = new ListEnrolledDutsRequest();
-    const resp = await this.client.list_enrolled_duts(req, {});
+    const resp = await this.client.listEnrolledDuts(req, {});
 
-    return resp.getDutsList();
+    return toIterator(resp.getDutsList()).map(this.__toIDut).collect();
   }
 
   /**
@@ -105,7 +102,7 @@ export class SatlabRpcService {
   public async listMilestones(p: {model: string; board: string}) {
     const req = new ListMilestonesRequest().setModel(p.model).setBoard(p.board);
 
-    const resp = await this.client.list_milestones(req, {});
+    const resp = await this.client.listMilestones(req, {});
 
     return resp.getMilestonesList();
   }
@@ -124,7 +121,7 @@ export class SatlabRpcService {
       .setModel(p.model)
       .setMilestone(Number(p.milestone));
 
-    const resp = await this.client.list_build_versions(req, {});
+    const resp = await this.client.listBuildVersions(req, {});
 
     return resp.getBuildVersionsList();
   }
@@ -161,7 +158,7 @@ export class SatlabRpcService {
       .setSuite(params.suite)
       .setDimsList(this.toDims(params.dims));
 
-    const resp = await this.client.run_suite(req, {});
+    const resp = await this.client.runSuite(req, {});
 
     return resp.getBuildLink();
   }
@@ -172,7 +169,7 @@ export class SatlabRpcService {
   public async listDUTs() {
     const req = new ListDutsRequest();
 
-    const resp = await this.client.list_duts(req, {});
+    const resp = await this.client.listDuts(req, {});
 
     return toIterator(resp.getDutsList()).map(this.__toIDut).collect();
   }
@@ -193,8 +190,10 @@ export class SatlabRpcService {
       poolString: e.getPoolsList().join(', '),
       mac: e.getMacAddress(),
       servoSerial: e.getServoSerial(),
-      isConnected: e.getIsConnected(),
-      isAccessible: !(e.getHostname() === '' && !e.getIsConnected()),
+      isConnected: e.getIsPingable() && e.getHasTestImage(),
+      isAccessible: !(
+        e.getHostname() === '' && !(e.getIsPingable() && e.getHasTestImage())
+      ),
       status: e.getState(),
       isServoWiredCorrectly:
         e.getServoSerial() === '' || e.getServoSerial() !== 'NOT DETECTED',
@@ -213,7 +212,7 @@ export class SatlabRpcService {
       .setPool(p.pool)
       .setAddressesList(p.addresses);
 
-    await this.client.add_pool(req, {});
+    await this.client.addPool(req, {});
   }
 
   /**
@@ -231,7 +230,7 @@ export class SatlabRpcService {
 
     const req = new UpdatePoolRequest().setItemsList(items);
 
-    await this.client.update_pool(req, {});
+    await this.client.updatePool(req, {});
   }
 
   /**
@@ -240,7 +239,7 @@ export class SatlabRpcService {
   public async listDUTsForFirmware() {
     const req = new ListConnectedDutsFirmwareRequest();
 
-    const resp = await this.client.list_connected_duts_firmware(req, {});
+    const resp = await this.client.listConnectedDutsFirmware(req, {});
 
     return toIterator(resp.getDutsList())
       .map(e => {
@@ -262,7 +261,7 @@ export class SatlabRpcService {
   public async updateFirmware(addresses: string[]) {
     const req = new UpdateDutsFirmwareRequest().setIpsList(addresses);
 
-    const resp = await this.client.update_duts_firmware(req, {});
+    const resp = await this.client.updateDutsFirmware(req, {});
 
     return toIterator(resp.getOutputsList())
       .map(e => {
@@ -277,7 +276,7 @@ export class SatlabRpcService {
 
   public async getSystemInfo() {
     const req = new GetSystemInfoRequest();
-    const resp = await this.client.get_system_info(req, null);
+    const resp = await this.client.getSystemInfo(req, null);
 
     return {
       cpuTemperature: Math.round(resp.getCpuTemperature() * 100) / 100,
@@ -287,7 +286,7 @@ export class SatlabRpcService {
 
   public async getVersionInfo() {
     const req = new GetVersionInfoRequest();
-    const resp = await this.client.get_version_info(req, null);
+    const resp = await this.client.getVersionInfo(req, null);
 
     return {
       version: resp.getVersion().trim(),
@@ -300,7 +299,7 @@ export class SatlabRpcService {
 
   public async getNetworkInfo() {
     const req = new GetNetworkInfoRequest();
-    const resp = await this.client.get_network_info(req, null);
+    const resp = await this.client.getNetworkInfo(req, null);
 
     return {
       hostname: resp.getHostname(),
@@ -319,7 +318,7 @@ export class SatlabRpcService {
   public async deleteDUTs(hostnames: string[]) {
     const req = new DeleteDutsRequest().setHostnamesList(hostnames);
 
-    const resp = await this.client.delete_duts(req, {});
+    const resp = await this.client.deleteDuts(req, {});
 
     return {
       pass: resp.getPassList(),
@@ -353,7 +352,7 @@ export class SatlabRpcService {
 
     const req = new AddDutsRequest().setDutsList(items);
 
-    const resp = await this.client.add_duts(req, {});
+    const resp = await this.client.addDuts(req, {});
 
     return {
       pass: toIterator(resp.getPassList())
@@ -401,7 +400,7 @@ export class SatlabRpcService {
     if (params.test_args !== undefined) {
       req.setTestArgs(params.test_args);
     }
-    const resp = await this.client.run_test(req, {});
+    const resp = await this.client.runTest(req, {});
     return resp.getBuildLink();
   }
 
@@ -428,7 +427,7 @@ export class SatlabRpcService {
    */
   public async listTestPlans(): Promise<string[]> {
     const req = new ListTestPlansRequest();
-    const resp = await this.client.list_test_plans(req, {});
+    const resp = await this.client.listTestPlans(req, {});
 
     return resp.getNamesList();
   }
@@ -455,7 +454,7 @@ export class SatlabRpcService {
       .setTestPlanName(params.plan)
       .setDimsList(this.toDims(params.dims));
 
-    const resp = await this.client.run_test_plan(req, {});
+    const resp = await this.client.runTestPlan(req, {});
 
     return resp.getBuildLink();
   }
@@ -470,7 +469,7 @@ export class SatlabRpcService {
       .setBotoKeySecret(b.secret)
       .setGcsBucketUrl(b.bucket);
 
-    await this.client.set_cloud_configuration(req, {});
+    await this.client.setCloudConfiguration(req, {});
 
     return true;
   }
@@ -481,7 +480,7 @@ export class SatlabRpcService {
   public async getCloudConfiguration(): Promise<IBoto> {
     const req = new GetCloudConfigurationRequest();
 
-    const resp = await this.client.get_cloud_configuration(req, {});
+    const resp = await this.client.getCloudConfiguration(req, {});
 
     return {
       key: resp.getBotoKeyId(),
@@ -496,7 +495,7 @@ export class SatlabRpcService {
   public async listBoards() {
     const req = new ListBuildTargetsRequest();
 
-    const resp = await this.client.list_build_targets(req, {});
+    const resp = await this.client.listBuildTargets(req, {});
 
     return resp.getBuildTargetsList();
   }
@@ -508,7 +507,7 @@ export class SatlabRpcService {
   public async listModels(board: string) {
     const req = new ListAccessibleModelsRequest().setBoard(board);
 
-    const resp = await this.client.list_accessible_models(req, {});
+    const resp = await this.client.listAccessibleModels(req, {});
 
     return toIterator(resp.getModelsList())
       .map(e => e.getName())
@@ -525,7 +524,7 @@ export class SatlabRpcService {
       .setModel(f.model)
       .setBuildVersion(f.build);
 
-    const resp = await this.client.stage_build(req, {});
+    const resp = await this.client.stageBuild(req, {});
 
     return resp.getBuildBucket();
   }

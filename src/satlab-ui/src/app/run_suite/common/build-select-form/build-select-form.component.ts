@@ -7,7 +7,7 @@ import {
   Output,
   ViewChild,
 } from '@angular/core';
-import {ISimpleDUT} from '../../../models/dut';
+import {IDut, ISimpleDUT} from '../../../models/dut';
 import {
   BUILD_STATUS_MAPPINGS,
   BuildStatus,
@@ -16,7 +16,6 @@ import {
   SelectableItem,
 } from '../../../models/selectable_item';
 import {SatlabRpcService} from '../../../services/satlab-rpc.service';
-import {Dut} from '../../../services/satlabrpc_pb';
 import {toIterator} from '../../../utils/iterator';
 import {finalize, from, Subject, Subscription} from 'rxjs';
 import {startWithTap} from '../../../utils/rxjs_operator';
@@ -149,12 +148,12 @@ export class BuildSelectFormComponent
     this.fields$.next(this.fields);
   }
 
-  private parseAPIResponse(duts: Dut[]): void {
+  private parseAPIResponse(duts: IDut[]): void {
     this.duts = duts.map(e => {
       const dut: ISimpleDUT = {
-        model: e.getModel(),
-        board: e.getBoard(),
-        pools: e.getPoolsList(),
+        model: e.model,
+        board: e.board,
+        pools: e.pools,
       };
       return dut;
     });

@@ -10,45 +10,45 @@ package satlabrpcserver;
 import "google/protobuf/timestamp.proto";
 
 service SatlabRpcService {
-  rpc list_accessible_models (ListAccessibleModelsRequest) returns (ListAccessibleModelsResponse);
-  rpc list_build_versions (ListBuildVersionsRequest) returns (ListBuildVersionsResponse);
-  rpc stage_build (StageBuildRequest) returns (StageBuildResponse);
-  rpc list_connected_duts_firmware (ListConnectedDutsFirmwareRequest) returns (ListConnectedDutsFirmwareResponse);
-  rpc get_system_info (GetSystemInfoRequest) returns (GetSystemInfoResponse);
-  rpc get_version_info (GetVersionInfoRequest) returns (GetVersionInfoResponse);
-  rpc get_network_info (GetNetworkInfoRequest) returns (GetNetworkInfoResponse);
-  rpc get_peripheral_information (GetPeripheralInformationRequest) returns (GetPeripheralInformationResponse);
-  rpc update_duts_firmware (UpdateDutsFirmwareRequest)  returns (UpdateDutsFirmwareResponse);
+  rpc ListAccessibleModels (ListAccessibleModelsRequest) returns (ListAccessibleModelsResponse);
+  rpc ListBuildVersions (ListBuildVersionsRequest) returns (ListBuildVersionsResponse);
+  rpc StageBuild (StageBuildRequest) returns (StageBuildResponse);
+  rpc ListConnectedDutsFirmware (ListConnectedDutsFirmwareRequest) returns (ListConnectedDutsFirmwareResponse);
+  rpc GetSystemInfo (GetSystemInfoRequest) returns (GetSystemInfoResponse);
+  rpc GetVersionInfo (GetVersionInfoRequest) returns (GetVersionInfoResponse);
+  rpc GetNetworkInfo (GetNetworkInfoRequest) returns (GetNetworkInfoResponse);
+  rpc GetPeripheralInformation (GetPeripheralInformationRequest) returns (GetPeripheralInformationResponse);
+  rpc UpdateDutsFirmware (UpdateDutsFirmwareRequest)  returns (UpdateDutsFirmwareResponse);
 
   // Run Suite
-  rpc list_build_targets (ListBuildTargetsRequest) returns (ListBuildTargetsResponse);
-  rpc list_milestones (ListMilestonesRequest) returns (ListMilestonesResponse);
-  rpc list_test_plans (ListTestPlansRequest) returns (ListTestPlansResponse);
+  rpc ListBuildTargets (ListBuildTargetsRequest) returns (ListBuildTargetsResponse);
+  rpc ListMilestones (ListMilestonesRequest) returns (ListMilestonesResponse);
+  rpc ListTestPlans (ListTestPlansRequest) returns (ListTestPlansResponse);
 
   // services to run different types of test suites
-  rpc run_suite (RunSuiteRequest) returns (RunSuiteResponse);
-  rpc run_test (RunTestRequest) returns (RunTestResponse);
-  rpc run_test_plan (RunTestPlanRequest) returns (RunTestPlanResponse);
+  rpc RunSuite (RunSuiteRequest) returns (RunSuiteResponse);
+  rpc RunTest (RunTestRequest) returns (RunTestResponse);
+  rpc RunTestPlan (RunTestPlanRequest) returns (RunTestPlanResponse);
 
   // manage DUTs
-  rpc add_pool (AddPoolRequest) returns (AddPoolResponse);
-  rpc update_pool (UpdatePoolRequest) returns (UpdatePoolResponse);
-  rpc delete_duts (DeleteDutsRequest) returns (DeleteDutsResponse);
-  rpc add_duts (AddDutsRequest) returns (AddDutsResponse);
+  rpc AddPool (AddPoolRequest) returns (AddPoolResponse);
+  rpc UpdatePool (UpdatePoolRequest) returns (UpdatePoolResponse);
+  rpc DeleteDuts (DeleteDutsRequest) returns (DeleteDutsResponse);
+  rpc AddDuts (AddDutsRequest) returns (AddDutsResponse);
 
   // get DUTs information
-  rpc get_dut_detail (GetDutDetailRequest) returns (GetDutDetailResponse);
-  rpc list_dut_tasks (ListDutTasksRequest) returns (ListDutTasksResponse);
-  rpc list_dut_events (ListDutEventsRequest) returns (ListDutEventsResponse);
-  rpc list_enrolled_duts (ListEnrolledDutsRequest) returns (ListEnrolledDutsResponse);
-  rpc list_duts (ListDutsRequest) returns (ListDutsResponse);
+  rpc GetDutDetail (GetDutDetailRequest) returns (GetDutDetailResponse);
+  rpc ListDutTasks (ListDutTasksRequest) returns (ListDutTasksResponse);
+  rpc ListDutEvents (ListDutEventsRequest) returns (ListDutEventsResponse);
+  rpc ListEnrolledDuts (ListEnrolledDutsRequest) returns (ListEnrolledDutsResponse);
+  rpc ListDuts (ListDutsRequest) returns (ListDutsResponse);
 
   // setup
-  rpc set_cloud_configuration (SetCloudConfigurationRequest) returns (SetCloudConfigurationResponse);
-  rpc get_cloud_configuration (GetCloudConfigurationRequest) returns (GetCloudConfigurationResponse);
+  rpc SetCloudConfiguration (SetCloudConfigurationRequest) returns (SetCloudConfigurationResponse);
+  rpc GetCloudConfiguration (GetCloudConfigurationRequest) returns (GetCloudConfigurationResponse);
 
   // system
-  rpc reboot (RebootRequest) returns (RebootResponse);
+  rpc Reboot (RebootRequest) returns (RebootResponse);
 }
 
 message ListBuildTargetsRequest {
@@ -354,7 +354,7 @@ message RunTestResponse {
 // NEXT_TAG = 1
 message ListEnrolledDutsRequest {}
 
-// NEXT_TAG = 13
+// NEXT_TAG = 14
 message Dut {
   string address = 1;
   string name = 2;
@@ -363,11 +363,12 @@ message Dut {
   string model = 5;
   repeated string pools = 6;
   string mac_address = 7;
-  bool is_connected = 8;
+  bool is_pingable = 8;
   string servo_serial = 9;
   string servo_type = 10;
   int32 servo_port = 11;
   string state = 12;
+  bool has_test_image = 13;
 }
 
 // NEXT_TAG = 2
