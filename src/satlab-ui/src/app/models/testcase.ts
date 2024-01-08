@@ -1,4 +1,4 @@
 export interface ITestCase {
-    name: string;
-    args?: string;
+  name: string;
+  args?: string;
 }

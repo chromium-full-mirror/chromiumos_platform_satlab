@@ -1,6 +1,9 @@
 import {Component, ViewChild} from '@angular/core';
 import {BuildSelectFormComponent} from '../common/build-select-form/build-select-form.component';
-import {IBuildSelectFields, defaultBuildSelectFields} from 'app/models/selectable_item';
+import {
+  IBuildSelectFields,
+  defaultBuildSelectFields,
+} from 'app/models/selectable_item';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
 import {NotificationService} from 'app/services/notification.service';
 import {checkSelectFields} from 'app/utils/validators';
@@ -12,19 +15,19 @@ import {ITestCase} from 'app/models/testcase';
 @Component({
   selector: 'app-single-test',
   templateUrl: './single-test.component.html',
-  styleUrls: ['./single-test.component.scss']
+  styleUrls: ['./single-test.component.scss'],
 })
 export class SingleTestComponent {
   @ViewChild(BuildSelectFormComponent) form!: BuildSelectFormComponent;
 
   protected disabled = true;
   protected testFormControl = new FormControl('');
-  protected testCases: ITestCase[] = []
+  protected testCases: ITestCase[] = [];
   private fields: IBuildSelectFields = defaultBuildSelectFields;
 
   constructor(
     private service: SatlabRpcService,
-    private notification: NotificationService,
+    private notification: NotificationService
   ) {}
 
   protected allRequiredFieldsSet(fields: IBuildSelectFields) {
@@ -34,45 +37,52 @@ export class SingleTestComponent {
 
   protected async onRunTestClick() {
     if (!this.validate()) {
-      return
+      return;
     }
 
     from(this.testCases)
       .pipe(
         startWithTap(() => {
-          this.form.showLoading('Triggering tests...')
+          this.form.showLoading('Triggering tests...');
           this.disabled = true;
         }),
         map(test => {
-          return from(this.service.runTest({
-            ...this.fields,
-            tests: [test.name],
-          }))
-            .pipe(
-              catchError(err => {
-                this.notification.error(`Trigger test failed! Error: ${err}`, {dismiss: false})
-                return of('')
-              }),
-              tap({
-                next: link => {
-                  if (link === '') {
-                    return
-                  }
-                  this.notification.info([
+          return from(
+            this.service.runTest({
+              ...this.fields,
+              tests: [test.name],
+            })
+          ).pipe(
+            catchError(err => {
+              this.notification.error(`Trigger test failed! Error: ${err}`, {
+                dismiss: false,
+              });
+              return of('');
+            }),
+            tap({
+              next: link => {
+                if (link === '') {
+                  return;
+                }
+                this.notification.info(
+                  [
                     `Trigger test ${test.name} successfully! Test link:`,
-                    {type: 'url', url: link}
-                  ], {dismiss: false})
-                },
-              })
-            )
+                    {type: 'url', url: link},
+                  ],
+                  {dismiss: false}
+                );
+              },
+            })
+          );
         }),
-        mergeAll(),
-      ).subscribe({
+        mergeAll()
+      )
+      .subscribe({
         complete: () => {
           this.form.hideLoading();
           this.testCases = [];
         },
-      })
+      });
   }
 
   private canRun() {
@@ -88,11 +98,11 @@ export class SingleTestComponent {
   }
 
   protected onAddTestClick() {
-    const c = this.testFormControl.value.trim()
+    const c = this.testFormControl.value.trim();
     if (c === '') {
-      return
+      return;
     }
-    this.testCases.push({name: c})
+    this.testCases.push({name: c});
     this.testFormControl.setValue('');
     this.canRun();
   }

@@ -6,5 +6,6 @@ export function getRPCHost() {
   const port = environment.defaultApiPort || url.port;
   let serviceUrl = String(url.protocol);
   serviceUrl = serviceUrl.concat('//', hostname, ':', port, '/rpc');
-  return serviceUrl.toString();
+  // return serviceUrl.toString();
+  return 'http://10.240.107.156/rpc';
 }

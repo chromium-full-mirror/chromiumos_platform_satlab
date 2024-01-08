@@ -8,9 +8,10 @@
       <mat-form-field class="full-width zero-padding">
         <mat-label>Enter Test Name</mat-label>
         <input
-        matInput
-        placeholder="Ex: audio_CrasAec"
-        [formControl]="testFormControl">
+          matInput
+          placeholder="Ex: audio_CrasAec"
+          [formControl]="testFormControl"
+        />
       </mat-form-field>
     </div>
     <button
@@ -26,15 +27,15 @@
 
   <div class="card-wrapper" *ngFor="let case of testCases; let i = index">
     <div class="card-group">
-      <span class="card-content">Test {{i + 1}}: {{case.name}}</span>
+      <span class="card-content">Test {{ i + 1 }}: {{ case.name }}</span>
       <button
         matTooltip="Remove test"
         color="basic"
         class="delete-btn"
         (click)="onRemoveTestClick(i)"
-    >
-      <div class="material-icon">delete</div>
-    </button>
+      >
+        <div class="material-icon">delete</div>
+      </button>
     </div>
   </div>
 
