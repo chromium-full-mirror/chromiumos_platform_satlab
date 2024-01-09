@@ -51,6 +51,7 @@ services:
       - servod_profile:/var/servod/profile/:rw
       - containers:/var/lib/containers:rw
       - partner_testing_rsa:/creds/ssh_keys:rw
+      - /dev:/dev
     # TODO (prasadv): Make static ip addresses higher numbers
     # so that the lower number are available for dhcp to assign it
     # to dynamically created containers such as servod container
