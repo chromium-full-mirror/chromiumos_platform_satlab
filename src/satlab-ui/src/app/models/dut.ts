@@ -59,3 +59,10 @@ export interface IUpdateFirmwareResult {
   address: string;
   message: string;
 }
+
+export interface RepairDUTResponse {
+  hostname: string;
+  buildLink: string;
+  taskLink: string;
+  isSuccess: boolean;
+}

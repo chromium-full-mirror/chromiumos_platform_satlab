@@ -35,6 +35,7 @@ service SatlabRpcService {
   rpc UpdatePool (UpdatePoolRequest) returns (UpdatePoolResponse);
   rpc DeleteDuts (DeleteDutsRequest) returns (DeleteDutsResponse);
   rpc AddDuts (AddDutsRequest) returns (AddDutsResponse);
+  rpc RepairDuts(RepairDutsRequest) returns (RepairDutsResponse);
 
   // get DUTs information
   rpc GetDutDetail (GetDutDetailRequest) returns (GetDutDetailResponse);
@@ -503,3 +504,24 @@ message RebootRequest {}
 
 // NEXT_TAG = 1
 message RebootResponse {}
+
+// NEXT_TAG = 3
+message RepairDutsRequest {
+  // The DUTs' hostnames that a user wants to repair.
+  repeated string hostnames = 1;
+  // a flag that control we want to deep repair.
+  bool deep = 2;
+}
+
+// NEXT_TAG = 2
+message RepairDutsResponse {
+  // NEXT_TAG = 5
+  message RepairResult {
+    // The hostname that has been triggered the repair task.
+    string hostname = 1;
+    string build_link = 2;
+    string task_link = 3;
+    bool is_success = 4;
+  }
+  repeated RepairResult result = 1;
+}

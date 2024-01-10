@@ -1,9 +1,9 @@
-import {Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {IDut} from '../../models/dut';
 import {SatlabRpcService} from '../../services/satlab-rpc.service';
 import {FormControl, Validators} from '@angular/forms';
 import {toIterator} from '../../utils/iterator';
-import {finalize, from, interval, Subscription} from 'rxjs';
+import {finalize, from} from 'rxjs';
 import {startWithTap} from '../../utils/rxjs_operator';
 import {MatDialog} from '@angular/material/dialog';
 import {ProvisionComponent} from '../../dialogs/provision/provision.component';
@@ -303,6 +303,55 @@ export class EnrollmentComponent {
     this.autoRefresh.emit(c.checked);
   }
 
+  /*
+   * onRepairClicked an event handler to repair the selected DUTs.
+   * @protected
+   */
+  protected onRepairClicked() {
+    // filter all deployed DUTs
+    const hostnames = toIterator(this.selectedDUTs)
+      .filter(enrolled)
+      .map(e => e.hostname)
+      .collect();
+
+    if (hostnames.length === 0) {
+      return;
+    }
+
+    from(
+      this.service.repairDuts({
+        hostnames: hostnames,
+        deep: true,
+      })
+    )
+      .pipe(
+        startWithTap(() => (this.loading = true)),
+        finalize(() => (this.loading = false))
+      )
+      .subscribe({
+        next: res => {
+          toIterator(res).forEach(e => {
+            if (e.isSuccess) {
+              this.notification.info(
+                [
+                  `Repair ${e.hostname} succeed: `,
+                  {type: 'url', url: e.buildLink},
+                ],
+                {dismiss: false}
+              );
+            } else {
+              this.notification.error(`failed to repair ${e.hostname}`, {
+                dismiss: false,
+              });
+            }
+          });
+        },
+        error: e => {
+          this.notification.error(`failed to repair: ${JSON.stringify(e)}`);
+        },
+      });
+  }
+
   /**
    * __canBeEnrolled checks the DUT can be enrolled.
    * @param d the information of DUT
@@ -424,4 +473,11 @@ export class EnrollmentComponent {
         )
       );
   }
+}
+
+/**
+ * check the DUT has been enrolled.
+ */
+function enrolled(d: IDut) {
+  return d.hostname !== '';
 }

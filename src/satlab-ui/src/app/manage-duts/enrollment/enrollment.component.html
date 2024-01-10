@@ -17,6 +17,10 @@
       Unenroll Selected
     </button>
 
+    <button mat-raised-button [disabled]="!isDUTSelected || loading" (click)="onRepairClicked()" >
+      Repair
+    </button>
+
     <button mat-raised-button [disabled]="loading" (click)="onProvisionDUTs()">
       Provision DUTs
     </button>

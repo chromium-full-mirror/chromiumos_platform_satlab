@@ -30,9 +30,16 @@ import {
   StageBuildRequest,
   RebootRequest,
   Dim,
+  RepairDutsRequest,
+  RepairDutsResponse,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
-import {IDut, IFirmwareDUT, IUpdateFirmwareResult} from '../models/dut';
+import {
+  IDut,
+  IFirmwareDUT,
+  IUpdateFirmwareResult,
+  RepairDUTResponse,
+} from '../models/dut';
 import {IBoto} from '../models/boto';
 import {IDims} from '../models/dims';
 import {
@@ -537,6 +544,34 @@ export class SatlabRpcService {
 
     await this.client.reboot(req, {});
   }
+
+  /**
+   * repairDuts repair DUTs by hostnames.
+   * @param p: The object of hostnames and the flag which indicates deep repair or not.
+   */
+  public async repairDuts(p: {hostnames: string[]; deep: boolean}) {
+    const req = new RepairDutsRequest()
+      .setHostnamesList(p.hostnames)
+      .setDeep(p.deep);
+
+    const resp = await this.client.repairDuts(req, {});
+
+    return toRepairDUTsResponse(resp.getResultList());
+  }
+}
+
+function toRepairDUTsResponse(r: RepairDutsResponse.RepairResult[]) {
+  return toIterator(r)
+    .map(e => {
+      const res: RepairDUTResponse = {
+        hostname: e.getHostname(),
+        buildLink: e.getBuildLink(),
+        taskLink: e.getTaskLink(),
+        isSuccess: e.getIsSuccess(),
+      };
+      return res;
+    })
+    .collect();
 }
 
 function __toStatusHintText(status: string) {
