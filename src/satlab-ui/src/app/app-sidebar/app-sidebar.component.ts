@@ -22,6 +22,11 @@ export class AppSidebarComponent {
       icon: 'play_arrow',
     },
     {
+      route: 'view_jobs',
+      label: 'View Jobs',
+      icon: 'visibility',
+    },
+    {
       route: '/configuration',
       label: 'Configuration',
       icon: 'settings',

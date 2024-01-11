@@ -26,6 +26,7 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {NgModule} from '@angular/core';
 import {RouterModule} from '@angular/router';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
+import {MatDatepickerModule} from '@angular/material/datepicker';
 
 import {AppComponent} from './app.component';
 import {AppRoutingModule} from './app-routing.module';
@@ -51,6 +52,21 @@ import {AutocompleteSelectorComponent} from './run_suite/common/autocomplete-sel
 import {StageBuildComponent} from './dialogs/stage-build/stage-build.component';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {SingleTestComponent} from './run_suite/single-test/single-test.component';
+import {ViewJobsComponent} from './view-jobs/view-jobs.component';
+import {ClickDetectorDirective} from './click-detector.directive';
+import {
+  MAT_MOMENT_DATE_FORMATS,
+  MatMomentDateModule,
+  MomentDateAdapter,
+} from '@angular/material-moment-adapter';
+import {
+  DateAdapter,
+  MAT_DATE_FORMATS,
+  MAT_DATE_LOCALE,
+} from '@angular/material/core';
+import {CustomDatepickerComponent} from './custom-datepicker/custom-datepicker.component';
+import {InfiniteScrollDirective} from './infinite-scroll.directive';
+import {JobTableComponent} from './view-jobs/job-table/job-table.component';
 
 @NgModule({
   declarations: [
@@ -74,6 +90,11 @@ import {SingleTestComponent} from './run_suite/single-test/single-test.component
     AutocompleteSelectorComponent,
     StageBuildComponent,
     SingleTestComponent,
+    ViewJobsComponent,
+    ClickDetectorDirective,
+    CustomDatepickerComponent,
+    InfiniteScrollDirective,
+    JobTableComponent,
   ],
   imports: [
     AppRoutingModule,
@@ -108,6 +129,8 @@ import {SingleTestComponent} from './run_suite/single-test/single-test.component
     MatSnackBarModule,
     MatDialogModule,
     MatSlideToggleModule,
+    MatDatepickerModule,
+    MatMomentDateModule,
   ],
   exports: [
     AppRoutingModule,

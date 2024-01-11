@@ -7,6 +7,7 @@ import {AboutComponent} from './about/about.component';
 import {ConfigurationComponent} from './configuration/configuration.component';
 import {TestplanComponent} from './run_suite/testplan/testplan.component';
 import {checkLoggedIn} from './utils/auth-guard';
+import {ViewJobsComponent} from './view-jobs/view-jobs.component';
 
 const routes: Routes = [
   {
@@ -21,6 +22,11 @@ const routes: Routes = [
       {path: 'other', component: OtherComponent},
       {path: 'testplan', component: TestplanComponent},
     ],
+    canActivate: [checkLoggedIn],
+  },
+  {
+    path: 'view_jobs',
+    component: ViewJobsComponent,
     canActivate: [checkLoggedIn],
   },
   {

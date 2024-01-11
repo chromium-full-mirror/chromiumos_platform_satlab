@@ -50,6 +50,9 @@ service SatlabRpcService {
 
   // system
   rpc Reboot (RebootRequest) returns (RebootResponse);
+
+  // Jobs/Tasks information
+  rpc ListJobs (ListJobsRequest) returns (ListJobsResponse);
 }
 
 message ListBuildTargetsRequest {
@@ -524,4 +527,127 @@ message RepairDutsResponse {
     bool is_success = 4;
   }
   repeated RepairResult result = 1;
+}
+
+// NEXT_TAG = 13
+message Job {
+  // NEXT_TAG = 4
+  enum JobType {
+    TYPE_NOT_SET = 0;
+    SUITE = 1;
+    TESTPLAN = 2;
+    TEST = 3;
+  }
+  // NEXT_TAG = 9
+  enum JobStatus {
+    STATUS_NOT_SET = 0;
+    PENDING = 1;
+    RUNNING = 2;
+    // Job ran and completed normally irrespective of swarming task exit code
+    // This should be sure for CTP (suite/testplan) tasks, as these task
+    // don't indicate actual test status.
+    COMPLETE = 3;
+    // Job ran and completed nomarlly with swarming exit code = 0
+    COMPLETE_SUCCESS = 4;
+    // Job ran and completed nomarlly with swarming exit code != 0
+    COMPLETE_FAILURE = 5;
+    // Job ran longer than allowed time
+    TIMED_OUT = 6;
+    // Job never ran due to lack of bot availablity
+    EXPIRED = 7;
+    // Job manually canceled or killed or aborted
+    ABORTED = 8;
+  }
+  string job_id = 1;
+  string name = 2;
+  google.protobuf.Timestamp created_time = 3;
+  google.protobuf.Timestamp start_time = 4;
+  google.protobuf.Timestamp finished_time = 5;
+  JobStatus status = 6;
+  string parent_job_id = 7;
+  string hostname = 8;
+  string label_pool = 9;
+  string satlab_id = 10;
+  string task_url = 11;
+  string results_url = 12;
+}
+
+// NEXT_TAG = 3
+message Tag {
+  string key = 1;
+  string value = 2;
+}
+
+// Use one of the values in this enum to query for task/job in one of the
+// specified state.
+// Use 'ALL' to not use any filtering based on task state.
+// Note: This enum is same as the one found in swarming.proto
+// https://chromium.googlesource.com/infra/luci/luci-go/+/refs/heads/main/swarming/proto/api_v2/swarming.proto#121
+// NEXT_TAG = 11
+enum StateQuery {
+  // Query for all tasks currently TaskState.PENDING.
+  QUERY_PENDING = 0;
+  // Query for all tasks currently TaskState.RUNNING. This includes tasks
+  // currently in the overhead phase; mapping input files or archiving outputs
+  // back to the server.
+  QUERY_RUNNING = 1;
+  // Query for all tasks currently TaskState.PENDING or TaskState.RUNNING. This
+  // is the query for the 'active' tasks.
+  QUERY_PENDING_RUNNING = 2;
+  // Query for all tasks that completed normally as TaskState.COMPLETED,
+  // independent of the process exit code.
+  QUERY_COMPLETED = 3;
+  // Query for all tasks that completed normally as TaskState.COMPLETED and that
+  // had exit code 0.
+  QUERY_COMPLETED_SUCCESS = 4;
+  // Query for all tasks that completed normally as TaskState.COMPLETED and that
+  // had exit code not 0.
+  QUERY_COMPLETED_FAILURE = 5;
+  // Query for all tasks that are TaskState.EXPIRED.
+  QUERY_EXPIRED = 6;
+  // Query for all tasks that are TaskState.TIMED_OUT.
+  QUERY_TIMED_OUT = 7;
+  // Query for all tasks that are TaskState.CANCELED.
+  QUERY_CANCELED = 9;
+  // Query for all tasks, independent of the task state.
+  //
+  // In hindsight, this constant should have been the value 0. Sorry, the
+  // original author was young and foolish.
+  QUERY_ALL = 10;
+}
+
+// Note: This enum is same as the one found in swarming.proto
+// Use this to specify the sort_by, default is CREATED_TS
+// https://chromium.googlesource.com/infra/luci/luci-go/+/refs/heads/main/swarming/proto/api_v2/swarming.proto#167
+// NEXT_TAG = 5
+enum SortBy {
+		CREATED_TS =   0;
+		COMPLETED_TS = 2;
+		ABANDONED_TS = 3;
+		STARTED_TS = 4;
+}
+
+// NEXT_TAG = 9
+message ListJobsRequest {
+  google.protobuf.Timestamp created_time_gt = 1;
+  google.protobuf.Timestamp created_time_lt = 2;
+  // Job type is one of test/testplan/suite.
+  Job.JobType job_type = 3;
+  // This are different filters that we want to query jobs
+  // eg: label-pool:abc or satlab-id:xyz etc
+  repeated Tag tags = 4;
+  SortBy sort_by = 5;
+  StateQuery query_status = 6;
+  string page_token = 7;
+  // No. of records, max 1000
+  int64 limit = 8;
+}
+
+// NEXT_TAG = 3
+message ListJobsResponse {
+  // A page token, the next token for retrieving the subsequent page.
+  // if it is empty, means it is at the end, no more plans
+  // that we can read from the bucket
+  string next_page_token = 1;
+  repeated Job jobs = 2;
 }

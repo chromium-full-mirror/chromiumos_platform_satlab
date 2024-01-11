@@ -1,0 +1,110 @@
+<div class="wrapper">
+  <div class="search-wrapper">
+    <div class="row">
+      <div class="w-48 min-x-48">
+        <mat-form-field class="full-width">
+          <mat-label>Satlab ID</mat-label>
+          <input
+            id="satlab-id"
+            name="satlab-id"
+            matInput
+            [value]="query.tags?.['satlab-id'] ?? ''"
+            (change)="onSatlabIDChanged($event)"
+          />
+        </mat-form-field>
+      </div>
+
+      <div class="w-48 min-w-48">
+        <mat-form-field class="full-width">
+          <mat-label>Pool</mat-label>
+          <input
+            id="pool"
+            name="pool"
+            matInput
+            [value]="query.tags?.['label-pool'] ?? ''"
+            (change)="onPoolChanged($event)"
+          />
+        </mat-form-field>
+      </div>
+
+      <div class="selector-wrapper w-48 min-w-48">
+        <mat-form-field class="full-width">
+          <mat-label>Status</mat-label>
+          <mat-select
+            name="status"
+            [(ngModel)]="statusQuery"
+            (selectionChange)="onJobStatusChanged($event.value)"
+          >
+            <mat-option
+              *ngFor="let status of statusOptions"
+              [value]="status.value"
+            >
+              {{ status.text }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="selector-wrapper w-36 min-w-36">
+        <mat-form-field class="full-width">
+          <mat-label>Job Type</mat-label>
+          <mat-select
+            name="job_type"
+            [(ngModel)]="jobType"
+            (selectionChange)="onJobTypeChanged($event.value)"
+          >
+            <mat-option *ngFor="let t of jobTypeOptions" [value]="t.value">
+              {{ t.text }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="w-48 min-w-48">
+        <mat-form-field class="full-width">
+          <mat-label>Name</mat-label>
+          <input
+            id="name"
+            name="name"
+            matInput
+            [(ngModel)]="nameInput"
+            (change)="onNameChanged($event)"
+            [disabled]="!canFilterName"
+          />
+        </mat-form-field>
+      </div>
+
+      <div>
+        <app-custom-datepicker
+          #startDatepicker
+          (dateChange)="onFromChanged($event)"
+          [filterDateLt]="query.createdDateLt"
+          errorMessage="Start date must less than end date and within 30 days"
+        ></app-custom-datepicker>
+      </div>
+
+      <div>
+        <app-custom-datepicker
+          #endDatepicker
+          (dateChange)="onToChanged($event)"
+          [filterDateGt]="query.createdDateGt"
+          errorMessage="End date must greater than start date and within 30 days"
+        ></app-custom-datepicker>
+      </div>
+    </div>
+
+    <div class="button-group row">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="onFilterClicked()"
+        [disabled]="disabled"
+      >
+        Filter
+      </button>
+      <button mat-raised-button (click)="onClearClicked()">Clear</button>
+    </div>
+  </div>
+
+  <app-job-table [query]="jobQuery"></app-job-table>
+</div>

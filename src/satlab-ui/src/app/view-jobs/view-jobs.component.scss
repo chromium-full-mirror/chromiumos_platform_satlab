@@ -1,0 +1,41 @@
+@import 'constants';
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  row-gap: 1rem;
+  position: relative;
+  padding: 16px;
+
+  .search-wrapper {
+    display: flex;
+    flex-direction: column;
+    row-gap: 2rem;
+    position: relative;
+    padding: 16px;
+    box-shadow: 0 0 4px 2px $color-deep-grey;
+    border-radius: 8px;
+    background-color: transparent;
+    flex-wrap: wrap;
+
+    .selector-wrapper {
+      display: inline-block;
+      position: relative;
+    }
+  }
+
+  .row {
+    display: flex;
+    flex-direction: row;
+    column-gap: 0.25rem;
+    position: relative;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+
+    &.button-group {
+      justify-content: center;
+      column-gap: 1rem;
+    }
+  }
+}

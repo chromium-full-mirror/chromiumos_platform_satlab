@@ -32,6 +32,11 @@ import {
   Dim,
   RepairDutsRequest,
   RepairDutsResponse,
+  ListJobsRequest,
+  Job,
+  StateQuery,
+  SortBy,
+  Tag,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
 import {
@@ -51,6 +56,16 @@ import {
   DUT_STATUS_REPAIR_FAILED,
   DUT_STATUS_UNKNOWN,
 } from 'app/constants';
+import {
+  IJob,
+  IJobQuery,
+  IJobResponse,
+  JobStatus,
+  JobTags,
+  JobType,
+  RequestStateQuery,
+} from '../models/job';
+import {Timestamp} from 'google-protobuf/google/protobuf/timestamp_pb';
 
 @Injectable({
   providedIn: 'root',
@@ -558,6 +573,37 @@ export class SatlabRpcService {
 
     return toRepairDUTsResponse(resp.getResultList());
   }
+
+  /** list jobs by query
+   * @param q the parameters that we want to filter.
+   */
+  public async listJobs(q: IJobQuery): Promise<IJobResponse> {
+    const req = new ListJobsRequest();
+
+    if (q.createdDateGt) {
+      req.setCreatedTimeGt(Timestamp.fromDate(q.createdDateGt.toDate()));
+    }
+    if (q.createdDateLt) {
+      req.setCreatedTimeLt(Timestamp.fromDate(q.createdDateLt.toDate()));
+    }
+    req.setJobType(toRequestJobType(q.jobType));
+    req.setQueryStatus(toRequestJobStatus(q.statusQuery));
+    if (q.pageToken) {
+      req.setPageToken(q.pageToken);
+    }
+    // TODO: the UI does not support let a user to decide which ordering.
+    req.setSortBy(SortBy.CREATED_TS);
+    req.setLimit(q.pageSize);
+
+    req.setTagsList(toTags(q.tags));
+
+    const resp = await this.client.listJobs(req, {});
+
+    return {
+      token: resp.getNextPageToken(),
+      jobs: toIterator(resp.getJobsList()).map(toJob).collect(),
+    };
+  }
 }
 
 function toRepairDUTsResponse(r: RepairDutsResponse.RepairResult[]) {
@@ -572,6 +618,94 @@ function toRepairDUTsResponse(r: RepairDutsResponse.RepairResult[]) {
       return res;
     })
     .collect();
+}
+
+function toTags(tags?: JobTags): Tag[] {
+  return tags
+    ? toIterator(Object.keys(tags))
+        .map(k => {
+          return new Tag().setKey(k).setValue(tags[k]);
+        })
+        .collect()
+    : [];
+}
+
+function toJob(j: Job): IJob {
+  return {
+    id: j.getJobId(),
+    name: j.getName(),
+    createdAt: j.getCreatedTime().toDate(),
+    startedAt: j.getStartTime()?.toDate(),
+    finishedAt: j.getFinishedTime()?.toDate(),
+    parentJobID: j.getParentJobId(),
+    hostname: j.getHostname(),
+    pool: j.getLabelPool(),
+    satlabID: j.getSatlabId(),
+    status: toJobStatus(j.getStatus()),
+    taskUrl: j.getTaskUrl(),
+    resultUrl: j.getResultsUrl(),
+  };
+}
+
+function toJobStatus(s: Job.JobStatus): JobStatus {
+  switch (s) {
+    case Job.JobStatus.PENDING:
+      return 'PENDING';
+    case Job.JobStatus.RUNNING:
+      return 'RUNNING';
+    case Job.JobStatus.COMPLETE:
+      return 'COMPLETE';
+    case Job.JobStatus.COMPLETE_SUCCESS:
+      return 'COMPLETE_SUCCESS';
+    case Job.JobStatus.COMPLETE_FAILURE:
+      return 'COMPLETE_FAILURE';
+    case Job.JobStatus.TIMED_OUT:
+      return 'TIMEOUT';
+    case Job.JobStatus.EXPIRED:
+      return 'EXPIRED';
+    case Job.JobStatus.ABORTED:
+      return 'ABORTED';
+    default:
+      return 'STATUS_NOT_SET';
+  }
+}
+
+function toRequestJobType(t?: JobType) {
+  switch (t) {
+    case 'SUITE':
+      return Job.JobType.SUITE;
+    case 'TESTPLAN':
+      return Job.JobType.TESTPLAN;
+    case 'TEST':
+      return Job.JobType.TEST;
+    default:
+      return Job.JobType.TYPE_NOT_SET;
+  }
+}
+
+function toRequestJobStatus(s?: RequestStateQuery) {
+  switch (s) {
+    case 'PENDING':
+      return StateQuery.QUERY_PENDING;
+    case 'RUNNING':
+      return StateQuery.QUERY_RUNNING;
+    case 'PENDING_RUNNING':
+      return StateQuery.QUERY_PENDING_RUNNING;
+    case 'COMPLETED':
+      return StateQuery.QUERY_COMPLETED;
+    case 'COMPLETE_SUCCESS':
+      return StateQuery.QUERY_COMPLETED_SUCCESS;
+    case 'COMPLETE_FAILURE':
+      return StateQuery.QUERY_COMPLETED_FAILURE;
+    case 'EXPIRED':
+      return StateQuery.QUERY_EXPIRED;
+    case 'TIMEOUT':
+      return StateQuery.QUERY_TIMED_OUT;
+    case 'CANCELLED':
+      return StateQuery.QUERY_CANCELED;
+    default:
+      return StateQuery.QUERY_ALL;
+  }
 }
 
 function __toStatusHintText(status: string) {
