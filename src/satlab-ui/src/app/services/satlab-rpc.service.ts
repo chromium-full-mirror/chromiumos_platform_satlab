@@ -734,7 +734,7 @@ function __toStatusHintText(status: string) {
   } else if (status === DUT_STATUS_READY) {
     return 'Ready for testing';
   } else if (status === DUT_STATUS_NEEDS_REPAIR) {
-    return 'DUT will auto-repair, please wait';
+    return 'DUT is either running test or is going to be picked up by auto-repair';
   } else if (status === DUT_STATUS_REPAIR_FAILED) {
     return 'Auto-repair will continue to attempt repairs';
   } else if (status === DUT_STATUS_NEEDS_DEPLOY) {
