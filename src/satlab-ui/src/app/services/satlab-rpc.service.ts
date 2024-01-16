@@ -578,6 +578,7 @@ export class SatlabRpcService {
    * @param q the parameters that we want to filter.
    */
   public async listJobs(q: IJobQuery): Promise<IJobResponse> {
+    console.log(q);
     const req = new ListJobsRequest();
 
     if (q.createdDateGt) {

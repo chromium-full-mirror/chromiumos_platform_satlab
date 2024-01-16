@@ -22,6 +22,7 @@ function createDefaultJobQuery(id: string): IJobQuery {
   selector: 'app-view-jobs',
   templateUrl: './view-jobs.component.html',
   styleUrls: ['./view-jobs.component.scss'],
+  changeDetection: core.ChangeDetectionStrategy.OnPush,
 })
 export class ViewJobsComponent implements core.AfterViewInit {
   @core.ViewChild('startDatepicker')
@@ -38,6 +39,7 @@ export class ViewJobsComponent implements core.AfterViewInit {
   protected jobType = 'ALL';
   protected statusQuery = 'ALL';
   protected disabled = false;
+  protected loading = false;
 
   #status: RequestStateQuery[] = [
     'ALL',
@@ -56,7 +58,8 @@ export class ViewJobsComponent implements core.AfterViewInit {
 
   constructor(
     private service: SatlabRpcService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private cdf: core.ChangeDetectorRef
   ) {
     this.jobTypeOptions = toIterator(this.#jobTypes)
       .map(toSelectItem)
@@ -72,6 +75,7 @@ export class ViewJobsComponent implements core.AfterViewInit {
         if (id) {
           this.jobQuery = createDefaultJobQuery(id);
           this.query = createDefaultJobQuery(id);
+          this.cdf.detectChanges();
         }
       },
     });
@@ -79,7 +83,6 @@ export class ViewJobsComponent implements core.AfterViewInit {
 
   /**
    * Get the Satlab ID from the backend.
-   * @private
    */
   #getSatlabID() {
     from(this.service.getVersionInfo()).subscribe({
@@ -172,6 +175,14 @@ export class ViewJobsComponent implements core.AfterViewInit {
     if (this.query.createdDateGt) {
       this.disabled = !withinDays(this.query.createdDateGt, newValue, 30);
     }
+  }
+
+  /**
+   * onLoadingChanged is the event handler handles fetching jobs.
+   */
+  protected onLoadingChanged(loading: boolean) {
+    this.loading = loading;
+    this.cdf.detectChanges();
   }
 
   /**

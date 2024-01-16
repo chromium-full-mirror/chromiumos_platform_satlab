@@ -98,13 +98,18 @@
         mat-raised-button
         color="primary"
         (click)="onFilterClicked()"
-        [disabled]="disabled"
+        [disabled]="disabled || loading"
       >
         Filter
       </button>
-      <button mat-raised-button (click)="onClearClicked()">Clear</button>
+      <button mat-raised-button (click)="onClearClicked()" [disabled]="loading">
+        Clear
+      </button>
     </div>
   </div>
 
-  <app-job-table [query]="jobQuery"></app-job-table>
+  <app-job-table
+    [query]="jobQuery"
+    (loadingChange)="onLoadingChanged($event)"
+  ></app-job-table>
 </div>

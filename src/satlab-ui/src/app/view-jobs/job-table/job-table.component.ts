@@ -2,8 +2,10 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  EventEmitter,
   Input,
   OnChanges,
+  Output,
   SimpleChanges,
 } from '@angular/core';
 import {IJob, IJobQuery, JobColumn, JobHeader} from 'app/models/job';
@@ -49,6 +51,9 @@ const COLUMN_OPTIONS = ALL_COLUMNS.slice(1);
 export class JobTableComponent implements OnChanges {
   @Input() query?: IJobQuery;
   #query: IJobQuery;
+
+  /* loadingChange is the event emitter that indicates the loading of fetching jobs */
+  @Output() loadingChange = new EventEmitter<boolean>();
 
   /* jobs  is the data that we want to show. */
   protected jobs: IJob[] = [];
@@ -104,10 +109,12 @@ export class JobTableComponent implements OnChanges {
         startWithTap(() => {
           this.loading = true;
           this.cdf.detectChanges();
+          this.loadingChange.emit(this.loading);
         }),
         finalize(() => {
           this.loading = false;
           this.cdf.detectChanges();
+          this.loadingChange.emit(this.loading);
         }),
         map(resp => {
           this.hasMore = resp.token && resp.token !== '';
