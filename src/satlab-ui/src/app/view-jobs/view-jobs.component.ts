@@ -47,12 +47,13 @@ export class ViewJobsComponent implements core.AfterViewInit {
     'RUNNING',
     'PENDING_RUNNING',
     'COMPLETED',
-    'COMPLETE_SUCCESS',
-    'COMPLETE_FAILURE',
     'EXPIRED',
     'TIMEOUT',
     'CANCELLED',
   ];
+  protected maxDays = 30;
+  protected dateRangeStart = moment().subtract(this.maxDays, 'days');
+  protected dateRangeEnd = moment();
 
   #jobTypes: string[] = ['ALL', 'SUITE', 'TESTPLAN', 'TEST'];
 

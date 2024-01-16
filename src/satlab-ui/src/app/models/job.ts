@@ -5,8 +5,6 @@ export type JobStatus =
   | 'PENDING'
   | 'RUNNING'
   | 'COMPLETE' // Job ran and completed normally irrespective of swarming task exit code. This should be sure for CTP (suite/testplan) tasks, as these task don't indicate actual test status.
-  | 'COMPLETE_SUCCESS' // Job ran and completed normally with swarming exit code = 0
-  | 'COMPLETE_FAILURE' // Job ran and completed normally with swarming exit code != 0
   | 'TIMEOUT' // Job ran longer than allowed time
   | 'EXPIRED' // Job never ran due to lack of bot availability
   | 'ABORTED'; // Job manually cancelled or killed or aborted
@@ -23,7 +21,8 @@ export type JobHeader =
   | 'hostname'
   | 'pool'
   | 'satlabID'
-  | 'links';
+  | 'luciLink'
+  | 'testResults';
 
 export interface JobColumn {
   header: string;
@@ -65,8 +64,6 @@ export type RequestStateQuery =
   | 'RUNNING'
   | 'PENDING_RUNNING'
   | 'COMPLETED'
-  | 'COMPLETE_SUCCESS'
-  | 'COMPLETE_FAILURE'
   | 'EXPIRED'
   | 'TIMEOUT'
   | 'CANCELLED';

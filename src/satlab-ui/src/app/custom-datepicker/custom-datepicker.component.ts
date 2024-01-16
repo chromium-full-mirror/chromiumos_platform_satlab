@@ -55,6 +55,7 @@ export class CustomDatepickerComponent implements OnInit, OnDestroy {
   @Input() filterDateGt?: moment.Moment;
   @Input() maxDays = 30;
   @Input() errorMessage = '';
+  @Input() label = 'Choose a date';
 
   @Output() dateChange = new EventEmitter<Date | null>();
 

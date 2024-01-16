@@ -19,10 +19,14 @@
   >
     <mat-checkbox
       *ngFor="let op of columnOptions"
-      [checked]="displayedColumns.includes(op)"
-      (change)="toggleColumn($event.checked, op)"
-      >{{ op }}</mat-checkbox
+      [checked]="displayedColumns.includes(op.value)"
+      (change)="toggleColumn($event.checked, op.value)"
+      >{{ op.text }}</mat-checkbox
     >
+  </div>
+
+  <div class="no-data-wrapper" *ngIf="jobs.length === 0 && !loading">
+    No Data
   </div>
 
   <div
@@ -50,22 +54,24 @@
             <td mat-cell *matCellDef="let element">
               <div class="links">
                 <ng-container *ngFor="let link of item.actions">
-                  <a
-                    target="_blank"
-                    href="{{ link.getLink(element) }}"
-                    matTooltip="{{ link.tooltip }}"
-                  >
-                    <ng-container *ngIf="link.icon">
-                      <span class="material-icon">{{ link.icon }}</span>
-                    </ng-container>
-                    <ng-container *ngIf="link.img">
-                      <img
-                        alt="link-icon"
-                        class="img-icon"
-                        src="{{ link.img }}"
-                      />
-                    </ng-container>
-                  </a>
+                  <ng-container *ngIf="link.getLink(element) !== ''">
+                    <a
+                      target="_blank"
+                      href="{{ link.getLink(element) }}"
+                      matTooltip="{{ link.tooltip }}"
+                    >
+                      <ng-container *ngIf="link.icon">
+                        <span class="material-icon">{{ link.icon }}</span>
+                      </ng-container>
+                      <ng-container *ngIf="link.img">
+                        <img
+                          alt="link-icon"
+                          class="img-icon"
+                          src="{{ link.img }}"
+                        />
+                      </ng-container>
+                    </a>
+                  </ng-container>
                 </ng-container>
               </div>
             </td>

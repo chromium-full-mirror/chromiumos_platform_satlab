@@ -27,7 +27,8 @@ const ALL_COLUMNS: JobHeader[] = [
   'hostname',
   'pool',
   'satlabID',
-  'links',
+  'luciLink',
+  'testResults',
 ];
 
 const DEFAULT_COLUMNS: JobHeader[] = [
@@ -37,10 +38,23 @@ const DEFAULT_COLUMNS: JobHeader[] = [
   'startedAt',
   'finishedAt',
   'status',
-  'links',
+  'testResults',
 ];
 
-const COLUMN_OPTIONS = ALL_COLUMNS.slice(1);
+const COLUMN_OPTIONS = [
+  {text: 'ID', value: 'id'},
+  {text: 'Name', value: 'name'},
+  {text: 'Created At', value: 'createdAt'},
+  {text: 'Started At', value: 'startedAt'},
+  {text: 'Finished At', value: 'finishedAt'},
+  {text: 'Status', value: 'status'},
+  {text: 'Parent Job ID', value: 'parentJobID'},
+  {text: 'Hostname', value: 'hostname'},
+  {text: 'Pool', value: 'pool'},
+  {text: 'Satlab ID', value: 'satlabID'},
+  {text: 'LUCI Link', value: 'luciLink'},
+  {text: 'Test Results', value: 'testResults'},
+];
 
 @Component({
   selector: 'app-job-table',
@@ -62,7 +76,7 @@ export class JobTableComponent implements OnChanges {
   /* columns is the columns for rendering */
   protected columns: JobColumn[] = [];
   /* column options are the options that a user wants to select to display */
-  protected columnOptions: string[] = COLUMN_OPTIONS;
+  protected columnOptions: {text: string; value: string}[] = COLUMN_OPTIONS;
   /* A flag indicate that we have more data */
   protected hasMore = false;
   /* the flag shows the loading */
@@ -160,11 +174,14 @@ export class JobTableComponent implements OnChanges {
    */
   protected toggleColumn(checked: boolean, label: JobHeader) {
     if (checked && !this.displayedColumns.includes(label)) {
-      const idx = COLUMN_OPTIONS.indexOf(label);
+      const options = toIterator(COLUMN_OPTIONS)
+        .map(e => e.value)
+        .collect();
+      const idx = options.indexOf(label);
 
       let k = 0;
       for (const l of this.displayedColumns) {
-        const i = COLUMN_OPTIONS.indexOf(l);
+        const i = options.indexOf(l);
         if (i > idx) {
           break;
         }
@@ -241,10 +258,10 @@ function headerToColumn(header: JobHeader): JobColumn {
       return {header: 'Pool', def: 'pool', type: 'string'};
     case 'satlabID':
       return {header: 'Satlab ID', def: 'satlabID', type: 'string'};
-    case 'links':
+    case 'luciLink':
       return {
-        header: 'Result Links',
-        def: 'links',
+        header: '',
+        def: 'luciLink',
         type: 'link',
         actions: [
           {
@@ -252,10 +269,23 @@ function headerToColumn(header: JobHeader): JobColumn {
             img: 'https://storage.googleapis.com/chrome-infra/lucy-small.png',
             tooltip: 'LUCI link',
           },
+        ],
+      };
+    case 'testResults':
+      return {
+        header: '',
+        def: 'testResults',
+        type: 'link',
+        actions: [
           {
-            getLink: j => j.resultUrl,
+            getLink: j => {
+              if (j.status === 'COMPLETE') {
+                return j.resultUrl;
+              }
+              return '';
+            },
             icon: 'link',
-            tooltip: 'Testhouse link',
+            tooltip: 'Test Results',
           },
         ],
       };

@@ -680,11 +680,9 @@ function toJobStatus(s: Job.JobStatus): JobStatus {
     case Job.JobStatus.RUNNING:
       return 'RUNNING';
     case Job.JobStatus.COMPLETE:
-      return 'COMPLETE';
     case Job.JobStatus.COMPLETE_SUCCESS:
-      return 'COMPLETE_SUCCESS';
     case Job.JobStatus.COMPLETE_FAILURE:
-      return 'COMPLETE_FAILURE';
+      return 'COMPLETE';
     case Job.JobStatus.TIMED_OUT:
       return 'TIMEOUT';
     case Job.JobStatus.EXPIRED:
@@ -719,10 +717,6 @@ function toRequestJobStatus(s?: RequestStateQuery) {
       return StateQuery.QUERY_PENDING_RUNNING;
     case 'COMPLETED':
       return StateQuery.QUERY_COMPLETED;
-    case 'COMPLETE_SUCCESS':
-      return StateQuery.QUERY_COMPLETED_SUCCESS;
-    case 'COMPLETE_FAILURE':
-      return StateQuery.QUERY_COMPLETED_FAILURE;
     case 'EXPIRED':
       return StateQuery.QUERY_EXPIRED;
     case 'TIMEOUT':

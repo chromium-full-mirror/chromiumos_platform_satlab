@@ -41,7 +41,18 @@
 
     &.show {
       display: flex;
+      height: 38vh;
+      overflow-y: auto;
     }
+  }
+
+  .no-data-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 60vh;
+    position: absolute;
   }
 
   .jobs-wrapper {
@@ -82,6 +93,15 @@
       .mat-mdc-header-cell.cdk-column-finishedAt {
         min-width: 220px;
         max-width: 220px;
+      }
+
+      .mat-mdc-cell.cdk-column-luciLink,
+      .mat-mdc-header-cell.cdk-column-luciLink,
+      .mat-mdc-cell.cdk-column-testResults,
+      .mat-mdc-header-cell.cdk-column-testResults {
+        min-width: 30px;
+        max-width: 30px;
+        padding: 0 3px;
       }
 
       .links {
