@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   Component,
   EventEmitter,
+  Input,
   OnDestroy,
   OnInit,
   Output,
@@ -32,6 +33,9 @@ import {
 export class BuildSelectFormComponent
   implements AfterViewInit, OnDestroy, OnInit
 {
+  /* replacePoolByHostname use hostname filter instead of pool. */
+  @Input() replacePoolByHostname = false;
+
   @Output() allRequiredFieldsSet = new EventEmitter<IBuildSelectFields>();
   @Output() onInitComplete = new EventEmitter();
 
@@ -39,11 +43,14 @@ export class BuildSelectFormComponent
   @ViewChild('milestoneSelector') milestoneSelector?: BasicSelectorComponent;
   @ViewChild('buildSelector') buildSelector?: BasicSelectorComponent;
   @ViewChild('poolSelector') poolSelector?: BasicSelectorComponent;
+  @ViewChild('hostnameSelector') hostnameSelector?: BasicSelectorComponent;
+
   protected modelOptions: SelectableItem[] = [];
   protected boardOptions: SelectableItem[] = [];
   protected poolOptions: SelectableItem[] = [];
   protected milestoneOptions: SelectableItem[] = [];
   protected buildOptions: SelectableItem[] = [];
+  protected hostnameOptions: SelectableItem[] = [];
   protected fields = defaultBuildSelectFields;
   protected loading = {
     show: false,
@@ -74,7 +81,7 @@ export class BuildSelectFormComponent
         })
       )
       .subscribe({
-        next: duts => this.parseAPIResponse(duts),
+        next: duts => this.#parseAPIResponse(duts),
         error: e => {
           this.notification.error(`Fetching model got an error: ${e}`, {
             dismiss: false,
@@ -103,10 +110,10 @@ export class BuildSelectFormComponent
       build: '',
       pool: '',
     };
-    this.resetSelector(this.fields);
+    this.#resetSelector(this.fields);
     this.fields$.next(this.fields);
     this.poolOptions = [];
-    this.parseBoardOptionsFromDUTs(this.duts);
+    this.#parseBoardOptionsFromDUTs(this.duts);
   }
 
   protected onBoardChanged(newBoard: string) {
@@ -117,10 +124,11 @@ export class BuildSelectFormComponent
       build: '',
       pool: '',
     };
-    this.resetSelector(this.fields);
+    this.#resetSelector(this.fields);
     this.fields$.next(this.fields);
-    this.parsePoolOptionsFromDUTs(this.duts);
-    this.getMilestones();
+    this.#parsePoolOptionsFromDUTs(this.duts);
+    this.#parseHostnameOptionsFromDUTs(this.duts);
+    this.#getMilestones();
   }
 
   protected onMilestoneChanged(newMilestone: string) {
@@ -129,9 +137,9 @@ export class BuildSelectFormComponent
       milestone: newMilestone,
       build: '',
     };
-    this.resetSelector(this.fields);
+    this.#resetSelector(this.fields);
     this.fields$.next(this.fields);
-    this.getBuilds();
+    this.#getBuilds();
   }
 
   protected onBuildChanged(newBuild: string) {
@@ -150,9 +158,26 @@ export class BuildSelectFormComponent
     this.fields$.next(this.fields);
   }
 
-  private parseAPIResponse(duts: IDut[]): void {
+  protected onHostnameChanged(newHostname: string) {
+    const pool = this.duts.find(e => e.hostname === newHostname);
+    if (!pool && pool.pools.length > 0) {
+      return;
+    }
+
+    this.fields = {
+      ...this.fields,
+      pool: pool.pools[0],
+      dims: {
+        dut_name: newHostname,
+      },
+    };
+    this.fields$.next(this.fields);
+  }
+
+  #parseAPIResponse(duts: IDut[]): void {
     this.duts = duts.map(e => {
       const dut: ISimpleDUT = {
+        hostname: e.hostname,
         model: e.model,
         board: e.board,
         pools: e.pools,
@@ -160,30 +185,30 @@ export class BuildSelectFormComponent
       return dut;
     });
 
-    this.parseModelOptionsFromDUTs(this.duts);
+    this.#parseModelOptionsFromDUTs(this.duts);
   }
 
-  private parseModelOptionsFromDUTs(duts: ISimpleDUT[]): void {
+  #parseModelOptionsFromDUTs(duts: ISimpleDUT[]): void {
     this.modelOptions = toIterator(duts)
       .map(e => e.model)
       .unique_by()
-      .map(e => this.toSelectableItem(e, e, ''))
+      .map(e => this.#toSelectableItem(e, e, ''))
       .collect();
   }
 
-  private parseBoardOptionsFromDUTs(duts: ISimpleDUT[]): void {
+  #parseBoardOptionsFromDUTs(duts: ISimpleDUT[]): void {
     this.boardOptions = [];
     if (this.fields.model !== '') {
       this.boardOptions = toIterator(duts)
         .filter(d => d.model === this.fields.model)
         .map(e => e.board)
         .unique_by()
-        .map(e => this.toSelectableItem(e, e, ''))
+        .map(e => this.#toSelectableItem(e, e, ''))
         .collect();
     }
   }
 
-  private parsePoolOptionsFromDUTs(duts: ISimpleDUT[]): void {
+  #parsePoolOptionsFromDUTs(duts: ISimpleDUT[]): void {
     this.poolOptions = [];
     if (this.fields.model !== '' && this.fields.board !== '') {
       this.poolOptions = toIterator(duts)
@@ -193,12 +218,26 @@ export class BuildSelectFormComponent
         .map(e => e.pools)
         .flatten()
         .unique_by()
-        .map(e => this.toSelectableItem(e, e, ''))
+        .map(e => this.#toSelectableItem(e, e, ''))
         .collect();
     }
   }
 
-  private getMilestones() {
+  #parseHostnameOptionsFromDUTs(duts: ISimpleDUT[]) {
+    this.hostnameOptions = [];
+    if (this.fields.model !== '' && this.fields.board !== '') {
+      this.hostnameOptions = toIterator(duts)
+        .filter(
+          d => d.model === this.fields.model && d.board === this.fields.board
+        )
+        .map(e => e.hostname)
+        .unique_by()
+        .map(e => this.#toSelectableItem(e, e, ''))
+        .collect();
+    }
+  }
+
+  #getMilestones() {
     if (this.fields.model !== '' && this.fields.board !== '') {
       from(this.service.listMilestones({...this.fields}))
         .pipe(
@@ -213,7 +252,7 @@ export class BuildSelectFormComponent
           next: milestones => {
             this.milestoneOptions = toIterator(milestones)
               .map(e => e.getValue())
-              .map(e => this.toSelectableItem(e, e, ''))
+              .map(e => this.#toSelectableItem(e, e, ''))
               .collect();
           },
           error: e => {
@@ -225,7 +264,7 @@ export class BuildSelectFormComponent
     }
   }
 
-  private getBuilds() {
+  #getBuilds() {
     if (
       this.fields.model !== '' &&
       this.fields.board !== '' &&
@@ -245,7 +284,7 @@ export class BuildSelectFormComponent
             this.buildOptions = toIterator(builds)
               .map(e => {
                 const status = BUILD_STATUS_MAPPINGS[e.getStatus()];
-                return this.toSelectableItem(
+                return this.#toSelectableItem(
                   e.getValue(),
                   e.getValue(),
                   status
@@ -262,7 +301,7 @@ export class BuildSelectFormComponent
     }
   }
 
-  private toSelectableItem(
+  #toSelectableItem(
     text: string,
     value: string,
     label: BuildStatus
@@ -274,7 +313,7 @@ export class BuildSelectFormComponent
     };
   }
 
-  private resetSelector(fields: IBuildSelectFields) {
+  #resetSelector(fields: IBuildSelectFields) {
     if (fields.board === '') {
       this.boardSelector?.clearSelection();
     }
@@ -286,6 +325,9 @@ export class BuildSelectFormComponent
     }
     if (fields.pool === '') {
       this.poolSelector?.clearSelection();
+    }
+    if (!fields.dims) {
+      this.hostnameSelector?.clearSelection();
     }
   }
 }

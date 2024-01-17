@@ -599,7 +599,8 @@ export class SatlabRpcService {
       .setBuild(params.build)
       .setBugId(params.bugID)
       .setPool(params.pool)
-      .setSuite(params.suite);
+      .setSuite(params.suite)
+      .setDimsList(this.toDims(params.dims));
 
     const res = await this.client.runStorageQual(req, {});
 

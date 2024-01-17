@@ -59,18 +59,36 @@
     >
     </app-basic-selector>
 
-    <app-basic-selector
-      #poolSelector
-      id="poolSelector"
-      title="Select Pool:"
-      placeholder="Please select a pool"
-      [options]="poolOptions"
-      (select)="onPoolChanged($event)"
-      [disabled]="fields.model === ''"
-      [disabledMessage]="
-        fields.model === '' ? 'Please select a model and board' : ''
-      "
-    >
-    </app-basic-selector>
+    <ng-container *ngIf="!replacePoolByHostname">
+      <app-basic-selector
+        #poolSelector
+        id="poolSelector"
+        title="Select Pool:"
+        placeholder="Please select a pool"
+        [options]="poolOptions"
+        (select)="onPoolChanged($event)"
+        [disabled]="fields.model === ''"
+        [disabledMessage]="
+          fields.model === '' ? 'Please select a model and board' : ''
+        "
+      >
+      </app-basic-selector>
+    </ng-container>
+
+    <ng-container *ngIf="replacePoolByHostname">
+      <app-basic-selector
+        #hostnameSelector
+        id="hostnameSelector"
+        title="Select Hostname:"
+        placeholder="Please select a hostname"
+        [options]="hostnameOptions"
+        (select)="onHostnameChanged($event)"
+        [disabled]="fields.model === ''"
+        [disabledMessage]="
+          fields.model === '' ? 'Please select a model and board' : ''
+        "
+      >
+      </app-basic-selector>
+    </ng-container>
   </div>
 </div>

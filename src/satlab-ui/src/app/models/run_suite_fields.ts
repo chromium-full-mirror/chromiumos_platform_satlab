@@ -4,7 +4,14 @@ export interface IBuildSelectFields {
   milestone: string;
   build: string;
   pool: string;
+  dims?: IDims;
 }
+
+export type DimKey = 'dut_name';
+
+export type IDims = {
+  [K in DimKey]?: string;
+};
 
 export const defaultBuildSelectFields: IBuildSelectFields = {
   model: '',

@@ -1,4 +1,5 @@
 export interface ISimpleDUT {
+  hostname: string;
   model: string;
   board: string;
   pools: string[];

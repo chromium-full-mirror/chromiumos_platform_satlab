@@ -104,7 +104,7 @@ function* fromArray<T>(array: T[]) {
 function collect<T>(iter: Iterator<T>) {
   const result: T[] = [];
   let next = iter.next();
-  while (next.done == false) {
+  while (next.done === false) {
     result.push(next.value);
     next = iter.next();
   }
