@@ -359,7 +359,7 @@ message RunTestResponse {
 // NEXT_TAG = 1
 message ListEnrolledDutsRequest {}
 
-// NEXT_TAG = 14
+// NEXT_TAG = 15
 message Dut {
   string address = 1;
   string name = 2;
@@ -374,6 +374,25 @@ message Dut {
   int32 servo_port = 11;
   string state = 12;
   bool has_test_image = 13;
+  BotInfo bot_info = 14;
+}
+
+// NEXT_TAG = 4
+message BotInfo {
+  // NEXT_TAG = 6
+  enum BotState {
+    NO_STATE_SET = 0;
+    ALIVE = 1;
+    BUSY = 2;
+    DEAD = 3;
+    QUARANTINED = 4;
+    IDLE = 5;
+  }
+  BotState bot_state = 1;
+  // Link to the current running task.
+  string current_task = 2;
+  // Name of the task currently running (Test/Repair/Deploy).
+  string task_name = 3;
 }
 
 // NEXT_TAG = 2

@@ -38,6 +38,7 @@ import {
   SortBy,
   Tag,
   RunStorageQualRequest,
+  BotInfo,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
 import {
@@ -119,7 +120,7 @@ export class SatlabRpcService {
     const req = new ListEnrolledDutsRequest();
     const resp = await this.client.listEnrolledDuts(req, {});
 
-    return toIterator(resp.getDutsList()).map(this.__toIDut).collect();
+    return toIterator(resp.getDutsList()).map(__toIDut).collect();
   }
 
   /**
@@ -198,36 +199,7 @@ export class SatlabRpcService {
 
     const resp = await this.client.listDuts(req, {});
 
-    return toIterator(resp.getDutsList()).map(this.__toIDut).collect();
-  }
-
-  /**
-   * __toIDut is a parser to parse the proto class to an interface `IDut`
-   * @param e is the class of DUT in proto file.
-   * @private
-   */
-  private __toIDut(e: Dut) {
-    const dut: IDut = {
-      address: e.getAddress(),
-      name: e.getName(),
-      hostname: e.getHostname(),
-      board: e.getBoard(),
-      model: e.getModel(),
-      pools: e.getPoolsList(),
-      poolString: e.getPoolsList().join(', '),
-      mac: e.getMacAddress(),
-      servoSerial: e.getServoSerial(),
-      isConnected: e.getIsPingable() && e.getHasTestImage(),
-      isAccessible: !(
-        e.getHostname() === '' && !(e.getIsPingable() && e.getHasTestImage())
-      ),
-      status: e.getState(),
-      isServoWiredCorrectly:
-        e.getServoSerial() === '' || e.getServoSerial() !== 'NOT DETECTED',
-      statusHintText: __toStatusHintText(e.getState()),
-    };
-
-    return dut;
+    return toIterator(resp.getDutsList()).map(__toIDut).collect();
   }
 
   /**
@@ -746,4 +718,50 @@ function __toStatusHintText(status: string) {
   } else {
     return '';
   }
+}
+
+/**
+ * __toIDut is a parser to parse the proto class to an interface `IDut`
+ * @param e is the class of DUT in proto file.
+ */
+function __toIDut(e: Dut) {
+  const status = __toStatus(e.getState(), e.getBotInfo());
+  const dut: IDut = {
+    address: e.getAddress(),
+    name: e.getName(),
+    hostname: e.getHostname(),
+    board: e.getBoard(),
+    model: e.getModel(),
+    pools: e.getPoolsList(),
+    poolString: e.getPoolsList().join(', '),
+    mac: e.getMacAddress(),
+    servoSerial: e.getServoSerial(),
+    isConnected: e.getIsPingable() && e.getHasTestImage(),
+    isAccessible: !(
+      e.getHostname() === '' && !(e.getIsPingable() && e.getHasTestImage())
+    ),
+    status: status,
+    isServoWiredCorrectly:
+      e.getServoSerial() === '' || e.getServoSerial() !== 'NOT DETECTED',
+    statusHintText: __toStatusHintText(status),
+  };
+
+  return dut;
+}
+
+/**
+ * Convert DUT status.
+ * if bot status is busy, and task name is not empty, we
+ * return the task name. Otherwise, we return dut status.
+ * @param status the DUT status
+ * @param botInfo  the DUT bot information
+ *
+ * @returns either DUT status or task name
+ */
+function __toStatus(status: string, botInfo?: BotInfo) {
+  return botInfo &&
+    botInfo.getBotState() === BotInfo.BotState.BUSY &&
+    botInfo.getTaskName() !== ''
+    ? botInfo.getTaskName()
+    : status;
 }
