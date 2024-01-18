@@ -1,7 +1,7 @@
 import * as core from '@angular/core';
 import {IJobQuery, JobType, RequestStateQuery} from '../models/job';
 import {SatlabRpcService} from '../services/satlab-rpc.service';
-import {BehaviorSubject, from} from 'rxjs';
+import {BehaviorSubject, from, map} from 'rxjs';
 import {IItem} from '../models/selectable_item';
 import {toIterator} from 'app/utils/iterator';
 import {withinDays} from 'app/utils/date_helper';
@@ -54,6 +54,7 @@ export class ViewJobsComponent implements core.AfterViewInit {
   protected statusQuery = 'ALL';
   protected disabled = false;
   protected loading = false;
+  protected poolOptions = [];
 
   #status: RequestStateQuery[] = [
     'ALL',
@@ -82,6 +83,7 @@ export class ViewJobsComponent implements core.AfterViewInit {
 
   ngAfterViewInit() {
     this.#getSatlabID();
+    this.#getPoolOptions();
     this.#satlabID.subscribe({
       next: id => {
         if (id) {
@@ -116,6 +118,25 @@ export class ViewJobsComponent implements core.AfterViewInit {
   }
 
   /**
+   * List all avaliable pools that make a suggestion list.
+   */
+  #getPoolOptions() {
+    from(this.service.listEnrolledDUTs()).subscribe({
+      next: resp => {
+        this.poolOptions = toIterator(resp)
+          .map(e => e.pools)
+          .flatten()
+          .unique_by()
+          .map(toSelectItem)
+          .collect();
+      },
+      error: e => {
+        console.error(`can not fetch enrolled duts, got an error: ${e}`);
+      },
+    });
+  }
+
+  /**
    * onSatlabIDChanged is the event handler handles the Satlab ID changed.
    */
   protected onSatlabIDChanged(e: Event) {
@@ -137,8 +158,7 @@ export class ViewJobsComponent implements core.AfterViewInit {
   /**
    * onPoolChanged is the event handler handles the pool changed.
    */
-  protected onPoolChanged(e: Event) {
-    const newValue = (e.target as HTMLInputElement).value;
+  protected onPoolChanged(newValue: string) {
     if (!newValue) {
       delete this.query.tags?.['label-pool'];
       return;

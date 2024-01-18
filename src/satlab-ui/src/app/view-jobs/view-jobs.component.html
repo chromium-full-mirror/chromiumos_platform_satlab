@@ -14,17 +14,16 @@
         </mat-form-field>
       </div>
 
-      <div class="w-48 min-w-48">
-        <mat-form-field class="full-width">
-          <mat-label>Pool</mat-label>
-          <input
-            id="pool"
-            name="pool"
-            matInput
-            [value]="query.tags?.['label-pool'] ?? ''"
-            (change)="onPoolChanged($event)"
-          />
-        </mat-form-field>
+      <div class="w-56 min-w-56 pt-4">
+        <app-autocomplete-selector
+          #poolSelector
+          id="poolSelector"
+          title="Pool"
+          (inputChanged)="onPoolChanged($event)"
+          [options]="poolOptions"
+          placeholder=""
+        >
+        </app-autocomplete-selector>
       </div>
 
       <div class="selector-wrapper w-48 min-w-48">

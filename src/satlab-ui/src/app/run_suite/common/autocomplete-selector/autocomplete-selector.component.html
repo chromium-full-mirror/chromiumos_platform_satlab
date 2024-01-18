@@ -12,7 +12,7 @@
         [formControl]="searchFormControl"
         (focusin)="onInputFocusIn()"
         (focusout)="onInputFocusout()"
-        placeholder="Please input some letters to filter"
+        [placeholder]="placeholder"
       />
       <mat-hint class="error" *ngIf="errorMessage !== ''">{{
         errorMessage
