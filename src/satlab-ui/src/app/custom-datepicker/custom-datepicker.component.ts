@@ -51,13 +51,14 @@ const MY_FORMATS = {
   ],
 })
 export class CustomDatepickerComponent implements OnInit, OnDestroy {
+  @Input() value?: moment.Moment;
   @Input() filterDateLt?: moment.Moment;
   @Input() filterDateGt?: moment.Moment;
   @Input() maxDays = 30;
   @Input() errorMessage = '';
   @Input() label = 'Choose a date';
 
-  @Output() dateChange = new EventEmitter<Date | null>();
+  @Output() dateChange = new EventEmitter<moment.Moment | null>();
 
   protected c = new FormControl();
   #disposer?: Subscription;
@@ -65,12 +66,24 @@ export class CustomDatepickerComponent implements OnInit, OnDestroy {
   constructor() {}
 
   ngOnInit(): void {
+    if (this.value) {
+      this.c.setValue(this.value);
+    }
+
     this.#disposer = this.c.valueChanges
       .pipe(
         map(e => {
           if (e && '_i' in e) {
-            let rawInput = e._i;
-            if (typeof e._i === 'object') {
+            let rawInput = '';
+            if (typeof e._i === 'string') {
+              rawInput = e._i;
+            } else if (
+              typeof e._i === 'object' &&
+              'year' in e._i &&
+              'month' in e._i &&
+              typeof e._i.month === 'number' &&
+              'date' in e._i
+            ) {
               rawInput = `${e._i.year}/${e._i.month + 1}/${e._i.date}`;
             }
 
@@ -122,6 +135,10 @@ export class CustomDatepickerComponent implements OnInit, OnDestroy {
    * clear the the user input.
    */
   public clear() {
-    this.c.reset();
+    if (this.value) {
+      this.c.setValue(this.value);
+    } else {
+      this.c.reset();
+    }
   }
 }

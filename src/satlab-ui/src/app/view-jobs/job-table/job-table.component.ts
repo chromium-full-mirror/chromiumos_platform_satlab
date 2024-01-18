@@ -15,22 +15,6 @@ import {NotificationService} from '../../services/notification.service';
 import {finalize, from, map} from 'rxjs';
 import {startWithTap} from '../../utils/rxjs_operator';
 
-const ALL_COLUMNS: JobHeader[] = [
-  'empty',
-  'id',
-  'name',
-  'createdAt',
-  'startedAt',
-  'finishedAt',
-  'status',
-  'parentJobID',
-  'hostname',
-  'pool',
-  'satlabID',
-  'luciLink',
-  'testResults',
-];
-
 const DEFAULT_COLUMNS: JobHeader[] = [
   'empty',
   'name',
@@ -43,13 +27,13 @@ const DEFAULT_COLUMNS: JobHeader[] = [
 
 const COLUMN_OPTIONS = [
   {text: 'ID', value: 'id'},
+  {text: 'Hostname', value: 'hostname'},
   {text: 'Name', value: 'name'},
   {text: 'Created At', value: 'createdAt'},
   {text: 'Started At', value: 'startedAt'},
   {text: 'Finished At', value: 'finishedAt'},
   {text: 'Status', value: 'status'},
   {text: 'Parent Job ID', value: 'parentJobID'},
-  {text: 'Hostname', value: 'hostname'},
   {text: 'Pool', value: 'pool'},
   {text: 'Satlab ID', value: 'satlabID'},
   {text: 'LUCI Link', value: 'luciLink'},

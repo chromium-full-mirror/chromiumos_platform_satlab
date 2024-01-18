@@ -9,9 +9,15 @@ import {NotificationService} from 'app/services/notification.service';
 import * as moment from 'moment';
 import {CustomDatepickerComponent} from 'app/custom-datepicker/custom-datepicker.component';
 
-function createDefaultJobQuery(id: string): IJobQuery {
+function createDefaultJobQuery(
+  id: string,
+  createdDateGt: moment.Moment,
+  createdDateLt: moment.Moment
+): IJobQuery {
   return {
     pageSize: 20,
+    createdDateGt: createdDateGt,
+    createdDateLt: createdDateLt,
     tags: {
       'satlab-id': id,
     },
@@ -29,8 +35,16 @@ export class ViewJobsComponent implements core.AfterViewInit {
   startDatepicker?: CustomDatepickerComponent;
   @core.ViewChild('endDatepicker') endDatepicker?: CustomDatepickerComponent;
 
+  protected maxDays = 30;
+  protected dateRangeStart = moment().subtract(this.maxDays, 'days');
+  protected dateRangeEnd = moment();
+
   protected nameInput = '';
-  protected query = createDefaultJobQuery('');
+  protected query = createDefaultJobQuery(
+    '',
+    this.dateRangeStart,
+    this.dateRangeEnd
+  );
   protected jobQuery?: IJobQuery;
   protected canFilterName = false;
   #satlabID = new BehaviorSubject('');
@@ -51,9 +65,6 @@ export class ViewJobsComponent implements core.AfterViewInit {
     'TIMEOUT',
     'CANCELLED',
   ];
-  protected maxDays = 30;
-  protected dateRangeStart = moment().subtract(this.maxDays, 'days');
-  protected dateRangeEnd = moment();
 
   #jobTypes: string[] = ['ALL', 'SUITE', 'TESTPLAN', 'TEST'];
 
@@ -74,8 +85,14 @@ export class ViewJobsComponent implements core.AfterViewInit {
     this.#satlabID.subscribe({
       next: id => {
         if (id) {
-          this.jobQuery = createDefaultJobQuery(id);
-          this.query = createDefaultJobQuery(id);
+          const q = createDefaultJobQuery(
+            id,
+            this.dateRangeStart,
+            this.dateRangeEnd
+          );
+
+          this.jobQuery = {...q};
+          this.query = {...q};
           this.cdf.detectChanges();
         }
       },
@@ -260,8 +277,14 @@ export class ViewJobsComponent implements core.AfterViewInit {
     this.nameInput = '';
     this.jobType = 'ALL';
     this.statusQuery = 'ALL';
-    this.query = createDefaultJobQuery(this.#satlabID.value);
-    this.jobQuery = createDefaultJobQuery(this.#satlabID.value);
+    const q = createDefaultJobQuery(
+      this.#satlabID.value,
+      this.dateRangeStart,
+      this.dateRangeEnd
+    );
+
+    this.query = {...q};
+    this.jobQuery = {...q};
   }
 
   #updateCanFilterName(jobType: JobType) {
