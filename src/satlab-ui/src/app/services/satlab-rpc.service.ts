@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable, computed} from '@angular/core';
 import {SatlabRpcServiceClient} from './SatlabrpcServiceClientPb';
 import {getRPCHost} from '../utils/misc';
 import {toIterator} from '../utils/iterator';
@@ -629,6 +629,23 @@ function toTags(tags?: JobTags): Tag[] {
 }
 
 function toJob(j: Job): IJob {
+  const childStatus = j.getChildStatusCount()?.getTaskCountList() ?? [];
+  let complete: undefined | number = undefined;
+  if (childStatus.length === 2) {
+    const all = toIterator(childStatus).first_where(
+      e => e.getState() === StateQuery.QUERY_ALL
+    );
+    const running = toIterator(childStatus).first_where(
+      e => e.getState() === StateQuery.QUERY_PENDING_RUNNING
+    );
+
+    if (all && all.getCount() === 0) {
+      complete = 0;
+    } else if (all && running) {
+      complete = (all.getCount() - running.getCount()) / all.getCount();
+    }
+  }
+
   return {
     id: j.getJobId(),
     name: j.getName(),
@@ -642,6 +659,7 @@ function toJob(j: Job): IJob {
     status: toJobStatus(j.getStatus()),
     taskUrl: j.getTaskUrl(),
     resultUrl: j.getResultsUrl(),
+    completeJobPercentage: complete,
   };
 }
 

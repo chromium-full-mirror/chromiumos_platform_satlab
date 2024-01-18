@@ -549,7 +549,18 @@ message RepairDutsResponse {
   repeated RepairResult result = 1;
 }
 
-// NEXT_TAG = 13
+// Returns counts of child tasks per status.
+// NEXT_TAG = 2
+message TasksStatusCount {
+  // NEXT_TAG = 3
+  message TaskCount {
+    StateQuery state = 1;
+    int32 count = 2;
+  }
+  repeated TaskCount task_count = 1;
+}
+
+// NEXT_TAG = 14
 message Job {
   // NEXT_TAG = 4
   enum JobType {
@@ -590,6 +601,7 @@ message Job {
   string satlab_id = 10;
   string task_url = 11;
   string results_url = 12;
+  TasksStatusCount child_status_count = 13;
 }
 
 // NEXT_TAG = 3

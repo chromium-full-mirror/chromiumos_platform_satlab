@@ -51,6 +51,7 @@ export interface IJob {
   satlabID: string;
   taskUrl: string;
   resultUrl: string;
+  completeJobPercentage?: number;
 }
 
 export interface IJobResponse {
