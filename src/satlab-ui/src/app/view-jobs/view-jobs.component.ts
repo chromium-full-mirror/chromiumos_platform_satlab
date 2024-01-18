@@ -1,7 +1,7 @@
 import * as core from '@angular/core';
 import {IJobQuery, JobType, RequestStateQuery} from '../models/job';
 import {SatlabRpcService} from '../services/satlab-rpc.service';
-import {BehaviorSubject, from, map} from 'rxjs';
+import {BehaviorSubject, from} from 'rxjs';
 import {IItem} from '../models/selectable_item';
 import {toIterator} from 'app/utils/iterator';
 import {withinDays} from 'app/utils/date_helper';
@@ -37,7 +37,7 @@ export class ViewJobsComponent implements core.AfterViewInit {
 
   protected maxDays = 30;
   protected dateRangeStart = moment().subtract(this.maxDays, 'days');
-  protected dateRangeEnd = moment();
+  protected dateRangeEnd = toEndDate(moment());
 
   protected nameInput = '';
   protected query = createDefaultJobQuery(
@@ -189,7 +189,11 @@ export class ViewJobsComponent implements core.AfterViewInit {
     };
 
     if (this.query.createdDateLt) {
-      this.disabled = !withinDays(newValue, this.query.createdDateLt, 30);
+      this.disabled = !withinDays(
+        newValue,
+        this.query.createdDateLt,
+        this.maxDays + 1
+      );
     }
   }
 
@@ -205,13 +209,19 @@ export class ViewJobsComponent implements core.AfterViewInit {
       return;
     }
 
+    const _newValue = toEndDate(newValue.clone());
+
     this.query = {
       ...this.query,
-      createdDateLt: newValue,
+      createdDateLt: _newValue,
     };
 
     if (this.query.createdDateGt) {
-      this.disabled = !withinDays(this.query.createdDateGt, newValue, 30);
+      this.disabled = !withinDays(
+        this.query.createdDateGt,
+        _newValue,
+        this.maxDays + 1
+      );
     }
   }
 
@@ -318,4 +328,8 @@ function toSelectItem(text: string): IItem {
     value: text,
     label: '',
   };
+}
+
+function toEndDate(d: moment.Moment) {
+  return d.hour(0).minute(0).second(0).add(1, 'day').subtract(1, 'second');
 }
