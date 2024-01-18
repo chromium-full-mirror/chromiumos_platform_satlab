@@ -81,8 +81,16 @@
 
       .mat-mdc-cell.cdk-column-empty,
       .mat-mdc-header-cell.cdk-column-empty {
-        min-width: 48px;
-        max-width: 48px;
+        min-width: 52px;
+        max-width: 52px;
+        padding: 0;
+
+        .empty {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+        }
       }
 
       .mat-mdc-cell.cdk-column-createdAt,

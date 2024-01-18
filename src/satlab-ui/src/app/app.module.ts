@@ -59,6 +59,7 @@ import {CustomDatepickerComponent} from './custom-datepicker/custom-datepicker.c
 import {InfiniteScrollDirective} from './infinite-scroll.directive';
 import {JobTableComponent} from './view-jobs/job-table/job-table.component';
 import {StorageQualComponent} from './run_suite/pvs/storage-qual/storage-qual.component';
+import {CircularProgressComponent} from './common/circular-progress/circular-progress.component';
 
 @NgModule({
   declarations: [
@@ -88,6 +89,7 @@ import {StorageQualComponent} from './run_suite/pvs/storage-qual/storage-qual.co
     InfiniteScrollDirective,
     JobTableComponent,
     StorageQualComponent,
+    CircularProgressComponent,
   ],
   imports: [
     AppRoutingModule,
