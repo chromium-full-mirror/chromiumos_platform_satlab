@@ -159,6 +159,9 @@ services:
       - USER_NAME=moblab
       - DOCKER_MODS=linuxserver/mods:openssh-server-ssh-tunnel
       - GCS_IMAGE_BUCKET=${GCS_IMAGE_BUCKET:-}
+      # gcs_partner_bucket is same as gcs_image_bucket for all partners
+      # These buckets differ only for internal users
+      - GCS_PARTNER_BUCKET=${GCS_IMAGE_BUCKET:-}
       - SERVICE_ACCOUNT_KEY_PATH=/home/satlab/keys/pubsub-key-do-not-delete.json
       - UFS_NAMESPACE=${UFS_NAMESPACE:-os}
       - UFS_ZONE=${UFS_ZONE:-}
