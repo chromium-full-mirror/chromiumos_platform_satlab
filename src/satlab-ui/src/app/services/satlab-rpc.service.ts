@@ -645,7 +645,7 @@ function toJob(j: Job): IJob {
     if (all && all.getCount() === 0) {
       complete = 0;
     } else if (all && running) {
-      complete = ((all.getCount() - running.getCount()) / all.getCount()) * 100;
+      complete = (all.getCount() - running.getCount()) / all.getCount();
     }
   }
 

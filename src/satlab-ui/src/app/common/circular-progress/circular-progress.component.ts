@@ -13,6 +13,6 @@ export class CircularProgressComponent {
   @Input() bg = '#eee';
   /* The foreground colour of the progress bar, we use hex */
   @Input() fg = '#107c10';
-  /* The progress of the progress bar */
+  /* The progress of the progress bar, The input should be in the range 0 ~ 1. */
   @Input() progress = 0;
 }
