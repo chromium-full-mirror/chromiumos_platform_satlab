@@ -80,18 +80,21 @@
           <ng-container *ngIf="item.type === 'empty'">
             <td mat-cell *matCellDef="let element">
               <div class="empty">
-                <ng-container *ngIf="element.status === 'PENDING'">
-                  <app-circular-progress [value]="0"></app-circular-progress>
+                <ng-container
+                  *ngIf="element.status === 'PENDING' && !element.parentJobID"
+                >
+                  <app-circular-progress [progress]="0"></app-circular-progress>
                 </ng-container>
 
                 <ng-container
                   *ngIf="
                     element.status === 'RUNNING' &&
-                    element.completeJobPercentage >= 0
+                    element.completeJobPercentage >= 0 &&
+                    !element.parentJobID
                   "
                 >
                   <app-circular-progress
-                    [value]="element.completeJobPercentage"
+                    [progress]="element.completeJobPercentage"
                   ></app-circular-progress>
                 </ng-container>
               </div>

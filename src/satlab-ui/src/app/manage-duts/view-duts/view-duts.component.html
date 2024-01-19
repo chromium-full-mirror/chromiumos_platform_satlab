@@ -190,7 +190,10 @@
             [class.status-orange]="
               element.status === 'unknown' ||
               element.status === 'needs_repair' ||
-              element.status === 'repair_failed'
+              element.status === 'repair_failed' ||
+              element.status === 'running' ||
+              element.status === 'repairing' ||
+              element.status === 'deploying'
             "
             [class.status-green]="element.status === 'ready'"
           >

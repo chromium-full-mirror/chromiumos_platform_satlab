@@ -1,4 +1,4 @@
-import {Injectable, computed} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {SatlabRpcServiceClient} from './SatlabrpcServiceClientPb';
 import {getRPCHost} from '../utils/misc';
 import {toIterator} from '../utils/iterator';
@@ -50,12 +50,15 @@ import {
 import {IBoto} from '../models/boto';
 import {IDims} from '../models/dims';
 import {
+  DUT_STATUS_DEPLOYING,
   DUT_STATUS_NEEDS_DEPLOY,
   DUT_STATUS_NEEDS_MANUAL_REPAIR,
   DUT_STATUS_NEEDS_REPAIR,
   DUT_STATUS_NEEDS_REPLACEMENT,
   DUT_STATUS_READY,
+  DUT_STATUS_REPAIRING,
   DUT_STATUS_REPAIR_FAILED,
+  DUT_STATUS_RUNNING,
   DUT_STATUS_UNKNOWN,
 } from 'app/constants';
 import {
@@ -642,7 +645,7 @@ function toJob(j: Job): IJob {
     if (all && all.getCount() === 0) {
       complete = 0;
     } else if (all && running) {
-      complete = (all.getCount() - running.getCount()) / all.getCount();
+      complete = ((all.getCount() - running.getCount()) / all.getCount()) * 100;
     }
   }
 
@@ -733,6 +736,12 @@ function __toStatusHintText(status: string) {
     return 'Please menually repair the dut, Auto-repair is not be fix it';
   } else if (status === DUT_STATUS_NEEDS_REPLACEMENT) {
     return 'Hardware issues found, please unenroll and replace DUT';
+  } else if (status === DUT_STATUS_RUNNING) {
+    return 'DUT is running a task';
+  } else if (status === DUT_STATUS_REPAIRING) {
+    return 'DUT is repairing';
+  } else if (status === DUT_STATUS_DEPLOYING) {
+    return 'DUT is deploying';
   } else {
     return '';
   }
@@ -780,6 +789,6 @@ function __toStatus(status: string, botInfo?: BotInfo) {
   return botInfo &&
     botInfo.getBotState() === BotInfo.BotState.BUSY &&
     botInfo.getTaskName() !== ''
-    ? botInfo.getTaskName()
+    ? botInfo.getTaskName().toLowerCase()
     : status;
 }
