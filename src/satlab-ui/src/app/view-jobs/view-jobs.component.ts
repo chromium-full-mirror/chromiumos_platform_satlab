@@ -36,7 +36,10 @@ export class ViewJobsComponent implements core.AfterViewInit {
   @core.ViewChild('endDatepicker') endDatepicker?: CustomDatepickerComponent;
 
   protected maxDays = 30;
-  protected dateRangeStart = moment().subtract(this.maxDays, 'days');
+  protected dateRangeStart = toStartDate(moment()).subtract(
+    this.maxDays,
+    'days'
+  );
   protected dateRangeEnd = toEndDate(moment());
 
   protected nameInput = '';
@@ -179,18 +182,17 @@ export class ViewJobsComponent implements core.AfterViewInit {
    */
   protected onFromChanged(newValue: moment.Moment | null) {
     if (newValue === null) {
-      delete this.query.createdDateGt;
-      return;
+      newValue = this.dateRangeStart.clone();
     }
 
     this.query = {
       ...this.query,
-      createdDateGt: newValue,
+      createdDateGt: toStartDate(newValue.clone()),
     };
 
     if (this.query.createdDateLt) {
       this.disabled = !withinDays(
-        newValue,
+        this.query.createdDateGt,
         this.query.createdDateLt,
         this.maxDays + 1
       );
@@ -205,21 +207,18 @@ export class ViewJobsComponent implements core.AfterViewInit {
    */
   protected onToChanged(newValue: moment.Moment | null) {
     if (newValue === null) {
-      delete this.query.createdDateLt;
-      return;
+      newValue = this.dateRangeEnd.clone();
     }
-
-    const _newValue = toEndDate(newValue.clone());
 
     this.query = {
       ...this.query,
-      createdDateLt: _newValue,
+      createdDateLt: toEndDate(newValue.clone()),
     };
 
     if (this.query.createdDateGt) {
       this.disabled = !withinDays(
         this.query.createdDateGt,
-        _newValue,
+        this.query.createdDateLt,
         this.maxDays + 1
       );
     }
@@ -330,6 +329,16 @@ function toSelectItem(text: string): IItem {
   };
 }
 
+/**
+ * toEndDate makes the date to YYYY/MM/dd 23:59:59
+ */
 function toEndDate(d: moment.Moment) {
   return d.hour(0).minute(0).second(0).add(1, 'day').subtract(1, 'second');
+}
+
+/**
+ * toStartDate makes the date to YYYY/MM/dd 00:00:00
+ */
+function toStartDate(d: moment.Moment) {
+  return d.hour(0).minute(0).second(0);
 }
