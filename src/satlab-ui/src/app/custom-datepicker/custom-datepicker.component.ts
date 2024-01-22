@@ -22,6 +22,7 @@ import * as _moment from 'moment';
 import * as _rollupMoment from 'moment';
 import {FormControl} from '@angular/forms';
 import {Subscription, distinctUntilChanged, map} from 'rxjs';
+import {toEndDate, toStartDate} from 'app/utils/date_helper';
 
 const moment = _rollupMoment || _moment;
 
@@ -113,16 +114,20 @@ export class CustomDatepickerComponent implements OnInit, OnDestroy {
       return false;
     }
 
-    const now = moment();
+    const now = toEndDate(moment());
     let isValid = true;
 
     if (this.filterDateLt) {
-      const begin = this.filterDateLt.clone().subtract(this.maxDays, 'days');
+      const begin = toStartDate(
+        this.filterDateLt.clone().subtract(this.maxDays, 'days')
+      );
       isValid = isValid && d <= this.filterDateLt && d >= begin;
     }
 
     if (this.filterDateGt) {
-      const end = this.filterDateGt.clone().add(30, 'days');
+      const end = toEndDate(
+        this.filterDateGt.clone().add(this.maxDays, 'days')
+      );
       isValid = isValid && d >= this.filterDateGt && d <= end;
     }
 
