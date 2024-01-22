@@ -4,7 +4,7 @@ import {SatlabRpcService} from '../services/satlab-rpc.service';
 import {BehaviorSubject, from} from 'rxjs';
 import {IItem} from '../models/selectable_item';
 import {toIterator} from 'app/utils/iterator';
-import {withinDays} from 'app/utils/date_helper';
+import {withinDays, toEndDate, toStartDate} from 'app/utils/date_helper';
 import {NotificationService} from 'app/services/notification.service';
 import * as moment from 'moment';
 import {CustomDatepickerComponent} from 'app/custom-datepicker/custom-datepicker.component';
@@ -327,18 +327,4 @@ function toSelectItem(text: string): IItem {
     value: text,
     label: '',
   };
-}
-
-/**
- * toEndDate makes the date to YYYY/MM/dd 23:59:59
- */
-function toEndDate(d: moment.Moment) {
-  return d.hour(0).minute(0).second(0).add(1, 'day').subtract(1, 'second');
-}
-
-/**
- * toStartDate makes the date to YYYY/MM/dd 00:00:00
- */
-function toStartDate(d: moment.Moment) {
-  return d.hour(0).minute(0).second(0);
 }
