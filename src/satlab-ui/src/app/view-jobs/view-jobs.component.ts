@@ -18,6 +18,7 @@ function createDefaultJobQuery(
     pageSize: 20,
     createdDateGt: createdDateGt,
     createdDateLt: createdDateLt,
+    jobType: 'SUITE',
     tags: {
       'satlab-id': id,
     },
@@ -53,7 +54,7 @@ export class ViewJobsComponent implements core.AfterViewInit {
   #satlabID = new BehaviorSubject('');
   protected jobTypeOptions: IItem[] = [];
   protected statusOptions: IItem[] = [];
-  protected jobType = 'ALL';
+  protected jobType: JobType = 'SUITE';
   protected statusQuery = 'ALL';
   protected disabled = false;
   protected loading = false;
@@ -70,7 +71,7 @@ export class ViewJobsComponent implements core.AfterViewInit {
     'CANCELLED',
   ];
 
-  #jobTypes: string[] = ['ALL', 'SUITE', 'TESTPLAN', 'TEST'];
+  #jobTypes: JobType[] = ['SUITE', 'TESTPLAN', 'TEST'];
 
   constructor(
     private service: SatlabRpcService,
@@ -304,7 +305,7 @@ export class ViewJobsComponent implements core.AfterViewInit {
     this.startDatepicker?.clear();
     this.endDatepicker?.clear();
     this.nameInput = '';
-    this.jobType = 'ALL';
+    this.jobType = 'SUITE';
     this.statusQuery = 'ALL';
     const q = createDefaultJobQuery(
       this.#satlabID.value,
