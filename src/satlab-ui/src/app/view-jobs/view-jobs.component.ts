@@ -21,6 +21,7 @@ function createDefaultJobQuery(
     jobType: 'SUITE',
     tags: {
       'satlab-id': id,
+      'test-type': 'suite',
     },
   };
 }
