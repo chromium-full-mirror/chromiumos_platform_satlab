@@ -11,11 +11,11 @@
     />
     <path
       class="circle"
-      attr.stroke-dasharray="{{ progress * 100  | number: '1.0-0'}}, 100"
+      attr.stroke-dasharray="{{ progress * 100 | number: '1.0-0' }}, 100"
       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
     />
   </svg>
   <div class="percentage-text">
-    <span>{{ progress| percent}}</span>
+    <span>{{ progress | percent }}</span>
   </div>
 </div>
