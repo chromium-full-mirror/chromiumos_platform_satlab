@@ -1,7 +1,7 @@
 <div class="wrapper">
   <div class="search-wrapper">
     <div class="row">
-      <div class="w-48 min-x-48">
+      <div class="w-48 min-x-48 hidden">
         <mat-form-field class="full-width">
           <mat-label>Satlab ID</mat-label>
           <input
@@ -10,6 +10,7 @@
             matInput
             [value]="query.tags?.['satlab-id'] ?? ''"
             (change)="onSatlabIDChanged($event)"
+            [disabled]="true"
           />
         </mat-form-field>
       </div>
