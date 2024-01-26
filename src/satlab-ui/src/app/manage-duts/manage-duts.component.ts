@@ -72,6 +72,7 @@ export class ManageDutsComponent implements AfterViewInit, OnDestroy {
         next: _ => this.__listDUTs(),
       });
     } else {
+      this.disposer?.unsubscribe();
       this.disposer = null;
     }
   }
