@@ -13,6 +13,9 @@ export type JobHeader =
   | 'empty'
   | 'id'
   | 'name'
+  | 'board'
+  | 'model'
+  | 'build'
   | 'createdAt'
   | 'startedAt'
   | 'finishedAt'
@@ -41,6 +44,9 @@ export interface LinkAction {
 export interface IJob {
   id: string;
   name: string;
+  board: string;
+  model: string;
+  build: string;
   createdAt: Date;
   startedAt?: Date;
   finishedAt?: Date;

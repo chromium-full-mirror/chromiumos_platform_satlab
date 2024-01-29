@@ -653,6 +653,9 @@ function toJob(j: Job): IJob {
   return {
     id: j.getJobId(),
     name: j.getName(),
+    board: j.getBoard(),
+    model: j.getModel(),
+    build: j.getBuild(),
     createdAt: j.getCreatedTime().toDate(),
     startedAt: j.getStartTime()?.toDate(),
     finishedAt: j.getFinishedTime()?.toDate(),

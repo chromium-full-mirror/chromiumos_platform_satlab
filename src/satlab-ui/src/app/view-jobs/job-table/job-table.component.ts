@@ -29,6 +29,9 @@ const COLUMN_OPTIONS = [
   {text: 'ID', value: 'id'},
   {text: 'Hostname', value: 'hostname'},
   {text: 'Name', value: 'name'},
+  {text: 'Board', value: 'board'},
+  {text: 'Model', value: 'model'},
+  {text: 'Build', value: 'build'},
   {text: 'Created At', value: 'createdAt'},
   {text: 'Started At', value: 'startedAt'},
   {text: 'Finished At', value: 'finishedAt'},
@@ -226,6 +229,12 @@ function headerToColumn(header: JobHeader): JobColumn {
       return {header: 'ID', def: 'id', type: 'string'};
     case 'name':
       return {header: 'Name', def: 'name', type: 'string'};
+    case 'board':
+      return {header: 'Board', def: 'board', type: 'string'};
+    case 'model':
+      return {header: 'Model', def: 'model', type: 'string'};
+    case 'build':
+      return {header: 'Build', def: 'build', type: 'string'};
     case 'createdAt':
       return {header: 'Created At', def: 'createdAt', type: 'date'};
     case 'startedAt':

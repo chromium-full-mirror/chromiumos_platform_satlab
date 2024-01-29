@@ -560,7 +560,7 @@ message TasksStatusCount {
   repeated TaskCount task_count = 1;
 }
 
-// NEXT_TAG = 14
+// NEXT_TAG = 17
 message Job {
   // NEXT_TAG = 4
   enum JobType {
@@ -602,6 +602,9 @@ message Job {
   string task_url = 11;
   string results_url = 12;
   TasksStatusCount child_status_count = 13;
+  string board = 14;
+  string model = 15;
+  string build = 16;
 }
 
 // NEXT_TAG = 3
