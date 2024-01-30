@@ -112,4 +112,8 @@ export class AutocompleteSelectorComponent
       this.searchFormControl.setValue(option.text);
     }
   }
+
+  public clear() {
+    this.searchFormControl.reset();
+  }
 }

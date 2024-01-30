@@ -8,6 +8,7 @@ import {withinDays, toEndDate, toStartDate} from 'app/utils/date_helper';
 import {NotificationService} from 'app/services/notification.service';
 import * as moment from 'moment';
 import {CustomDatepickerComponent} from 'app/custom-datepicker/custom-datepicker.component';
+import {AutocompleteSelectorComponent} from 'app/run_suite/common/autocomplete-selector/autocomplete-selector.component';
 
 function createDefaultJobQuery(
   id: string,
@@ -36,6 +37,7 @@ export class ViewJobsComponent implements core.AfterViewInit {
   @core.ViewChild('startDatepicker')
   startDatepicker?: CustomDatepickerComponent;
   @core.ViewChild('endDatepicker') endDatepicker?: CustomDatepickerComponent;
+  @core.ViewChild('poolSelector') poolSelector?: AutocompleteSelectorComponent;
 
   protected maxDays = 30;
   protected dateRangeStart = toStartDate(moment()).subtract(
@@ -100,6 +102,9 @@ export class ViewJobsComponent implements core.AfterViewInit {
 
           this.jobQuery = {...q};
           this.query = {...q};
+          if (this.query.jobType) {
+            this.#updateCanFilterName(this.query.jobType);
+          }
           this.cdf.detectChanges();
         }
       },
@@ -306,6 +311,7 @@ export class ViewJobsComponent implements core.AfterViewInit {
     this.startDatepicker?.clear();
     this.endDatepicker?.clear();
     this.nameInput = '';
+    this.poolSelector?.clear();
     this.jobType = 'SUITE';
     this.statusQuery = 'ALL';
     const q = createDefaultJobQuery(
@@ -316,6 +322,9 @@ export class ViewJobsComponent implements core.AfterViewInit {
 
     this.query = {...q};
     this.jobQuery = {...q};
+    if (this.query.jobType) {
+      this.#updateCanFilterName(this.query.jobType);
+    }
   }
 
   #updateCanFilterName(jobType: JobType) {
