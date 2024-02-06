@@ -724,7 +724,7 @@ function toRequestJobStatus(s?: RequestStateQuery) {
 
 function __toStatusHintText(status: string) {
   if (status === DUT_STATUS_UNKNOWN) {
-    return 'Please enroll DUT then wait for the deploy task to finish';
+    return 'DUT is enrolling. If the task runs longer than 30 mins, please un-enroll and re-enroll it again';
   } else if (status === DUT_STATUS_READY) {
     return 'Ready for testing';
   } else if (status === DUT_STATUS_NEEDS_REPAIR) {
