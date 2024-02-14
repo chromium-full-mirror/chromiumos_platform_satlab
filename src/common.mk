@@ -13,6 +13,15 @@ EXTRA_ARGS+= --build-arg SFP_REGISTRY_URI="${SFP_REGISTRY_URI}"
 EXTRA_ARGS+= --build-arg BUILD_VERSION="${BUILD_VERSION}"
 EXTRA_ARGS+= --build-arg WATCHTOWER_CMD="${WATCHTOWER_CMD}"
 
+OVERRIDE_SERVICES := \
+	CONF_CREATOR \
+	ENVOY_PROXY \
+	LOGROTATE \
+	SATLAB_RPCSERVER \
+	SATLAB_UI
+${foreach service, ${OVERRIDE_SERVICES}, \
+	${eval EXTRA_ARGS+= --build-arg ${service}_VER=${LABEL}}}
+
 all:	compose \
 		conf_creator \
 		envoy \

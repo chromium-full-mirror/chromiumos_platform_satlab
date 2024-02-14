@@ -87,15 +87,15 @@ RUN chmod u+x compose_startup.sh
 COPY dockerfiles/compose/override_service_version.sh .
 RUN chmod u+x override_service_version.sh
 
-RUN ./override_service_version.sh CONF_CREATOR ${CONF_CREATOR_VER:-${BUILD_VERSION}}
-RUN ./override_service_version.sh DOWNLOADER ${DOWNLOADER_VER:-${BUILD_VERSION}}
-RUN ./override_service_version.sh NGINX ${NGINX_VER:-${BUILD_VERSION}}
-RUN ./override_service_version.sh SATLAB_DRONE ${SATLAB_DRONE_VER:-${BUILD_VERSION}}
-RUN ./override_service_version.sh OPENSSH_SERVER ${OPENSSH_SERVER_VER:-${BUILD_VERSION}}
-RUN ./override_service_version.sh SATLAB_RPCSERVER ${SATLAB_RPCSERVER_VER:-${BUILD_VERSION}}
-RUN ./override_service_version.sh ENVOY_PROXY ${ENVOY_PROXY_VER:-${BUILD_VERSION}}
-RUN ./override_service_version.sh SATLAB_UI ${SATLAB_UI_VER:-${BUILD_VERSION}}
-RUN ./override_service_version.sh LOGROTATE ${LOGROTATE_VER:-${BUILD_VERSION}}
+RUN  ./override_service_version.sh CONF_CREATOR ${CONF_CREATOR_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh DOWNLOADER ${DOWNLOADER_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh NGINX ${NGINX_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh SATLAB_DRONE ${SATLAB_DRONE_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh OPENSSH_SERVER ${OPENSSH_SERVER_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh SATLAB_RPCSERVER ${SATLAB_RPCSERVER_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh ENVOY_PROXY ${ENVOY_PROXY_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh SATLAB_UI ${SATLAB_UI_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh LOGROTATE ${LOGROTATE_VER:-${BUILD_VERSION}}
 
 # Add routine to check export environment variable from .env file
 COPY tools/export_env_file.sh /

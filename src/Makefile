@@ -3,14 +3,19 @@
 MAKEFLAGS += --no-builtin-rules
 
 export LABEL := ${USER}
-# We use few moblab containers as base images to build Satlab specific
-# containers(satlab-remote-access and satlab compose). These common
-# containers include dns, remote-access, moblab-common.
+# We use few moblab images as a base to build Satlab specific
+# images (satlab-remote-access and satlab compose). These common
+# images include dns, remote-access, moblab-common.
 # When Satlab images are pushed to prod, release version tag is used
 # for these common containers such as R-2.10.0
 # By default we use autopush tag for these base images.
-export COMMON_CORE_LABEL := autopush
-export COMMON_CORE_REGISTRY := gcr.io/chromeos-partner-moblab
+ifdef CUSTOM_COMMON_CORE
+	export COMMON_CORE_LABEL := ${CUSTOM_COMMON_CORE}
+	export COMMON_CORE_REGISTRY := us-docker.pkg.dev/chromeos-partner-moblab-dev/${CUSTOM_COMMON_CORE}
+else
+	export COMMON_CORE_LABEL := autopush
+	export COMMON_CORE_REGISTRY := gcr.io/chromeos-partner-moblab
+endif
 export REGISTRY := us-docker.pkg.dev/chromeos-partner-moblab/satlab
 export SFP_REGISTRY_URI := us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners
 # Please Note: This make file does not build any core Satlab containers(
