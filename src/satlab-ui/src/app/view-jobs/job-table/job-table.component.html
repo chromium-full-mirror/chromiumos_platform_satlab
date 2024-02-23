@@ -41,6 +41,23 @@
     <ng-container *ngIf="jobs.length > 0">
       <table mat-table [dataSource]="jobs">
         <ng-container [matColumnDef]="item.def" *ngFor="let item of columns">
+          <ng-container *ngIf="item.type === 'checkbox'">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-checkbox
+                (change)="onCheckboxChanged($event)"
+                [(ngModel)]="isAllSelected"
+                [indeterminate]="isIndeterminate"
+              ></mat-checkbox>
+            </th>
+            <td mat-cell *matCellDef="let element">
+              <mat-checkbox
+                (change)="onJobCheckboxChanged(element)"
+                [checked]="selection.isSelected(element)"
+                [disabled]="!selectableStatuses.includes(element.status)"
+              ></mat-checkbox>
+            </td>
+          </ng-container>
+
           <th mat-header-cell *matHeaderCellDef>{{ item.header }}</th>
 
           <ng-container *ngIf="item.type === 'string'">

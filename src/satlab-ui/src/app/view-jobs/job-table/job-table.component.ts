@@ -5,18 +5,23 @@ import {
   EventEmitter,
   Input,
   OnChanges,
+  OnDestroy,
+  OnInit,
   Output,
   SimpleChanges,
 } from '@angular/core';
-import {IJob, IJobQuery, JobColumn, JobHeader} from 'app/models/job';
+import {IJob, IJobQuery, JobColumn, JobHeader, JobStatus} from 'app/models/job';
 import {toIterator} from 'app/utils/iterator';
 import {SatlabRpcService} from '../../services/satlab-rpc.service';
 import {NotificationService} from '../../services/notification.service';
-import {finalize, from, map} from 'rxjs';
+import {Subscription, finalize, from, map} from 'rxjs';
 import {startWithTap} from '../../utils/rxjs_operator';
+import {SelectionModel} from '@angular/cdk/collections';
+import {MatCheckboxChange} from '@angular/material/checkbox';
 
 const DEFAULT_COLUMNS: JobHeader[] = [
   'empty',
+  'select',
   'name',
   'createdAt',
   'startedAt',
@@ -43,18 +48,25 @@ const COLUMN_OPTIONS = [
   {text: 'Test Results', value: 'testResults'},
 ];
 
+const SELECTABLE_STATUSES: JobStatus[] = [
+  'STATUS_NOT_SET',
+  'PENDING',
+  'RUNNING',
+];
+
 @Component({
   selector: 'app-job-table',
   templateUrl: './job-table.component.html',
   styleUrls: ['./job-table.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class JobTableComponent implements OnChanges {
+export class JobTableComponent implements OnChanges, OnInit, OnDestroy {
   @Input() query?: IJobQuery;
   #query: IJobQuery;
 
   /* loadingChange is the event emitter that indicates the loading of fetching jobs */
   @Output() loadingChange = new EventEmitter<boolean>();
+  @Output() select = new EventEmitter<IJob[]>();
 
   /* jobs  is the data that we want to show. */
   protected jobs: IJob[] = [];
@@ -72,6 +84,16 @@ export class JobTableComponent implements OnChanges {
   #paginationThreshold = 50;
   /* A flag that indicates the column selection is showing */
   protected isColumnSelectionShown = false;
+  /* Selection model to control selected jobs */
+  protected selection = new SelectionModel<IJob>(true, []);
+  /* A flag to indicate the selectable jobs are all selected */
+  protected isAllSelected = false;
+  /* A flag to indicate part of the selectable jobs is selected */
+  protected isIndeterminate = false;
+  /* which status can be aborted */
+  protected selectableStatuses = SELECTABLE_STATUSES;
+
+  #disposer?: Subscription;
 
   constructor(
     private service: SatlabRpcService,
@@ -81,18 +103,29 @@ export class JobTableComponent implements OnChanges {
     this.#toColumns();
   }
 
+  ngOnInit(): void {
+    this.#disposer = this.selection.changed.subscribe(() => {
+      this.#updateSelection();
+      this.#emitSelectionChange();
+    });
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
-    console.log(changes);
     if (
       'query' in changes &&
       changes.query.currentValue &&
       changes.query.currentValue !== changes.query.previousValue
     ) {
+      this.#checkboxReset();
       this.jobs = [];
       this.hasMore = true;
       this.#query = changes.query.currentValue;
       this.nextPage();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.#disposer?.unsubscribe();
   }
 
   /**
@@ -129,6 +162,7 @@ export class JobTableComponent implements OnChanges {
       .subscribe({
         next: jobs => {
           this.jobs = [...this.jobs, ...jobs];
+          this.#updateSelection();
         },
         error: e => {
           this.notificationService.error(
@@ -211,6 +245,25 @@ export class JobTableComponent implements OnChanges {
   }
 
   /**
+   * toggle all jobs when clicked
+   */
+  protected onCheckboxChanged(e: MatCheckboxChange) {
+    this.selection.clear();
+    if (e.checked) {
+      toIterator(this.jobs)
+        .filter(j => this.#checkSelectable(j.status))
+        .forEach(job => this.selection.select(job));
+    }
+  }
+
+  /**
+   * toggle single job when clicked
+   */
+  protected onJobCheckboxChanged(e: IJob) {
+    this.#toggleJob(e);
+  }
+
+  /**
    * Mapping the display columns to columns for each row.
    * @private
    */
@@ -219,12 +272,56 @@ export class JobTableComponent implements OnChanges {
       .map(headerToColumn)
       .collect();
   }
+
+  /**
+   * update the selection number as well the header checkbox
+   */
+  #updateSelection() {
+    this.isAllSelected =
+      this.selection.selected.length > 0 &&
+      this.selection.selected.length ===
+        toIterator(this.jobs)
+          .filter(j => this.#checkSelectable(j.status))
+          .collect().length;
+    this.isIndeterminate =
+      this.selection.selected.length > 0 && !this.isAllSelected;
+  }
+
+  /**
+   * emit event when job's selected
+   */
+  #emitSelectionChange() {
+    this.select.emit(this.selection.selected);
+  }
+
+  /**
+   * update count & emit event
+   */
+  #toggleJob(j: IJob) {
+    this.selection.toggle(j);
+  }
+
+  /**
+   * reset all checkbox and count then emit event
+   */
+  #checkboxReset() {
+    this.selection.clear();
+  }
+
+  /**
+   * return true if the status is in selectable statuses
+   */
+  #checkSelectable(status: JobStatus) {
+    return this.selectableStatuses.includes(status);
+  }
 }
 
 function headerToColumn(header: JobHeader): JobColumn {
   switch (header) {
     case 'empty':
       return {header: '', def: 'empty', type: 'empty'};
+    case 'select':
+      return {header: '', def: 'select', type: 'checkbox'};
     case 'id':
       return {header: 'ID', def: 'id', type: 'string'};
     case 'name':

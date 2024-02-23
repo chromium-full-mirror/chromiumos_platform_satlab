@@ -1,5 +1,5 @@
 import * as core from '@angular/core';
-import {IJobQuery, JobType, RequestStateQuery} from '../models/job';
+import {IJob, IJobQuery, JobType, RequestStateQuery} from '../models/job';
 import {SatlabRpcService} from '../services/satlab-rpc.service';
 import {BehaviorSubject, from} from 'rxjs';
 import {IItem} from '../models/selectable_item';
@@ -62,6 +62,7 @@ export class ViewJobsComponent implements core.AfterViewInit {
   protected disabled = false;
   protected loading = false;
   protected poolOptions = [];
+  protected selectedJobs: IJob[] = [];
 
   #status: RequestStateQuery[] = [
     'ALL',
@@ -325,6 +326,35 @@ export class ViewJobsComponent implements core.AfterViewInit {
     if (this.query.jobType) {
       this.#updateCanFilterName(this.query.jobType);
     }
+  }
+
+  protected onJobSelected(j: IJob[]) {
+    this.selectedJobs = j;
+  }
+
+  protected onAbortClicked() {
+    if (!confirm(`Do you want to abort ${this.selectedJobs.length} job(s)?`)) {
+      return;
+    }
+    from(
+      this.service.abort({
+        ids: toIterator(this.selectedJobs)
+          .map(j => j.id)
+          .collect(),
+        type: this.jobQuery.jobType,
+      })
+    ).subscribe({
+      next: () => {
+        this.notificationService.info(
+          `Aborting ${this.selectedJobs.length} job(s) now, please refresh the page.`
+        );
+      },
+      error: e => {
+        this.notificationService.error(
+          `Failed to abort job(s), got an error: ${e}`
+        );
+      },
+    });
   }
 
   #updateCanFilterName(jobType: JobType) {

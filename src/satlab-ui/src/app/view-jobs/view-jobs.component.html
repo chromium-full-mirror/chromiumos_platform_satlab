@@ -116,8 +116,19 @@
     </div>
   </div>
 
+  <button
+    class="job-action-btn"
+    mat-raised-button
+    color="primary"
+    (click)="onAbortClicked()"
+    [disabled]="loading || !(selectedJobs.length > 0)"
+  >
+    Abort
+  </button>
+
   <app-job-table
     [query]="jobQuery"
     (loadingChange)="onLoadingChanged($event)"
+    (select)="onJobSelected($event)"
   ></app-job-table>
 </div>

@@ -42,6 +42,7 @@ import {
   RunStorageQualRequest,
   BotInfo,
   RunQualificationRequest,
+  AbortJobsRequest,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
 import {
@@ -79,6 +80,7 @@ import {
   IPVSFields,
   IQualificationsFields,
 } from '../models/run_suite_fields';
+import {Moment} from 'moment';
 
 @Injectable({
   providedIn: 'root',
@@ -674,6 +676,26 @@ export class SatlabRpcService {
         p.finalize();
       });
   }
+
+  public async abort(params: {
+    ids: string[];
+    type: JobType;
+    timeGt?: Moment;
+    timeLt?: Moment;
+  }) {
+    const req = new AbortJobsRequest();
+
+    if (params.timeGt) {
+      req.setCreatedTimeGt(Timestamp.fromDate(params.timeGt.toDate()));
+    }
+    if (params.timeLt) {
+      req.setCreatedTimeLt(Timestamp.fromDate(params.timeLt.toDate()));
+    }
+    req.setIdsList(params.ids);
+    req.setJobType(toRequestJobType(params.type));
+
+    await this.client.abortJobs(req, {});
+  }
 }
 
 function toRepairDUTsResponse(r: RepairDutsResponse.RepairResult[]) {
@@ -693,10 +715,10 @@ function toRepairDUTsResponse(r: RepairDutsResponse.RepairResult[]) {
 function toTags(tags?: JobTags): Tag[] {
   return tags
     ? toIterator(Object.keys(tags))
-        .map(k => {
-          return new Tag().setKey(k).setValue(tags[k]);
-        })
-        .collect()
+      .map(k => {
+        return new Tag().setKey(k).setValue(tags[k]);
+      })
+      .collect()
     : [];
 }
 
@@ -740,56 +762,56 @@ function toJob(j: Job): IJob {
 
 function toJobStatus(s: Job.JobStatus): JobStatus {
   switch (s) {
-    case Job.JobStatus.PENDING:
-      return 'PENDING';
-    case Job.JobStatus.RUNNING:
-      return 'RUNNING';
-    case Job.JobStatus.COMPLETE:
-    case Job.JobStatus.COMPLETE_SUCCESS:
-    case Job.JobStatus.COMPLETE_FAILURE:
-      return 'COMPLETE';
-    case Job.JobStatus.TIMED_OUT:
-      return 'TIMEOUT';
-    case Job.JobStatus.EXPIRED:
-      return 'EXPIRED';
-    case Job.JobStatus.ABORTED:
-      return 'ABORTED';
-    default:
-      return 'STATUS_NOT_SET';
+  case Job.JobStatus.PENDING:
+    return 'PENDING';
+  case Job.JobStatus.RUNNING:
+    return 'RUNNING';
+  case Job.JobStatus.COMPLETE:
+  case Job.JobStatus.COMPLETE_SUCCESS:
+  case Job.JobStatus.COMPLETE_FAILURE:
+    return 'COMPLETE';
+  case Job.JobStatus.TIMED_OUT:
+    return 'TIMEOUT';
+  case Job.JobStatus.EXPIRED:
+    return 'EXPIRED';
+  case Job.JobStatus.ABORTED:
+    return 'ABORTED';
+  default:
+    return 'STATUS_NOT_SET';
   }
 }
 
 function toRequestJobType(t?: JobType) {
   switch (t) {
-    case 'SUITE':
-      return Job.JobType.SUITE;
-    case 'TESTPLAN':
-      return Job.JobType.TESTPLAN;
-    case 'TEST':
-      return Job.JobType.TEST;
-    default:
-      return Job.JobType.TYPE_NOT_SET;
+  case 'SUITE':
+    return Job.JobType.SUITE;
+  case 'TESTPLAN':
+    return Job.JobType.TESTPLAN;
+  case 'TEST':
+    return Job.JobType.TEST;
+  default:
+    return Job.JobType.TYPE_NOT_SET;
   }
 }
 
 function toRequestJobStatus(s?: RequestStateQuery) {
   switch (s) {
-    case 'PENDING':
-      return StateQuery.QUERY_PENDING;
-    case 'RUNNING':
-      return StateQuery.QUERY_RUNNING;
-    case 'PENDING_RUNNING':
-      return StateQuery.QUERY_PENDING_RUNNING;
-    case 'COMPLETED':
-      return StateQuery.QUERY_COMPLETED;
-    case 'EXPIRED':
-      return StateQuery.QUERY_EXPIRED;
-    case 'TIMEOUT':
-      return StateQuery.QUERY_TIMED_OUT;
-    case 'CANCELLED':
-      return StateQuery.QUERY_CANCELED;
-    default:
-      return StateQuery.QUERY_ALL;
+  case 'PENDING':
+    return StateQuery.QUERY_PENDING;
+  case 'RUNNING':
+    return StateQuery.QUERY_RUNNING;
+  case 'PENDING_RUNNING':
+    return StateQuery.QUERY_PENDING_RUNNING;
+  case 'COMPLETED':
+    return StateQuery.QUERY_COMPLETED;
+  case 'EXPIRED':
+    return StateQuery.QUERY_EXPIRED;
+  case 'TIMEOUT':
+    return StateQuery.QUERY_TIMED_OUT;
+  case 'CANCELLED':
+    return StateQuery.QUERY_CANCELED;
+  default:
+    return StateQuery.QUERY_ALL;
   }
 }
 

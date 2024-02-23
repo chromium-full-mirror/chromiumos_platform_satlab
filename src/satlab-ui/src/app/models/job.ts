@@ -10,6 +10,7 @@ export type JobStatus =
   | 'ABORTED'; // Job manually cancelled or killed or aborted
 
 export type JobHeader =
+  | 'select'
   | 'empty'
   | 'id'
   | 'name'
@@ -30,7 +31,7 @@ export type JobHeader =
 export interface JobColumn {
   header: string;
   def: JobHeader;
-  type: 'string' | 'date' | 'link' | 'empty';
+  type: 'string' | 'date' | 'link' | 'empty' | 'checkbox';
   actions?: LinkAction[];
 }
 

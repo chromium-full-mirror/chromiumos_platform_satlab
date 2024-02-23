@@ -57,6 +57,9 @@ service SatlabRpcService {
 
   // Jobs/Tasks information
   rpc ListJobs (ListJobsRequest) returns (ListJobsResponse);
+
+  // Jobs operation
+  rpc AbortJobs (AbortJobsRequest) returns (AbortJobsResponse);
 }
 
 message ListBuildTargetsRequest {
@@ -763,3 +766,14 @@ message DownloadLogRequest {}
 message DownloadLogResponse {
   bytes file_chunk  = 1;
 }
+
+// NEXT_TAG = 5
+message AbortJobsRequest {
+  repeated string ids = 1;
+  Job.JobType job_type = 2;
+  google.protobuf.Timestamp created_time_gt = 3;
+  google.protobuf.Timestamp created_time_lt = 4;
+}
+
+// NEXT_TAG = 1
+message AbortJobsResponse {}
