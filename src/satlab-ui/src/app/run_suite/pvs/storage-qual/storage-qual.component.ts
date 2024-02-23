@@ -28,7 +28,10 @@ export class StorageQualComponent {
     ...defaultStorageQualFields,
   };
 
-  private suiteList: string[] = ['storage-qual-avl-v3'];
+  private suiteList: string[] = [
+    'storage-qual-avl-v3',
+    'storage-qual-removable',
+  ];
   protected suiteOptions: IItem[] = [];
 
   constructor(
