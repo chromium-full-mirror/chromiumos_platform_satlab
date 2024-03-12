@@ -6,7 +6,15 @@
       </div>
     </ng-container>
 
-    <p class="title">Cloud Configuration</p>
+    <div class="header">
+      <p class="title">Cloud Configuration</p>
+      <span
+        class="material-icon edit-icon"
+        *ngIf="cloudConfigurationDisable"
+        (click)="editConfig()"
+        >edit_note</span
+      >
+    </div>
 
     <!-- Boto key input box-->
     <div class="input-box-container">
@@ -79,6 +87,14 @@
 
     <!-- Button Group -->
     <div class="btn-group">
+      <button
+        mat-raised-button
+        color="warn"
+        *ngIf="editingBoto.key !== '' && !cloudConfigurationDisable"
+        (click)="cancelEditing()"
+      >
+        Cancel
+      </button>
       <button
         mat-raised-button
         color="primary"

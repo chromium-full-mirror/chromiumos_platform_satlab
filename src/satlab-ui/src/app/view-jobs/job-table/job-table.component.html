@@ -21,7 +21,9 @@
       *ngFor="let op of columnOptions"
       [checked]="displayedColumns.includes(op.value)"
       (change)="toggleColumn($event.checked, op.value)"
-      [disabled]="displayedColumns.includes(op.value) && displayedColumns.length == 2"
+      [disabled]="
+        displayedColumns.includes(op.value) && displayedColumns.length == 2
+      "
       >{{ op.text }}</mat-checkbox
     >
   </div>

@@ -5,6 +5,12 @@ import {IBoto} from '../models/boto';
 import {finalize, from} from 'rxjs';
 import {startWithTap} from '../utils/rxjs_operator';
 
+const defaultBoto: IBoto = {
+  key: '',
+  secret: '',
+  bucket: '',
+};
+
 @Component({
   selector: 'app-configuration',
   templateUrl: './configuration.component.html',
@@ -12,11 +18,8 @@ import {startWithTap} from '../utils/rxjs_operator';
 })
 export class ConfigurationComponent implements AfterViewInit {
   // boto contains the information of cloud configuration.
-  protected boto: IBoto = {
-    key: '',
-    secret: '',
-    bucket: '',
-  };
+  protected boto: IBoto = {...defaultBoto};
+  protected editingBoto: IBoto = {...defaultBoto};
   protected cloudConfigurationLoading = false;
   protected cloudConfigurationDisable = true;
 
@@ -71,5 +74,27 @@ export class ConfigurationComponent implements AfterViewInit {
   private trimSpace(o: IBoto) {
     Object.keys(o).forEach(key => (o[key] = o[key]?.trim()));
     return o;
+  }
+
+  /**
+   * an event handler edits the boto key configuration.
+   * Copy the original Boto key to `editingBoto` and then clear it.
+   * Set the `cloudConfigurationDisable` to false.
+   */
+  protected editConfig() {
+    this.editingBoto = {...this.boto};
+    this.boto = {...defaultBoto};
+    this.cloudConfigurationDisable = false;
+  }
+
+  /**
+   * an event handler cancels the boto key configuration editing.
+   * Copy back the `editingBoto` to the Boto and then clear it.
+   * Set the `cloudConfigurationDisable` to true.
+   */
+  protected cancelEditing() {
+    this.boto = {...this.editingBoto};
+    this.editingBoto = {...defaultBoto};
+    this.cloudConfigurationDisable = true;
   }
 }
