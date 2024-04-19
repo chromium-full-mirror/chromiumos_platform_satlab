@@ -157,6 +157,7 @@ services:
       - TZ=Etc/UTC
       - SUDO_ACCESS=true
       - USER_NAME=moblab
+      - SERVOD_CONTAINER_LABEL=${SERVOD_CONTAINER_LABEL:-release}
       - DOCKER_MODS=linuxserver/mods:openssh-server-ssh-tunnel
       - GCS_IMAGE_BUCKET=${GCS_IMAGE_BUCKET:-}
       # gcs_partner_bucket is same as gcs_image_bucket for all partners
