@@ -359,7 +359,7 @@ message RunTestResponse {
 // NEXT_TAG = 1
 message ListEnrolledDutsRequest {}
 
-// NEXT_TAG = 15
+// NEXT_TAG = 16
 message Dut {
   string address = 1;
   string name = 2;
@@ -375,6 +375,7 @@ message Dut {
   string state = 12;
   bool has_test_image = 13;
   BotInfo bot_info = 14;
+  string ccd_status = 15;
 }
 
 // NEXT_TAG = 4

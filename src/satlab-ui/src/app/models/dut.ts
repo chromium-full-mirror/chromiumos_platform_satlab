@@ -39,6 +39,8 @@ export interface IDut {
 
   // this field is used for status hint text
   statusHintText: string;
+
+  ccdStatus: string;
 }
 
 /**

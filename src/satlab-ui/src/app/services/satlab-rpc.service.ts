@@ -775,6 +775,7 @@ function __toIDut(e: Dut) {
     isServoWiredCorrectly:
       e.getServoSerial() === '' || e.getServoSerial() !== 'NOT DETECTED',
     statusHintText: __toStatusHintText(status),
+    ccdStatus: e.getCcdStatus(),
   };
 
   return dut;
