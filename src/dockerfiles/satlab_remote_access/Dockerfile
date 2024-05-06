@@ -2,9 +2,23 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-ARG REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab
+ARG BASE_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/base-containers
 ARG COMMON_CORE_LABEL=autopush
 ARG COMMON_CORE_URI=gcr.io/chromeos-partner-moblab
+###########################################################
+
+FROM ${BASE_REGISTRY_URI}/alpine/git as adb
+
+ARG PLATFORM_TOOLS_VER=35.0.1
+ARG PLATFORM_TOOLS_ZIP=platform-tools_r${PLATFORM_TOOLS_VER}-linux.zip
+RUN wget https://dl.google.com/android/repository/${PLATFORM_TOOLS_ZIP}
+RUN unzip ${PLATFORM_TOOLS_ZIP} -d /adb
+RUN git clone --depth 1 --no-checkout --filter=blob:none https://chromium.googlesource.com/chromiumos/third_party/autotest.git
+RUN git -C autotest checkout main -- server/cros/tradefed/tradefed_constants.py
+RUN apk add python3
+ENV PYTHONPATH=autotest/server/cros/tradefed
+RUN python3 -c "from tradefed_constants import PRIVATE_KEY;print(PRIVATE_KEY)" > /adb/arc_adbkey
+
 ###########################################################
 
 FROM ${COMMON_CORE_URI}/remote_access:${COMMON_CORE_LABEL}
@@ -51,7 +65,7 @@ COPY dockerfiles/satlab_remote_access/tools/host_command.py \
 WORKDIR /
 RUN /bin/mkdir -p /cipd && /bin/chmod a+x /cipd && /bin/chmod a+r /cipd
 RUN # increment this number to bypass the cache: 4
-RUN /usr/bin/git -C /root clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+RUN /usr/bin/git -C /root clone --depth=1 https://chromium.googlesource.com/chromium/tools/depot_tools.git
 COPY dockerfiles/satlab_remote_access/cipd/spec /cipd/spec
 RUN /root/depot_tools/cipd ensure -ensure-file /cipd/spec -root /cipd -ensure-file-output /cipd/cipd_package_info.txt
 # The only non-hidden files in /root/download are executables managed by CIPD. Make them executable by users.
@@ -83,3 +97,9 @@ RUN chmod 777 /etc/profile.d/export_env_file.sh
 # Run storage monitoring check upon ssh
 COPY dockerfiles/satlab_remote_access/tools/wcache_check.sh /etc/profile.d/
 RUN chmod 777 /etc/profile.d/wcache_check.sh
+
+# Add adb
+RUN apk add --no-cache gcompat
+ENV ADB_VENDOR_KEYS=/root/.android/arc_adbkey
+COPY --from=adb /adb/platform-tools/adb /bin
+COPY --from=adb /adb/arc_adbkey ${ADB_VENDOR_KEYS}
