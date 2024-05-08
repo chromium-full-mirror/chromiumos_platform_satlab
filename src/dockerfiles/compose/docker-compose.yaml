@@ -174,6 +174,7 @@ services:
       - BOT_PREFIX=${BOT_PREFIX:-}
       - TEST_RUNNER_SWARMING_POOL=${TEST_RUNNER_SWARMING_POOL:-}
       - CTP_SWARMING_POOL=${CTP_SWARMING_POOL:-}
+      - CPCON_ACCOUNT_ID=${CPCON_ACCOUNT_ID:-}
     volumes:
       - logs:/var/log/satlab
       - /var/run/docker.sock:/var/run/docker.sock:rw
