@@ -211,10 +211,10 @@ export class SatlabRpcService {
    * addPool add a pool the given DUTs
    * @param p is a structure contains the information that we want to update
    */
-  public async addPool(p: {hostnames: string[], pool: string}) {
+  public async addPool(p: {addresses: string[]; pool: string}) {
     const req = new AddPoolRequest()
       .setPool(p.pool)
-      .setHostnamesList(p.hostnames);
+      .setAddressesList(p.addresses);
 
     await this.client.addPool(req, {});
   }
@@ -223,11 +223,11 @@ export class SatlabRpcService {
    * updatePool update the pool list to the given DUTs
    * @param p is a structure contains the information that we want to update.
    */
-  public async updatePool(p: {hostname: string, pools: string[]}[]) {
+  public async updatePool(p: {address: string; pools: string[]}[]) {
     const items = toIterator(p)
       .map(elem => {
         return new UpdatePoolRequest.Item()
-          .setHostname(elem.hostname)
+          .setAddress(elem.address)
           .setPoolsList(elem.pools);
       })
       .collect();
