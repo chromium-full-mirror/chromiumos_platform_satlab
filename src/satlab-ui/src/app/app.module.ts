@@ -60,6 +60,8 @@ import {InfiniteScrollDirective} from './infinite-scroll.directive';
 import {JobTableComponent} from './view-jobs/job-table/job-table.component';
 import {StorageQualComponent} from './run_suite/pvs/storage-qual/storage-qual.component';
 import {CircularProgressComponent} from './common/circular-progress/circular-progress.component';
+import {QualificationsComponent} from './run_suite/pvs/qualifications/qualifications.component';
+import {PvsComponent} from './run_suite/pvs/pvs.component';
 
 @NgModule({
   declarations: [
@@ -90,6 +92,8 @@ import {CircularProgressComponent} from './common/circular-progress/circular-pro
     JobTableComponent,
     StorageQualComponent,
     CircularProgressComponent,
+    QualificationsComponent,
+    PvsComponent,
   ],
   imports: [
     AppRoutingModule,

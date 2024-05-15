@@ -1,0 +1,58 @@
+<div class="suite-content">
+  <div class="wrapper">
+    <app-build-select-form
+      (allRequiredFieldsSet)="allRequiredFieldsSet($event)"
+      (onInitComplete)="onDutListUpdate($event)"
+      [hidePoolSelector]="true"
+    ></app-build-select-form>
+
+    <div class="px-6 pt-4">
+      <app-basic-selector
+        #dlmIDSelector
+        id="dlmIDSelector"
+        title="Select DLM SKU ID (Optional)"
+        placeholder="Please select a DLM SKU ID"
+        [options]="dlmSkuIDOptions"
+        (select)="onDlmSkuIDChanged($event)"
+        [disabled]="fields.model === ''"
+        [disabledMessage]="fields.model === '' ? 'Please select a model' : ''"
+      ></app-basic-selector>
+
+      <app-autocomplete-selector
+        #suiteSelector
+        id=" suiteSelector"
+        title="Type or scroll to select custom suite"
+        placeholder="Type or scroll to select custom suite"
+        (inputChanged)="onSuiteChanged($event)"
+        [options]="suiteOptions"
+      >
+      </app-autocomplete-selector>
+
+      <mat-form-field class="full-width zero-padding">
+        <mat-label>Qualification ID</mat-label>
+        <input
+          name="bugID"
+          matInput
+          required
+          (change)="onBugIDChanged($event.target.value)"
+        />
+      </mat-form-field>
+
+      <mat-checkbox
+        [(ngModel)]="isIncrementalRun"
+        (change)="onIncrementalRunChange($event)"
+        >Incremental Run</mat-checkbox
+      >
+    </div>
+    <div class="flex justify-center py-4">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="onRunSuiteClick()"
+        [disabled]="disabled"
+      >
+        Run Suite
+      </button>
+    </div>
+  </div>
+</div>

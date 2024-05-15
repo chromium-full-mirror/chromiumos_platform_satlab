@@ -1,8 +1,9 @@
-<div class="suite-wrapper">
+<div class="suite-content">
   <div class="wrapper">
     <app-build-select-form
       (allRequiredFieldsSet)="allRequiredFieldsSet($event)"
-      [replacePoolByHostname]="true"
+      [hideHostnameSelector]="false"
+      [hidePoolSelector]="true"
     ></app-build-select-form>
 
     <div class="px-6">
@@ -15,16 +16,14 @@
         (select)="onSuiteChanged($event)"
       >
       </app-basic-selector>
-    </div>
 
-    <div class="part-wrapper">
       <mat-form-field class="full-width zero-padding">
         <mat-label>AVL Process Bug ID</mat-label>
         <input
           name="bugID"
           matInput
           required
-          (change)="onBugIDChanged($event)"
+          (change)="onBugIDChanged($event.target.value)"
         />
       </mat-form-field>
     </div>

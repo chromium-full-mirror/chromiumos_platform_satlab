@@ -10,6 +10,8 @@ import {checkLoggedIn} from './utils/auth-guard';
 import {ViewJobsComponent} from './view-jobs/view-jobs.component';
 import {StorageQualComponent} from './run_suite/pvs/storage-qual/storage-qual.component';
 import {SingleTestComponent} from './run_suite/single-test/single-test.component';
+import {PvsComponent} from './run_suite/pvs/pvs.component';
+import {QualificationsComponent} from './run_suite/pvs/qualifications/qualifications.component';
 
 const routes: Routes = [
   {
@@ -41,8 +43,12 @@ const routes: Routes = [
     component: ConfigurationComponent,
   },
   {
-    path: 'storage_qualification',
-    component: StorageQualComponent,
+    path: 'pvs',
+    children: [
+      {path: '', component: PvsComponent},
+      {path: 'storageQual', component: StorageQualComponent},
+      {path: 'qualifications', component: QualificationsComponent},
+    ],
     canActivate: [checkLoggedIn],
   },
   {

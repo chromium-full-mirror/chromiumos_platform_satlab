@@ -1,0 +1,13 @@
+.suite-wrapper {
+  display: flex;
+  justify-content: center;
+  font-size: 1rem;
+  position: relative;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+}
+
+::ng-deep .mat-mdc-tab-labels div[role='tab'] {
+  min-width: 10rem;
+}

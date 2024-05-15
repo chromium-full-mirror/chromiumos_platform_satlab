@@ -24,6 +24,7 @@ import {
   defaultBuildSelectFields,
   IBuildSelectFields,
 } from '../../../models/run_suite_fields';
+import {labelDlmSkuID} from 'app/models/dims';
 
 @Component({
   selector: 'app-build-select-form',
@@ -33,11 +34,11 @@ import {
 export class BuildSelectFormComponent
   implements AfterViewInit, OnDestroy, OnInit
 {
-  /* replacePoolByHostname use hostname filter instead of pool. */
-  @Input() replacePoolByHostname = false;
+  @Input() hidePoolSelector = false;
+  @Input() hideHostnameSelector = true;
 
   @Output() allRequiredFieldsSet = new EventEmitter<IBuildSelectFields>();
-  @Output() onInitComplete = new EventEmitter();
+  @Output() onInitComplete = new EventEmitter<{duts: ISimpleDUT[]}>();
 
   @ViewChild('boardSelector') boardSelector?: BasicSelectorComponent;
   @ViewChild('milestoneSelector') milestoneSelector?: BasicSelectorComponent;
@@ -77,7 +78,7 @@ export class BuildSelectFormComponent
         startWithTap(() => this.showLoading('fetching models...')),
         finalize(() => {
           this.hideLoading();
-          this.onInitComplete.emit();
+          this.onInitComplete.emit({duts: this.duts});
         })
       )
       .subscribe({
@@ -181,6 +182,10 @@ export class BuildSelectFormComponent
         model: e.model,
         board: e.board,
         pools: e.pools,
+        dlmSkuID:
+          (e.dimensions[labelDlmSkuID]?.length ?? 0) > 0
+            ? e.dimensions[labelDlmSkuID][0]
+            : '',
       };
       return dut;
     });

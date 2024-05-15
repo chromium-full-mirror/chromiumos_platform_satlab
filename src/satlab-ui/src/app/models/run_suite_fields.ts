@@ -21,12 +21,24 @@ export const defaultBuildSelectFields: IBuildSelectFields = {
   pool: '',
 };
 
-export interface IStorageQualFields {
+export interface IPVSFields {
   bugID: string;
   suite: string;
 }
 
-export const defaultStorageQualFields: IStorageQualFields = {
+export const defaultStorageQualFields: IPVSFields = {
   bugID: '',
   suite: '',
+};
+
+export interface IQualificationsFields extends IPVSFields {
+  dlmSkuID: string;
+  isIncrementalRun: boolean;
+}
+
+export const defaultQualificationsFields: IQualificationsFields = {
+  bugID: '',
+  suite: '',
+  dlmSkuID: '',
+  isIncrementalRun: false,
 };

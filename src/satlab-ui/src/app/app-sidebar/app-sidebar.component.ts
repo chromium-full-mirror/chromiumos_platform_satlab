@@ -22,7 +22,7 @@ export class AppSidebarComponent {
       icon: 'play_arrow',
     },
     {
-      route: '/storage_qualification',
+      route: '/pvs',
       label: 'PVS',
       icon: 'science',
     },

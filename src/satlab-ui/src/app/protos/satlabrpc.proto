@@ -25,6 +25,7 @@ service SatlabRpcService {
   rpc ListMilestones (ListMilestonesRequest) returns (ListMilestonesResponse);
   rpc ListTestPlans (ListTestPlansRequest) returns (ListTestPlansResponse);
   rpc RunStorageQual (RunStorageQualRequest) returns (RunStorageQualResponse);
+  rpc RunQualification (RunQualificationRequest) returns (RunQualificationResponse);
 
   // services to run different types of test suites
   rpc RunSuite (RunSuiteRequest) returns (RunSuiteResponse);
@@ -382,7 +383,7 @@ message Dut {
   string ccd_status = 15;
 }
 
-// NEXT_TAG = 4
+// NEXT_TAG = 5
 message BotInfo {
   // NEXT_TAG = 6
   enum BotState {
@@ -398,6 +399,8 @@ message BotInfo {
   string current_task = 2;
   // Name of the task currently running (Test/Repair/Deploy).
   string task_name = 3;
+  // Dimensions of the bot
+  repeated StringListPair dimensions = 4;
 }
 
 // NEXT_TAG = 2
@@ -711,6 +714,35 @@ message RunStorageQualRequest {
 message RunStorageQualResponse {
   string build_link= 1;
 }
+
+// NEXT_TAG = 11
+message RunQualificationRequest {
+  // Identifies the qualification
+  string qualification_id = 1;
+
+  // Specifies which device to run tests on
+  string board = 2;
+  string model = 3;
+  string dlm_sku_id = 4;
+
+  // Specifies which software to run tests against
+  string milestone = 5;
+  string version = 6;
+
+  // Specifies which tests to run
+  string centralized_suite = 7;
+  bool is_incremental_run = 8;
+
+  // Specifies further scheduling parameters
+  string pool = 9;
+  repeated Dim dims = 10;
+}
+
+// NEXT_TAG = 2
+message RunQualificationResponse {
+  string build_link= 1;
+}
+
 
 // NEXT_TAG = 1
 message UploadLogRequest {}

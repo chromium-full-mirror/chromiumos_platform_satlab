@@ -59,7 +59,7 @@
     >
     </app-basic-selector>
 
-    <ng-container *ngIf="!replacePoolByHostname">
+    <ng-container *ngIf="!hidePoolSelector">
       <app-basic-selector
         #poolSelector
         id="poolSelector"
@@ -75,7 +75,7 @@
       </app-basic-selector>
     </ng-container>
 
-    <ng-container *ngIf="replacePoolByHostname">
+    <ng-container *ngIf="!hideHostnameSelector">
       <app-basic-selector
         #hostnameSelector
         id="hostnameSelector"

@@ -42,3 +42,9 @@ export const BUILD_STATUS_MAPPINGS: {
   3: 'Aborted',
   4: 'Recommended',
 };
+
+export const emptySelectableItem: SelectableItem = {
+  text: '',
+  value: '',
+  label: '',
+};

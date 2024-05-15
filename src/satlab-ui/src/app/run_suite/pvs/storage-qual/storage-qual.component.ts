@@ -3,7 +3,7 @@ import {
   defaultBuildSelectFields,
   defaultStorageQualFields,
   IBuildSelectFields,
-  IStorageQualFields,
+  IPVSFields,
 } from '../../../models/run_suite_fields';
 import {IItem} from '../../../models/selectable_item';
 import {checkSelectFields} from '../../../utils/validators';
@@ -23,7 +23,7 @@ export class StorageQualComponent {
 
   protected disabled = true;
 
-  protected fields: IBuildSelectFields & IStorageQualFields = {
+  protected fields: IBuildSelectFields & IPVSFields = {
     ...defaultBuildSelectFields,
     ...defaultStorageQualFields,
   };
@@ -78,10 +78,10 @@ export class StorageQualComponent {
    * @protected
    * @param e
    */
-  protected onBugIDChanged(e: Event) {
+  protected onBugIDChanged(value: string) {
     this.fields = {
       ...this.fields,
-      bugID: (e.target as HTMLInputElement).value.trim(),
+      bugID: value.trim(),
     };
     this.disabled = !this.#validate();
   }

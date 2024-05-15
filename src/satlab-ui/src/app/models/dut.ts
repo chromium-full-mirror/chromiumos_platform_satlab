@@ -3,6 +3,7 @@ export interface ISimpleDUT {
   model: string;
   board: string;
   pools: string[];
+  dlmSkuID?: string;
 }
 
 export interface IDut {
@@ -41,6 +42,8 @@ export interface IDut {
   statusHintText: string;
 
   ccdStatus: string;
+
+  dimensions: Object;
 }
 
 /**

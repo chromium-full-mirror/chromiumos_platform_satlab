@@ -41,6 +41,7 @@ import {
   Tag,
   RunStorageQualRequest,
   BotInfo,
+  RunQualificationRequest,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
 import {
@@ -75,7 +76,8 @@ import {
 import {Timestamp} from 'google-protobuf/google/protobuf/timestamp_pb';
 import {
   IBuildSelectFields,
-  IStorageQualFields,
+  IPVSFields,
+  IQualificationsFields,
 } from '../models/run_suite_fields';
 
 @Injectable({
@@ -592,7 +594,7 @@ export class SatlabRpcService {
    * @param params the basic parameters with bug_id
    */
   public async runStorageQualification(
-    params: IBuildSelectFields & IStorageQualFields
+    params: IBuildSelectFields & IPVSFields
   ) {
     const req = new RunStorageQualRequest()
       .setBoard(params.board)
@@ -605,6 +607,25 @@ export class SatlabRpcService {
       .setDimsList(this.toDims(params.dims));
 
     const res = await this.client.runStorageQual(req, {});
+
+    return res.getBuildLink();
+  }
+
+  public async runQualification(
+    params: IBuildSelectFields & IQualificationsFields
+  ) {
+    const req = new RunQualificationRequest()
+      .setBoard(params.board)
+      .setModel(params.model)
+      .setMilestone(params.milestone)
+      .setVersion(params.build)
+      .setQualificationId(params.bugID)
+      .setPool(params.pool)
+      .setCentralizedSuite(params.suite)
+      .setDimsList(this.toDims(params.dims))
+      .setIsIncrementalRun(params.isIncrementalRun);
+
+    const res = await this.client.runQualification(req, {});
 
     return res.getBuildLink();
   }
@@ -816,6 +837,13 @@ function __toIDut(e: Dut) {
       e.getServoSerial() === '' || e.getServoSerial() !== 'NOT DETECTED',
     statusHintText: __toStatusHintText(status),
     ccdStatus: e.getCcdStatus(),
+    dimensions: toIterator(e.getBotInfo()?.getDimensionsList() ?? []).fold(
+      {},
+      (prev, elem) => {
+        prev[elem.getKey()] = elem.getValuesList();
+        return prev;
+      }
+    ),
   };
 
   return dut;
