@@ -142,7 +142,7 @@ services:
   ##############################################################################rpc_server
   satlab_rpcserver:
     container_name: satlab_rpcserver
-    image: us-docker.pkg.dev/chromeos-partner-moblab/satlab/satlab-rpcserver:${SATLAB_RPCSERVER:-release}
+    image: ${REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab}/satlab-rpcserver:${SATLAB_RPCSERVER:-release}
     hostname: satlab-rpcserver
     networks:
       satlab:
@@ -186,7 +186,7 @@ services:
   ##############################################################################envoy-proxy
   envoy-proxy:
     container_name: envoy-proxy
-    image: us-docker.pkg.dev/chromeos-partner-moblab/satlab/envoy-proxy:${ENVOY_PROXY:-release}
+    image: ${REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab}/envoy-proxy:${ENVOY_PROXY:-release}
     user: moblab
     restart: unless-stopped
     environment:
@@ -203,7 +203,7 @@ services:
   ###########################################################################logrotate
   logrotate:
     container_name: logrotate
-    image: us-docker.pkg.dev/chromeos-partner-moblab/satlab/logrotate:${LOGROTATE:-release}
+    image: ${REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab}/logrotate:${LOGROTATE:-release}
     environment:
       # Rotate logs regardless of the extension.
       - ALL_LOGS_DIRECTORIES=/var/log/chrome /var/log/ui
@@ -223,7 +223,7 @@ services:
   ##############################################################################satlab-ui
   satlab-ui:
     container_name: satlab-ui
-    image: us-docker.pkg.dev/chromeos-partner-moblab/satlab/satlab-ui:${SATLAB_UI:-release}
+    image: ${REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab}/satlab-ui:${SATLAB_UI:-release}
     hostname: satlab-ui
     restart: unless-stopped
     networks:
