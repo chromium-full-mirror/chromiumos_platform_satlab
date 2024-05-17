@@ -95,6 +95,61 @@ function firstWhere<T>(iter: Iterator<T>, f: (elem: T) => boolean) {
   return null;
 }
 
+/**
+ * Tests if any element of ther iterator matches a predicate.
+ * @param iter the iterator object.
+ * @param f the match function.
+ *
+ * @returns boolean
+ */
+function any<T>(iter: Iterator<T>, f: (elem: T) => boolean) {
+  let next = iter.next();
+
+  while (next.done === false) {
+    if (f(next.value)) {
+      return true;
+    }
+    next = iter.next();
+  }
+
+  return false;
+}
+
+/**
+ * Tests if every element of the iterator matches a predicate.
+ * @param iter the iterator object.
+ * @param f the match function.
+ *
+ * @returns boolean
+ */
+function all<T>(iter: Iterator<T>, f: (elem: T) => boolean) {
+  return fold(iter, true, (prev, elem) => prev && f(elem));
+}
+
+/**
+ * Folds every element into a given function by applying an operation, returning the final result.
+ * @param iter the iterator object.
+ * @param f the function that we want to apply an operation.
+ * @param initValue the initial value.
+ *
+ * @returns the final result
+ */
+function fold<T, S>(
+  iter: Iterator<T>,
+  initValue: S,
+  f: (res: S, elem: T) => S
+): S {
+  let next = iter.next();
+  let c = initValue;
+
+  while (next.done === false) {
+    c = f(c, next.value);
+    next = iter.next();
+  }
+
+  return c;
+}
+
 function* fromArray<T>(array: T[]) {
   for (const v of array) {
     yield v;
@@ -114,15 +169,19 @@ function collect<T>(iter: Iterator<T>) {
 
 export const fromIter = <T>(iter: Iterator<T>) => {
   return {
+    any: (f: (elem: T) => boolean) => any(iter, f),
+    all: (f: (elem: T) => boolean) => all(iter, f),
+    collect: () => collect(iter),
     filter: (f: (elem: T) => boolean) => fromIter(filter(iter, f)),
+    flatten: () => fromIter(flatten(iter)),
+    first_where: (f: (elem: T) => boolean) => firstWhere(iter, f),
+    forEach: (f: (elem: T) => void) => forEach(iter, f),
+    fold: <U>(initValue: U, f: (prev: U, elem: T) => U) =>
+      fold(iter, initValue, f),
     map: <U>(f: (elem: T) => U) => fromIter(map(iter, f)),
     unique_by: () => fromIter(uniqueBy(iter)),
     unique_by_where: (f: (a: T, b: T) => boolean) =>
       fromIter(uniqueByWhere(iter, f)),
-    flatten: () => fromIter(flatten(iter)),
-    first_where: (f: (elem: T) => boolean) => firstWhere(iter, f),
-    forEach: (f: (elem: T) => void) => forEach(iter, f),
-    collect: () => collect(iter),
   };
 };
 

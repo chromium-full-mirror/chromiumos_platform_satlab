@@ -31,6 +31,10 @@ export class FirmwareComponent implements OnInit, OnChanges, OnDestroy {
   protected selectionCount = 0;
   private disposer?: Subscription;
   protected checked = false;
+  // The flag indicates if any DUTs can be updated.
+  // If there are no DUTs that can be updated, it is `true`.
+  // Otherwise, it is false. The default value is false.
+  protected disabled = false;
 
   protected displayedColumns = ['check', 'ip', 'current', 'newest'];
 
@@ -60,6 +64,7 @@ export class FirmwareComponent implements OnInit, OnChanges, OnDestroy {
     ) {
       this.selection.clear();
       this.checked = false;
+      this.disabled = toIterator(this.DUTs).all(e => e.isLatest);
     }
   }
 

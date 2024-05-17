@@ -29,6 +29,7 @@
             <mat-checkbox
               (change)="onCheckboxChanged($event)"
               [(ngModel)]="checked"
+              [disabled]="disabled"
             ></mat-checkbox>
           </th>
           <td mat-cell *matCellDef="let element">
