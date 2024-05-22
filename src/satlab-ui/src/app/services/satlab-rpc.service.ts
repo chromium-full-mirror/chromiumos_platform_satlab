@@ -753,6 +753,7 @@ function toJob(j: Job): IJob {
     status: toJobStatus(j.getStatus()),
     taskUrl: j.getTaskUrl(),
     resultUrl: j.getResultsUrl(),
+    cpconUrl: j.getCpconUrl(),
     completeJobPercentage: complete,
   };
 }

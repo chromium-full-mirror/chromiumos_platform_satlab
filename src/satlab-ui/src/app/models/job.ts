@@ -26,7 +26,8 @@ export type JobHeader =
   | 'pool'
   | 'satlabID'
   | 'luciLink'
-  | 'testResults';
+  | 'testResults'
+  | 'cpconLink';
 
 export interface JobColumn {
   header: string;
@@ -58,6 +59,7 @@ export interface IJob {
   satlabID: string;
   taskUrl: string;
   resultUrl: string;
+  cpconUrl: string;
   completeJobPercentage?: number;
 }
 

@@ -625,6 +625,7 @@ message Job {
   string board = 14;
   string model = 15;
   string build = 16;
+  string cpcon_url = 17;
 }
 
 // NEXT_TAG = 3

@@ -46,6 +46,7 @@ const COLUMN_OPTIONS = [
   {text: 'Satlab ID', value: 'satlabID'},
   {text: 'LUCI Link', value: 'luciLink'},
   {text: 'Test Results', value: 'testResults'},
+  {text: 'CPCON Link', value: 'cpconLink'},
 ];
 
 const SELECTABLE_STATUSES: JobStatus[] = [
@@ -377,6 +378,21 @@ function headerToColumn(header: JobHeader): JobColumn {
             },
             icon: 'link',
             tooltip: 'Test Results',
+          },
+        ],
+      };
+    case 'cpconLink':
+      return {
+        header: '',
+        def: 'cpconLink',
+        type: 'link',
+        actions: [
+          {
+            getLink: j => {
+              return j.cpconUrl;
+            },
+            icon: 'table_chart',
+            tooltip: 'CPCON Link',
           },
         ],
       };
