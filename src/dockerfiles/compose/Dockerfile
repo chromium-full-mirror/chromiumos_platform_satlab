@@ -16,20 +16,20 @@ FROM ${COMMON_CORE_URI}/moblab_common:${COMMON_CORE_LABEL} as common
 FROM ${BASE_REGISTRY_URI}/docker/compose:alpine-1.27.4
 
 RUN apk add --no-cache --upgrade \
-    alpine-sdk \
-    cmake \
-    gcc \
-    jq \
-    libffi-dev \
-    libstdc++ \
-    linux-headers \
-    openssh-client \
-    openssl-dev \
-    py-pip \
-    python3 \
-    python3-dev \
-    py3-setuptools \
-    zlib-dev
+  alpine-sdk \
+  cmake \
+  gcc \
+  jq \
+  libffi-dev \
+  libstdc++ \
+  linux-headers \
+  openssh-client \
+  openssl-dev \
+  py-pip \
+  python3 \
+  python3-dev \
+  py3-setuptools \
+  zlib-dev
 
 # If the args left empty the script will leave the values in .env as is.
 ARG CONF_CREATOR_VER

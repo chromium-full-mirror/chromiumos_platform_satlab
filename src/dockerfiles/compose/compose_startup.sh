@@ -89,6 +89,15 @@ else
     source ${ENV_SETUP_FILE}
   fi
 
+  # A place to mount a tls volume even though certs were not provided.
+  # Required for backward compatibility.
+  export DOCKER_COMPOSE_CERT_PATH=${DOCKER_CERT_PATH:-/etc/docker/certs}
+  docker volume create --name=docker_tls
+
+  if [ -n "${DOCKER_CERT_PATH}" ]; then
+    export DOCKER_DRONE_CERT_PATH=/home/chromeos-test/.docker/certs
+  fi
+
   docker-compose pull dns
   docker-compose up -d dns
 
