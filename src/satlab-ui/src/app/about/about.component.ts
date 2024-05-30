@@ -168,7 +168,17 @@ export class AboutComponent implements OnInit {
         )
       )
       .subscribe({
-        next: link => window.open(link, '_blank'),
+        next: link => {
+          const w = window.open(link, '_blank');
+          try {
+            w.focus();
+          } catch (e) {
+            this.notification.info([
+              'Please click on this link to access the log: ',
+              {type: 'url', url: link},
+            ]);
+          }
+        },
         error: e => this.notification.error(`Upload log failed: ${e}`),
       });
   }
