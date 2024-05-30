@@ -3,6 +3,7 @@ import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
 import {OpenCCDReply} from 'app/services/satlabrpc_pb';
 import {ClientReadableStream} from 'grpc-web';
+import {BehaviorSubject} from 'rxjs';
 
 @Component({
   selector: 'app-open-ccd',
@@ -11,11 +12,13 @@ import {ClientReadableStream} from 'grpc-web';
 })
 export class OpenCcdComponent {
   private readonly servoSerial: string = '';
-  protected hintMessage: string = '';
-  protected loading = {show: false, message: ''};
-  protected rmaAuth: boolean = false;
-  protected rmaCode: string = '';
+  private loading = new BehaviorSubject({show: false, message: ''});
   private stream: ClientReadableStream<OpenCCDReply>;
+
+  protected hintMessage = '';
+  protected rmaAuth = false;
+  protected rmaCode = '';
+  protected loading$ = this.loading.asObservable();
 
   constructor(
     @Inject(MAT_DIALOG_DATA) data: {servoSerial: string},
@@ -26,10 +29,10 @@ export class OpenCcdComponent {
   }
 
   private openCCD(servoSerial: string, rmaAuth: boolean) {
-    this.loading = {
+    this.loading.next({
       show: true,
       message: 'This might take few minutes, please wait....',
-    };
+    });
     this.stream = this.service.openCCD({
       servoSerial: servoSerial,
       rmaAuth: rmaAuth,
@@ -48,8 +51,8 @@ export class OpenCcdComponent {
       finalize: () => {
         this.hintMessage =
           this.hintMessage +
-          `<p>Process finished. Click close to continue.</p>`;
-        this.loading = {show: false, message: ''};
+          '<p>Process finished. Click close to continue.</p>';
+        this.loading.next({show: false, message: ''});
       },
     });
   }

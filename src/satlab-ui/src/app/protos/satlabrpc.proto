@@ -31,6 +31,7 @@ service SatlabRpcService {
   rpc RunSuite (RunSuiteRequest) returns (RunSuiteResponse);
   rpc RunTest (RunTestRequest) returns (RunTestResponse);
   rpc RunTestPlan (RunTestPlanRequest) returns (RunTestPlanResponse);
+  rpc RunLabQual (RunLabQualRequest) returns (RunLabQualResponse);
 
   // manage DUTs
   rpc AddPool (AddPoolRequest) returns (AddPoolResponse);
@@ -86,10 +87,13 @@ message BuildItem {
   BuildStatus status = 3;
 }
 
-// NEXT_TAG = 3
+// NEXT_TAG = 4
 message ListMilestonesRequest {
   string board = 1;
   string model = 2;
+  // The type that we want to filter from the google bucket
+  // e.g. firmware, release
+  string filter_type = 3;
 }
 
 // NEXT_TAG = 3
@@ -113,11 +117,14 @@ message ListAccessibleModelsResponse {
   repeated Model models = 1;
 }
 
-// NEXT_TAG = 4
+// NEXT_TAG = 5
 message ListBuildVersionsRequest {
   string board = 1;
   string model = 2;
   int32 milestone = 3;
+  // The type that we want to filter from the google bucket
+  // e.g. firmware, release
+  string filter_type = 4;
 }
 
 // NEXT_TAG = 2
@@ -125,16 +132,20 @@ message ListBuildVersionsResponse {
   repeated BuildItem build_versions = 1;
 }
 
-// NEXT_TAG = 4
+// NEXT_TAG = 5
 message StageBuildRequest {
   string board = 1;
   string model = 2;
   string build_version = 3;
+  // The type that we want to filter from the google bucket
+  // e.g. firmware, release
+  string filter_type = 4;
 }
 
-// NEXT_TAG = 2
+// NEXT_TAG = 3
 message StageBuildResponse {
   string build_bucket = 1;
+  string path = 2;
 }
 
 // NEXT_TAG = 1
@@ -807,3 +818,30 @@ message SendMessageToCCDSessionRequest {
 
 // NEXT_TAG = 1
 message SendMessageToCCDSessionResponse {}
+
+// NEXT_TAG = 4
+message AdvancedSettings {
+  bool cft = 1;
+  bool trv2 = 2;
+  bool upload_to_cpcon = 3;
+}
+
+// NEXT_TAG = 9
+message RunLabQualRequest {
+  string board = 1;
+  string milestone = 2;
+  string build = 3;
+  string model = 4;
+  string pool = 5;
+  // We use `repeated Dim` (not `map<string, string>`) in here
+  // because the generated files in Typescript do not
+  // have a setter function.
+  repeated Dim dims = 6;
+  string firmware_path = 7;
+  AdvancedSettings settings = 8;
+}
+
+// NEXT_TAG = 2
+message RunLabQualResponse {
+  string build_link= 1;
+}

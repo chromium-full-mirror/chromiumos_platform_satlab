@@ -8,31 +8,31 @@
       <mat-label>{{ title }}</mat-label>
       <input
         #search
-        matInput
-        [formControl]="searchFormControl"
         (focusin)="onInputFocusIn()"
         (focusout)="onInputFocusout()"
+        [formControl]="searchFormControl"
         [placeholder]="placeholder"
+        matInput
       />
-      <mat-hint class="error" *ngIf="errorMessage !== ''">{{
-        errorMessage
-      }}</mat-hint>
+      <mat-hint *ngIf="errorMessage !== ''" class="error"
+        >{{ errorMessage }}
+      </mat-hint>
     </mat-form-field>
   </div>
 
   <ng-container *ngIf="isShown">
     <div
-      class="items-wrapper"
       (mouseenter)="onMouseEnter()"
       (mouseleave)="onMouseLeave()"
+      class="items-wrapper"
     >
       <mat-list role="list">
         <mat-list-item
+          (click)="onOptionClicked(option.label === 'Failed' ? null : option)"
+          *ngFor="let option of filteredOptions"
+          [disabled]="option.label === 'Failed'"
           class="item"
           role="listitem"
-          *ngFor="let option of filteredOptions"
-          (click)="onOptionClicked(option.label === 'Failed' ? null : option)"
-          [disabled]="option.label === 'Failed'"
         >
           {{ option.text }}
         </mat-list-item>

@@ -66,6 +66,9 @@ import {QualificationsComponent} from './run_suite/pvs/qualifications/qualificat
 import {PvsComponent} from './run_suite/pvs/pvs.component';
 import {AdvancedSettingsComponent} from './run_suite/common/advanced-settings/advanced-settings.component';
 import {OpenCcdComponent} from './dialogs/open-ccd/open-ccd.component';
+import {LabQualComponent} from './run_suite/lab-qual/lab-qual.component';
+import {LoadingButtonComponent} from './common/loading-button/loading-button.component';
+import {BuildSelectorComponent} from './run_suite/common/build-selector/build-selector.component';
 
 @NgModule({
   declarations: [
@@ -100,6 +103,9 @@ import {OpenCcdComponent} from './dialogs/open-ccd/open-ccd.component';
     PvsComponent,
     AdvancedSettingsComponent,
     OpenCcdComponent,
+    LabQualComponent,
+    BuildSelectorComponent,
+    LoadingButtonComponent,
   ],
   imports: [
     AppRoutingModule,

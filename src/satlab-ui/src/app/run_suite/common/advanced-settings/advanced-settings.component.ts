@@ -7,8 +7,8 @@ import {
   Output,
 } from '@angular/core';
 import {
-  IAdvancedSettings,
   defaultAdvancedSettings,
+  IAdvancedSettings,
 } from 'app/models/run_suite_fields';
 import {BehaviorSubject, Subscription} from 'rxjs';
 

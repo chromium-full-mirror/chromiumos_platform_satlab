@@ -183,11 +183,14 @@
           <div class="ccd-status-wrapper">
             <p>{{ element.ccdStatus }}</p>
             <button
-            *ngIf="element.servoSerial !== '' && element.servoSerial !== 'NOT DETECTED'"
-            class="material-icon icon green"
-            matTooltip="Open CCD"
-            (click)="onOpenCCDClicked(element.servoSerial)"
-            [disabled]="disabledServo.includes(element.servoSerial)"
+              *ngIf="
+                element.servoSerial !== '' &&
+                element.servoSerial !== 'NOT DETECTED'
+              "
+              class="material-icon icon green"
+              matTooltip="Open CCD"
+              (click)="onOpenCCDClicked(element.servoSerial)"
+              [disabled]="disabledServo.includes(element.servoSerial)"
             >
               lock_open
             </button>

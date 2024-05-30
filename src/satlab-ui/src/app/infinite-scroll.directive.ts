@@ -5,11 +5,10 @@ import * as rxjs from 'rxjs';
   selector: '[appInfiniteScroll]',
 })
 export class InfiniteScrollDirective {
-  private source = new rxjs.Subject<unknown>();
-  private ngDestroy$ = new rxjs.Subject<void>();
-
   @Output()
   scrollCallback: EventEmitter<unknown> = new EventEmitter();
+  private source = new rxjs.Subject<unknown>();
+  private ngDestroy$ = new rxjs.Subject<void>();
 
   constructor() {
     this.source

@@ -8,9 +8,9 @@ import {catchError, from, map, mergeAll, of, tap} from 'rxjs';
 import {startWithTap} from 'app/utils/rxjs_operator';
 import {ITestCase} from 'app/models/testcase';
 import {
-  IAdvancedSettings,
   defaultAdvancedSettings,
   defaultBuildSelectFields,
+  IAdvancedSettings,
 } from 'app/models/run_suite_fields';
 import {IBuildSelectFields} from '../../models/run_suite_fields';
 import {ISimpleDUT} from 'app/models/dut';
@@ -26,10 +26,12 @@ export class SingleTestComponent {
   protected disabled = true;
   protected testFormControl = new FormControl('');
   protected testCases: ITestCase[] = [];
-  private fields: IBuildSelectFields = defaultBuildSelectFields;
   protected duts: ISimpleDUT[];
-  private advancedSettings: IAdvancedSettings = {...defaultAdvancedSettings};
   protected settingsDisabled = false;
+  protected isRunning = false;
+
+  private fields: IBuildSelectFields = defaultBuildSelectFields;
+  private advancedSettings: IAdvancedSettings = {...defaultAdvancedSettings};
 
   constructor(
     private service: SatlabRpcService,
@@ -64,6 +66,7 @@ export class SingleTestComponent {
         startWithTap(() => {
           this.form.showLoading('Triggering tests...');
           this.disabled = true;
+          this.isRunning = true;
         }),
         map(test => {
           return from(
@@ -101,23 +104,16 @@ export class SingleTestComponent {
         mergeAll()
       )
       .subscribe({
+        error: () => {
+          this.form.hideLoading();
+          this.isRunning = false;
+        },
         complete: () => {
           this.form.hideLoading();
           this.testCases = [];
+          this.isRunning = false;
         },
       });
-  }
-
-  private canRun() {
-    this.disabled = !this.validate();
-  }
-
-  private validate() {
-    const isFieldsValid = checkSelectFields(this.fields);
-
-    const isTestValid = this.testCases.length > 0;
-
-    return isFieldsValid && isTestValid;
   }
 
   protected onAddTestClick() {
@@ -133,5 +129,17 @@ export class SingleTestComponent {
   protected onRemoveTestClick(index: number) {
     this.testCases.splice(index, 1);
     this.canRun();
+  }
+
+  private canRun() {
+    this.disabled = !this.validate();
+  }
+
+  private validate() {
+    const isFieldsValid = checkSelectFields(this.fields);
+
+    const isTestValid = this.testCases.length > 0;
+
+    return isFieldsValid && isTestValid;
   }
 }

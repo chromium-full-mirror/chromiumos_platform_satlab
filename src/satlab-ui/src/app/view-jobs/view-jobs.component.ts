@@ -1,4 +1,3 @@
-import * as core from '@angular/core';
 import {IJob, IJobQuery, JobType, RequestStateQuery} from '../models/job';
 import {SatlabRpcService} from '../services/satlab-rpc.service';
 import {BehaviorSubject, Subject, from} from 'rxjs';
@@ -9,6 +8,13 @@ import {NotificationService} from 'app/services/notification.service';
 import * as moment from 'moment';
 import {CustomDatepickerComponent} from 'app/custom-datepicker/custom-datepicker.component';
 import {AutocompleteSelectorComponent} from 'app/run_suite/common/autocomplete-selector/autocomplete-selector.component';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ViewChild,
+} from '@angular/core';
 
 function createDefaultJobQuery(
   id: string,
@@ -27,17 +33,17 @@ function createDefaultJobQuery(
   };
 }
 
-@core.Component({
+@Component({
   selector: 'app-view-jobs',
   templateUrl: './view-jobs.component.html',
   styleUrls: ['./view-jobs.component.scss'],
-  changeDetection: core.ChangeDetectionStrategy.OnPush,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ViewJobsComponent implements core.AfterViewInit {
-  @core.ViewChild('startDatepicker')
+export class ViewJobsComponent implements AfterViewInit {
+  @ViewChild('startDatepicker')
   startDatepicker?: CustomDatepickerComponent;
-  @core.ViewChild('endDatepicker') endDatepicker?: CustomDatepickerComponent;
-  @core.ViewChild('poolSelector') poolSelector?: AutocompleteSelectorComponent;
+  @ViewChild('endDatepicker') endDatepicker?: CustomDatepickerComponent;
+  @ViewChild('poolSelector') poolSelector?: AutocompleteSelectorComponent;
 
   protected maxDays = 30;
   protected dateRangeStart = toStartDate(moment()).subtract(
@@ -81,7 +87,7 @@ export class ViewJobsComponent implements core.AfterViewInit {
   constructor(
     private service: SatlabRpcService,
     private notificationService: NotificationService,
-    private cdf: core.ChangeDetectorRef
+    private cdf: ChangeDetectorRef
   ) {
     this.jobTypeOptions = toIterator(this.#jobTypes)
       .map(toSelectItem)

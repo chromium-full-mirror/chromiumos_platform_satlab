@@ -2,49 +2,52 @@ import {Injectable} from '@angular/core';
 import {SatlabRpcServiceClient} from './SatlabrpcServiceClientPb';
 import {getRPCHost} from '../utils/misc';
 import {toIterator} from '../utils/iterator';
+import {from, map} from 'rxjs';
 import {
+  AbortJobsRequest,
+  AddDutsRequest,
   AddPoolRequest,
+  AdvancedSettings,
+  BotInfo,
+  DeleteDutsRequest,
+  Dim,
+  DownloadLogRequest,
   Dut,
+  GetCloudConfigurationRequest,
   GetDutDetailRequest,
   GetDutDetailResponse,
+  GetNetworkInfoRequest,
+  GetSystemInfoRequest,
+  GetVersionInfoRequest,
+  Job,
+  ListAccessibleModelsRequest,
+  ListBuildTargetsRequest,
   ListBuildVersionsRequest,
   ListConnectedDutsFirmwareRequest,
   ListDutsRequest,
   ListEnrolledDutsRequest,
+  ListJobsRequest,
   ListMilestonesRequest,
   ListTestPlansRequest,
-  RunSuiteRequest,
-  UpdateDutsFirmwareRequest,
-  UpdatePoolRequest,
-  GetSystemInfoRequest,
-  GetVersionInfoRequest,
-  GetNetworkInfoRequest,
-  DeleteDutsRequest,
-  AddDutsRequest,
-  RunTestRequest,
-  RunTestPlanRequest,
-  SetCloudConfigurationRequest,
-  GetCloudConfigurationRequest,
-  ListBuildTargetsRequest,
-  ListAccessibleModelsRequest,
-  StageBuildRequest,
   RebootRequest,
-  UploadLogRequest,
-  DownloadLogRequest,
-  Dim,
   RepairDutsRequest,
   RepairDutsResponse,
-  ListJobsRequest,
-  Job,
-  StateQuery,
-  SortBy,
-  Tag,
-  RunStorageQualRequest,
-  BotInfo,
+  RunLabQualRequest,
   RunQualificationRequest,
-  AbortJobsRequest,
   OpenCCDRequest,
   SendMessageToCCDSessionRequest,
+  RunStorageQualRequest,
+  RunSuiteRequest,
+  RunTestPlanRequest,
+  RunTestRequest,
+  SetCloudConfigurationRequest,
+  SortBy,
+  StageBuildRequest,
+  StateQuery,
+  Tag,
+  UpdateDutsFirmwareRequest,
+  UpdatePoolRequest,
+  UploadLogRequest,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
 import {
@@ -62,8 +65,8 @@ import {
   DUT_STATUS_NEEDS_REPAIR,
   DUT_STATUS_NEEDS_REPLACEMENT,
   DUT_STATUS_READY,
-  DUT_STATUS_REPAIRING,
   DUT_STATUS_REPAIR_FAILED,
+  DUT_STATUS_REPAIRING,
   DUT_STATUS_RUNNING,
   DUT_STATUS_UNKNOWN,
 } from 'app/constants';
@@ -140,10 +143,17 @@ export class SatlabRpcService {
    * list milestones by given model and board
    * @param p an object contains the information of model and board
    */
-  public async listMilestones(p: {model: string; board: string}) {
+  public async listMilestones(
+    p: {model: string; board: string},
+    filterType?: 'firmware' | 'release'
+  ) {
     const req = new ListMilestonesRequest().setModel(p.model).setBoard(p.board);
 
-    const resp = await this.client.listMilestones(req, {});
+    if (filterType) {
+      req.setFilterType(filterType);
+    }
+
+    const resp = await this.client.listMilestones(req, null);
 
     return resp.getMilestonesList();
   }
@@ -152,29 +162,28 @@ export class SatlabRpcService {
    * list build versions by given model, board, and milestone
    * @param p an object contains the information of model, board, and milestone
    */
-  public async listBuilds(p: {
-    model: string;
-    board: string;
-    milestone: string;
-  }) {
+  public async listBuilds(
+    p: {
+      model: string;
+      board: string;
+      milestone: string;
+    },
+    filterType?: 'firmware' | 'release'
+  ) {
     const req = new ListBuildVersionsRequest()
       .setBoard(p.board)
       .setModel(p.model)
       .setMilestone(Number(p.milestone));
 
+    if (filterType) {
+      req.setFilterType(filterType);
+    }
+
+    console.log(`list build req: ${req}`);
+
     const resp = await this.client.listBuildVersions(req, {});
 
     return resp.getBuildVersionsList();
-  }
-
-  private toDims(input?: IDims) {
-    if (!input) {
-      return [];
-    }
-
-    return Object.keys(input).map(k => {
-      return new Dim().setKey(k).setValue(input[k]);
-    });
   }
 
   /**
@@ -202,6 +211,29 @@ export class SatlabRpcService {
     const resp = await this.client.runSuite(req, {});
 
     return resp.getBuildLink();
+  }
+
+  /**
+   * runLabQual trigger the `lab-qual` test
+   */
+  public runLabQual(
+    params: IBuildSelectFields & IAdvancedSettings & {path: string}
+  ) {
+    const settings = __toAdvancedSettings(params.build, {...params});
+
+    const req = new RunLabQualRequest()
+      .setBoard(params.board)
+      .setModel(params.model)
+      .setMilestone(params.milestone)
+      .setBuild(params.build)
+      .setPool(params.pool)
+      .setDimsList(this.toDims(params.dims))
+      .setSettings(settings)
+      .setFirmwarePath(params.path);
+
+    return from(this.client.runLabQual(req, {})).pipe(
+      map(resp => resp.getBuildLink())
+    );
   }
 
   /**
@@ -533,15 +565,27 @@ export class SatlabRpcService {
    * stage a build in the partner bucket
    * @param f
    */
-  public async stageBuild(f: {board: string; model: string; build: string}) {
+  public stageBuild(
+    f: {board: string; model: string; build: string},
+    filterType?: 'firmware' | 'release'
+  ) {
     const req = new StageBuildRequest()
       .setBoard(f.board)
       .setModel(f.model)
       .setBuildVersion(f.build);
 
-    const resp = await this.client.stageBuild(req, {});
+    if (filterType) {
+      req.setFilterType(filterType);
+    }
 
-    return resp.getBuildBucket();
+    return from(this.client.stageBuild(req, {})).pipe(
+      map(resp => {
+        return {
+          bucket: resp.getBuildBucket(),
+          path: resp.getPath(),
+        };
+      })
+    );
   }
 
   /**
@@ -724,6 +768,16 @@ export class SatlabRpcService {
       .setMessage(p.message);
 
     this.client.sendMessageToCCDSession(req, {});
+  }
+
+  private toDims(input?: IDims) {
+    if (!input) {
+      return [];
+    }
+
+    return Object.keys(input).map(k => {
+      return new Dim().setKey(k).setValue(input[k]);
+    });
   }
 }
 
@@ -923,4 +977,23 @@ function __toStatus(status: string, botInfo?: BotInfo) {
     botInfo.getTaskName() !== ''
     ? botInfo.getTaskName().toLowerCase()
     : status;
+}
+
+/**
+ * Convert the `IAdvancedSettings` to the proto message `AdvancedSettings`
+ * @param build the build version that user selected
+ * @param settings the interface of IAdvancedSettings
+ *
+ * @returns the proto message AdvancedSettings
+ */
+function __toAdvancedSettings(build: string, settings: IAdvancedSettings) {
+  const isCustom = isCustomBuild(build);
+  const cft = settings.cft && !isCustom;
+  const trv2 = settings.trv2 && !isCustom;
+  const uploadToCpcon = settings.trv2 && settings.uploadToCpcon;
+
+  return new AdvancedSettings()
+    .setCft(cft)
+    .setTrv2(trv2)
+    .setUploadToCpcon(uploadToCpcon);
 }

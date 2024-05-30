@@ -7,11 +7,11 @@
     <div class="px-6">
       <app-autocomplete-selector
         #suiteSelector
-        id="suiteSelector"
-        title="Type or scroll to select custom suite"
-        placeholder="Type or scroll to select custom suite"
         (inputChanged)="onSuiteChanged($event)"
         [options]="suiteOptions"
+        id="suiteSelector"
+        placeholder="Type or scroll to select custom suite"
+        title="Type or scroll to select custom suite"
       >
       </app-autocomplete-selector>
     </div>
@@ -22,14 +22,12 @@
     ></app-advanced-settings>
 
     <div class="flex justify-center py-4">
-      <button
-        mat-raised-button
-        color="primary"
-        (click)="onRunSuiteClick()"
+      <app-loading-button
+        (onClick)="onRunSuiteClick()"
         [disabled]="disabled"
-      >
-        Run Suite
-      </button>
+        [loading]="isRunning"
+        [text]="'Run Suite'"
+      ></app-loading-button>
     </div>
   </div>
 </div>

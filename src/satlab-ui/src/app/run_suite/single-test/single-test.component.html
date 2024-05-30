@@ -9,31 +9,31 @@
         <mat-form-field class="full-width zero-padding">
           <mat-label>Enter Test Name</mat-label>
           <input
+            [formControl]="testFormControl"
             matInput
             placeholder="Ex: audio_CrasAec"
-            [formControl]="testFormControl"
           />
         </mat-form-field>
       </div>
       <button
-        matTooltip="Add test"
-        color="primary"
-        class="add-btn"
         (click)="onAddTestClick()"
         [disabled]="testFormControl.value.trim() === ''"
+        class="add-btn"
+        color="primary"
+        matTooltip="Add test"
       >
         <div class="material-icon">add</div>
       </button>
     </div>
 
-    <div class="card-wrapper" *ngFor="let case of testCases; let i = index">
+    <div *ngFor="let case of testCases; let i = index" class="card-wrapper">
       <div class="card-group">
         <span class="card-content">Test {{ i + 1 }}: {{ case.name }}</span>
         <button
-          matTooltip="Remove test"
-          color="basic"
-          class="delete-btn"
           (click)="onRemoveTestClick(i)"
+          class="delete-btn"
+          color="basic"
+          matTooltip="Remove test"
         >
           <div class="material-icon">delete</div>
         </button>
@@ -46,14 +46,12 @@
     ></app-advanced-settings>
 
     <div class="btn-group">
-      <button
-        mat-raised-button
-        color="primary"
-        (click)="onRunTestClick()"
+      <app-loading-button
+        (onClick)="onRunTestClick()"
         [disabled]="disabled"
-      >
-        Run Tests
-      </button>
+        [loading]="isRunning"
+        [text]="'Run Suite'"
+      ></app-loading-button>
     </div>
   </div>
 </div>

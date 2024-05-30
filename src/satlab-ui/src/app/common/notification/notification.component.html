@@ -1,7 +1,7 @@
 <div class="notification-wrapper">
   <div
-    [class.info]="notification.type === 'info'"
     [class.error]="notification.type === 'error'"
+    [class.info]="notification.type === 'info'"
     class="content"
   >
     <div class="message">
@@ -16,10 +16,10 @@
     </div>
 
     <button
-      *ngIf="showDismissButton"
-      mat-button
       (click)="onDismissClick()"
+      *ngIf="showDismissButton"
       class="dismiss-btn"
+      mat-button
     >
       Dismiss
     </button>

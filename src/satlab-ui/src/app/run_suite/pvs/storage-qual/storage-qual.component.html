@@ -50,23 +50,21 @@
       <mat-form-field class="full-width zero-padding">
         <mat-label>AVL Process Bug ID</mat-label>
         <input
-          name="bugID"
-          matInput
-          required
           (change)="onBugIDChanged($event.target.value)"
+          matInput
+          name="bugID"
+          required
         />
       </mat-form-field>
     </div>
 
     <div class="flex justify-center py-4">
-      <button
-        mat-raised-button
-        color="primary"
-        (click)="onRunSuiteClick()"
+      <app-loading-button
+        (onClick)="onRunSuiteClick()"
         [disabled]="disabled"
-      >
-        Run Suite
-      </button>
+        [loading]="isRunning"
+        [text]="'Run Suite'"
+      ></app-loading-button>
     </div>
   </div>
 </div>

@@ -31,6 +31,7 @@ export class StorageQualComponent {
     ...defaultBuildSelectFields,
     ...defaultStorageQualFields,
   };
+  protected isRunning = false;
 
   protected suiteOptions: SelectableItem[] = [];
   // The value that user selected from toggle button (suite or test)
@@ -131,10 +132,12 @@ export class StorageQualComponent {
     )
       .pipe(
         startWithTap(() => {
+          this.isRunning = true;
           this.disabled = true;
           this.form.showLoading('Running a suite...');
         }),
         finalize(() => {
+          this.isRunning = false;
           this.disabled = false;
           this.form.hideLoading();
         })

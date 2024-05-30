@@ -3,20 +3,18 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnChanges,
   OnDestroy,
   OnInit,
   Output,
+  SimpleChanges,
   ViewChild,
 } from '@angular/core';
 import {IDut, ISimpleDUT} from '../../../models/dut';
-import {
-  BUILD_STATUS_MAPPINGS,
-  BuildStatus,
-  SelectableItem,
-} from '../../../models/selectable_item';
+import {BuildStatus, SelectableItem} from '../../../models/selectable_item';
 import {SatlabRpcService} from '../../../services/satlab-rpc.service';
 import {toIterator} from '../../../utils/iterator';
-import {finalize, from, Subject, Subscription} from 'rxjs';
+import {BehaviorSubject, finalize, from, Subject, Subscription} from 'rxjs';
 import {startWithTap} from '../../../utils/rxjs_operator';
 import {BasicSelectorComponent} from '../basic-selector/basic-selector.component';
 import {NotificationService} from '../../../services/notification.service';
@@ -32,31 +30,28 @@ import {labelDlmSkuID} from 'app/models/dims';
   styleUrls: ['./build-select-form.component.scss'],
 })
 export class BuildSelectFormComponent
-  implements AfterViewInit, OnDestroy, OnInit
+  implements AfterViewInit, OnDestroy, OnChanges, OnInit
 {
   @Input() hidePoolSelector = false;
   @Input() hideHostnameSelector = true;
+  @Input() loading = new BehaviorSubject<{show: boolean; message: string}>({
+    show: false,
+    message: '',
+  });
 
   @Output() allRequiredFieldsSet = new EventEmitter<IBuildSelectFields>();
   @Output() onInitComplete = new EventEmitter<{duts: ISimpleDUT[]}>();
 
   @ViewChild('boardSelector') boardSelector?: BasicSelectorComponent;
-  @ViewChild('milestoneSelector') milestoneSelector?: BasicSelectorComponent;
-  @ViewChild('buildSelector') buildSelector?: BasicSelectorComponent;
   @ViewChild('poolSelector') poolSelector?: BasicSelectorComponent;
   @ViewChild('hostnameSelector') hostnameSelector?: BasicSelectorComponent;
 
   protected modelOptions: SelectableItem[] = [];
   protected boardOptions: SelectableItem[] = [];
   protected poolOptions: SelectableItem[] = [];
-  protected milestoneOptions: SelectableItem[] = [];
-  protected buildOptions: SelectableItem[] = [];
   protected hostnameOptions: SelectableItem[] = [];
   protected fields = defaultBuildSelectFields;
-  protected loading = {
-    show: false,
-    message: '',
-  };
+  protected loading$ = this.loading.asObservable();
   private duts: ISimpleDUT[] = [];
   private fields$ = new Subject<IBuildSelectFields>();
   private disposer?: Subscription;
@@ -91,16 +86,25 @@ export class BuildSelectFormComponent
       });
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    const isLoadingChanged =
+      'loading' in changes &&
+      changes.loading.currentValue !== changes.loading.previousValue;
+    if (isLoadingChanged) {
+      this.loading$ = changes.loading.currentValue.asObservable();
+    }
+  }
+
   ngOnDestroy() {
     this.disposer?.unsubscribe();
   }
 
   public showLoading(message: string) {
-    this.loading = {show: true, message: message};
+    this.loading.next({show: true, message: message});
   }
 
   public hideLoading() {
-    this.loading = {show: false, message: ''};
+    this.loading.next({show: false, message: ''});
   }
 
   protected onModelChanged(newModel: string) {
@@ -129,26 +133,6 @@ export class BuildSelectFormComponent
     this.fields$.next(this.fields);
     this.#parsePoolOptionsFromDUTs(this.duts);
     this.#parseHostnameOptionsFromDUTs(this.duts);
-    this.#getMilestones();
-  }
-
-  protected onMilestoneChanged(newMilestone: string) {
-    this.fields = {
-      ...this.fields,
-      milestone: newMilestone,
-      build: '',
-    };
-    this.#resetSelector(this.fields);
-    this.fields$.next(this.fields);
-    this.#getBuilds();
-  }
-
-  protected onBuildChanged(newBuild: string) {
-    this.fields = {
-      ...this.fields,
-      build: newBuild,
-    };
-    this.fields$.next(this.fields);
   }
 
   protected onPoolChanged(newPool: string) {
@@ -171,6 +155,14 @@ export class BuildSelectFormComponent
       dims: {
         dut_name: newHostname,
       },
+    };
+    this.fields$.next(this.fields);
+  }
+
+  protected onBuildChanged(newValue: {milestone: string; build: string}) {
+    this.fields = {
+      ...this.fields,
+      ...newValue,
     };
     this.fields$.next(this.fields);
   }
@@ -242,70 +234,6 @@ export class BuildSelectFormComponent
     }
   }
 
-  #getMilestones() {
-    if (this.fields.model !== '' && this.fields.board !== '') {
-      from(this.service.listMilestones({...this.fields}))
-        .pipe(
-          startWithTap(() => {
-            this.milestoneOptions = [];
-            this.buildOptions = [];
-            this.showLoading('fetching milestones...');
-          }),
-          finalize(() => this.hideLoading())
-        )
-        .subscribe({
-          next: milestones => {
-            this.milestoneOptions = toIterator(milestones)
-              .map(e => e.getValue())
-              .map(e => this.#toSelectableItem(e, e, ''))
-              .collect();
-          },
-          error: e => {
-            this.notification.error(`Fetching milestones got an error: ${e}`, {
-              dismiss: false,
-            });
-          },
-        });
-    }
-  }
-
-  #getBuilds() {
-    if (
-      this.fields.model !== '' &&
-      this.fields.board !== '' &&
-      this.fields.milestone !== ''
-    ) {
-      from(
-        this.service.listBuilds({
-          ...this.fields,
-        })
-      )
-        .pipe(
-          startWithTap(() => this.showLoading('fetching builds...')),
-          finalize(() => this.hideLoading())
-        )
-        .subscribe({
-          next: builds => {
-            this.buildOptions = toIterator(builds)
-              .map(e => {
-                const status = BUILD_STATUS_MAPPINGS[e.getStatus()];
-                return this.#toSelectableItem(
-                  e.getValue(),
-                  e.getValue(),
-                  status
-                );
-              })
-              .collect();
-          },
-          error: e => {
-            this.notification.error(`Fetching builds got an error: ${e}`, {
-              dismiss: false,
-            });
-          },
-        });
-    }
-  }
-
   #toSelectableItem(
     text: string,
     value: string,
@@ -321,12 +249,6 @@ export class BuildSelectFormComponent
   #resetSelector(fields: IBuildSelectFields) {
     if (fields.board === '') {
       this.boardSelector?.clearSelection();
-    }
-    if (fields.milestone === '') {
-      this.milestoneSelector?.clearSelection();
-    }
-    if (fields.build === '') {
-      this.buildSelector?.clearSelection();
     }
     if (fields.pool === '') {
       this.poolSelector?.clearSelection();

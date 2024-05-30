@@ -7,10 +7,10 @@ import {startWithTap} from '../../utils/rxjs_operator';
 import {NotificationService} from 'app/services/notification.service';
 import {checkSelectFields, isCustomBuild} from '../../utils/validators';
 import {
+  defaultAdvancedSettings,
   defaultBuildSelectFields,
   IAdvancedSettings,
   IBuildSelectFields,
-  defaultAdvancedSettings,
 } from '../../models/run_suite_fields';
 import {ISimpleDUT} from 'app/models/dut';
 
@@ -22,9 +22,9 @@ import {ISimpleDUT} from 'app/models/dut';
 export class OtherComponent {
   @ViewChild(BuildSelectFormComponent) form!: BuildSelectFormComponent;
 
-  public suiteList: string[] = [
+  protected suiteList: string[] = [
     'audio',
-    'bvt-perbuild',
+    'lab-qual-perbuild',
     'crosbolt_perf_perbuild',
     'graphics_per-build',
     'labqual',
@@ -33,11 +33,13 @@ export class OtherComponent {
 
   protected suiteOptions: SelectableItem[] = [];
   protected disabled = true;
+  protected duts: ISimpleDUT[];
+  protected settingsDisabled = false;
+  protected isRunning = false;
+
   private suite = '';
   private fields: IBuildSelectFields = defaultBuildSelectFields;
   private advancedSettings: IAdvancedSettings = {...defaultAdvancedSettings};
-  protected duts: ISimpleDUT[];
-  protected settingsDisabled = false;
 
   constructor(
     private service: SatlabRpcService,
@@ -93,10 +95,12 @@ export class OtherComponent {
       .pipe(
         startWithTap(() => {
           this.disabled = true;
+          this.isRunning = true;
           this.form.showLoading('Running a suite...');
         }),
         finalize(() => {
           this.disabled = false;
+          this.isRunning = false;
           this.form.hideLoading();
         })
       )
@@ -125,7 +129,6 @@ export class OtherComponent {
 
   private validate() {
     const isFieldsValid = checkSelectFields(this.fields);
-
     const isSuiteValid = this.suite !== '';
 
     return isFieldsValid && isSuiteValid;

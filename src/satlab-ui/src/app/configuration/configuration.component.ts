@@ -71,11 +71,6 @@ export class ConfigurationComponent implements AfterViewInit {
       });
   }
 
-  private trimSpace(o: IBoto) {
-    Object.keys(o).forEach(key => (o[key] = o[key]?.trim()));
-    return o;
-  }
-
   /**
    * an event handler edits the boto key configuration.
    * Copy the original Boto key to `editingBoto` and then clear it.
@@ -96,5 +91,10 @@ export class ConfigurationComponent implements AfterViewInit {
     this.boto = {...this.editingBoto};
     this.editingBoto = {...defaultBoto};
     this.cloudConfigurationDisable = true;
+  }
+
+  private trimSpace(o: IBoto) {
+    Object.keys(o).forEach(key => (o[key] = o[key]?.trim()));
+    return o;
   }
 }

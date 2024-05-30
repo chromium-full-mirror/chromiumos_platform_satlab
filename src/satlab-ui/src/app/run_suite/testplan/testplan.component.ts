@@ -5,7 +5,6 @@ import {SatlabRpcService} from 'app/services/satlab-rpc.service';
 import {startWithTap} from 'app/utils/rxjs_operator';
 import {finalize, from, mergeAll, map, catchError, of, tap} from 'rxjs';
 import {BuildSelectFormComponent} from '../common/build-select-form/build-select-form.component';
-import {toIterator} from 'app/utils/iterator';
 import {NotificationService} from '../../services/notification.service';
 import {checkSelectFields, isCustomBuild} from '../../utils/validators';
 import {
@@ -29,21 +28,27 @@ export class TestplanComponent {
   protected fields: IBuildSelectFields = defaultBuildSelectFields;
   protected selectedTestPlan: ITestPlan[] = [];
   protected errorMessage = '';
-  private advancedSettings: IAdvancedSettings = {...defaultAdvancedSettings};
   protected settingsDisabled = false;
+  protected isRunning = false;
+
+  private advancedSettings: IAdvancedSettings = {...defaultAdvancedSettings};
+
   constructor(
     private service: SatlabRpcService,
     private notification: NotificationService
   ) {}
+
   protected allRequiredFieldsSet(fields: IBuildSelectFields) {
     this.fields = fields;
     this.settingsDisabled = isCustomBuild(fields.build);
     this.canRun();
   }
-  // onAdvanceSettingsChanged handles the advanced settings changes
+
+  // onAdvanceSettingsChanged handles the advanced settings changes.
   protected onAdvancedSettingsChanged(newValue: IAdvancedSettings) {
     this.advancedSettings = newValue;
   }
+
   protected listTestPlans() {
     from(this.service.listTestPlans())
       .pipe(
@@ -69,12 +74,13 @@ export class TestplanComponent {
               : '';
         },
         error: e => {
-          // Handle an error
+          // Handle an error.
           console.error(`Fetching testplan got an error: ${e}`);
           this.errorMessage = 'fetch test plans failed';
         },
       });
   }
+
   protected onSelectedTestPlanChanged(value: string) {
     this.selectedTestPlan.push({
       name: value,
@@ -83,6 +89,7 @@ export class TestplanComponent {
     this.autocompleteSelector.clear();
     this.canRun();
   }
+
   protected onRunTestPlanClick() {
     if (!this.validate()) {
       return;
@@ -94,11 +101,13 @@ export class TestplanComponent {
     const trv2 = this.advancedSettings.trv2 && !customBuild;
     const uploadToCpcon =
       this.advancedSettings.trv2 && this.advancedSettings.uploadToCpcon;
+
     from(this.selectedTestPlan)
       .pipe(
         startWithTap(() => {
           this.form.showLoading('Triggering test plans...');
           this.disabled = true;
+          this.isRunning = true;
         }),
         map(testPlan => {
           return from(
@@ -122,6 +131,10 @@ export class TestplanComponent {
             }),
             tap({
               next: buildLinks => {
+                if (buildLinks === '') {
+                  return;
+                }
+
                 buildLinks
                   .split(/\s/)
                   .forEach(link =>
@@ -134,32 +147,37 @@ export class TestplanComponent {
                     )
                   );
               },
-              error: e => {
-                // Handle an error
-                this.notification.error(
-                  `Trigger test plan ${testPlan.name} failed: ${e}`,
-                  {dismiss: false}
-                );
-              },
             })
           );
         }),
         mergeAll()
       )
       .subscribe({
+        error: e => {
+          // Handle an error.
+          this.notification.error(`Trigger test plan failed: ${e}`, {
+            dismiss: false,
+          });
+          this.form.hideLoading();
+          this.isRunning = false;
+        },
         complete: () => {
           this.form.hideLoading();
           this.selectedTestPlan = [];
+          this.isRunning = false;
         },
       });
   }
+
   protected onRemoveTestPlanClick(index: number) {
     this.selectedTestPlan.splice(index, 1);
     this.canRun();
   }
+
   private canRun() {
     this.disabled = !this.validate();
   }
+
   private validate() {
     const isFieldsValid = checkSelectFields(this.fields);
     const isTestPlanValid = this.selectedTestPlan.length > 0;

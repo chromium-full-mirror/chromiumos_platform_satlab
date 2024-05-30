@@ -1,12 +1,12 @@
 import {Component, OnInit} from '@angular/core';
 import {SatlabRpcService} from '../services/satlab-rpc.service';
 import {
+  ILinkInfo,
+  INetworkInfo,
   ISystemInfo,
   IVersionInfo,
-  INetworkInfo,
-  ILinkInfo,
 } from '../models/about';
-import {from, finalize} from 'rxjs';
+import {finalize, from} from 'rxjs';
 import {startWithTap} from '../utils/rxjs_operator';
 import {NotificationService} from '../services/notification.service';
 import {INSTRUCTION_URL, REPORT_BUG_URL} from '../constants';
@@ -90,6 +90,44 @@ export class AboutComponent implements OnInit {
     });
   }
 
+  protected onSendLogClicked() {
+    from(this.satlabRpcService.uploadLog())
+      .pipe(
+        startWithTap(
+          () => (this.loadingStatus = {...this.loadingStatus, logProcess: true})
+        ),
+        finalize(
+          () =>
+            (this.loadingStatus = {...this.loadingStatus, logProcess: false})
+        )
+      )
+      .subscribe({
+        next: link => {
+          const w = window.open(link, '_blank');
+          try {
+            w.focus();
+          } catch (e) {
+            this.notification.info([
+              'Please click on this link to access the log: ',
+              {type: 'url', url: link},
+            ]);
+          }
+        },
+        error: e => this.notification.error(`Upload log failed: ${e}`),
+      });
+  }
+
+  protected onDownloadLogClicked() {
+    this.loadingStatus = {...this.loadingStatus, logProcess: true};
+    this.satlabRpcService.downloadLog({
+      onSuccess: blob => saveAs(blob, 'log.tar.gz'),
+      onError: e =>
+        this.notification.error(`Download log failed: ${e}`, {dismiss: false}),
+      finalize: () =>
+        (this.loadingStatus = {...this.loadingStatus, logProcess: false}),
+    });
+  }
+
   private getSystemInfo() {
     from(this.satlabRpcService.getSystemInfo())
       .pipe(
@@ -154,43 +192,5 @@ export class AboutComponent implements OnInit {
           });
         },
       });
-  }
-
-  protected onSendLogClicked() {
-    from(this.satlabRpcService.uploadLog())
-      .pipe(
-        startWithTap(
-          () => (this.loadingStatus = {...this.loadingStatus, logProcess: true})
-        ),
-        finalize(
-          () =>
-            (this.loadingStatus = {...this.loadingStatus, logProcess: false})
-        )
-      )
-      .subscribe({
-        next: link => {
-          const w = window.open(link, '_blank');
-          try {
-            w.focus();
-          } catch (e) {
-            this.notification.info([
-              'Please click on this link to access the log: ',
-              {type: 'url', url: link},
-            ]);
-          }
-        },
-        error: e => this.notification.error(`Upload log failed: ${e}`),
-      });
-  }
-
-  protected onDownloadLogClicked() {
-    this.loadingStatus = {...this.loadingStatus, logProcess: true};
-    this.satlabRpcService.downloadLog({
-      onSuccess: blob => saveAs(blob, 'log.tar.gz'),
-      onError: e =>
-        this.notification.error(`Download log failed: ${e}`, {dismiss: false}),
-      finalize: () =>
-        (this.loadingStatus = {...this.loadingStatus, logProcess: false}),
-    });
   }
 }

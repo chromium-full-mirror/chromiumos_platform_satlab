@@ -6,7 +6,7 @@ import {
   BuildStatus,
   SelectableItem,
 } from '../../models/selectable_item';
-import {finalize, from} from 'rxjs';
+import {BehaviorSubject, finalize, from} from 'rxjs';
 import {toIterator} from '../../utils/iterator';
 import {NotificationService} from '../../services/notification.service';
 import {startWithTap} from '../../utils/rxjs_operator';
@@ -24,24 +24,21 @@ import {
 export class StageBuildComponent implements AfterViewInit {
   @ViewChild('boardSelector') boardSelector?: BasicSelectorComponent;
   @ViewChild('modelSelector') modelSelector?: BasicSelectorComponent;
-  @ViewChild('milestoneSelector') milestoneSelector?: BasicSelectorComponent;
-  @ViewChild('buildSelector') buildSelector?: BasicSelectorComponent;
 
   protected boardOptions: SelectableItem[] = [];
   protected modelOptions: SelectableItem[] = [];
-  protected milestoneOptions: SelectableItem[] = [];
-  protected buildOptions: SelectableItem[] = [];
-  protected fields = defaultBuildSelectFields;
+  protected fields = {...defaultBuildSelectFields};
 
   // the object show the loading status and message
-  protected loading = {
-    show: false,
-    message: '',
-  };
-
   protected stageUrl = '';
 
   protected readonly build_access_request_link = BUILD_ACCESS_REQUEST_URL;
+
+  protected loading = new BehaviorSubject<{show: boolean; message: string}>({
+    show: false,
+    message: '',
+  });
+  protected loading$ = this.loading.asObservable();
 
   constructor(
     private service: SatlabRpcService,
@@ -74,23 +71,12 @@ export class StageBuildComponent implements AfterViewInit {
       build: '',
     };
     this.resetSelector(this.fields);
-    this.__getMilestones();
   }
 
-  protected onMilestoneChanged(newValue: string) {
+  protected onBuildChanged(newValue: {milestone: string; build: string}) {
     this.fields = {
       ...this.fields,
-      milestone: newValue,
-      build: '',
-    };
-    this.resetSelector(this.fields);
-    this.__getBuilds();
-  }
-
-  protected onBuildChanged(newValue: string) {
-    this.fields = {
-      ...this.fields,
-      build: newValue,
+      ...newValue,
     };
   }
 
@@ -163,76 +149,9 @@ export class StageBuildComponent implements AfterViewInit {
       });
   }
 
-  /**
-   * call an API to get milestones
-   * @private
-   */
-  private __getMilestones() {
-    if (this.fields.model !== '' && this.fields.board !== '') {
-      from(this.service.listMilestones({...this.fields}))
-        .pipe(
-          startWithTap(() => {
-            this.milestoneOptions = [];
-            this.__showLoading('fetching milestones...');
-          }),
-          finalize(() => this.__hideLoading())
-        )
-        .subscribe({
-          next: milestones => {
-            this.milestoneOptions = toIterator(milestones)
-              .map(e => e.getValue())
-              .map(e => this.__toSelectableItem(e, e, ''))
-              .collect();
-          },
-          error: e =>
-            this.notification.error(`Fetching milestones got an error: ${e}`, {
-              dismiss: false,
-            }),
-        });
-    }
-  }
-
-  /**
-   * call an API to get build versions.
-   * @private
-   */
-  private __getBuilds() {
-    if (
-      this.fields.model !== '' &&
-      this.fields.board !== '' &&
-      this.fields.milestone !== ''
-    ) {
-      from(this.service.listBuilds({...this.fields}))
-        .pipe(
-          startWithTap(() => {
-            this.buildOptions = [];
-            this.__showLoading('fetching builds...');
-          }),
-          finalize(() => this.__hideLoading())
-        )
-        .subscribe({
-          next: builds => {
-            this.buildOptions = toIterator(builds)
-              .map(e => {
-                const status = BUILD_STATUS_MAPPINGS[e.getStatus()];
-                return this.__toSelectableItem(
-                  e.getValue(),
-                  e.getValue(),
-                  status
-                );
-              })
-              .collect();
-          },
-          error: e =>
-            this.notification.error(`Fetching builds got an error: ${e}`, {
-              dismiss: false,
-            }),
-        });
-    }
-  }
-
   private __stageBuild() {
-    from(this.service.stageBuild(this.fields))
+    this.service
+      .stageBuild(this.fields)
       .pipe(
         startWithTap(() => {
           this.__showLoading('staging build...');
@@ -241,7 +160,7 @@ export class StageBuildComponent implements AfterViewInit {
       )
       .subscribe({
         next: e => {
-          this.stageUrl = `https://console.cloud.google.com/storage/browser/${e}/${this.fields.board}-release/R${this.fields.milestone}-${this.fields.build}/`;
+          this.stageUrl = `https://console.cloud.google.com/storage/browser/${e.bucket}/${e.path}`;
         },
         error: e =>
           this.notification.error(
@@ -259,12 +178,6 @@ export class StageBuildComponent implements AfterViewInit {
   private resetSelector(fields: IBuildSelectFields) {
     if (fields.model === '') {
       this.modelSelector?.clearSelection();
-    }
-    if (fields.milestone === '') {
-      this.milestoneSelector?.clearSelection();
-    }
-    if (fields.build === '') {
-      this.buildSelector?.clearSelection();
     }
   }
 
@@ -297,10 +210,10 @@ export class StageBuildComponent implements AfterViewInit {
   }
 
   private __showLoading(message: string) {
-    this.loading = {show: true, message: message};
+    this.loading.next({show: true, message: message});
   }
 
   private __hideLoading() {
-    this.loading = {show: false, message: ''};
+    this.loading.next({show: false, message: ''});
   }
 }

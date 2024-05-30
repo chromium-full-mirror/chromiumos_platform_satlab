@@ -43,16 +43,14 @@
     ></app-advanced-settings>
 
     <div class="flex justify-center py-4">
-      <button
-        mat-raised-button
-        color="primary"
-        (click)="onRunTestPlanClick()"
+      <app-loading-button
+        (onClick)="onRunTestPlanClick()"
         [disabled]="disabled"
-      >
-        Run TestPlan
-      </button>
+        [loading]="isRunning"
+        [text]="'Run Suite'"
+      ></app-loading-button>
     </div>
-    <div class="px-6" *ngIf="selectedTestPlan">
+    <div *ngIf="selectedTestPlan" class="px-6">
       <pre class="whitespace-pre-wrap">{{ selectedTestPlan.content }}</pre>
     </div>
   </div>

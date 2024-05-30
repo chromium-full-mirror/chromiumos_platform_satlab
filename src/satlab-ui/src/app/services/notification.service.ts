@@ -11,8 +11,8 @@ import {toIterator} from '../utils/iterator';
   providedIn: 'root',
 })
 export class NotificationService {
-  private __n = new BehaviorSubject<INotification[]>([]);
   public notification$: Observable<INotification[]>;
+  private __n = new BehaviorSubject<INotification[]>([]);
 
   constructor() {
     this.notification$ = this.__n.asObservable();
@@ -60,6 +60,17 @@ export class NotificationService {
   }
 
   /**
+   * dismiss the message by given id.
+   * @param id the notification id
+   */
+  public dismiss(id: string) {
+    const notifications = toIterator(this.__n.value)
+      .filter(e => e.id !== id)
+      .collect();
+    this.__n.next(notifications);
+  }
+
+  /**
    * __dismiss a function controls how to dismiss the message.
    * @param id the id of notification.
    * @param options the options of control dismiss a message. default delay time is 5s.
@@ -89,17 +100,6 @@ export class NotificationService {
     const notifications = [...this.__n.value, n];
     this.__n.next(notifications);
     return n;
-  }
-
-  /**
-   * dismiss the message by given id.
-   * @param id the notification id
-   */
-  public dismiss(id: string) {
-    const notifications = toIterator(this.__n.value)
-      .filter(e => e.id !== id)
-      .collect();
-    this.__n.next(notifications);
   }
 
   /**

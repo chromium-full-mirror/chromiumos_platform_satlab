@@ -1,0 +1,30 @@
+<div class="suite-content">
+  <div class="wrapper">
+    <app-build-select-form
+      (allRequiredFieldsSet)="allRequiredFieldsSet($event)"
+      [loading]="loading"
+    ></app-build-select-form>
+
+    <mat-divider></mat-divider>
+    <div class="px-6">
+      <app-build-selector
+        (onChanged)="onFirmwareChanged($event)"
+        [board]="(fields$ | async).board"
+        [disabled]="!isBasicInformationValid"
+        [loading]="loading"
+        [model]="(fields$ | async).model"
+        [type]="'firmware'"
+      ></app-build-selector>
+    </div>
+    <mat-divider></mat-divider>
+
+    <div class="flex justify-center py-4">
+      <app-loading-button
+        (onClick)="onRunSuiteClick()"
+        [disabled]="disabled"
+        [loading]="isRunning"
+        [text]="'Run Suite'"
+      ></app-loading-button>
+    </div>
+  </div>
+</div>

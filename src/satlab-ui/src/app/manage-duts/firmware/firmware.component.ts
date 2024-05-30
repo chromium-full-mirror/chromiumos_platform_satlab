@@ -29,14 +29,13 @@ export class FirmwareComponent implements OnInit, OnChanges, OnDestroy {
 
   protected selection = new SelectionModel<IFirmwareDUT>(true, []);
   protected selectionCount = 0;
-  private disposer?: Subscription;
   protected checked = false;
   // The flag indicates if any DUTs can be updated.
   // If there are no DUTs that can be updated, it is `true`.
   // Otherwise, it is false. The default value is false.
   protected disabled = false;
-
   protected displayedColumns = ['check', 'ip', 'current', 'newest'];
+  private disposer?: Subscription;
 
   constructor(
     private service: SatlabRpcService,
@@ -99,14 +98,6 @@ export class FirmwareComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /**
-   * __validate a function that verify before calling the `update firmware`
-   * @private
-   */
-  private __validate() {
-    return this.selection.selected.length > 0;
-  }
-
-  /**
    * onUpdateClicked a handler when a user click the `Update` button.
    * @protected
    */
@@ -144,5 +135,13 @@ export class FirmwareComponent implements OnInit, OnChanges, OnDestroy {
           });
         },
       });
+  }
+
+  /**
+   * __validate a function that verify before calling the `update firmware`
+   * @private
+   */
+  private __validate() {
+    return this.selection.selected.length > 0;
   }
 }

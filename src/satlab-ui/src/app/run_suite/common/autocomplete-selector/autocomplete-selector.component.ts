@@ -44,8 +44,8 @@ export class AutocompleteSelectorComponent
 
   protected filteredOptions: SelectableItem[] = [];
   protected searchFormControl = new FormControl('');
-  private disposer?: Subscription;
   protected isHover = false;
+  private disposer?: Subscription;
 
   ngOnInit() {
     if (this.disabled) {
@@ -84,6 +84,10 @@ export class AutocompleteSelectorComponent
     this.disposer?.unsubscribe();
   }
 
+  public clear() {
+    this.searchFormControl.reset();
+  }
+
   protected onInputFocusIn() {
     this.isShown = true;
   }
@@ -112,9 +116,5 @@ export class AutocompleteSelectorComponent
       typeof option.value === 'string' ? option.value : option.text;
     this.searchFormControl.setValue(newValue);
     this.selectChanged.emit(newValue);
-  }
-
-  public clear() {
-    this.searchFormControl.reset();
   }
 }

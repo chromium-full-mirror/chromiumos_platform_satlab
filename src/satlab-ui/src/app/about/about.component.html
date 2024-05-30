@@ -62,17 +62,17 @@
   </div>
 
   <div class="btn-group">
-    <button mat-raised-button color="primary" (click)="onRebootClicked()">
+    <button (click)="onRebootClicked()" color="primary" mat-raised-button>
       Reboot
     </button>
-    <button mat-raised-button color="primary" (click)="onDownloadLogClicked()">
+    <button (click)="onDownloadLogClicked()" color="primary" mat-raised-button>
       Download Log
     </button>
     <button
-      *ngIf="auth.loginState$ | async"
-      mat-raised-button
-      color="primary"
       (click)="onSendLogClicked()"
+      *ngIf="auth.loginState$ | async"
+      color="primary"
+      mat-raised-button
     >
       Send Log
     </button>

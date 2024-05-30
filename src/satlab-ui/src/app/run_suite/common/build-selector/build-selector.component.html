@@ -1,0 +1,49 @@
+<div class="wrapper">
+  <div *ngIf="type === 'firmware'">
+    <h3>Firmware path</h3>
+  </div>
+
+  <app-basic-selector
+    #milestoneSelector
+    (select)="onMilestoneChanged($event)"
+    [disabledMessage]="
+      board === '' || model === '' ? 'Please select a model and board' : ''
+    "
+    [disabled]="
+      board === '' || model === '' || disabled || (loading | async).show
+    "
+    [options]="milestoneOptions"
+    [placeholder]="'Please select a milestone'"
+    [title]="
+      type === 'firmware' ? 'Select Firmware Milestone:' : 'Select Milestone:'
+    "
+    id="milestoneSelector"
+  >
+  </app-basic-selector>
+
+  <app-basic-selector
+    #buildSelector
+    (select)="onBuildChanged($event)"
+    [disabledMessage]="
+      board === '' || model === '' || (milestone$ | async) === ''
+        ? 'Please select a milestone'
+        : ''
+    "
+    [disabled]="
+      board === '' ||
+      model === '' ||
+      (milestone$ | async) === '' ||
+      disabled ||
+      (loading | async).show
+    "
+    [options]="buildOptions"
+    [placeholder]="'Please select a build version'"
+    [title]="
+      type === 'firmware'
+        ? 'Select Firmware Build Version:'
+        : 'Select Build Version'
+    "
+    id="buildSelector"
+  >
+  </app-basic-selector>
+</div>

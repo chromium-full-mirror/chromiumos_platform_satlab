@@ -1,4 +1,4 @@
-<div id="card-wrapper" class="card-wrapper">
+<div class="card-wrapper" id="card-wrapper">
   <mat-tab-group>
     <!-- Suites Tab -->
     <mat-tab label="Suites">
@@ -23,6 +23,15 @@
       <ng-template matTabContent>
         <div class="suite-wrapper">
           <app-testplan></app-testplan>
+        </div>
+      </ng-template>
+    </mat-tab>
+
+    <!-- LabQual Tab -->
+    <mat-tab label="Labqual">
+      <ng-template matTabContent>
+        <div class="suite-wrapper">
+          <app-lab-qual></app-lab-qual>
         </div>
       </ng-template>
     </mat-tab>

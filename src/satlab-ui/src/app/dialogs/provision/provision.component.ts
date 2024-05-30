@@ -1,52 +1,37 @@
-import {Component, Inject, ViewChild} from '@angular/core';
-import {BasicSelectorComponent} from '../../run_suite/common/basic-selector/basic-selector.component';
-import {
-  BUILD_STATUS_MAPPINGS,
-  BuildStatus,
-  SelectableItem,
-} from '../../models/selectable_item';
+import {AfterViewInit, Component, Inject} from '@angular/core';
+import {BuildStatus, SelectableItem} from '../../models/selectable_item';
 import {ISimpleDUT} from '../../models/dut';
-import {SatlabRpcService} from '../../services/satlab-rpc.service';
-import {finalize, from} from 'rxjs';
-import {startWithTap} from '../../utils/rxjs_operator';
+import {BehaviorSubject} from 'rxjs';
 import {toIterator} from '../../utils/iterator';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import {NotificationService} from '../../services/notification.service';
-import {
-  defaultBuildSelectFields,
-  IBuildSelectFields,
-} from '../../models/run_suite_fields';
+import {defaultBuildSelectFields} from '../../models/run_suite_fields';
 
 @Component({
   selector: 'app-provision',
   templateUrl: './provision.component.html',
   styleUrls: ['./provision.component.scss'],
 })
-export class ProvisionComponent {
-  @ViewChild('milestoneSelector') milestoneSelector?: BasicSelectorComponent;
-  @ViewChild('buildSelector') buildSelector?: BasicSelectorComponent;
-  @ViewChild('poolSelector') poolSelector?: BasicSelectorComponent;
-
+export class ProvisionComponent implements AfterViewInit {
   protected poolOptions: SelectableItem[] = [];
-  protected milestoneOptions: SelectableItem[] = [];
-  protected buildOptions: SelectableItem[] = [];
 
   private readonly duts: ISimpleDUT[] = [];
-
-  protected loading = {
+  protected loading = new BehaviorSubject<{show: boolean; message: string}>({
     show: false,
     message: '',
-  };
-
-  public fields = defaultBuildSelectFields;
+  });
+  protected loading$ = this.loading.asObservable();
+  protected fields = {...defaultBuildSelectFields};
 
   constructor(
     @Inject(MAT_DIALOG_DATA) data: {duts: ISimpleDUT[]},
-    private service: SatlabRpcService,
     private notification: NotificationService
   ) {
     this.duts = data.duts;
-    this.__parsePoolOptionsFromDUTs(data.duts);
+  }
+
+  ngAfterViewInit(): void {
+    this.__parsePoolOptionsFromDUTs(this.duts);
   }
 
   /**
@@ -57,7 +42,7 @@ export class ProvisionComponent {
   protected onPoolChanged(newPool: string) {
     const d = toIterator(this.duts).first_where(e => e.pools.includes(newPool));
 
-    if (d == null) {
+    if (d === null) {
       this.notification.error(
         `Unexpected: ${JSON.stringify(this.duts)}, pools: ${newPool}`,
         {dismiss: false}
@@ -72,121 +57,18 @@ export class ProvisionComponent {
       milestone: '',
       build: '',
     };
-    this.__resetSelector(this.fields);
-    this.__getMilestones();
   }
 
   /**
-   * onMilestoneChanged an event handler handles on milestone changed.
-   * @param newMilestone
+   * onBuildChanged hanldes milestone or build have been changed from the component.
+   * @param newValue contains the milestone and build information
    * @protected
    */
-  protected onMilestoneChanged(newMilestone: string) {
+  protected onBuildChanged(newValue: {milestone: string; build: string}) {
     this.fields = {
       ...this.fields,
-      milestone: newMilestone,
-      build: '',
+      ...newValue,
     };
-    this.__resetSelector(this.fields);
-    this.__getBuilds();
-  }
-
-  /**
-   * onBuildChanged an event handler handles on board changed
-   * @param newBuild
-   * @protected
-   */
-  protected onBuildChanged(newBuild: string) {
-    this.fields = {
-      ...this.fields,
-      build: newBuild,
-    };
-  }
-
-  /**
-   * __geMilestones call an `list_milestones` API to fetch the milestones.
-   * @private
-   */
-  private __getMilestones() {
-    if (this.fields.model !== '' && this.fields.board !== '') {
-      from(this.service.listMilestones({...this.fields}))
-        .pipe(
-          startWithTap(() => {
-            this.milestoneOptions = [];
-            this.buildOptions = [];
-            this.__showLoading('fetching milestones...');
-          }),
-          finalize(() => this.__hideLoading())
-        )
-        .subscribe({
-          next: milestones => {
-            this.milestoneOptions = toIterator(milestones)
-              .map(e => e.getValue())
-              .map(e => this.__toSelectableItem(e, e, ''))
-              .collect();
-          },
-          error: e => {
-            this.notification.error(`Fetching milestones got an error: ${e}`, {
-              dismiss: false,
-            });
-          },
-        });
-    }
-  }
-
-  /**
-   * __getBuilds call an `list_builds` API to fetch build versions.
-   * @private
-   */
-  private __getBuilds() {
-    if (
-      this.fields.model !== '' &&
-      this.fields.board !== '' &&
-      this.fields.milestone !== ''
-    ) {
-      from(
-        this.service.listBuilds({
-          ...this.fields,
-        })
-      )
-        .pipe(
-          startWithTap(() => this.__showLoading('fetching builds...')),
-          finalize(() => this.__hideLoading())
-        )
-        .subscribe({
-          next: builds => {
-            this.buildOptions = toIterator(builds)
-              .map(e => {
-                const status = BUILD_STATUS_MAPPINGS[e.getStatus()];
-                return this.__toSelectableItem(
-                  e.getValue(),
-                  e.getValue(),
-                  status
-                );
-              })
-              .collect();
-          },
-          error: e => {
-            this.notification.error(`Fetching builds got an error: ${e}`, {
-              dismiss: false,
-            });
-          },
-        });
-    }
-  }
-
-  /**
-   * __resetSelector reset the user selection.
-   * @param fields
-   * @private
-   */
-  private __resetSelector(fields: IBuildSelectFields) {
-    if (fields.milestone === '') {
-      this.milestoneSelector?.clearSelection();
-    }
-    if (fields.build === '') {
-      this.buildSelector?.clearSelection();
-    }
   }
 
   /**
@@ -230,7 +112,7 @@ export class ProvisionComponent {
    * @private
    */
   private __showLoading(message: string) {
-    this.loading = {show: true, message: message};
+    this.loading.next({show: true, message: message});
   }
 
   /**
@@ -239,6 +121,6 @@ export class ProvisionComponent {
    * @private
    */
   private __hideLoading() {
-    this.loading = {show: false, message: ''};
+    this.loading.next({show: false, message: ''});
   }
 }

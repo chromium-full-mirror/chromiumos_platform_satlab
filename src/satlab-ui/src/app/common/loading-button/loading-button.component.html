@@ -1,0 +1,13 @@
+<button
+  (click)="onButtonClicked()"
+  *ngIf="!loading"
+  [disabled]="disabled"
+  color="primary"
+  mat-raised-button
+>
+  {{ text }}
+</button>
+
+<div *ngIf="loading">
+  <mat-spinner [diameter]="32"></mat-spinner>
+</div>

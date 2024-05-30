@@ -1,10 +1,10 @@
 <div class="loading-wrapper">
-  <p class="message hide" [class.show]="loading.show && loading.message !== ''">
-    {{ loading.message }}
+  <p [class.show]="show && message !== ''" class="message hide">
+    {{ message }}
   </p>
   <mat-progress-bar
+    [class.show]="show"
     class="loading hide"
-    [class.show]="loading.show"
     mode="indeterminate"
   >
   </mat-progress-bar>

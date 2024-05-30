@@ -6,8 +6,8 @@ import {BehaviorSubject, Observable} from 'rxjs';
   providedIn: 'root',
 })
 export class AuthService {
-  private logSub = new BehaviorSubject<boolean>(false);
   public loginState$: Observable<boolean>;
+  private logSub = new BehaviorSubject<boolean>(false);
   // __loaded is the flag indicates we have called the
   // `get_cloud_configuration`.
   //
@@ -25,6 +25,13 @@ export class AuthService {
     this.__getConfiguration();
   }
 
+  public async isLoggedIn() {
+    if (!this.__loaded) {
+      await this.__getConfiguration();
+    }
+    return this.logSub.getValue();
+  }
+
   /**
    * __getConfiguration retrieves the `boto` key from the backend.
    * If the `key` is set, it means the user has logged in before.
@@ -38,12 +45,5 @@ export class AuthService {
     } catch (e) {
       console.error(e);
     }
-  }
-
-  public async isLoggedIn() {
-    if (!this.__loaded) {
-      await this.__getConfiguration();
-    }
-    return this.logSub.getValue();
   }
 }

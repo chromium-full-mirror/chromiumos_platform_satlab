@@ -9,50 +9,48 @@
     <div class="px-6 pt-4">
       <app-basic-selector
         #dlmIDSelector
-        id="dlmIDSelector"
-        title="Select DLM SKU ID (Optional)"
-        placeholder="Please select a DLM SKU ID"
-        [options]="dlmSkuIDOptions"
         (select)="onDlmSkuIDChanged($event)"
-        [disabled]="fields.model === ''"
         [disabledMessage]="fields.model === '' ? 'Please select a model' : ''"
+        [disabled]="fields.model === ''"
+        [options]="dlmSkuIDOptions"
+        id="dlmIDSelector"
+        placeholder="Please select a DLM SKU ID"
+        title="Select DLM SKU ID (Optional)"
       ></app-basic-selector>
 
       <app-autocomplete-selector
         #suiteSelector
-        id=" suiteSelector"
-        title="Type or scroll to select custom suite"
-        placeholder="Type or scroll to select custom suite"
         (inputChanged)="onSuiteChanged($event)"
         [options]="suiteOptions"
+        id="suiteSelector"
+        placeholder="Type or scroll to select custom suite"
+        title="Type or scroll to select custom suite"
       >
       </app-autocomplete-selector>
 
       <mat-form-field class="full-width zero-padding">
         <mat-label>Qualification ID</mat-label>
         <input
-          name="bugID"
-          matInput
-          required
           (change)="onBugIDChanged($event.target.value)"
+          matInput
+          name="bugID"
+          required
         />
       </mat-form-field>
 
       <mat-checkbox
-        [(ngModel)]="isIncrementalRun"
         (change)="onIncrementalRunChange($event)"
-        >Incremental Run</mat-checkbox
-      >
+        [(ngModel)]="isIncrementalRun"
+        >Incremental Run
+      </mat-checkbox>
     </div>
     <div class="flex justify-center py-4">
-      <button
-        mat-raised-button
-        color="primary"
-        (click)="onRunSuiteClick()"
+      <app-loading-button
+        (onClick)="onRunSuiteClick()"
         [disabled]="disabled"
-      >
-        Run Suite
-      </button>
+        [loading]="isRunning"
+        [text]="'Run Suite'"
+      ></app-loading-button>
     </div>
   </div>
 </div>

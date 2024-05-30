@@ -1,4 +1,4 @@
-import {Observable, defer} from 'rxjs';
+import {defer, Observable} from 'rxjs';
 
 export function startWithTap<T>(callback: () => void) {
   return (source: Observable<T>) =>

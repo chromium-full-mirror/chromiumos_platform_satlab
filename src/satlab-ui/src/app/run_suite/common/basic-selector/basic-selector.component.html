@@ -3,11 +3,11 @@
     <p class="title {{ disabled ? 'disabled' : '' }}">{{ title }}</p>
     <mat-select
       #selector
-      [(value)]="selected"
       (selectionChange)="onChange()"
-      class="selector"
-      [placeholder]="placeholder"
+      [(value)]="selected"
       [disabled]="disabled"
+      [placeholder]="placeholder"
+      class="selector"
     >
       <mat-option
         *ngFor="let option of options"

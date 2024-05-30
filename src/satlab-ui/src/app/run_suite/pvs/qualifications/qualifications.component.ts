@@ -35,7 +35,7 @@ export class QualificationsComponent implements AfterViewInit {
   protected validFields: any;
   protected dlmSkuIDOptions: SelectableItem[] = [];
   protected suiteOptions: SelectableItem[] = [];
-  public suiteList: string[] = [
+  protected suiteList: string[] = [
     'pre_fsi',
     'fsi',
     'firmware_rorw',
@@ -46,6 +46,7 @@ export class QualificationsComponent implements AfterViewInit {
     ...defaultBuildSelectFields,
     ...defaultQualificationsFields,
   };
+  protected isRunning = false;
 
   constructor(
     private service: SatlabRpcService,
@@ -62,52 +63,6 @@ export class QualificationsComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     this.#getSatlabID();
-  }
-
-  /**
-   * Get the Satlab ID from the backend.
-   */
-  #getSatlabID() {
-    from(this.service.getVersionInfo()).subscribe({
-      next: resp => {
-        this.satlabID = `satlab-${resp.hostId}`;
-      },
-      error: e => {
-        this.notification.error(
-          `can not fetch the satlab id, got an error: ${e} `
-        );
-      },
-    });
-  }
-
-  #parseEligibleDlmSkuIDs(): void {
-    this.dlmSkuIDOptions = [];
-    if (this.fields.model !== '' && this.duts) {
-      this.dlmSkuIDOptions = [
-        emptySelectableItem,
-        ...toIterator(this.duts)
-          .filter(
-            d => d.model === this.fields.model && d.board === this.fields.board
-          )
-          .map(e => e.dlmSkuID)
-          .filter(e => e !== '')
-          .unique_by()
-          .map(e => this.#toSelectableItem(e, e, ''))
-          .collect(),
-      ];
-    }
-  }
-
-  #toSelectableItem(
-    text: string,
-    value: string,
-    label: BuildStatus
-  ): SelectableItem {
-    return {
-      text: text,
-      value: value,
-      label: label,
-    };
   }
 
   /**
@@ -180,10 +135,12 @@ export class QualificationsComponent implements AfterViewInit {
     from(this.service.runQualification(this.fields))
       .pipe(
         startWithTap(() => {
+          this.isRunning = true;
           this.disabled = true;
           this.form.showLoading('Running a qualification...');
         }),
         finalize(() => {
+          this.isRunning = false;
           this.disabled = false;
           this.form.hideLoading();
         })
@@ -205,6 +162,52 @@ export class QualificationsComponent implements AfterViewInit {
           this.notification.error(`Trigger job failed: ${e}`, {dismiss: false});
         },
       });
+  }
+
+  /**
+   * Get the Satlab ID from the backend.
+   */
+  #getSatlabID() {
+    from(this.service.getVersionInfo()).subscribe({
+      next: resp => {
+        this.satlabID = `satlab-${resp.hostId}`;
+      },
+      error: e => {
+        this.notification.error(
+          `can not fetch the satlab id, got an error: ${e} `
+        );
+      },
+    });
+  }
+
+  #parseEligibleDlmSkuIDs(): void {
+    this.dlmSkuIDOptions = [];
+    if (this.fields.model !== '' && this.duts) {
+      this.dlmSkuIDOptions = [
+        emptySelectableItem,
+        ...toIterator(this.duts)
+          .filter(
+            d => d.model === this.fields.model && d.board === this.fields.board
+          )
+          .map(e => e.dlmSkuID)
+          .filter(e => e !== '')
+          .unique_by()
+          .map(e => this.#toSelectableItem(e, e, ''))
+          .collect(),
+      ];
+    }
+  }
+
+  #toSelectableItem(
+    text: string,
+    value: string,
+    label: BuildStatus
+  ): SelectableItem {
+    return {
+      text: text,
+      value: value,
+      label: label,
+    };
   }
 
   // validate verifies that all the required fields are filled.

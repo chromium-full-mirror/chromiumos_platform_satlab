@@ -9,9 +9,9 @@
     <div class="header">
       <p class="title">Cloud Configuration</p>
       <span
-        class="material-icon edit-icon"
-        *ngIf="cloudConfigurationDisable"
         (click)="editConfig()"
+        *ngIf="cloudConfigurationDisable"
+        class="material-icon edit-icon"
         >edit_note</span
       >
     </div>
@@ -21,10 +21,10 @@
       <p>Boto Key ID*</p>
       <mat-form-field class="input-box full-width">
         <input
-          matInput
           [(ngModel)]="boto.key"
-          required
           [disabled]="cloudConfigurationDisable"
+          matInput
+          required
         />
         <mat-error>This field is required</mat-error>
       </mat-form-field>
@@ -35,11 +35,11 @@
       <p>Boto Key Secret*</p>
       <mat-form-field class="input-box full-width">
         <input
-          type="password"
-          matInput
           [(ngModel)]="boto.secret"
-          required
           [disabled]="cloudConfigurationDisable"
+          matInput
+          required
+          type="password"
         />
         <mat-error>This field is required</mat-error>
       </mat-form-field>
@@ -50,31 +50,31 @@
       <p>GCS Bucket*</p>
       <mat-form-field class="input-box full-width">
         <input
-          matInput
           [(ngModel)]="boto.bucket"
-          required
           [disabled]="cloudConfigurationDisable"
+          matInput
+          required
         />
         <span matPrefix>gs://</span>
-        <div matSuffix class="bucket-wrapper">
+        <div class="bucket-wrapper" matSuffix>
           <span>/</span>
           <span>
             <mat-icon
-              id="link-off-icon"
               *ngIf="!cloudConfigurationDisable"
               class="link-icon"
+              id="link-off-icon"
               >link_off</mat-icon
             >
             <ng-container *ngIf="cloudConfigurationDisable">
               <a
-                id="gcs-link"
                 href="{{
                   'https://console.cloud.google.com/storage/browser/' +
                     boto.bucket +
                     '/'
                 }}"
+                id="gcs-link"
                 target="_blank"
-                ><mat-icon id="link-on-icon" class="link-icon"
+                ><mat-icon class="link-icon" id="link-on-icon"
                   >link</mat-icon
                 ></a
               >
@@ -88,21 +88,21 @@
     <!-- Button Group -->
     <div class="btn-group">
       <button
-        mat-raised-button
-        color="warn"
-        *ngIf="editingBoto.key !== '' && !cloudConfigurationDisable"
         (click)="cancelEditing()"
+        *ngIf="editingBoto.key !== '' && !cloudConfigurationDisable"
+        color="warn"
+        mat-raised-button
       >
         Cancel
       </button>
       <button
-        mat-raised-button
-        color="primary"
+        (click)="onSetCloudConfigurationClicked()"
         [disabled]="
           !(boto.key !== '' && boto.secret !== '' && boto.bucket !== '') ||
           cloudConfigurationDisable
         "
-        (click)="onSetCloudConfigurationClicked()"
+        color="primary"
+        mat-raised-button
       >
         Submit
       </button>
