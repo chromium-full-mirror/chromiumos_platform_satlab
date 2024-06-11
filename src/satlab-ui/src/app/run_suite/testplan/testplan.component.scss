@@ -1,11 +1,21 @@
-.wrapper {
+.suite-content {
   display: flex;
   flex-direction: column;
-  row-gap: 1rem;
-  padding-bottom: 2rem;
+  position: relative;
+  align-items: center;
+  padding-top: 4rem;
+  .wrapper {
+    display: flex;
+    flex-direction: column;
+    row-gap: 1rem;
+    padding-bottom: 2rem;
+    width: 26rem;
+    border: 1px solid #ebebeb;
+    border-radius: 0.25rem;
 
-  button {
-    width: 12rem;
-    height: 2.5rem;
+    button {
+      width: 12rem;
+      height: 2.5rem;
+    }
   }
 }

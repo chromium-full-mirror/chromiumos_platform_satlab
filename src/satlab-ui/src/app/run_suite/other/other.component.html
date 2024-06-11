@@ -1,33 +1,35 @@
-<div class="wrapper">
-  <app-build-select-form
-    (allRequiredFieldsSet)="allRequiredFieldsSet($event)"
-  ></app-build-select-form>
+<div class="suite-content">
+  <div class="wrapper">
+    <app-build-select-form
+      (allRequiredFieldsSet)="allRequiredFieldsSet($event)"
+    ></app-build-select-form>
 
-  <div class="px-6">
-    <app-autocomplete-selector
-      #suiteSelector
-      id="suiteSelector"
-      title="Type or scroll to select custom suite"
-      placeholder="Type or scroll to select custom suite"
-      (inputChanged)="onSuiteChanged($event)"
-      [options]="suiteOptions"
-    >
-    </app-autocomplete-selector>
-  </div>
+    <div class="px-6">
+      <app-autocomplete-selector
+        #suiteSelector
+        id="suiteSelector"
+        title="Type or scroll to select custom suite"
+        placeholder="Type or scroll to select custom suite"
+        (inputChanged)="onSuiteChanged($event)"
+        [options]="suiteOptions"
+      >
+      </app-autocomplete-selector>
+    </div>
 
-  <app-advanced-settings
-    (settingsChanged)="onAdvancedSettingsChanged($event)"
-    [disabled]="settingsDisabled"
-  ></app-advanced-settings>
+    <app-advanced-settings
+      (settingsChanged)="onAdvancedSettingsChanged($event)"
+      [disabled]="settingsDisabled"
+    ></app-advanced-settings>
 
-  <div class="flex justify-center py-4">
-    <button
-      mat-raised-button
-      color="primary"
-      (click)="onRunSuiteClick()"
-      [disabled]="disabled"
-    >
-      Run Suite
-    </button>
+    <div class="flex justify-center py-4">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="onRunSuiteClick()"
+        [disabled]="disabled"
+      >
+        Run Suite
+      </button>
+    </div>
   </div>
 </div>

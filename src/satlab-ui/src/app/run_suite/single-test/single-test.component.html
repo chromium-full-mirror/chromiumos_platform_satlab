@@ -1,57 +1,59 @@
-<div class="wrapper">
-  <app-build-select-form
-    (allRequiredFieldsSet)="allRequiredFieldsSet($event)"
-  ></app-build-select-form>
+<div class="suite-content">
+  <div class="wrapper">
+    <app-build-select-form
+      (allRequiredFieldsSet)="allRequiredFieldsSet($event)"
+    ></app-build-select-form>
 
-  <div class="input-wrapper">
-    <div class="form-group">
-      <mat-form-field class="full-width zero-padding">
-        <mat-label>Enter Test Name</mat-label>
-        <input
-          matInput
-          placeholder="Ex: audio_CrasAec"
-          [formControl]="testFormControl"
-        />
-      </mat-form-field>
-    </div>
-    <button
-      matTooltip="Add test"
-      color="primary"
-      class="add-btn"
-      (click)="onAddTestClick()"
-      [disabled]="testFormControl.value.trim() === ''"
-    >
-      <div class="material-icon">add</div>
-    </button>
-  </div>
-
-  <div class="card-wrapper" *ngFor="let case of testCases; let i = index">
-    <div class="card-group">
-      <span class="card-content">Test {{ i + 1 }}: {{ case.name }}</span>
+    <div class="input-wrapper">
+      <div class="form-group">
+        <mat-form-field class="full-width zero-padding">
+          <mat-label>Enter Test Name</mat-label>
+          <input
+            matInput
+            placeholder="Ex: audio_CrasAec"
+            [formControl]="testFormControl"
+          />
+        </mat-form-field>
+      </div>
       <button
-        matTooltip="Remove test"
-        color="basic"
-        class="delete-btn"
-        (click)="onRemoveTestClick(i)"
+        matTooltip="Add test"
+        color="primary"
+        class="add-btn"
+        (click)="onAddTestClick()"
+        [disabled]="testFormControl.value.trim() === ''"
       >
-        <div class="material-icon">delete</div>
+        <div class="material-icon">add</div>
       </button>
     </div>
-  </div>
 
-  <app-advanced-settings
-    settingsChanged="onAdvancedSettingsChanged($event)"
-    [disabled]="settingsDisabled"
-  ></app-advanced-settings>
+    <div class="card-wrapper" *ngFor="let case of testCases; let i = index">
+      <div class="card-group">
+        <span class="card-content">Test {{ i + 1 }}: {{ case.name }}</span>
+        <button
+          matTooltip="Remove test"
+          color="basic"
+          class="delete-btn"
+          (click)="onRemoveTestClick(i)"
+        >
+          <div class="material-icon">delete</div>
+        </button>
+      </div>
+    </div>
 
-  <div class="btn-group">
-    <button
-      mat-raised-button
-      color="primary"
-      (click)="onRunTestClick()"
-      [disabled]="disabled"
-    >
-      Run Tests
-    </button>
+    <app-advanced-settings
+      settingsChanged="onAdvancedSettingsChanged($event)"
+      [disabled]="settingsDisabled"
+    ></app-advanced-settings>
+
+    <div class="btn-group">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="onRunTestClick()"
+        [disabled]="disabled"
+      >
+        Run Tests
+      </button>
+    </div>
   </div>
 </div>

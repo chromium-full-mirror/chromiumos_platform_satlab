@@ -21,8 +21,8 @@ const routes: Routes = [
   },
   {
     path: 'run_tests',
-    component: RunSuiteComponent,
     children: [
+      {path: '', component: RunSuiteComponent},
       {path: 'other', component: OtherComponent},
       {path: 'test', component: SingleTestComponent},
       {path: 'testplan', component: TestplanComponent},
