@@ -17,6 +17,24 @@
     </app-autocomplete-selector>
   </div>
 
+  <div class="settings-wrapper">
+    <mat-accordion>
+      <mat-expansion-panel #settings [hideToggle]="true">
+        <mat-expansion-panel-header>
+          <mat-panel-title> Advanced settings</mat-panel-title>
+          <mat-icon *ngIf="!settings.expanded">arrow_drop_down</mat-icon>
+          <mat-icon *ngIf="settings.expanded">arrow_drop_up</mat-icon>
+        </mat-expansion-panel-header>
+        <mat-slide-toggle
+          [(ngModel)]="isCFT"
+          (change)="onCFTChange($event)"
+          [disabled]="isCustomBuild"
+          >CFT execution framework</mat-slide-toggle
+        >
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
+
   <div class="flex justify-center py-4">
     <button
       mat-raised-button

@@ -7,10 +7,9 @@
 
 $sans-display-family: 'Open Sans, "Arimo", sans-serif';
 
-$general-typography: mat-typography-config(
-  $font-family: $sans-display-family,
-  $body-2: mat-typography-level(14px, 24px, 400),
-);
+$general-typography: mat-typography-config($font-family: $sans-display-family,
+    $body-2: mat-typography-level(14px, 24px, 400),
+  );
 
 
 // Define the palettes for your theme using the Material Design palettes available in palette.scss
@@ -23,17 +22,13 @@ $accent: mat-palette($mat-indigo, A200, A100, A400);
 $warn: mat-palette($mat-red);
 
 // Create the theme object (a Sass map containing all of the palettes).
-$theme: mat-light-theme(
-    (
-      color: (
-        primary: $primary,
+$theme: mat-light-theme((color: (primary: $primary,
         accent: $accent,
         warn: $warn,
       ),
       density: 0,
       typography: $general-typography,
-    )
-);
+    ));
 
 // Include theme styles for core and each component used in your app.
 // Alternatively, you can import and @include the theme mixins for each component
@@ -71,12 +66,12 @@ body {
   position: relative;
   height: 4rem;
 
-  > .mat-mdc-form-field {
+  >.mat-mdc-form-field {
     border: 1px solid $color-grey;
     border-radius: 0.25rem;
   }
 
-  > .mat-mdc-form-field.mat-form-field-invalid {
+  >.mat-mdc-form-field.mat-form-field-invalid {
     border-color: $color-error;
   }
 
@@ -94,11 +89,11 @@ body {
   }
 
   &.without-border {
-    > .mat-mdc-form-field {
+    >.mat-mdc-form-field {
       border: none;
     }
 
-    > .mat-mdc-form-field.mat-form-field-invalid {
+    >.mat-mdc-form-field.mat-form-field-invalid {
       border: none;
     }
   }
@@ -179,6 +174,12 @@ a:hover {
 
 .mat-pseudo-checkbox:after {
   color: $color-primary-blue !important;
+}
+
+.settings-wrapper {
+  .mat-expansion-panel-body {
+    background-color: rgb(251, 251, 251);
+  }
 }
 
 .material-icon {

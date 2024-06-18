@@ -2,13 +2,15 @@ import {Component, ViewChild} from '@angular/core';
 import {BuildSelectFormComponent} from '../common/build-select-form/build-select-form.component';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
 import {NotificationService} from 'app/services/notification.service';
-import {checkSelectFields} from 'app/utils/validators';
+import {checkSelectFields, isCustomBuild} from 'app/utils/validators';
 import {FormControl} from '@angular/forms';
 import {catchError, from, map, mergeAll, of, tap} from 'rxjs';
 import {startWithTap} from 'app/utils/rxjs_operator';
 import {ITestCase} from 'app/models/testcase';
 import {defaultBuildSelectFields} from 'app/models/run_suite_fields';
 import {IBuildSelectFields} from '../../models/run_suite_fields';
+import {ISimpleDUT} from 'app/models/dut';
+import {MatSlideToggleChange} from '@angular/material/slide-toggle';
 
 @Component({
   selector: 'app-single-test',
@@ -22,6 +24,9 @@ export class SingleTestComponent {
   protected testFormControl = new FormControl('');
   protected testCases: ITestCase[] = [];
   private fields: IBuildSelectFields = defaultBuildSelectFields;
+  protected isCFT = true;
+  protected duts: ISimpleDUT[];
+  protected isCustomBuild = false;
 
   constructor(
     private service: SatlabRpcService,
@@ -30,6 +35,8 @@ export class SingleTestComponent {
 
   protected allRequiredFieldsSet(fields: IBuildSelectFields) {
     this.fields = fields;
+    this.isCustomBuild = isCustomBuild(this.fields.build);
+    this.isCFT = !this.isCustomBuild && this.isCFT;
     this.canRun();
   }
 
@@ -48,6 +55,7 @@ export class SingleTestComponent {
           return from(
             this.service.runTest({
               ...this.fields,
+              cft: this.isCFT,
               tests: [test.name],
             })
           ).pipe(
@@ -108,5 +116,9 @@ export class SingleTestComponent {
   protected onRemoveTestClick(index: number) {
     this.testCases.splice(index, 1);
     this.canRun();
+  }
+
+  protected onCFTChange(e: MatSlideToggleChange) {
+    this.isCFT = e.checked;
   }
 }

@@ -5,11 +5,13 @@ import {BuildSelectFormComponent} from '../common/build-select-form/build-select
 import {finalize, from} from 'rxjs';
 import {startWithTap} from '../../utils/rxjs_operator';
 import {NotificationService} from 'app/services/notification.service';
-import {checkSelectFields} from '../../utils/validators';
+import {checkSelectFields, isCustomBuild} from '../../utils/validators';
 import {
   defaultBuildSelectFields,
   IBuildSelectFields,
 } from '../../models/run_suite_fields';
+import {ISimpleDUT} from 'app/models/dut';
+import {MatSlideToggleChange} from '@angular/material/slide-toggle';
 
 @Component({
   selector: 'app-other',
@@ -32,6 +34,9 @@ export class OtherComponent {
   protected disabled = true;
   private suite = '';
   private fields: IBuildSelectFields = defaultBuildSelectFields;
+  protected isCFT = true;
+  protected duts: ISimpleDUT[];
+  protected isCustomBuild = false;
 
   constructor(
     private service: SatlabRpcService,
@@ -48,6 +53,8 @@ export class OtherComponent {
 
   protected allRequiredFieldsSet(fields: IBuildSelectFields) {
     this.fields = fields;
+    this.isCustomBuild = isCustomBuild(this.fields.build);
+    this.isCFT = !this.isCustomBuild && this.isCFT;
     this.canRun();
   }
 
@@ -61,7 +68,13 @@ export class OtherComponent {
       return;
     }
 
-    from(this.service.runSuite({...this.fields, suite: this.suite}))
+    from(
+      this.service.runSuite({
+        ...this.fields,
+        suite: this.suite,
+        cft: this.isCFT,
+      })
+    )
       .pipe(
         startWithTap(() => {
           this.disabled = true;
@@ -93,6 +106,10 @@ export class OtherComponent {
 
   private canRun() {
     this.disabled = !this.validate();
+  }
+
+  protected onCFTChange(e: MatSlideToggleChange) {
+    this.isCFT = e.checked;
   }
 
   private validate() {

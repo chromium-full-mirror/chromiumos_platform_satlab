@@ -182,6 +182,7 @@ export class SatlabRpcService {
     build: string;
     pool: string;
     suite: string;
+    cft: boolean;
     dims?: IDims;
   }) {
     const req = new RunSuiteRequest()
@@ -191,6 +192,7 @@ export class SatlabRpcService {
       .setBuildVersion(params.build)
       .setPool(params.pool)
       .setSuite(params.suite)
+      .setCft(params.cft)
       .setDimsList(this.toDims(params.dims));
 
     const resp = await this.client.runSuite(req, {});
@@ -391,6 +393,7 @@ export class SatlabRpcService {
     build: string;
     pool: string;
     tests: string[];
+    cft: boolean;
     test_args?: string;
     dims?: IDims;
   }) {
@@ -401,6 +404,7 @@ export class SatlabRpcService {
       .setBuild(params.build)
       .setPool(params.pool)
       .setTestsList(params.tests)
+      .setCft(params.cft)
       .setDimsList(this.toDims(params.dims));
 
     if (params.test_args !== undefined) {
@@ -424,6 +428,7 @@ export class SatlabRpcService {
   }) {
     return this.runTest({
       ...params,
+      cft: true,
       tests: ['stub_Pass'],
     });
   }
@@ -449,6 +454,7 @@ export class SatlabRpcService {
     build: string;
     pool: string;
     plan: string;
+    cft: boolean;
     dims?: IDims;
   }) {
     const req = new RunTestPlanRequest()
@@ -458,6 +464,7 @@ export class SatlabRpcService {
       .setBuild(params.build)
       .setPool(params.pool)
       .setTestPlanName(params.plan)
+      .setCft(params.cft)
       .setDimsList(this.toDims(params.dims));
 
     const resp = await this.client.runTestPlan(req, {});

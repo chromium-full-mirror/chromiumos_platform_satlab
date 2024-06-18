@@ -10,6 +10,10 @@
     color: $color-error;
   }
 
+  &.mat-mdc-tooltip-trigger {
+    margin-bottom: -1.25rem;
+  }
+
   .items-wrapper {
     position: absolute;
     width: 100%;

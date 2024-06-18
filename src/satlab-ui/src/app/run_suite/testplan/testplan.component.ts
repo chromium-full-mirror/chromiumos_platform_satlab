@@ -7,11 +7,12 @@ import {finalize, from} from 'rxjs';
 import {BuildSelectFormComponent} from '../common/build-select-form/build-select-form.component';
 import {toIterator} from 'app/utils/iterator';
 import {NotificationService} from '../../services/notification.service';
-import {checkSelectFields} from '../../utils/validators';
+import {checkSelectFields, isCustomBuild} from '../../utils/validators';
 import {
   defaultBuildSelectFields,
   IBuildSelectFields,
 } from '../../models/run_suite_fields';
+import {MatSlideToggleChange} from '@angular/material/slide-toggle';
 
 @Component({
   selector: 'app-testplan',
@@ -26,6 +27,8 @@ export class TestplanComponent {
   protected fields: IBuildSelectFields = defaultBuildSelectFields;
   protected selectedTestPlan?: ITestPlan;
   protected errorMessage = '';
+  protected isCFT = true;
+  protected isCustomBuild = false;
 
   constructor(
     private service: SatlabRpcService,
@@ -34,6 +37,8 @@ export class TestplanComponent {
 
   protected allRequiredFieldsSet(fields: IBuildSelectFields) {
     this.fields = fields;
+    this.isCustomBuild = isCustomBuild(this.fields.build);
+    this.isCFT = !this.isCustomBuild && this.isCFT;
     this.canRun();
   }
 
@@ -81,6 +86,7 @@ export class TestplanComponent {
     from(
       this.service.runTestPlan({
         ...this.fields,
+        cft: this.isCFT,
         plan: this.selectedTestPlan.name,
       })
     )
@@ -116,6 +122,10 @@ export class TestplanComponent {
 
   private canRun() {
     this.disabled = !this.validate();
+  }
+
+  protected onCFTChange(e: MatSlideToggleChange) {
+    this.isCFT = e.checked;
   }
 
   private validate() {
