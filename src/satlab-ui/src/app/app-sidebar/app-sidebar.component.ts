@@ -23,7 +23,7 @@ export class AppSidebarComponent {
     },
     {
       route: '/pvs',
-      label: 'PVS',
+      label: 'AVL Qualification',
       icon: 'science',
     },
 
