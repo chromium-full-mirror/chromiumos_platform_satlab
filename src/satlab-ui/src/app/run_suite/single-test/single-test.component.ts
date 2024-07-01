@@ -26,7 +26,6 @@ export class SingleTestComponent {
   private fields: IBuildSelectFields = defaultBuildSelectFields;
   protected isCFT = true;
   protected duts: ISimpleDUT[];
-  protected isCustomBuild = false;
 
   constructor(
     private service: SatlabRpcService,
@@ -35,8 +34,6 @@ export class SingleTestComponent {
 
   protected allRequiredFieldsSet(fields: IBuildSelectFields) {
     this.fields = fields;
-    this.isCustomBuild = isCustomBuild(this.fields.build);
-    this.isCFT = !this.isCustomBuild && this.isCFT;
     this.canRun();
   }
 
@@ -44,6 +41,9 @@ export class SingleTestComponent {
     if (!this.validate()) {
       return;
     }
+    // Set the `cft` flag, if the user sets the flag to `true`
+    // and non custom build.
+    const isCFT = this.isCFT && !isCustomBuild(this.fields.build);
 
     from(this.testCases)
       .pipe(
@@ -55,7 +55,7 @@ export class SingleTestComponent {
           return from(
             this.service.runTest({
               ...this.fields,
-              cft: this.isCFT,
+              cft: isCFT,
               tests: [test.name],
             })
           ).pipe(

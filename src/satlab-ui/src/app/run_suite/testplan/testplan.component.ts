@@ -28,7 +28,6 @@ export class TestplanComponent {
   protected selectedTestPlan?: ITestPlan;
   protected errorMessage = '';
   protected isCFT = true;
-  protected isCustomBuild = false;
 
   constructor(
     private service: SatlabRpcService,
@@ -37,8 +36,6 @@ export class TestplanComponent {
 
   protected allRequiredFieldsSet(fields: IBuildSelectFields) {
     this.fields = fields;
-    this.isCustomBuild = isCustomBuild(this.fields.build);
-    this.isCFT = !this.isCustomBuild && this.isCFT;
     this.canRun();
   }
 
@@ -83,10 +80,17 @@ export class TestplanComponent {
   }
 
   protected onRunTestPlanClick() {
+    if (!this.validate()) {
+      return;
+    }
+    // Set the `cft` flag, if the user sets the flag to `true`
+    // and non custom build.
+    const isCFT = this.isCFT && !isCustomBuild(this.fields.build);
+
     from(
       this.service.runTestPlan({
         ...this.fields,
-        cft: this.isCFT,
+        cft: isCFT,
         plan: this.selectedTestPlan.name,
       })
     )
