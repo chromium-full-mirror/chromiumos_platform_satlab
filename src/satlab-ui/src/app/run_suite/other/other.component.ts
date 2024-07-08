@@ -8,10 +8,11 @@ import {NotificationService} from 'app/services/notification.service';
 import {checkSelectFields, isCustomBuild} from '../../utils/validators';
 import {
   defaultBuildSelectFields,
+  IAdvancedSettings,
   IBuildSelectFields,
+  defaultAdvancedSettings,
 } from '../../models/run_suite_fields';
 import {ISimpleDUT} from 'app/models/dut';
-import {MatSlideToggleChange} from '@angular/material/slide-toggle';
 
 @Component({
   selector: 'app-other',
@@ -34,8 +35,9 @@ export class OtherComponent {
   protected disabled = true;
   private suite = '';
   private fields: IBuildSelectFields = defaultBuildSelectFields;
-  protected isCFT = true;
+  private advancedSettings: IAdvancedSettings = {...defaultAdvancedSettings};
   protected duts: ISimpleDUT[];
+  protected settingsDisabled = false;
 
   constructor(
     private service: SatlabRpcService,
@@ -52,6 +54,7 @@ export class OtherComponent {
 
   protected allRequiredFieldsSet(fields: IBuildSelectFields) {
     this.fields = fields;
+    this.settingsDisabled = isCustomBuild(fields.build);
     this.canRun();
   }
 
@@ -60,19 +63,28 @@ export class OtherComponent {
     this.canRun();
   }
 
+  // onAdvanceSettingsChanged handles the advanced settings changes
+  protected onAdvancedSettingsChanged(newValue: IAdvancedSettings) {
+    this.advancedSettings = newValue;
+  }
+
   protected onRunSuiteClick() {
     if (!this.validate()) {
       return;
     }
     // Set the `cft` flag, if the user sets the flag to `true`
     // and non custom build.
-    const isCFT = this.isCFT && !isCustomBuild(this.fields.build);
+    const customBuild = isCustomBuild(this.fields.build);
+    const cft = this.advancedSettings.cft && !customBuild;
+    const trv2 = this.advancedSettings.trv2 && !customBuild;
 
     from(
       this.service.runSuite({
         ...this.fields,
         suite: this.suite,
-        cft: isCFT,
+        ...this.advancedSettings,
+        cft: cft,
+        trv2: trv2,
       })
     )
       .pipe(
@@ -106,10 +118,6 @@ export class OtherComponent {
 
   private canRun() {
     this.disabled = !this.validate();
-  }
-
-  protected onCFTChange(e: MatSlideToggleChange) {
-    this.isCFT = e.checked;
   }
 
   private validate() {

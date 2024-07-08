@@ -9,10 +9,11 @@ import {toIterator} from 'app/utils/iterator';
 import {NotificationService} from '../../services/notification.service';
 import {checkSelectFields, isCustomBuild} from '../../utils/validators';
 import {
+  defaultAdvancedSettings,
   defaultBuildSelectFields,
+  IAdvancedSettings,
   IBuildSelectFields,
 } from '../../models/run_suite_fields';
-import {MatSlideToggleChange} from '@angular/material/slide-toggle';
 
 @Component({
   selector: 'app-testplan',
@@ -27,7 +28,8 @@ export class TestplanComponent {
   protected fields: IBuildSelectFields = defaultBuildSelectFields;
   protected selectedTestPlan?: ITestPlan;
   protected errorMessage = '';
-  protected isCFT = true;
+  private advancedSettings: IAdvancedSettings = {...defaultAdvancedSettings};
+  protected settingsDisabled = false;
 
   constructor(
     private service: SatlabRpcService,
@@ -36,7 +38,13 @@ export class TestplanComponent {
 
   protected allRequiredFieldsSet(fields: IBuildSelectFields) {
     this.fields = fields;
+    this.settingsDisabled = isCustomBuild(fields.build);
     this.canRun();
+  }
+
+  // onAdvanceSettingsChanged handles the advanced settings changes
+  protected onAdvancedSettingsChanged(newValue: IAdvancedSettings) {
+    this.advancedSettings = newValue;
   }
 
   protected listTestPlans() {
@@ -85,13 +93,17 @@ export class TestplanComponent {
     }
     // Set the `cft` flag, if the user sets the flag to `true`
     // and non custom build.
-    const isCFT = this.isCFT && !isCustomBuild(this.fields.build);
+    const customBuild = isCustomBuild(this.fields.build);
+    const cft = this.advancedSettings.cft && !customBuild;
+    const trv2 = this.advancedSettings.trv2 && !customBuild;
 
     from(
       this.service.runTestPlan({
         ...this.fields,
-        cft: isCFT,
         plan: this.selectedTestPlan.name,
+        ...this.advancedSettings,
+        cft: cft,
+        trv2: trv2,
       })
     )
       .pipe(
@@ -126,10 +138,6 @@ export class TestplanComponent {
 
   private canRun() {
     this.disabled = !this.validate();
-  }
-
-  protected onCFTChange(e: MatSlideToggleChange) {
-    this.isCFT = e.checked;
   }
 
   private validate() {

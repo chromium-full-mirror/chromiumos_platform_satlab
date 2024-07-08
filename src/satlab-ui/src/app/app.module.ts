@@ -62,6 +62,7 @@ import {StorageQualComponent} from './run_suite/pvs/storage-qual/storage-qual.co
 import {CircularProgressComponent} from './common/circular-progress/circular-progress.component';
 import {QualificationsComponent} from './run_suite/pvs/qualifications/qualifications.component';
 import {PvsComponent} from './run_suite/pvs/pvs.component';
+import {AdvancedSettingsComponent} from './run_suite/common/advanced-settings/advanced-settings.component';
 
 @NgModule({
   declarations: [
@@ -94,6 +95,7 @@ import {PvsComponent} from './run_suite/pvs/pvs.component';
     CircularProgressComponent,
     QualificationsComponent,
     PvsComponent,
+    AdvancedSettingsComponent,
   ],
   imports: [
     AppRoutingModule,

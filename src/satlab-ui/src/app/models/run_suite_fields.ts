@@ -42,3 +42,13 @@ export const defaultQualificationsFields: IQualificationsFields = {
   dlmSkuID: '',
   isIncrementalRun: false,
 };
+
+export interface IAdvancedSettings {
+  cft: boolean;
+  trv2: boolean;
+}
+
+export const defaultAdvancedSettings: IAdvancedSettings = {
+  cft: true,
+  trv2: false,
+};

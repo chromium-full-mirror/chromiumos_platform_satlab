@@ -7,10 +7,13 @@ import {FormControl} from '@angular/forms';
 import {catchError, from, map, mergeAll, of, tap} from 'rxjs';
 import {startWithTap} from 'app/utils/rxjs_operator';
 import {ITestCase} from 'app/models/testcase';
-import {defaultBuildSelectFields} from 'app/models/run_suite_fields';
+import {
+  IAdvancedSettings,
+  defaultAdvancedSettings,
+  defaultBuildSelectFields,
+} from 'app/models/run_suite_fields';
 import {IBuildSelectFields} from '../../models/run_suite_fields';
 import {ISimpleDUT} from 'app/models/dut';
-import {MatSlideToggleChange} from '@angular/material/slide-toggle';
 
 @Component({
   selector: 'app-single-test',
@@ -24,8 +27,9 @@ export class SingleTestComponent {
   protected testFormControl = new FormControl('');
   protected testCases: ITestCase[] = [];
   private fields: IBuildSelectFields = defaultBuildSelectFields;
-  protected isCFT = true;
   protected duts: ISimpleDUT[];
+  private advancedSettings: IAdvancedSettings = {...defaultAdvancedSettings};
+  protected settingsDisabled = false;
 
   constructor(
     private service: SatlabRpcService,
@@ -34,7 +38,13 @@ export class SingleTestComponent {
 
   protected allRequiredFieldsSet(fields: IBuildSelectFields) {
     this.fields = fields;
+    this.settingsDisabled = isCustomBuild(fields.build);
     this.canRun();
+  }
+
+  // onAdvanceSettingsChanged handles the advanced settings changes
+  protected onAdvancedSettingsChanged(newValue: IAdvancedSettings) {
+    this.advancedSettings = newValue;
   }
 
   protected async onRunTestClick() {
@@ -43,7 +53,9 @@ export class SingleTestComponent {
     }
     // Set the `cft` flag, if the user sets the flag to `true`
     // and non custom build.
-    const isCFT = this.isCFT && !isCustomBuild(this.fields.build);
+    const customBuild = isCustomBuild(this.fields.build);
+    const cft = this.advancedSettings.cft && !customBuild;
+    const trv2 = this.advancedSettings.trv2 && !customBuild;
 
     from(this.testCases)
       .pipe(
@@ -55,8 +67,10 @@ export class SingleTestComponent {
           return from(
             this.service.runTest({
               ...this.fields,
-              cft: isCFT,
               tests: [test.name],
+              ...this.advancedSettings,
+              cft: cft,
+              trv2: trv2,
             })
           ).pipe(
             catchError(err => {
@@ -116,9 +130,5 @@ export class SingleTestComponent {
   protected onRemoveTestClick(index: number) {
     this.testCases.splice(index, 1);
     this.canRun();
-  }
-
-  protected onCFTChange(e: MatSlideToggleChange) {
-    this.isCFT = e.checked;
   }
 }

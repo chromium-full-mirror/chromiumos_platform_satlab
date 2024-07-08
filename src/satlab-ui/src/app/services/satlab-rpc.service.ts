@@ -76,6 +76,7 @@ import {
 } from '../models/job';
 import {Timestamp} from 'google-protobuf/google/protobuf/timestamp_pb';
 import {
+  IAdvancedSettings,
   IBuildSelectFields,
   IPVSFields,
   IQualificationsFields,
@@ -177,16 +178,12 @@ export class SatlabRpcService {
    * run a suite by given model, board, milestone, build version, pool, and suite.
    * @param params an object contains the required information
    */
-  public async runSuite(params: {
-    model: string;
-    board: string;
-    milestone: string;
-    build: string;
-    pool: string;
-    suite: string;
-    cft: boolean;
-    dims?: IDims;
-  }) {
+  public async runSuite(
+    params: {
+      suite: string;
+    } & IAdvancedSettings &
+      IBuildSelectFields
+  ) {
     const req = new RunSuiteRequest()
       .setModel(params.model)
       .setBuildTarget(params.board)
@@ -195,6 +192,7 @@ export class SatlabRpcService {
       .setPool(params.pool)
       .setSuite(params.suite)
       .setCft(params.cft)
+      .setTrv2(params.trv2)
       .setDimsList(this.toDims(params.dims));
 
     const resp = await this.client.runSuite(req, {});
@@ -388,17 +386,13 @@ export class SatlabRpcService {
    * run a test by given model, board, milestone, build version, pool, test, and test_args.
    * @param params an object contains the required information
    */
-  public async runTest(params: {
-    model: string;
-    board: string;
-    milestone: string;
-    build: string;
-    pool: string;
-    tests: string[];
-    cft: boolean;
-    test_args?: string;
-    dims?: IDims;
-  }) {
+  public async runTest(
+    params: {
+      tests: string[];
+      test_args?: string;
+    } & IBuildSelectFields &
+      IAdvancedSettings
+  ) {
     const req = new RunTestRequest()
       .setModel(params.model)
       .setBoard(params.board)
@@ -407,6 +401,7 @@ export class SatlabRpcService {
       .setPool(params.pool)
       .setTestsList(params.tests)
       .setCft(params.cft)
+      .setTrv2(params.trv2)
       .setDimsList(this.toDims(params.dims));
 
     if (params.test_args !== undefined) {
@@ -431,6 +426,7 @@ export class SatlabRpcService {
     return this.runTest({
       ...params,
       cft: true,
+      trv2: false,
       tests: ['stub_Pass'],
     });
   }
@@ -449,16 +445,12 @@ export class SatlabRpcService {
    * run a testplan by given model, board, milestone, build, pool and testplan
    * @param params object with required information
    */
-  public async runTestPlan(params: {
-    model: string;
-    board: string;
-    milestone: string;
-    build: string;
-    pool: string;
-    plan: string;
-    cft: boolean;
-    dims?: IDims;
-  }) {
+  public async runTestPlan(
+    params: {
+      plan: string;
+    } & IAdvancedSettings &
+      IBuildSelectFields
+  ) {
     const req = new RunTestPlanRequest()
       .setModel(params.model)
       .setBoard(params.board)
@@ -467,6 +459,7 @@ export class SatlabRpcService {
       .setPool(params.pool)
       .setTestPlanName(params.plan)
       .setCft(params.cft)
+      .setTrv2(params.trv2)
       .setDimsList(this.toDims(params.dims));
 
     const resp = await this.client.runTestPlan(req, {});

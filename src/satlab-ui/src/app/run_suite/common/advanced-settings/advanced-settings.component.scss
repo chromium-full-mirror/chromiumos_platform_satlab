@@ -1,0 +1,10 @@
+.settings-wrapper {
+  mat-expansion-panel {
+    box-shadow: none;
+
+    .mat-expansion-panel-header {
+      padding-right: 7px;
+      background-color: rgb(251, 251, 251);
+    }
+  }
+}

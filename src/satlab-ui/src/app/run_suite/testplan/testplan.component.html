@@ -17,28 +17,9 @@
     </app-autocomplete-selector>
   </div>
 
-  <div class="settings-wrapper">
-    <mat-accordion>
-      <mat-expansion-panel #settings [hideToggle]="true">
-        <mat-expansion-panel-header>
-          <mat-panel-title> Advanced settings</mat-panel-title>
-          <mat-icon *ngIf="!settings.expanded">arrow_drop_down</mat-icon>
-          <mat-icon *ngIf="settings.expanded">arrow_drop_up</mat-icon>
-        </mat-expansion-panel-header>
-        <div class="flex flex-row gap-4">
-          <mat-slide-toggle [(ngModel)]="isCFT" (change)="onCFTChange($event)"
-            >CFT execution framework</mat-slide-toggle
-          >
-          <span
-            class="material-icon"
-            matTooltip="If you select a custom build, this flag will be disabled
-                automatically. Even though the flag is enabled."
-            >info
-          </span>
-        </div>
-      </mat-expansion-panel>
-    </mat-accordion>
-  </div>
+  <app-advanced-settings
+    settingsChanged="onAdvancedSettingsChanged($event)"
+  ></app-advanced-settings>
 
   <div class="flex justify-center py-4">
     <button
