@@ -96,6 +96,8 @@ export class TestplanComponent {
     const customBuild = isCustomBuild(this.fields.build);
     const cft = this.advancedSettings.cft && !customBuild;
     const trv2 = this.advancedSettings.trv2 && !customBuild;
+    const uploadToCpcon =
+      this.advancedSettings.trv2 && this.advancedSettings.uploadToCpcon;
 
     from(
       this.service.runTestPlan({
@@ -104,6 +106,7 @@ export class TestplanComponent {
         ...this.advancedSettings,
         cft: cft,
         trv2: trv2,
+        uploadToCpcon: uploadToCpcon,
       })
     )
       .pipe(

@@ -193,7 +193,7 @@ message Dim {
   string value = 2;
 }
 
-// NEXT_TAG = 10
+// NEXT_TAG = 11
 message RunSuiteRequest {
   string suite = 1;
   string build_target = 2;
@@ -207,6 +207,7 @@ message RunSuiteRequest {
   repeated Dim dims = 7;
   bool cft = 8;
   bool trv2 = 9;
+  bool upload_to_cpcon = 10;
 }
 
 // NEXT_TAG = 2
@@ -347,7 +348,7 @@ message ListDutEventsResponse {
   repeated BotEvent events = 2;
 }
 
-// NEXT_TAG = 11
+// NEXT_TAG = 12
 message RunTestRequest {
   repeated string tests = 1;
   string test_args = 2;
@@ -362,6 +363,7 @@ message RunTestRequest {
   repeated Dim dims = 8;
   bool cft = 9;
   bool trv2 = 10;
+  bool upload_to_cpcon = 11;
 }
 // NEXT_TAG = 2
 message RunTestResponse {
@@ -498,7 +500,7 @@ message ListTestPlansResponse {
   repeated string names = 1;
 }
 
-// NEXT_TAG = 10
+// NEXT_TAG = 11
 message RunTestPlanRequest {
   // the name of the test plan in the bucket that a user wants to run
   string test_plan_name = 1;
@@ -513,6 +515,7 @@ message RunTestPlanRequest {
   repeated Dim dims = 7;
   bool cft = 8;
   bool trv2 = 9;
+  bool upload_to_cpcon = 10;
 }
 
 // NEXT_TAG = 2

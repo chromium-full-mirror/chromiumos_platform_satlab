@@ -46,9 +46,16 @@ export class AdvancedSettingsComponent implements OnInit, OnDestroy {
    * onCftChanged handles the cft flag changed event.
    */
   protected onCftChanged(newValue: boolean) {
-    // if `cft` is disable, also disable `trv2` flag
+    // if `cft` is disable, also disable `trv2` and `uploadToCpcon` flag
     const trv2 = newValue === false ? false : this.settings.value.trv2;
-    this.settings.next({...this.settings.value, cft: newValue, trv2: trv2});
+    const uploadToCpcon =
+      newValue === false ? false : this.settings.value.uploadToCpcon;
+    this.settings.next({
+      ...this.settings.value,
+      cft: newValue,
+      trv2: trv2,
+      uploadToCpcon: uploadToCpcon,
+    });
   }
 
   /**
@@ -57,6 +64,30 @@ export class AdvancedSettingsComponent implements OnInit, OnDestroy {
   protected onTrv2Changed(newValue: boolean) {
     // if `trv2` flag is true, also enable `cft` flag
     const cft = newValue ? true : this.settings.value.cft;
-    this.settings.next({...this.settings.value, cft: cft, trv2: newValue});
+    // if `trv2` flag is false, disables `uploadToCpcon` flag
+    const uploadToCpcon =
+      newValue === false ? false : this.settings.value.uploadToCpcon;
+    this.settings.next({
+      ...this.settings.value,
+      cft: cft,
+      trv2: newValue,
+      uploadToCpcon: uploadToCpcon,
+    });
+  }
+
+  /**
+   * onUploadToCpconChanged handles the `uplaod cpcon` flag changed event.
+   */
+  protected onUploadToCpconChanged(newValue: boolean) {
+    // If `uploadToCpcon` is true, enables `trv2` and `cft` flags
+    const trv2 = newValue ? true : this.settings.value.trv2;
+    const cft = newValue ? true : this.settings.value.cft;
+    this.settings.next({
+      ...this.settings.value,
+      uploadToCpcon: newValue,
+      // if uploadToCpcon is true, enables the trv2 flag.
+      trv2: trv2,
+      cft: cft,
+    });
   }
 }
