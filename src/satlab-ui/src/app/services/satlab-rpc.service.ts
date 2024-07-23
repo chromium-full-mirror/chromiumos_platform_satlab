@@ -193,7 +193,7 @@ export class SatlabRpcService {
       .setSuite(params.suite)
       .setCft(params.cft)
       .setTrv2(params.trv2)
-      .setUploadCpcon(params.uploadToCpcon)
+      .setUploadToCpcon(params.uploadToCpcon)
       .setDimsList(this.toDims(params.dims));
 
     const resp = await this.client.runSuite(req, {});
@@ -403,7 +403,7 @@ export class SatlabRpcService {
       .setTestsList(params.tests)
       .setCft(params.cft)
       .setTrv2(params.trv2)
-      .setUploadCpcon(params.uploadToCpcon)
+      .setUploadToCpcon(params.uploadToCpcon)
       .setDimsList(this.toDims(params.dims));
 
     if (params.test_args !== undefined) {
@@ -463,7 +463,7 @@ export class SatlabRpcService {
       .setTestPlanName(params.plan)
       .setCft(params.cft)
       .setTrv2(params.trv2)
-      .setUploadCpcon(params.uploadToCpcon)
+      .setUploadToCpcon(params.uploadToCpcon)
       .setDimsList(this.toDims(params.dims));
 
     const resp = await this.client.runTestPlan(req, {});
