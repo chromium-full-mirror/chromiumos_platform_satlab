@@ -86,7 +86,6 @@ services:
         'moblab',
         '-H',
         '/etc/dut_hosts/hosts',
-        '--log-queries',
         '--log-debug'
       ]
     networks:
