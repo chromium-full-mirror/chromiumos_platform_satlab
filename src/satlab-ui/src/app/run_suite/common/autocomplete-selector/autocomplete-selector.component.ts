@@ -39,6 +39,8 @@ export class AutocompleteSelectorComponent
   @Input() errorMessage = '';
   // the event that parent component can listen the input element change.
   @Output() inputChanged = new EventEmitter();
+  // the event that parent component can listen the select element change.
+  @Output() selectChanged = new EventEmitter();
 
   protected filteredOptions: SelectableItem[] = [];
   protected searchFormControl = new FormControl('');
@@ -106,11 +108,10 @@ export class AutocompleteSelectorComponent
     }
     this.isHover = false;
     this.isShown = false;
-    if (typeof option.value === 'string') {
-      this.searchFormControl.setValue(option.value);
-    } else {
-      this.searchFormControl.setValue(option.text);
-    }
+    const newValue =
+      typeof option.value === 'string' ? option.value : option.text;
+    this.searchFormControl.setValue(newValue);
+    this.selectChanged.emit(newValue);
   }
 
   public clear() {

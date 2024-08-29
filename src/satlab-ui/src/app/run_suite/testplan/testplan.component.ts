@@ -3,7 +3,7 @@ import {SelectableItem} from 'app/models/selectable_item';
 import {ITestPlan} from 'app/models/testplan';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
 import {startWithTap} from 'app/utils/rxjs_operator';
-import {finalize, from} from 'rxjs';
+import {finalize, from, mergeAll, map, catchError, of, tap} from 'rxjs';
 import {BuildSelectFormComponent} from '../common/build-select-form/build-select-form.component';
 import {toIterator} from 'app/utils/iterator';
 import {NotificationService} from '../../services/notification.service';
@@ -14,7 +14,7 @@ import {
   IAdvancedSettings,
   IBuildSelectFields,
 } from '../../models/run_suite_fields';
-
+import {AutocompleteSelectorComponent} from '../common/autocomplete-selector/autocomplete-selector.component';
 @Component({
   selector: 'app-testplan',
   templateUrl: './testplan.component.html',
@@ -22,31 +22,28 @@ import {
 })
 export class TestplanComponent {
   @ViewChild(BuildSelectFormComponent) form!: BuildSelectFormComponent;
-
+  @ViewChild(AutocompleteSelectorComponent)
+  autocompleteSelector!: AutocompleteSelectorComponent;
   protected disabled = true;
   protected testPlanOptions: SelectableItem[] = [];
   protected fields: IBuildSelectFields = defaultBuildSelectFields;
-  protected selectedTestPlan?: ITestPlan;
+  protected selectedTestPlan: ITestPlan[] = [];
   protected errorMessage = '';
   private advancedSettings: IAdvancedSettings = {...defaultAdvancedSettings};
   protected settingsDisabled = false;
-
   constructor(
     private service: SatlabRpcService,
     private notification: NotificationService
   ) {}
-
   protected allRequiredFieldsSet(fields: IBuildSelectFields) {
     this.fields = fields;
     this.settingsDisabled = isCustomBuild(fields.build);
     this.canRun();
   }
-
   // onAdvanceSettingsChanged handles the advanced settings changes
   protected onAdvancedSettingsChanged(newValue: IAdvancedSettings) {
     this.advancedSettings = newValue;
   }
-
   protected listTestPlans() {
     from(this.service.listTestPlans())
       .pipe(
@@ -78,15 +75,14 @@ export class TestplanComponent {
         },
       });
   }
-
-  protected onTestPlanChanged(value: string) {
-    this.selectedTestPlan = {
+  protected onSelectedTestPlanChanged(value: string) {
+    this.selectedTestPlan.push({
       name: value,
       content: '',
-    };
+    });
+    this.autocompleteSelector.clear();
     this.canRun();
   }
-
   protected onRunTestPlanClick() {
     if (!this.validate()) {
       return;
@@ -98,61 +94,75 @@ export class TestplanComponent {
     const trv2 = this.advancedSettings.trv2 && !customBuild;
     const uploadToCpcon =
       this.advancedSettings.trv2 && this.advancedSettings.uploadToCpcon;
-
-    from(
-      this.service.runTestPlan({
-        ...this.fields,
-        plan: this.selectedTestPlan.name,
-        ...this.advancedSettings,
-        cft: cft,
-        trv2: trv2,
-        uploadToCpcon: uploadToCpcon,
-      })
-    )
+    from(this.selectedTestPlan)
       .pipe(
         startWithTap(() => {
+          this.form.showLoading('Triggering test plans...');
           this.disabled = true;
-          this.form.showLoading('Running a test plan...');
         }),
-        finalize(() => {
-          this.disabled = false;
-          this.form.hideLoading();
-        })
+        map(testPlan => {
+          return from(
+            this.service.runTestPlan({
+              ...this.fields,
+              plan: testPlan.name,
+              ...this.advancedSettings,
+              cft: cft,
+              trv2: trv2,
+              uploadToCpcon: uploadToCpcon,
+            })
+          ).pipe(
+            catchError(err => {
+              this.notification.error(
+                `Trigger test plan failed! Error: ${err}`,
+                {
+                  dismiss: false,
+                }
+              );
+              return of('');
+            }),
+            tap({
+              next: buildLinks => {
+                buildLinks
+                  .split(/\s/)
+                  .forEach(link =>
+                    this.notification.info(
+                      [
+                        `Trigger test plan ${testPlan.name} successfully! Test link:`,
+                        {type: 'url', url: link},
+                      ],
+                      {dismiss: false}
+                    )
+                  );
+              },
+              error: e => {
+                // Handle an error
+                this.notification.error(
+                  `Trigger test plan ${testPlan.name} failed: ${e}`,
+                  {dismiss: false}
+                );
+              },
+            })
+          );
+        }),
+        mergeAll()
       )
       .subscribe({
-        next: buildLinks => {
-          buildLinks.split(/\s/).forEach(link =>
-            this.notification.info(
-              [
-                'Trigger job successfully! Job link: ',
-                {
-                  type: 'url',
-                  url: link,
-                },
-              ],
-              {dismiss: false}
-            )
-          );
-        },
-        error: e => {
-          // Handle an error
-          this.notification.error(`Trigger job failed: ${e}`, {dismiss: false});
+        complete: () => {
+          this.form.hideLoading();
+          this.selectedTestPlan = [];
         },
       });
   }
-
+  protected onRemoveTestPlanClick(index: number) {
+    this.selectedTestPlan.splice(index, 1);
+    this.canRun();
+  }
   private canRun() {
     this.disabled = !this.validate();
   }
-
   private validate() {
     const isFieldsValid = checkSelectFields(this.fields);
-
-    const isTestPlanValid =
-      toIterator(this.testPlanOptions)
-        .filter(e => e.value === this.selectedTestPlan?.name)
-        .collect().length > 0;
-
+    const isTestPlanValid = this.selectedTestPlan.length > 0;
     return isFieldsValid && isTestPlanValid;
   }
 }

@@ -5,17 +5,36 @@
       (onInitComplete)="listTestPlans()"
     ></app-build-select-form>
 
-    <div class="px-6">
-      <app-autocomplete-selector
-        #testPlanSelector
-        id="testPlanSelector"
-        title="Please select a testplan:"
-        placeholder="Please select available testplan"
-        (inputChanged)="onTestPlanChanged($event)"
-        [options]="testPlanOptions"
-        [errorMessage]="errorMessage"
-      >
-      </app-autocomplete-selector>
+    <div class="input-wrapper">
+      <div class="form-group">
+        <app-autocomplete-selector
+          #testPlanSelector
+          id="testPlanSelector"
+          title="Please select a testplan:"
+          placeholder="Please select available testplan"
+          (selectChanged)="onSelectedTestPlanChanged($event)"
+          [options]="testPlanOptions"
+          [errorMessage]="errorMessage"
+        >
+        </app-autocomplete-selector>
+      </div>
+    </div>
+
+    <div
+      class="card-wrapper"
+      *ngFor="let testplan of selectedTestPlan; let i = index"
+    >
+      <div class="card-group">
+        <span class="card-content">Test {{ i + 1 }}: {{ testplan.name }}</span>
+        <button
+          matTooltip="Remove test"
+          color="basic"
+          class="delete-btn"
+          (click)="onRemoveTestPlanClick(i)"
+        >
+          <div class="material-icon">delete</div>
+        </button>
+      </div>
     </div>
 
     <app-advanced-settings
