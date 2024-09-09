@@ -14,12 +14,14 @@ cd /workspace/src/satlab-ui
 mkdir -p protos_temp
 cp /workspace/src/satlab-ui/src/app/protos/* protos_temp/
 
+# Change the mode from `grpcweb` to `grpcwebtext` for supporting server streaming.
+# ref: https://github.com/grpc/grpc-web
 protoc \
     -I=/workspace/src/satlab-ui/protos_temp/ \
     -I=/protoc/include/ \
     --experimental_allow_proto3_optional \
     --js_out=import_style=commonjs:/workspace/src/satlab-ui/src/app/services/ \
-    --grpc-web_out=import_style=typescript,mode=grpcweb:/workspace/src/satlab-ui/src/app/services/ \
+    --grpc-web_out=import_style=typescript,mode=grpcwebtext:/workspace/src/satlab-ui/src/app/services/ \
     /workspace/src/satlab-ui/protos_temp/satlabrpc.proto \
     google/protobuf/duration.proto \
     google/protobuf/empty.proto \
