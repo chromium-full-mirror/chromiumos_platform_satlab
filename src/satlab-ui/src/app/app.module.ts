@@ -63,6 +63,7 @@ import {CircularProgressComponent} from './common/circular-progress/circular-pro
 import {QualificationsComponent} from './run_suite/pvs/qualifications/qualifications.component';
 import {PvsComponent} from './run_suite/pvs/pvs.component';
 import {AdvancedSettingsComponent} from './run_suite/common/advanced-settings/advanced-settings.component';
+import {OpenCcdComponent} from './dialogs/open-ccd/open-ccd.component';
 
 @NgModule({
   declarations: [
@@ -96,6 +97,7 @@ import {AdvancedSettingsComponent} from './run_suite/common/advanced-settings/ad
     QualificationsComponent,
     PvsComponent,
     AdvancedSettingsComponent,
+    OpenCcdComponent,
   ],
   imports: [
     AppRoutingModule,

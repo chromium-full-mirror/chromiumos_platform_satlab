@@ -179,7 +179,20 @@
       <!-- CCD status Column -->
       <ng-container matColumnDef="ccd_status">
         <th mat-header-cell *matHeaderCellDef>CCD Status</th>
-        <td mat-cell *matCellDef="let element">{{ element.ccdStatus }}</td>
+        <td mat-cell *matCellDef="let element">
+          <div class="ccd-status-wrapper">
+            <p>{{ element.ccdStatus }}</p>
+            <button
+            *ngIf="element.servoSerial !== ''"
+            class="material-icon icon green"
+            matTooltip="Open CCD"
+            (click)="onOpenCCDClicked(element.servoSerial)"
+            [disabled]="disabledServo.includes(element.servoSerial)"
+            >
+              lock_open
+            </button>
+          </div>
+        </td>
       </ng-container>
 
       <!-- Status Column -->

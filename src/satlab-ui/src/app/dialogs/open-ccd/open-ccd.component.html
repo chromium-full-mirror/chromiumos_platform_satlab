@@ -1,0 +1,12 @@
+<div class="wrapper">
+    <app-loading [loading]="loading"></app-loading>
+    <div class="content-group">
+        <div innerHTML="{{hintMessage}}"></div>
+    </div>
+    <div class="btn-group">
+        <button
+            class="btn-group"
+            mat-raised-button
+            (click)="onCancelClicked()"
+        >Close</button>
+</div>

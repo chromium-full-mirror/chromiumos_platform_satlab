@@ -12,6 +12,8 @@ import {MatCheckboxChange} from '@angular/material/checkbox';
 import {toIterator} from '../../utils/iterator';
 import {MatDialog} from '@angular/material/dialog';
 import {StageBuildComponent} from '../../dialogs/stage-build/stage-build.component';
+import {OpenCcdComponent} from 'app/dialogs/open-ccd/open-ccd.component';
+import {delay} from 'rxjs';
 
 @Component({
   selector: 'app-view-duts',
@@ -29,6 +31,8 @@ export class ViewDutsComponent implements OnChanges {
   protected selectionCount = 0;
 
   protected duts: IDut[] = [];
+
+  protected disabledServo: string[] = [];
 
   protected displayedColumns = [
     'check',
@@ -206,6 +210,24 @@ export class ViewDutsComponent implements OnChanges {
    */
   private __emitSelectionChanged() {
     this.selectDUTs.emit(this.selection.selected);
+  }
+
+  /**
+   * Open CCD and testlab of DUT
+   * @param servoSerial
+   */
+  protected onOpenCCDClicked(servoSerial: string) {
+    this.disabledServo = [...this.disabledServo, servoSerial]
+    const dialogRef = this.dialog.open(OpenCcdComponent, {
+      data: {servoSerial: servoSerial},
+      disableClose: true,
+    });
+    dialogRef.afterClosed()
+      .pipe(delay(5000))
+      .subscribe(() => {
+        this.disabledServo = this.disabledServo
+          .filter(ele => ele !== servoSerial)
+      })
   }
 }
 

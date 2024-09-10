@@ -43,6 +43,7 @@ import {
   BotInfo,
   RunQualificationRequest,
   AbortJobsRequest,
+  OpenCCDRequest,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
 import {
@@ -693,6 +694,25 @@ export class SatlabRpcService {
 
     await this.client.abortJobs(req, {});
   }
+
+  public openCCD(p: {
+    servoSerial: string;
+    onData: (data: string) => void;
+    onError: (e: unknown) => void;
+    finalize: () => void;
+  }) {
+    if (p.servoSerial === '') {
+      return
+    }
+
+    const req = new OpenCCDRequest()
+      .setServoSerial(p.servoSerial);
+
+    this.client.openCCD(req, {})
+      .on('error', e => p.onError(e))
+      .on('data', resp => p.onData(resp.getMessage()))
+      .on('end', () => p.finalize())
+  }
 }
 
 function toRepairDUTsResponse(r: RepairDutsResponse.RepairResult[]) {
@@ -712,10 +732,10 @@ function toRepairDUTsResponse(r: RepairDutsResponse.RepairResult[]) {
 function toTags(tags?: JobTags): Tag[] {
   return tags
     ? toIterator(Object.keys(tags))
-        .map(k => {
-          return new Tag().setKey(k).setValue(tags[k]);
-        })
-        .collect()
+      .map(k => {
+        return new Tag().setKey(k).setValue(tags[k]);
+      })
+      .collect()
     : [];
 }
 

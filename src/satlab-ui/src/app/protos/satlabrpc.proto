@@ -38,6 +38,7 @@ service SatlabRpcService {
   rpc DeleteDuts (DeleteDutsRequest) returns (DeleteDutsResponse);
   rpc AddDuts (AddDutsRequest) returns (AddDutsResponse);
   rpc RepairDuts(RepairDutsRequest) returns (RepairDutsResponse);
+  rpc OpenCCD(OpenCCDRequest) returns (stream OpenCCDReply);
 
   // get DUTs information
   rpc GetDutDetail (GetDutDetailRequest) returns (GetDutDetailResponse);
@@ -784,3 +785,13 @@ message AbortJobsRequest {
 
 // NEXT_TAG = 1
 message AbortJobsResponse {}
+
+// NEXT_TAG = 2
+message OpenCCDRequest {
+  string servo_serial = 1;
+}
+
+// NEXT_TAG = 2
+message OpenCCDReply {
+  string message = 1;
+}
