@@ -106,7 +106,11 @@ services:
         '--address',
         ':8887',
         '--cache-server-url',
-        'http://192.168.100.3:8082'
+        'http://192.168.100.3:8082',
+        '--android-build',
+        'https://androidbuildinternal.googleapis.com/android/internal/build/v3',
+        '--auth-scopes',
+        'https://www.googleapis.com/auth/androidbuild.internal,https://www.googleapis.com/auth/devstorage.read_only'
       ]
     networks:
       satlab:
