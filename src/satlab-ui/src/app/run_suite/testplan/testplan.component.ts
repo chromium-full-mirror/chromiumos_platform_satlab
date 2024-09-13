@@ -120,16 +120,18 @@ export class TestplanComponent {
         })
       )
       .subscribe({
-        next: buildLink => {
-          this.notification.info(
-            [
-              'Trigger job successfully! Job link: ',
-              {
-                type: 'url',
-                url: buildLink,
-              },
-            ],
-            {dismiss: false}
+        next: buildLinks => {
+          buildLinks.split(/\s/).forEach(link =>
+            this.notification.info(
+              [
+                'Trigger job successfully! Job link: ',
+                {
+                  type: 'url',
+                  url: link,
+                },
+              ],
+              {dismiss: false}
+            )
           );
         },
         error: e => {
