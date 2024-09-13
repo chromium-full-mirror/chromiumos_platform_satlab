@@ -38,8 +38,9 @@ function start_private_containers () {
   docker-compose pull partner_testing_rsa
   docker-compose up -d partner_testing_rsa
 
-  docker-compose -f ./docker-compose.watchtower.yaml pull
-  docker-compose -f ./docker-compose.watchtower.yaml up -d
+#  b/365967683
+#  docker-compose -f ./docker-compose.watchtower.yaml pull
+#  docker-compose -f ./docker-compose.watchtower.yaml up -d
 
   # if DRONE_HOSTNAME is not set via upstart. Create hostname from product ID.
   if [[ -z "${DRONE_HOSTNAME}" ]]; then
