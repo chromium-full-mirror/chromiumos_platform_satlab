@@ -21,7 +21,70 @@ RUN python3 -c "from tradefed_constants import PRIVATE_KEY;print(PRIVATE_KEY)" >
 
 ###########################################################
 
-FROM ${COMMON_CORE_URI}/remote_access:${COMMON_CORE_LABEL}
+FROM ${COMMON_CORE_URI}/moblab_common:${COMMON_CORE_LABEL} as common
+
+###########################################################
+
+FROM ${BASE_REGISTRY_URI}/docker:latest as docker
+
+###########################################################
+
+FROM ${COMMON_CORE_URI}/moblab-autotest-base:${COMMON_CORE_LABEL} as autotest
+
+###########################################################
+
+FROM ${BASE_REGISTRY_URI}/linuxserver/openssh-server:latest
+
+COPY dockerfiles/satlab_remote_access/testing_rsa.pub /
+COPY --from=docker --chmod=755 /usr/local/bin/docker /usr/local/bin/docker
+
+COPY dockerfiles/satlab_remote_access/requirements.txt ./
+
+RUN mkdir -p /home/moblab
+RUN mkdir -p /home/moblab/.ssh
+COPY --from=autotest --chmod=600 /chromite/ssh_keys/* /home/moblab/.ssh/
+
+COPY --from=common /install/* ./
+
+RUN apk add --no-cache --upgrade \
+    alpine-sdk \
+    cmake \
+    gcc \
+    libffi-dev \
+    libstdc++ \
+    linux-headers \
+    openssh-client \
+    openssl-dev \
+    py3-setuptools \
+    py-pip \
+    python3 \
+    python3-dev \
+    zlib-dev && \
+    pip3 install --upgrade pip && pip3 install --no-cache-dir -r requirements.txt && \
+    pip install *.whl && \
+    rm -rf /install && \
+    apk del \
+    alpine-sdk \
+    cmake \
+    gcc \
+    libffi-dev \
+    linux-headers \
+    openssl-dev \
+    py3-setuptools \
+    python3-dev \
+    zlib-dev
+
+RUN echo "chown \"\$USER_NAME\":\"\$USER_NAME\" /home/\"\$USER_NAME\"" >> /etc/cont-init.d/10-adduser
+RUN echo "export HOME=/home/\"\$USER_NAME\"" >> /etc/cont-init.d/10-adduser
+RUN echo "addgroup --gid 412 docker" >> /etc/cont-init.d/10-adduser
+RUN echo "usermod -aG docker moblab" >> /etc/cont-init.d/10-adduser
+
+COPY --chmod=744 dockerfiles/satlab_remote_access/fix_ping.sh /
+WORKDIR /etc/services.d/fix_ping
+COPY dockerfiles/satlab_remote_access/fix_ping.run ./run
+
+COPY --chmod=755 tools/reboot \
+     tools/factory_reset /usr/local/bin/
 
 ###########################################################
 
@@ -34,13 +97,12 @@ FROM ${COMMON_CORE_URI}/remote_access:${COMMON_CORE_LABEL}
 
 # Set default OAuth Scopes
 ENV OAUTH_SCOPES "https://www.googleapis.com/auth/userinfo.email"
-COPY dockerfiles/satlab_remote_access/tools/export_oauth.sh /etc/profile.d
-RUN chmod 777 /etc/profile.d/export_oauth.sh
+COPY --chmod=777 dockerfiles/satlab_remote_access/tools/export_oauth.sh /etc/profile.d
 
 WORKDIR /
 RUN /sbin/apk add git
 
-COPY dockerfiles/satlab_remote_access/tools/host_command.py \
+COPY --chmod=755 dockerfiles/satlab_remote_access/tools/host_command.py \
     dockerfiles/satlab_remote_access/tools/force-update-cipd \
     dockerfiles/satlab_remote_access/tools/get_dns_hosts \
     dockerfiles/satlab_remote_access/tools/get_host_identifier \
@@ -69,16 +131,13 @@ RUN /bin/mkdir -p /cipd && /bin/chmod a+x /cipd && /bin/chmod a+r /cipd
 RUN # increment this number to bypass the cache: 4
 RUN /usr/bin/git -C /root clone --depth=1 https://chromium.googlesource.com/chromium/tools/depot_tools.git
 COPY dockerfiles/satlab_remote_access/cipd/spec /cipd/spec
-RUN /root/depot_tools/cipd ensure -ensure-file /cipd/spec -root /cipd -ensure-file-output /cipd/cipd_package_info.txt
-# The only non-hidden files in /root/download are executables managed by CIPD. Make them executable by users.
-RUN /bin/chmod ugo+rx /cipd/shivas /cipd/satlab
+RUN /root/depot_tools/cipd ensure -ensure-file /cipd/spec -root /cipd -ensure-file-output /cipd/cipd_package_info.txt && \
+    # The only non-hidden files in /root/download are executables managed by CIPD. Make them executable by users.
+    /bin/chmod ugo+rx /cipd/shivas /cipd/satlab
 # Add links to executables stored in /cipd.
 RUN ln -s -t /usr/local/bin /cipd/shivas /cipd/satlab
 # Add symlink to cipd executable itself.
 RUN ln -s -t /usr/local/bin /cipd/cipd
-
-# Make everything in /usr/local/bin executable for good measure.
-RUN /bin/chmod ugo+rx /usr/local/bin/*
 
 WORKDIR /var/log
 
@@ -86,19 +145,16 @@ WORKDIR /var/log
 RUN  sed -i s/AllowTcpForwarding\ no/AllowTcpForwarding\ yes/ /etc/ssh/sshd_config
 
 # Change welcoming message.
-COPY dockerfiles/satlab_remote_access/tools/motd /etc/
-RUN chmod 666 /etc/motd
+COPY --chmod=666 dockerfiles/satlab_remote_access/tools/motd /etc/
 
 # Add jq to get service account key id from json file.
 RUN apk add --no-cache --upgrade jq
 
 # Add routine to check export environment variable from .env file
-COPY tools/export_env_file.sh /etc/profile.d/
-RUN chmod 777 /etc/profile.d/export_env_file.sh
+COPY --chmod=777 tools/export_env_file.sh /etc/profile.d/
 
 # Run storage monitoring check upon ssh
-COPY dockerfiles/satlab_remote_access/tools/wcache_check.sh /etc/profile.d/
-RUN chmod 777 /etc/profile.d/wcache_check.sh
+COPY --chmod=777 dockerfiles/satlab_remote_access/tools/wcache_check.sh /etc/profile.d/
 
 # Add routine to export dockerd TLS variables
 COPY --chmod=777 dockerfiles/satlab_remote_access/tools/tls.sh /etc/profile.d/

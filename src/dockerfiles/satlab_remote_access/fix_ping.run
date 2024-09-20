@@ -1,0 +1,3 @@
+#!/usr/bin/with-contenv bash
+
+exec /fix_ping.sh >> /var/log/moblab/remote_access.log 2>&1
