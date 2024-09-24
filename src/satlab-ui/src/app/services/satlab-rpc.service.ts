@@ -83,6 +83,7 @@ import {
   IQualificationsFields,
 } from '../models/run_suite_fields';
 import {Moment} from 'moment';
+import {isCustomBuild} from 'app/utils/validators';
 
 @Injectable({
   providedIn: 'root',
@@ -428,7 +429,7 @@ export class SatlabRpcService {
   }) {
     return this.runTest({
       ...params,
-      cft: true,
+      cft: !isCustomBuild(params.build),
       trv2: false,
       uploadToCpcon: false,
       tests: ['stub_Pass'],
