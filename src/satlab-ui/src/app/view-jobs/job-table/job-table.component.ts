@@ -19,9 +19,11 @@ import {startWithTap} from '../../utils/rxjs_operator';
 import {SelectionModel} from '@angular/cdk/collections';
 import {MatCheckboxChange} from '@angular/material/checkbox';
 
+// The columns can not be selected (e.g. diplaying progress, abort job selection)
+const UNSELECTED_COLUMNS: JobHeader[] = ['empty', 'select'];
+
 const DEFAULT_COLUMNS: JobHeader[] = [
-  'empty',
-  'select',
+  ...UNSELECTED_COLUMNS,
   'name',
   'createdAt',
   'startedAt',
@@ -93,6 +95,8 @@ export class JobTableComponent implements OnChanges, OnInit, OnDestroy {
   protected isIndeterminate = false;
   /* which status can be aborted */
   protected selectableStatuses = SELECTABLE_STATUSES;
+  /* A flag that indicates there is only one column left */
+  protected isOneColumnLeft = false;
 
   #disposer?: Subscription;
 
@@ -228,6 +232,11 @@ export class JobTableComponent implements OnChanges, OnInit, OnDestroy {
 
       this.#toColumns();
     }
+
+    this.isOneColumnLeft =
+      toIterator(this.displayedColumns)
+        .filter(e => !UNSELECTED_COLUMNS.includes(e))
+        .collect().length === 1;
   }
 
   /**
