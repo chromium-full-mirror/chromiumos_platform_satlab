@@ -134,7 +134,7 @@ export class JobTableComponent implements OnChanges, OnInit, OnDestroy {
   protected nextPage() {
     console.log('call next page');
     console.log(`has more: ${this.hasMore}`);
-    if (!this.hasMore) {
+    if (!this.hasMore || this.loading) {
       return;
     }
 
@@ -177,6 +177,7 @@ export class JobTableComponent implements OnChanges, OnInit, OnDestroy {
    * to decide we want to load more data.
    */
   protected onTableScroll(e: Event) {
+    e.preventDefault();
     const containerHeight = (e.target as HTMLElement).offsetHeight;
     const tableScrollHeight = (e.target as HTMLElement).scrollHeight;
     const scrollOffset = (e.target as HTMLElement).scrollTop;
