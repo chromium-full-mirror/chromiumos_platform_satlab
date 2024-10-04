@@ -335,7 +335,13 @@ export class SatlabRpcService {
 
     const resp = await this.client.listDuts(req, {});
 
-    return toIterator(resp.getDutsList()).map(__toIDut).collect();
+    return (
+      toIterator(resp.getDutsList())
+        // filter DUTs haven't enrolled and can't ping
+        .filter(e => !(e.getHostname() === '' && !e.getIsPingable()))
+        .map(__toIDut)
+        .collect()
+    );
   }
 
   /**
