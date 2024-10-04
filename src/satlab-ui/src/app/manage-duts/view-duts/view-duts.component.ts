@@ -22,7 +22,7 @@ export class ViewDutsComponent implements OnChanges {
   @Input() DUTs: IDut[] = [];
   @Input() loading = false;
   @Input() hostnamePrefix = '';
-  @Output() select = new EventEmitter<IDut[]>();
+  @Output() selectDUTs = new EventEmitter<IDut[]>();
 
   protected allSelected = false;
   protected selection = new SelectionModel<IDut>(true, []);
@@ -156,7 +156,7 @@ export class ViewDutsComponent implements OnChanges {
           ...this.selection.selected.slice(idx + 1),
         ]
       );
-      this.select.emit(this.selection.selected);
+      this.__emitSelectionChanged();
     }
   }
 
@@ -205,7 +205,7 @@ export class ViewDutsComponent implements OnChanges {
    * @private
    */
   private __emitSelectionChanged() {
-    this.select.emit(this.selection.selected);
+    this.selectDUTs.emit(this.selection.selected);
   }
 }
 
