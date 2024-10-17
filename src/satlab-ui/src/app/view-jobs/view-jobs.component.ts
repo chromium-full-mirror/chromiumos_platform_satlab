@@ -189,8 +189,10 @@ export class ViewJobsComponent implements core.AfterViewInit {
    * the value can't parse to `Date`.
    */
   protected onFromChanged(newValue: moment.Moment | null) {
+    this.disabled = false;
     if (newValue === null) {
-      newValue = this.dateRangeStart.clone();
+      this.disabled = true;
+      return;
     }
 
     this.query = {
@@ -214,8 +216,10 @@ export class ViewJobsComponent implements core.AfterViewInit {
    *
    */
   protected onToChanged(newValue: moment.Moment | null) {
+    this.disabled = false;
     if (newValue === null) {
-      newValue = this.dateRangeEnd.clone();
+      this.disabled = true;
+      return;
     }
 
     this.query = {
