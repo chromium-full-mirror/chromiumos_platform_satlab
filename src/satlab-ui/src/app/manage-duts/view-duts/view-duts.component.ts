@@ -217,17 +217,19 @@ export class ViewDutsComponent implements OnChanges {
    * @param servoSerial
    */
   protected onOpenCCDClicked(servoSerial: string) {
-    this.disabledServo = [...this.disabledServo, servoSerial]
+    this.disabledServo = [...this.disabledServo, servoSerial];
     const dialogRef = this.dialog.open(OpenCcdComponent, {
       data: {servoSerial: servoSerial},
       disableClose: true,
     });
-    dialogRef.afterClosed()
+    dialogRef
+      .afterClosed()
       .pipe(delay(5000))
       .subscribe(() => {
-        this.disabledServo = this.disabledServo
-          .filter(ele => ele !== servoSerial)
-      })
+        this.disabledServo = this.disabledServo.filter(
+          ele => ele !== servoSerial
+        );
+      });
   }
 }
 

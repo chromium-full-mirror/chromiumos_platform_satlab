@@ -18,7 +18,7 @@ service SatlabRpcService {
   rpc GetVersionInfo (GetVersionInfoRequest) returns (GetVersionInfoResponse);
   rpc GetNetworkInfo (GetNetworkInfoRequest) returns (GetNetworkInfoResponse);
   rpc GetPeripheralInformation (GetPeripheralInformationRequest) returns (GetPeripheralInformationResponse);
-  rpc UpdateDutsFirmware (UpdateDutsFirmwareRequest)  returns (UpdateDutsFirmwareResponse);
+  rpc UpdateDutsFirmware (UpdateDutsFirmwareRequest) returns (UpdateDutsFirmwareResponse);
 
   // Run Suite
   rpc ListBuildTargets (ListBuildTargetsRequest) returns (ListBuildTargetsResponse);
@@ -39,6 +39,7 @@ service SatlabRpcService {
   rpc AddDuts (AddDutsRequest) returns (AddDutsResponse);
   rpc RepairDuts(RepairDutsRequest) returns (RepairDutsResponse);
   rpc OpenCCD(OpenCCDRequest) returns (stream OpenCCDReply);
+  rpc SendMessageToCCDSession(SendMessageToCCDSessionRequest) returns (SendMessageToCCDSessionResponse);
 
   // get DUTs information
   rpc GetDutDetail (GetDutDetailRequest) returns (GetDutDetailResponse);
@@ -787,12 +788,22 @@ message AbortJobsRequest {
 // NEXT_TAG = 1
 message AbortJobsResponse {}
 
-// NEXT_TAG = 2
+// NEXT_TAG = 3
 message OpenCCDRequest {
   string servo_serial = 1;
+  bool rma_auth = 2;
 }
 
 // NEXT_TAG = 2
 message OpenCCDReply {
   string message = 1;
 }
+
+// NEXT_TAG = 3
+message SendMessageToCCDSessionRequest {
+  string servo_serial = 1;
+  string message = 2;
+}
+
+// NEXT_TAG = 1
+message SendMessageToCCDSessionResponse {}

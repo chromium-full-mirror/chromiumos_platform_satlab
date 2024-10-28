@@ -1,32 +1,46 @@
 @import '../../../constants.scss';
 
 .wrapper {
-    position: relative;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 480px;
+  width: 480px;
+  box-shadow: 10px 5px 5px $color-grey;
+  padding: 1rem;
+
+  .selection-group {
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 480px;
-    width: 480px;
-    box-shadow: 10px 5px 5px $color-grey;
-    padding: 1rem;
+    flex-direction: row;
+    column-gap: 1rem;
+  }
 
-    .title {
-        font-size: $font-size-extra;
-        font-weight: $font-weight-extra;
-    }
+  .content-group {
+    display: flex;
+    flex-direction: column-reverse;
+    height: 360px;
+    width: 450px;
+    overflow-y: auto;
+    scrollbar-color: $color-deep-grey transparent;
+  }
 
-    .content-group {
-        display: flex;
-        flex-direction: column-reverse;
-        height: 360px;
-        width: 450px;
-        overflow-y: auto;
-        scrollbar-color: $color-deep-grey transparent;
-    }
+  .bottom-group {
+    display: flex;
+    justify-content: end;
+    column-gap: 6rem;
 
-    .btn-group {
-        display: flex;
-        flex-direction: row;
-        justify-content: flex-end;
+    .input-group {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      column-gap: 1rem;
+
+      input {
+        border-width: 2px;
+        border-radius: 5px;
+        height: 36px;
+      }
     }
+  }
 }

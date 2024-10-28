@@ -1,12 +1,38 @@
 <div class="wrapper">
-    <app-loading [loading]="loading"></app-loading>
-    <div class="content-group">
-        <div innerHTML="{{hintMessage}}"></div>
+  <app-loading [loading]="loading"></app-loading>
+  <div class="selection-group">
+    <mat-radio-group [(ngModel)]="rmaAuth">
+      <mat-radio-button
+        [disabled]="loading.show"
+        [checked]="true"
+        [value]="false"
+        >Regular</mat-radio-button
+      >
+      <mat-radio-button [disabled]="loading.show" [value]="true"
+        >RMA-Auth</mat-radio-button
+      >
+    </mat-radio-group>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="onStartClicked()"
+      [disabled]="loading.show"
+    >
+      Start
+    </button>
+  </div>
+  <div class="content-group">
+    <div innerHTML="{{ hintMessage }}"></div>
+  </div>
+  <div class="bottom-group">
+    <div *ngIf="rmaAuth && loading.show" class="input-group">
+      <input matInput placeholder="Enter RMA code" [(ngModel)]="rmaCode" />
+      <button mat-raised-button color="primary" (click)="onSubmitClicked()">
+        Submit
+      </button>
     </div>
-    <div class="btn-group">
-        <button
-            class="btn-group"
-            mat-raised-button
-            (click)="onCancelClicked()"
-        >Close</button>
+    <button class="btn-group" mat-raised-button (click)="onCloseClicked()">
+      Close
+    </button>
+  </div>
 </div>

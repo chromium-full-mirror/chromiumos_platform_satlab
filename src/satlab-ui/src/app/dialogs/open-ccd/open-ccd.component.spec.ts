@@ -1,6 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { OpenCcdComponent } from './open-ccd.component';
+import {OpenCcdComponent} from './open-ccd.component';
 
 describe('OpenCcdComponent', () => {
   let component: OpenCcdComponent;
@@ -8,7 +8,7 @@ describe('OpenCcdComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [OpenCcdComponent]
+      declarations: [OpenCcdComponent],
     });
     fixture = TestBed.createComponent(OpenCcdComponent);
     component = fixture.componentInstance;

@@ -28,6 +28,7 @@ import {RouterModule} from '@angular/router';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {MatDatepickerModule} from '@angular/material/datepicker';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
+import {MatRadioModule} from '@angular/material/radio';
 
 import {AppComponent} from './app.component';
 import {AppRoutingModule} from './app-routing.module';
@@ -136,6 +137,7 @@ import {OpenCcdComponent} from './dialogs/open-ccd/open-ccd.component';
     MatDatepickerModule,
     MatMomentDateModule,
     MatButtonToggleModule,
+    MatRadioModule,
   ],
   exports: [
     AppRoutingModule,

@@ -44,6 +44,7 @@ import {
   RunQualificationRequest,
   AbortJobsRequest,
   OpenCCDRequest,
+  SendMessageToCCDSessionRequest,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
 import {
@@ -699,21 +700,30 @@ export class SatlabRpcService {
 
   public openCCD(p: {
     servoSerial: string;
+    rmaAuth: boolean;
     onData: (data: string) => void;
     onError: (e: unknown) => void;
     finalize: () => void;
   }) {
-    if (p.servoSerial === '') {
-      return;
-    }
+    const req = new OpenCCDRequest()
+      .setServoSerial(p.servoSerial)
+      .setRmaAuth(p.rmaAuth);
 
-    const req = new OpenCCDRequest().setServoSerial(p.servoSerial);
-
-    this.client
+    const stream = this.client
       .openCCD(req, {})
       .on('error', e => p.onError(e))
       .on('data', resp => p.onData(resp.getMessage()))
       .on('end', () => p.finalize());
+
+    return stream;
+  }
+
+  public sendMessageToCCDSession(p: {servoSerial: string; message: string}) {
+    const req = new SendMessageToCCDSessionRequest()
+      .setServoSerial(p.servoSerial)
+      .setMessage(p.message);
+
+    this.client.sendMessageToCCDSession(req, {});
   }
 }
 
