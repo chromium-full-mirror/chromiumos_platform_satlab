@@ -15,7 +15,7 @@
         </mat-form-field>
       </div>
 
-      <div class="w-56 min-w-56 pt-4">
+      <div class="w-56 min-w-56">
         <app-autocomplete-selector
           #poolSelector
           id="poolSelector"
@@ -78,12 +78,9 @@
         <app-custom-datepicker
           #startDatepicker
           (dateChange)="onFromChanged($event)"
-          [filterDateLt]="query.createdDateLt"
-          [filterDateGt]="dateRangeStart"
-          [value]="dateRangeStart"
-          [maxDays]="maxDays"
+          [value]="query.createdDateGt"
+          [invalid]="invalidDate"
           label="Choose a start date"
-          errorMessage="Valid date selected cannot exceed today's date. Start date must be less than end date and within 30 days"
         ></app-custom-datepicker>
       </div>
 
@@ -91,12 +88,9 @@
         <app-custom-datepicker
           #endDatepicker
           (dateChange)="onToChanged($event)"
-          [filterDateGt]="query.createdDateGt"
-          [filterDateLt]="dateRangeEnd"
-          [value]="dateRangeEnd"
-          [maxDays]="maxDays"
+          [value]="query.createdDateLt"
+          [invalid]="invalidDate"
           label="Choose an end date"
-          errorMessage="Valid date selected cannot exceed today's date. End date must be later than start date and within 30 days"
         ></app-custom-datepicker>
       </div>
     </div>
@@ -106,13 +100,20 @@
         mat-raised-button
         color="primary"
         (click)="onFilterClicked()"
-        [disabled]="disabled || loading"
+        [disabled]="invalidDate || loading"
       >
         Filter
       </button>
       <button mat-raised-button (click)="onClearClicked()" [disabled]="loading">
         Clear
       </button>
+    </div>
+
+    <div *ngIf="invalidDate">
+      <p class="text-red-500">
+        Valid date selected cannot exceed today's date. End date must be later
+        than start date and within 30 days
+      </p>
     </div>
   </div>
 

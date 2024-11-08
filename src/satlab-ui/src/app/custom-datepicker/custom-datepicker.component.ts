@@ -2,9 +2,11 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnChanges,
   OnDestroy,
   OnInit,
   Output,
+  SimpleChanges,
 } from '@angular/core';
 import {MomentDateAdapter} from '@angular/material-moment-adapter';
 import {
@@ -28,13 +30,11 @@ const moment = _rollupMoment || _moment;
 
 const MY_FORMATS = {
   parse: {
-    dateInput: ['YYYY/MM/DD'],
+    dateInput: 'YYYY/MM/DD',
   },
   display: {
     dateInput: 'YYYY/MM/DD',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'LL',
-    monthYearA11yLabel: 'MMMM YYYY',
+    monthYearLabel: 'YYYY MM',
   },
 };
 
@@ -51,17 +51,15 @@ const MY_FORMATS = {
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
   ],
 })
-export class CustomDatepickerComponent implements OnInit, OnDestroy {
+export class CustomDatepickerComponent implements OnInit, OnDestroy, OnChanges {
   @Input() value?: moment.Moment;
-  @Input() filterDateLt?: moment.Moment;
-  @Input() filterDateGt?: moment.Moment;
-  @Input() maxDays = 30;
-  @Input() errorMessage = '';
+  @Input() invalid = false;
   @Input() label = 'Choose a date';
 
   @Output() dateChange = new EventEmitter<moment.Moment | null>();
 
   protected c = new FormControl();
+  protected filter = this.#filter.bind(this);
   #disposer?: Subscription;
 
   constructor() {}
@@ -74,27 +72,8 @@ export class CustomDatepickerComponent implements OnInit, OnDestroy {
     this.#disposer = this.c.valueChanges
       .pipe(
         map(e => {
-          if (e && '_i' in e) {
-            let rawInput = '';
-            if (typeof e._i === 'string') {
-              rawInput = e._i;
-            } else if (
-              typeof e._i === 'object' &&
-              'year' in e._i &&
-              'month' in e._i &&
-              typeof e._i.month === 'number' &&
-              'date' in e._i
-            ) {
-              rawInput = `${e._i.year}/${e._i.month + 1}/${e._i.date}`;
-            }
-
-            const isValid =
-              moment(e, 'YYYY/MM/DD', true).isValid() &&
-              /\d{4}\/\d{1,2}\/\d{1,2}/gm.test(rawInput);
-            return isValid ? e : null;
-          } else {
-            return null;
-          }
+          const isValid = moment(e, 'YYYY/MM/DD', true).isValid();
+          return isValid ? e : null;
         }),
         distinctUntilChanged()
       )
@@ -109,41 +88,32 @@ export class CustomDatepickerComponent implements OnInit, OnDestroy {
     this.#disposer?.unsubscribe();
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    const invalid =
+      'invalid' in changes ? changes.invalid.currentValue : this.invalid;
+    if (invalid) {
+      this.c.setErrors({incorrect: true}, {emitEvent: true});
+    } else {
+      this.c.setErrors(null);
+    }
+  }
+
   #filter(d?: moment.Moment) {
     if (!d) {
       return false;
     }
 
     const now = toEndDate(moment());
-    let isValid = true;
-
-    if (this.filterDateLt) {
-      const begin = toStartDate(
-        this.filterDateLt.clone().subtract(this.maxDays, 'days')
-      );
-      isValid = isValid && d <= this.filterDateLt && d >= begin;
-    }
-
-    if (this.filterDateGt) {
-      const end = toEndDate(
-        this.filterDateGt.clone().add(this.maxDays, 'days')
-      );
-      isValid = isValid && d >= this.filterDateGt && d <= end;
-    }
-
-    return d <= now && isValid;
+    return d <= now;
   }
 
-  protected filter = this.#filter.bind(this);
-
   /**
-   * clear the the user input.
+   * reset the the user input.
    */
-  public clear() {
-    if (this.value) {
-      this.c.setValue(this.value);
-    } else {
-      this.c.reset();
+  public reset(value?: moment.Moment) {
+    this.c.reset();
+    if (value) {
+      this.c.setValue(value);
     }
   }
 }

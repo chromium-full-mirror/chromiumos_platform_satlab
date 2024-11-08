@@ -1,7 +1,7 @@
 import * as core from '@angular/core';
 import {IJob, IJobQuery, JobType, RequestStateQuery} from '../models/job';
 import {SatlabRpcService} from '../services/satlab-rpc.service';
-import {BehaviorSubject, from} from 'rxjs';
+import {BehaviorSubject, Subject, from} from 'rxjs';
 import {IItem} from '../models/selectable_item';
 import {toIterator} from 'app/utils/iterator';
 import {withinDays, toEndDate, toStartDate} from 'app/utils/date_helper';
@@ -52,6 +52,7 @@ export class ViewJobsComponent implements core.AfterViewInit {
     this.dateRangeStart,
     this.dateRangeEnd
   );
+  private validateDate$ = new Subject<void>();
   protected jobQuery?: IJobQuery;
   protected canFilterName = false;
   #satlabID = new BehaviorSubject('');
@@ -59,7 +60,7 @@ export class ViewJobsComponent implements core.AfterViewInit {
   protected statusOptions: IItem[] = [];
   protected jobType: JobType = 'SUITE';
   protected statusQuery = 'ALL';
-  protected disabled = false;
+  protected invalidDate = false;
   protected loading = false;
   protected poolOptions = [];
   protected selectedJobs: IJob[] = [];
@@ -108,6 +109,21 @@ export class ViewJobsComponent implements core.AfterViewInit {
           }
           this.cdf.detectChanges();
         }
+      },
+    });
+
+    this.validateDate$.subscribe({
+      next: () => {
+        this.invalidDate = false;
+        const lt = this.query.createdDateLt;
+        const gt = this.query.createdDateGt;
+
+        if (lt && lt > this.dateRangeEnd) {
+          this.invalidDate = true;
+          return;
+        }
+
+        this.invalidDate = !(gt && lt && withinDays(gt, lt, this.maxDays + 1));
       },
     });
   }
@@ -189,24 +205,12 @@ export class ViewJobsComponent implements core.AfterViewInit {
    * the value can't parse to `Date`.
    */
   protected onFromChanged(newValue: moment.Moment | null) {
-    this.disabled = false;
-    if (newValue === null) {
-      this.disabled = true;
-      return;
-    }
-
     this.query = {
       ...this.query,
-      createdDateGt: toStartDate(newValue.clone()),
+      createdDateGt: newValue !== null ? toStartDate(newValue.clone()) : null,
     };
 
-    if (this.query.createdDateLt) {
-      this.disabled = !withinDays(
-        this.query.createdDateGt,
-        this.query.createdDateLt,
-        this.maxDays + 1
-      );
-    }
+    this.validateDate$.next();
   }
 
   /**
@@ -216,24 +220,12 @@ export class ViewJobsComponent implements core.AfterViewInit {
    *
    */
   protected onToChanged(newValue: moment.Moment | null) {
-    this.disabled = false;
-    if (newValue === null) {
-      this.disabled = true;
-      return;
-    }
-
     this.query = {
       ...this.query,
-      createdDateLt: toEndDate(newValue.clone()),
+      createdDateLt: newValue !== null ? toEndDate(newValue.clone()) : null,
     };
 
-    if (this.query.createdDateGt) {
-      this.disabled = !withinDays(
-        this.query.createdDateGt,
-        this.query.createdDateLt,
-        this.maxDays + 1
-      );
-    }
+    this.validateDate$.next();
   }
 
   /**
@@ -313,8 +305,8 @@ export class ViewJobsComponent implements core.AfterViewInit {
    * it reset the query parameter and fetch the jobs.
    */
   protected onClearClicked() {
-    this.startDatepicker?.clear();
-    this.endDatepicker?.clear();
+    this.startDatepicker?.reset(this.dateRangeStart);
+    this.endDatepicker?.reset(this.dateRangeEnd);
     this.nameInput = '';
     this.poolSelector?.clear();
     this.jobType = 'SUITE';
