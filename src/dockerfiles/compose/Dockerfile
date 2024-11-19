@@ -48,9 +48,6 @@ ARG BASE_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/base-containers
 ARG REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab
 ARG SFP_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners
 ARG LABEL=autopush
-# Append --include-stopped --revive-stopped to let watchtower monitor
-# stopped containers (eg: conf_creator).
-ARG WATCHTOWER_CMD="--include-stopped --revive-stopped --interval 3600 --monitor-only"
 ARG COMMON_CORE_LABEL=autopush
 ARG COMMON_CORE_URI=gcr.io/chromeos-partner-moblab`
 ARG BUILD_VERSION
@@ -58,7 +55,6 @@ ENV LABEL="${LABEL}"
 ENV COMMON_CORE_LABEL="${COMMON_CORE_LABEL}"
 ENV COMMON_CORE_URI="${COMMON_CORE_URI}"
 ENV REGISTRY_URI="${REGISTRY_URI}"
-ENV WATCHTOWER_CMD="${WATCHTOWER_CMD}"
 ENV SFP_REGISTRY_URI="${SFP_REGISTRY_URI}"
 ENV BUILD_VERSION="${BUILD_VERSION}"
 

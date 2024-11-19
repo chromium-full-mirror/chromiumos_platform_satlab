@@ -26,6 +26,5 @@ export SFP_REGISTRY_URI := us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-
 # pushed to prod and update this flag accordingly.
 # By default we use "stable" tag.
 export BUILD_VERSION := stable
-WATCHTOWER_CMD := --enable-lifecycle-hooks --include-stopped --revive-stopped --interval 60 --include-restarting
 SSH_PORT := 22
 include common.mk

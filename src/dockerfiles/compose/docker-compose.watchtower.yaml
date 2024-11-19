@@ -11,12 +11,15 @@ services:
     restart: unless-stopped
     environment:
       - DOCKER_CONFIG=/config
+      - WATCHTOWER_INCLUDE_RESTARTING=true
+      - WATCHTOWER_INCLUDE_STOPPED=true
+      - WATCHTOWER_LIFECYCLE_HOOKS=true
+      - WATCHTOWER_MONITOR_ONLY=true
+      - WATCHTOWER_POLL_INTERVAL=60
+      - WATCHTOWER_REVIVE_STOPPED=true
     volumes:
       - docker_config:/config
       - /var/run/docker.sock:/var/run/docker.sock
-
-    command: ${WATCHTOWER_CMD}
-
     ulimits:
       nofile:
         soft: 10000
