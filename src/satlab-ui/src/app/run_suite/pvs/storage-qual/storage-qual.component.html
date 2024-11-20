@@ -7,15 +7,45 @@
     ></app-build-select-form>
 
     <div class="px-6">
-      <app-basic-selector
-        #suiteSelector
-        id="suiteSelector"
-        title="Select a suite"
-        placeholder="Select a suite"
-        [options]="suiteOptions"
-        (select)="onSuiteChanged($event)"
+      <mat-button-toggle-group
+        name="suite_or_test"
+        aria-label="suite or test"
+        (change)="onSuiteOrTestChanged($event)"
+        [value]="'suite'"
       >
-      </app-basic-selector>
+        <mat-button-toggle value="suite">Suite</mat-button-toggle>
+        <mat-button-toggle value="individual_test"
+          >Individual test</mat-button-toggle
+        >
+      </mat-button-toggle-group>
+
+      <div *ngIf="toggleButtonValue === 'suite'" class="py-6">
+        <app-basic-selector
+          #suiteSelector
+          id="suiteSelector"
+          title="Select a suite"
+          placeholder="Select a suite"
+          [options]="suiteOptions"
+          (select)="onSuiteChanged($event)"
+        >
+        </app-basic-selector>
+      </div>
+
+      <div *ngIf="toggleButtonValue === 'individual_test'" class="py-6">
+        <mat-form-field class="full-width zero-padding">
+          <mat-label>Test Name</mat-label>
+          <input
+            matInput
+            name="individualTest"
+            required
+            (change)="onTestChanged($event.target.value)"
+          />
+        </mat-form-field>
+        <div class="hint">
+          Fill in the individual test name, e.g.
+          tast.storage.Performance.0000_nvme_seq_write
+        </div>
+      </div>
 
       <mat-form-field class="full-width zero-padding">
         <mat-label>AVL Process Bug ID</mat-label>

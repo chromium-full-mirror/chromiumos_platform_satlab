@@ -18,5 +18,19 @@
       width: 12rem;
       height: 2.5rem;
     }
+
+    .hint {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+  }
+
+  mat-button-toggle {
+    width: 183px;
+
+    &.mat-button-toggle-checked {
+      color: white;
+      background-color: #1e88e5;
+    }
   }
 }

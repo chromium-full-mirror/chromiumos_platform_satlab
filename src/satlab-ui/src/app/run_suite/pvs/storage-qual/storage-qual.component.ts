@@ -5,13 +5,18 @@ import {
   IBuildSelectFields,
   IPVSFields,
 } from '../../../models/run_suite_fields';
-import {IItem} from '../../../models/selectable_item';
+import {SelectableItem} from '../../../models/selectable_item';
 import {checkSelectFields} from '../../../utils/validators';
 import {finalize, from} from 'rxjs';
 import {SatlabRpcService} from '../../../services/satlab-rpc.service';
 import {startWithTap} from '../../../utils/rxjs_operator';
 import {BuildSelectFormComponent} from '../../common/build-select-form/build-select-form.component';
 import {NotificationService} from '../../../services/notification.service';
+import {MatButtonToggleChange} from '@angular/material/button-toggle';
+
+const INDIVIDUAL_TEST = 'individual_test';
+const SUITE = 'suite';
+const TEST_PREFIX = 'tast.storage.';
 
 @Component({
   selector: 'app-storage-qual',
@@ -22,29 +27,27 @@ export class StorageQualComponent {
   @ViewChild(BuildSelectFormComponent) form!: BuildSelectFormComponent;
 
   protected disabled = true;
-
   protected fields: IBuildSelectFields & IPVSFields = {
     ...defaultBuildSelectFields,
     ...defaultStorageQualFields,
   };
 
+  protected suiteOptions: SelectableItem[] = [];
+  // The value that user selected from toggle button (suite or test)
+  protected toggleButtonValue = SUITE;
+
   private suiteList: string[] = [
     'storage-qual-avl-v3',
     'storage-qual-removable',
   ];
-  protected suiteOptions: IItem[] = [];
+  private selectedSuite = '';
+  private selectedTest = '';
 
   constructor(
     private service: SatlabRpcService,
     private notification: NotificationService
   ) {
-    this.suiteOptions = this.suiteList.map(e => {
-      return {
-        text: e,
-        value: e,
-        label: '',
-      };
-    });
+    this.suiteOptions = this.suiteList.map(e => toSelectableItem(e));
   }
 
   /**
@@ -66,10 +69,30 @@ export class StorageQualComponent {
    * @protected
    */
   protected onSuiteChanged(newValue: string) {
-    this.fields = {
-      ...this.fields,
-      suite: newValue.trim(),
-    };
+    this.selectedSuite = newValue;
+    this.disabled = !this.#validate();
+  }
+
+  /**
+   * onTestChanged the handler handles the individual option has been changed.
+   * @param newValue the new value of individual test
+   * @protected
+   */
+  protected onTestChanged(newValue: string) {
+    this.selectedTest = newValue;
+    this.disabled = !this.#validate();
+  }
+
+  /* onSuiteOrTestChanged handles the toggle button has been changed.
+   */
+  protected onSuiteOrTestChanged(c: MatButtonToggleChange) {
+    this.selectedSuite = '';
+    this.selectedTest = '';
+    if (c.value === SUITE || c.value === INDIVIDUAL_TEST) {
+      this.toggleButtonValue = c.value;
+    } else {
+      console.error('unsupport toogle button value (suite or individual_test)');
+    }
     this.disabled = !this.#validate();
   }
 
@@ -96,7 +119,16 @@ export class StorageQualComponent {
       return;
     }
 
-    from(this.service.runStorageQualification(this.fields))
+    from(
+      this.service.runStorageQualification({
+        ...this.fields,
+        suite: this.toggleButtonValue === SUITE ? this.selectedSuite : '',
+        test:
+          this.toggleButtonValue === INDIVIDUAL_TEST
+            ? this.__mayPrependPrefix(this.selectedTest)
+            : '',
+      })
+    )
       .pipe(
         startWithTap(() => {
           this.disabled = true;
@@ -127,6 +159,38 @@ export class StorageQualComponent {
   }
 
   #validate() {
-    return checkSelectFields(this.fields);
+    const isFieldsValid = checkSelectFields(this.fields);
+    const isTestValid =
+      this.toggleButtonValue === SUITE
+        ? this.selectedSuite !== ''
+        : this.selectedTest !== '';
+    return isFieldsValid && isTestValid;
   }
+
+  /*
+   * __mayPrependPrefix if the test prefix isn't there then add the prefix. Otherwise, keep the string.
+   * Also, it will trim the string.
+   */
+  private __mayPrependPrefix(test: string) {
+    const trimedTestName = test.trim();
+    if (trimedTestName.startsWith(TEST_PREFIX)) {
+      return trimedTestName;
+    } else {
+      return `${TEST_PREFIX}${trimedTestName}`;
+    }
+  }
+}
+
+function toSelectableItem(
+  text: string,
+  opts?: {
+    toValue?: () => string;
+    toLabel?: () => '' | 'Recommended' | 'Failed' | 'Running' | 'Aborted';
+  }
+): SelectableItem {
+  return {
+    text: text,
+    value: opts?.toValue?.() ?? text,
+    label: opts?.toLabel?.() ?? '',
+  };
 }

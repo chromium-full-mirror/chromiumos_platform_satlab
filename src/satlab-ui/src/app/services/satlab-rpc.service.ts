@@ -601,7 +601,7 @@ export class SatlabRpcService {
    * @param params the basic parameters with bug_id
    */
   public async runStorageQualification(
-    params: IBuildSelectFields & IPVSFields
+    params: IBuildSelectFields & IPVSFields & {test: string; suite: string}
   ) {
     const req = new RunStorageQualRequest()
       .setBoard(params.board)
@@ -611,6 +611,7 @@ export class SatlabRpcService {
       .setBugId(params.bugID)
       .setPool(params.pool)
       .setSuite(params.suite)
+      .setTest(params.test)
       .setDimsList(this.toDims(params.dims));
 
     const res = await this.client.runStorageQual(req, {});
@@ -702,16 +703,16 @@ export class SatlabRpcService {
     finalize: () => void;
   }) {
     if (p.servoSerial === '') {
-      return
+      return;
     }
 
-    const req = new OpenCCDRequest()
-      .setServoSerial(p.servoSerial);
+    const req = new OpenCCDRequest().setServoSerial(p.servoSerial);
 
-    this.client.openCCD(req, {})
+    this.client
+      .openCCD(req, {})
       .on('error', e => p.onError(e))
       .on('data', resp => p.onData(resp.getMessage()))
-      .on('end', () => p.finalize())
+      .on('end', () => p.finalize());
   }
 }
 
@@ -732,10 +733,10 @@ function toRepairDUTsResponse(r: RepairDutsResponse.RepairResult[]) {
 function toTags(tags?: JobTags): Tag[] {
   return tags
     ? toIterator(Object.keys(tags))
-      .map(k => {
-        return new Tag().setKey(k).setValue(tags[k]);
-      })
-      .collect()
+        .map(k => {
+          return new Tag().setKey(k).setValue(tags[k]);
+        })
+        .collect()
     : [];
 }
 

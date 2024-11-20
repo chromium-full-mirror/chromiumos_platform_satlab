@@ -23,17 +23,16 @@ export const defaultBuildSelectFields: IBuildSelectFields = {
 
 export interface IPVSFields {
   bugID: string;
-  suite: string;
 }
 
 export const defaultStorageQualFields: IPVSFields = {
   bugID: '',
-  suite: '',
 };
 
 export interface IQualificationsFields extends IPVSFields {
   dlmSkuID: string;
   isIncrementalRun: boolean;
+  suite: string;
 }
 
 export const defaultQualificationsFields: IQualificationsFields = {

@@ -709,7 +709,7 @@ message ListJobsResponse {
   repeated Job jobs = 2;
 }
 
-// NEXT_TAG = 9
+// NEXT_TAG = 10
 message RunStorageQualRequest {
   string suite = 1;
   string board = 2;
@@ -722,6 +722,7 @@ message RunStorageQualRequest {
   // have a setter function.
   repeated Dim dims = 7;
   string bug_id = 8;
+  string test = 9;
 }
 
 // NEXT_TAG = 2
