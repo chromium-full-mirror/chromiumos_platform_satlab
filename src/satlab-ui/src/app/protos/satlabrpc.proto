@@ -41,6 +41,7 @@ service SatlabRpcService {
   rpc RepairDuts(RepairDutsRequest) returns (RepairDutsResponse);
   rpc OpenCCD(OpenCCDRequest) returns (stream OpenCCDReply);
   rpc SendMessageToCCDSession(SendMessageToCCDSessionRequest) returns (SendMessageToCCDSessionResponse);
+  rpc StableVersion(StableVersionRequest) returns (StableVersionResponse);
 
   // get DUTs information
   rpc GetDutDetail (GetDutDetailRequest) returns (GetDutDetailResponse);
@@ -844,4 +845,16 @@ message RunLabQualRequest {
 // NEXT_TAG = 2
 message RunLabQualResponse {
   string build_link= 1;
+}
+
+message StableVersionRequest {
+  string board = 1;
+  string model = 2;
+}
+
+// NEXT_TAG = 4
+message StableVersionResponse {
+  string os_image = 1;
+  string fw_version = 2;
+  string fw_image = 3;
 }

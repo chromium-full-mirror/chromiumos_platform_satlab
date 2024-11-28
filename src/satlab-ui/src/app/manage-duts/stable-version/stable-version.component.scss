@@ -1,0 +1,38 @@
+.duts-wrapper {
+  width: 100%;
+  height: 256px;
+
+  & .content-wrapper {
+    display: flex;
+    flex-direction: column;
+    row-gap: 1px;
+    border-radius: 4px;
+    margin: 5%;
+    box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.1);
+
+    .header {
+      display: flex;
+      flex-direction: row;
+      column-gap: 4rem;
+      background-color: white;
+
+      & .col {
+        &.large {
+          width: 300px;
+        }
+
+        &.medium {
+          width: 200px;
+        }
+
+        width: 100px;
+        height: 48px;
+        display: block;
+        text-align: center;
+        line-height: 48px;
+        font-size: 1.1rem;
+      }
+    }
+  }
+}

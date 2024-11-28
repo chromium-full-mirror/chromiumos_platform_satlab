@@ -14,6 +14,16 @@
       </ng-template>
     </mat-tab>
 
+    <!-- Stable version Tab -->
+    <mat-tab label="Stable version">
+      <ng-template matTabContent>
+        <app-stable-version
+          [DUTs]="DUTs"
+          [loading]="listDUTsLoading"
+        ></app-stable-version>
+      </ng-template>
+    </mat-tab>
+
     <!-- Firmware Tab -->
     <mat-tab label="Firmware">
       <ng-template matTabContent>

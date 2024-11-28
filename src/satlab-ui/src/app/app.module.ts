@@ -69,6 +69,8 @@ import {OpenCcdComponent} from './dialogs/open-ccd/open-ccd.component';
 import {LabQualComponent} from './run_suite/lab-qual/lab-qual.component';
 import {LoadingButtonComponent} from './common/loading-button/loading-button.component';
 import {BuildSelectorComponent} from './run_suite/common/build-selector/build-selector.component';
+import {StableVersionComponent} from './manage-duts/stable-version/stable-version.component';
+import {StableVersionCardComponent} from './manage-duts/stable-version-card/stable-version-card.component';
 
 @NgModule({
   declarations: [
@@ -106,6 +108,8 @@ import {BuildSelectorComponent} from './run_suite/common/build-selector/build-se
     LabQualComponent,
     BuildSelectorComponent,
     LoadingButtonComponent,
+    StableVersionComponent,
+    StableVersionCardComponent,
   ],
   imports: [
     AppRoutingModule,

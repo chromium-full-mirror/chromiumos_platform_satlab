@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {SatlabRpcServiceClient} from './SatlabrpcServiceClientPb';
 import {getRPCHost} from '../utils/misc';
 import {toIterator} from '../utils/iterator';
-import {from, map} from 'rxjs';
+import {from, map, of, switchMap} from 'rxjs';
 import {
   AbortJobsRequest,
   AddDutsRequest,
@@ -42,6 +42,7 @@ import {
   RunTestRequest,
   SetCloudConfigurationRequest,
   SortBy,
+  StableVersionRequest,
   StageBuildRequest,
   StateQuery,
   Tag,
@@ -778,6 +779,24 @@ export class SatlabRpcService {
     return Object.keys(input).map(k => {
       return new Dim().setKey(k).setValue(input[k]);
     });
+  }
+
+  public getStableVersion(p: {board: string; model: string}) {
+    return of(p).pipe(
+      map(e => {
+        return new StableVersionRequest().setBoard(e.board).setModel(e.model);
+      }),
+      switchMap(req => from(this.client.stableVersion(req, {}))),
+      map(resp => {
+        return {
+          board: p.board,
+          model: p.model,
+          osImage: resp.getOsImage(),
+          fwVersion: resp.getFwVersion(),
+          fwImage: resp.getFwImage(),
+        };
+      })
+    );
   }
 }
 

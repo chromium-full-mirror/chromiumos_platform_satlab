@@ -1,0 +1,25 @@
+<div class="duts-wrapper">
+  <ng-container *ngIf="loading">
+    <div class="loading-overlay">
+      <mat-spinner class="spinner"></mat-spinner>
+    </div>
+  </ng-container>
+
+  <div class="content-wrapper">
+    <div class="header" *ngIf="!loading">
+      <div class="col">Board</div>
+      <div class="col">Model</div>
+      <div class="col medium">OS image</div>
+      <div class="col large">Fw version</div>
+      <div class="col large">Fw image</div>
+    </div>
+    <div *ngFor="let item of data | keyvalue">
+      <div *ngFor="let m of item.value | keyvalue">
+        <app-stable-version-card
+          [board]="item.key"
+          [model]="m.key"
+        ></app-stable-version-card>
+      </div>
+    </div>
+  </div>
+</div>

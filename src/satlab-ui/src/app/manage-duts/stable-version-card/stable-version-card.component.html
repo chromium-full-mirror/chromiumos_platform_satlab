@@ -1,0 +1,22 @@
+<div class="stable-version-card-wrapper">
+  <div class="col">
+    <p>{{ (data$ | async).board }}</p>
+  </div>
+  <div class="col">
+    <p>{{ (data$ | async).model }}</p>
+  </div>
+  <div class="col medium">
+    <p>{{ (data$ | async).osImage }}</p>
+  </div>
+  <div class="col large">
+    <div class="loading" *ngIf="loading">
+      <mat-spinner [diameter]="24"></mat-spinner>
+    </div>
+
+    <p *ngIf="!isError">{{ (data$ | async).fwVersion }}</p>
+    <p *ngIf="isError" class="error">can't fetch the stable version</p>
+  </div>
+  <div class="col large">
+    <p>{{ (data$ | async).fwImage }}</p>
+  </div>
+</div>
