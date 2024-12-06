@@ -33,6 +33,9 @@ def get_host_ip():
     """Get the IP address of the Satlab host"""
     print(host_connector.HostServicesConnector.get_ip())
 
+def get_host_mac():
+    """Get the external MAC address of the Satlab host"""
+    print(host_connector.HostServicesConnector.get_external_mac_address())
 
 def get_host_os_version():
     """Get the OS Version of the Satlab host"""
