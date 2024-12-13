@@ -45,6 +45,7 @@ COPY dockerfiles/satlab_remote_access/tools/host_command.py \
     dockerfiles/satlab_remote_access/tools/get_dns_hosts \
     dockerfiles/satlab_remote_access/tools/get_host_identifier \
     dockerfiles/satlab_remote_access/tools/get_host_ip \
+    dockerfiles/satlab_remote_access/tools/get_host_mac \
     dockerfiles/satlab_remote_access/tools/get_host_os_version \
     dockerfiles/satlab_remote_access/tools/satlab_setup \
     dockerfiles/satlab_remote_access/tools/update_system \
