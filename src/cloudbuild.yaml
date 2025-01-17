@@ -16,6 +16,7 @@ substitutions:
   _SATLAB_RPCSERVER: ""
   _ENVOY_PROXY: ""
   _SATLAB_UI: ""
+  _OPENTELEMETRY_COLLECTOR: ""
 steps:
   - id: docker-compose
     name: "gcr.io/cloud-builders/docker"
@@ -36,6 +37,10 @@ steps:
     name: "gcr.io/cloud-builders/docker"
     args: ["pull", "${_BASE_REGISTRY_URI}/blacklabelops/logrotate:latest"]
     waitFor: ['-']
+  - id: opentelemetry-collector-contrib
+    name: "gcr.io/cloud-builders/docker"
+    args: ["pull", "${_BASE_REGISTRY_URI}/opentelemetry-collector-contrib:0.116.1"]
+    waitFor: ['-']
   - id: compose
     name: "gcr.io/cloud-builders/docker"
     dir: src
@@ -49,6 +54,7 @@ steps:
         "--build-arg", "SATLAB_RPCSERVER_VER=${_SATLAB_RPCSERVER}",
         "--build-arg", "ENVOY_PROXY_VER=${_ENVOY_PROXY}",
         "--build-arg", "SATLAB_UI_VER=${_SATLAB_UI}",
+        "--build-arg", "OPENTELEMETRY_COLLECTOR_VER=${_OPENTELEMETRY_COLLECTOR_UI}",
         "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
         "--build-arg", "LABEL=${__LABEL}",
         "--build-arg", "COMMON_CORE_LABEL=${_COMMON_CORE_LABEL}",
@@ -184,6 +190,26 @@ steps:
     waitFor:
       - "protogen-ui"
 
+  - id: opentelemetry-collector
+    name: "gcr.io/cloud-builders/docker"
+    dir: src
+    args:
+      [
+        "build",
+        "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
+        "--build-arg", "LABEL=${__LABEL}",
+        "--build-arg", "BASE_REGISTRY_URI=${_BASE_REGISTRY_URI}",
+        "-t", "${_REGISTRY_URI}/opentelemetry-collector:${__BUILD_VERSION}",
+        "-t", "${_REGISTRY_URI}/opentelemetry-collector:${__LABEL}",
+        "-f", "dockerfiles/opentelemetry-collector/Dockerfile",
+        "."
+      ]
+    env:
+      - "DOCKER_BUILDKIT=1"
+    waitFor:
+     - "opentelemetry-collector-contrib"
+
+
 images:
   [
     "${_REGISTRY_URI}/satlab-compose:${__BUILD_VERSION}",
@@ -200,6 +226,8 @@ images:
     "${_REGISTRY_URI}/protoc:${__LABEL}",
     "${_REGISTRY_URI}/satlab-ui:${__BUILD_VERSION}",
     "${_REGISTRY_URI}/satlab-ui:${__LABEL}",
+    "${_REGISTRY_URI}/opentelemetry-collector:${__BUILD_VERSION}",
+    "${_REGISTRY_URI}/opentelemetry-collector:${__LABEL}",
   ]
 
 options:

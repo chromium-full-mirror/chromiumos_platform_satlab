@@ -41,6 +41,7 @@ ARG SATLAB_RPCSERVER_VER
 ARG ENVOY_PROXY_VER
 ARG SATLAB_UI_VER
 ARG LOGROTATE_VER
+ARG OPENTELEMETRY_COLLECTOR_VER
 
 # These are re-defined because ARG has a different scope
 # before and after the FROM instruction.
@@ -93,7 +94,8 @@ RUN  ./override_service_version.sh CONF_CREATOR ${CONF_CREATOR_VER:-${BUILD_VERS
   && ./override_service_version.sh SATLAB_RPCSERVER ${SATLAB_RPCSERVER_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh ENVOY_PROXY ${ENVOY_PROXY_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh SATLAB_UI ${SATLAB_UI_VER:-${BUILD_VERSION}} \
-  && ./override_service_version.sh LOGROTATE ${LOGROTATE_VER:-${BUILD_VERSION}}
+  && ./override_service_version.sh LOGROTATE ${LOGROTATE_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh OPENTELEMETRY_COLLECTOR ${OPENTELEMETRY_COLLECTOR_VER:-${BUILD_VERSION}}
 
 # Add routine to check export environment variable from .env file
 COPY tools/export_env_file.sh /

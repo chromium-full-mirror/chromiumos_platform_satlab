@@ -66,6 +66,11 @@ function start_private_containers () {
   docker-compose pull drone downloader openssh_server nginx logrotate
   docker-compose up -d drone downloader openssh_server nginx logrotate
 
+  if [[ ${UFS_NAMESPACE:-os} != "os-partner" ]]; then
+    docker-compose pull opentelemetry-collector
+    docker-compose up -d opentelemetry-collector
+  fi
+
   # set permission for ssp volume to create lxc containers
   # b/190623503
   docker exec drone chmod 0777 /usr/local/autotest/containers/ssp_volume
@@ -125,8 +130,8 @@ else
     fi
   fi
 
-  docker-compose pull
-  docker-compose up -d
+  docker-compose pull envoy-proxy
+  docker-compose up -d envoy-proxy
   # Use labels to filter out containers that shouldn't be pruned.
   docker system prune --filter "label!=skip.while.pruning.docker.system=yes" -f
 

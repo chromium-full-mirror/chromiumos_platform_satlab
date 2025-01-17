@@ -28,7 +28,8 @@ all:	compose \
 		satlab-remote-access \
 		satlab-rpcserver \
 		protoc \
-		ui
+		ui \
+		opentelemetry-collector
 
 # Build and push satlab_remote_access container.
 satlab-remote-access: export DOCKER_BUILDKIT := 1
@@ -87,3 +88,8 @@ ui: protoc
 		-f dockerfiles/ui/Dockerfile .
 	docker push ${REGISTRY_URI}/satlab-ui:${LABEL}
 
+opentelemetry-collector: export DOCKER_BUILDKIT := 1
+opentelemetry-collector:
+	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/opentelemetry-collector:${LABEL} \
+		-f dockerfiles/opentelemetry-collector/Dockerfile .
+	docker push ${REGISTRY_URI}/opentelemetry-collector:${LABEL}

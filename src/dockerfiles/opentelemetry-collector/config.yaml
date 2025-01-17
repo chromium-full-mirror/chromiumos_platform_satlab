@@ -1,0 +1,118 @@
+receivers:
+  docker_stats:
+    endpoint: unix:///var/run/docker.sock
+    api_version: "1.41"
+    metrics:
+      # Default Metrics
+      container.blockio.io_service_bytes_recursive:
+        enabled: false
+      container.cpu.usage.kernelmode:
+        enabled: false
+      container.cpu.usage.total:
+        enabled: false
+      container.cpu.usage.usermode:
+        enabled: false
+      container.cpu.utilization:
+        enabled: true
+      container.memory.file:
+        enabled: false
+      container.memory.percent:
+        enabled: true
+      container.memory.total_cache:
+        enabled: false
+      container.memory.usage.limit:
+        enabled: false
+      container.memory.usage.total:
+        enabled: false
+      container.network.io.usage.rx_bytes:
+        enabled: false
+      container.network.io.usage.rx_dropped:
+        enabled: false
+      container.network.io.usage.tx_bytes:
+        enabled: false
+      container.network.io.usage.tx_dropped:
+        enabled: false
+  hostmetrics:
+    root_path: /hostfs
+    scrapers:
+      filesystem:
+        metrics:
+          # Default Metrics
+          system.filesystem.inodes.usage:
+            enabled: false
+          system.filesystem.usage:
+            enabled: false
+          system.filesystem.utilization:
+            enabled: true
+      disk:
+        metrics:
+          # Default Metrics
+          system.disk.io:
+            enabled: true
+          system.disk.io_time:
+            enabled: false
+          system.disk.merged:
+            enabled: false
+          system.disk.operation_time:
+            enabled: false
+          system.disk.operations:
+            enabled: false
+          system.disk.pending_operations:
+            enabled: false
+          system.disk.weighted_io_time:
+            enabled: false
+      process:
+        mute_process_all_errors: true
+        metrics:
+          # Default Metrics
+          process.cpu.time:
+            enabled: false
+          process.disk.io:
+            enabled: false
+          process.memory.usage:
+            enabled: false
+          process.memory.virtual:
+            enabled: false
+          # Optional Metrics
+          process.cpu.utilization:
+            enabled: true
+          process.memory.utilization:
+            enabled: true
+
+exporters:
+  googlecloud:
+    project: chromeos-partner-moblab
+    metric:
+      instrumentation_library_labels: false
+      service_resource_labels: false
+
+processors:
+  metricstransform:
+    transforms:
+    - include: .*
+      match_type: regexp
+      action: update
+      operations:
+      - action: add_label
+        new_label: host_id
+        new_value: ${HOST_IDENTIFIER}
+  transform:
+    metric_statements:
+    - context: datapoint
+      conditions:
+      - instrumentation_scope.name == "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver"
+      statements:
+      - set(attributes["container_name"], resource.attributes["container.name"])
+    - context: datapoint
+      conditions:
+      - instrumentation_scope.name == "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/internal/scraper/processscraper"
+      statements:
+      - set(attributes["process_name"], resource.attributes["process.executable.name"])
+      - set(attributes["process_id"], resource.attributes["process.pid"])
+
+service:
+  pipelines:
+    metrics:
+      receivers: [hostmetrics, docker_stats]
+      processors: [metricstransform, transform]
+      exporters: [googlecloud]
