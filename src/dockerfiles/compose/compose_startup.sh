@@ -130,8 +130,8 @@ else
     fi
   fi
 
-  docker-compose pull envoy-proxy
-  docker-compose up -d envoy-proxy
+  docker-compose pull envoy-proxy satlab-ui satlab_rpcserver
+  docker-compose up -d envoy-proxy satlab-ui satlab_rpcserver
   # Use labels to filter out containers that shouldn't be pruned.
   docker system prune --filter "label!=skip.while.pruning.docker.system=yes" -f
 
