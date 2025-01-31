@@ -99,6 +99,9 @@ RUN chmod 777 /etc/profile.d/export_env_file.sh
 COPY dockerfiles/satlab_remote_access/tools/wcache_check.sh /etc/profile.d/
 RUN chmod 777 /etc/profile.d/wcache_check.sh
 
+# Add routine to export dockerd TLS variables
+COPY --chmod=777 dockerfiles/satlab_remote_access/tools/tls.sh /etc/profile.d/
+
 # Add adb
 RUN apk add --no-cache gcompat
 ENV ADB_VENDOR_KEYS=/root/.android/arc_adbkey
