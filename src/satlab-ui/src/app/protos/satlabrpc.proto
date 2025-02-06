@@ -53,6 +53,7 @@ service SatlabRpcService {
   // setup
   rpc SetCloudConfiguration (SetCloudConfigurationRequest) returns (SetCloudConfigurationResponse);
   rpc GetCloudConfiguration (GetCloudConfigurationRequest) returns (GetCloudConfigurationResponse);
+  rpc IsAuth (IsAuthRequest) returns (IsAuthResponse);
 
   // system
   rpc Reboot (RebootRequest) returns (RebootResponse);
@@ -857,4 +858,12 @@ message StableVersionResponse {
   string os_image = 1;
   string fw_version = 2;
   string fw_image = 3;
+}
+
+// NEXT_TAG = 1
+message IsAuthRequest {}
+
+// NEXT_TAG = 2
+message IsAuthResponse {
+  bool is_auth = 1;
 }

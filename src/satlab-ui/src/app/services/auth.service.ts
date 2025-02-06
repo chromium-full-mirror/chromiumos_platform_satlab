@@ -8,8 +8,7 @@ import {BehaviorSubject, Observable} from 'rxjs';
 export class AuthService {
   public loginState$: Observable<boolean>;
   private logSub = new BehaviorSubject<boolean>(false);
-  // __loaded is the flag indicates we have called the
-  // `get_cloud_configuration`.
+  // __loaded is the flag indicates we have called the `isAuth`.
   //
   // Usually, there are two situations that require a change in status.
   // 1. The user logs in to a refreshed Chromebox. After the user has logged in,
@@ -22,26 +21,26 @@ export class AuthService {
 
   constructor(private service: SatlabRpcService) {
     this.loginState$ = this.logSub.asObservable();
-    this.__getConfiguration();
+    this.__isAuth();
   }
 
   public async isLoggedIn() {
     if (!this.__loaded) {
-      await this.__getConfiguration();
+      await this.__isAuth();
     }
     return this.logSub.getValue();
   }
 
   /**
-   * __getConfiguration retrieves the `boto` key from the backend.
-   * If the `key` is set, it means the user has logged in before.
+   * __isAuth retrieves the service account from the backend.
+   * If the `isAuth` is true, it means the user has logged in before.
    * @private
    */
-  private async __getConfiguration() {
+  private async __isAuth() {
     try {
-      const v = await this.service.getCloudConfiguration();
+      const v = await this.service.isAuth();
       this.__loaded = true;
-      this.logSub.next(v.key !== '');
+      this.logSub.next(v.isAuth == true);
     } catch (e) {
       console.error(e);
     }

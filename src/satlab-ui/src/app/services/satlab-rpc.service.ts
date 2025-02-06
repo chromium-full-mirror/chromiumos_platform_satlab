@@ -49,6 +49,7 @@ import {
   UpdateDutsFirmwareRequest,
   UpdatePoolRequest,
   UploadLogRequest,
+  IsAuthRequest,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
 import {
@@ -58,6 +59,7 @@ import {
   RepairDUTResponse,
 } from '../models/dut';
 import {IBoto} from '../models/boto';
+import {IAuth} from '../models/auth';
 import {IDims} from '../models/dims';
 import {
   DUT_STATUS_DEPLOYING,
@@ -534,6 +536,19 @@ export class SatlabRpcService {
       key: resp.getBotoKeyId(),
       bucket: resp.getGcsBucketUrl(),
       secret: 'secret',
+    };
+  }
+
+  /**
+   * Check if service account is existed
+   */
+  public async isAuth(): Promise<IAuth> {
+    const req = new IsAuthRequest();
+
+    const resp = await this.client.isAuth(req, {});
+
+    return {
+      isAuth: resp.getIsAuth(),
     };
   }
 
