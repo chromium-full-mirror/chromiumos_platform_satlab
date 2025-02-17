@@ -42,6 +42,41 @@ def get_host_os_version():
     print(host_connector.HostServicesConnector.get_system_version())
 
 
+def is_update_available():
+    """
+        Check to see if there is a system update or any containers that
+        have updated images.
+
+        Scan the running containers, if the watchtower program has pulled
+        down a newer image then the container to image reference tag
+        is broken.
+
+        Detect these image tag link breaks and assume that means we have
+        an update. Looking through update tools and forums, it seems this
+        is the way all update tools work.
+
+    Returns:
+        True if there is an update available.
+    """
+
+    try:
+        response = (
+            host_connector.HostServicesConnector.get_system_update_status()
+        )
+        if response.current_op.find("IDLE") == -1:
+            print("true")
+            return
+    except host_connector.HostServicesException:
+        logging.exception("Get system update status call failed.")
+
+    client = docker.from_env(timeout=300)
+    for container in client.containers.list():
+        if len(container.image.tags) == 0:
+            print("true")
+            return
+    print("false")
+
+
 def update_satlab():
     """
         Sets off an update of all docker containers, using watchtower

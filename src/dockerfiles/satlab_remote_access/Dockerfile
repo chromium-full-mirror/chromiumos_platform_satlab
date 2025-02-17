@@ -47,6 +47,7 @@ COPY dockerfiles/satlab_remote_access/tools/host_command.py \
     dockerfiles/satlab_remote_access/tools/get_host_ip \
     dockerfiles/satlab_remote_access/tools/get_host_mac \
     dockerfiles/satlab_remote_access/tools/get_host_os_version \
+    dockerfiles/satlab_remote_access/tools/is_update_available \
     dockerfiles/satlab_remote_access/tools/satlab_setup \
     dockerfiles/satlab_remote_access/tools/update_system \
     dockerfiles/satlab_remote_access/tools/update_satlab \
@@ -102,8 +103,15 @@ RUN chmod 777 /etc/profile.d/wcache_check.sh
 # Add routine to export dockerd TLS variables
 COPY --chmod=777 dockerfiles/satlab_remote_access/tools/tls.sh /etc/profile.d/
 
+COPY --chmod=777 dockerfiles/satlab_remote_access/tools/check_for_update.sh /etc/profile.d/
+
 # Add adb
 RUN apk add --no-cache gcompat
 ENV ADB_VENDOR_KEYS=/root/.android/arc_adbkey
 COPY --from=adb /adb/platform-tools/adb /bin
 COPY --from=adb /adb/arc_adbkey ${ADB_VENDOR_KEYS}
+
+COPY --chmod=444 dockerfiles/satlab_remote_access/satlab-default-settings.json /
+COPY --chmod=755 dockerfiles/satlab_remote_access/remote-access-startup.sh /
+
+ENTRYPOINT ["/remote-access-startup.sh"]

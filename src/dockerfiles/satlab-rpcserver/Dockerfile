@@ -58,6 +58,7 @@ RUN mkdir /var/log/moblab
 RUN touch /var/log/moblab/remote_access.log
 
 EXPOSE 6003
+ENTRYPOINT ["/init"]
 CMD ["satlabrpcserver"]
 # For testing purposes
 # CMD ["tail", "-f", "/dev/null"]

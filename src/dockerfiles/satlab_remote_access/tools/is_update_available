@@ -1,0 +1,13 @@
+#!/bin/sh
+# Copyright 2024 The Chromium OS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# is_update_available checks if Satlab update is available
+#
+# sample output:
+#   true
+
+set -eu
+
+exec python3 /usr/local/bin/host_command.py "$0"

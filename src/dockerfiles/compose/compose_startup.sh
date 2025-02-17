@@ -22,6 +22,8 @@ echo "Command is ${1}"
 # Stop any old style docker containers that are named default_
 /usr/local/bin/docker stop $(/usr/local/bin/docker ps --filter name="default_" --format "{{.ID}}")
 
+USER_SETTINGS=/home/satlab/shared/satlab-user-settings.json
+
 # start_private_containers start the containters that required docker client authenticated.
 function start_private_containers () {
   # This is in case the device was not shutdown cleanly there might be
@@ -38,6 +40,7 @@ function start_private_containers () {
   docker-compose pull partner_testing_rsa
   docker-compose up -d partner_testing_rsa
 
+  export WATCHTOWER_MONITOR_ONLY=$(jq '.autoupdate |= not | .autoupdate' $USER_SETTINGS)
   docker-compose -f ./docker-compose.watchtower.yaml pull
   docker-compose -f ./docker-compose.watchtower.yaml up -d
 
