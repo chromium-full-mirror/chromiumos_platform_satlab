@@ -41,6 +41,12 @@ function start_private_containers () {
   docker-compose up -d partner_testing_rsa
 
   export WATCHTOWER_MONITOR_ONLY=$(jq '.autoupdate |= not | .autoupdate' $USER_SETTINGS)
+
+  # Can be removed after chromeos changes from crrev/c/6032619 will be on stable channel
+  if [ -z "$WATCHTOWER_MONITOR_ONLY" ]; then
+    export WATCHTOWER_MONITOR_ONLY=true
+  fi
+
   docker-compose -f ./docker-compose.watchtower.yaml pull
   docker-compose -f ./docker-compose.watchtower.yaml up -d
 
