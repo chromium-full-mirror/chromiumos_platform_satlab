@@ -14,6 +14,7 @@ EXTRA_ARGS+= --build-arg BUILD_VERSION="${BUILD_VERSION}"
 
 OVERRIDE_SERVICES := \
 	CONF_CREATOR \
+	DNS \
 	ENVOY_PROXY \
 	LOGROTATE \
 	SATLAB_RPCSERVER \
@@ -23,6 +24,7 @@ ${foreach service, ${OVERRIDE_SERVICES}, \
 
 all:	compose \
 		conf_creator \
+		dns \
 		envoy \
 		logrotate \
 		satlab-remote-access \
@@ -67,19 +69,19 @@ conf_creator:
 envoy: export DOCKER_BUILDKIT := 1
 envoy:
 	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/envoy-proxy:${LABEL} \
-		-f dockerfiles/envoy/Dockerfile dockerfiles/envoy
+		-f dockerfiles/envoy/Dockerfile .
 	docker push ${REGISTRY_URI}/envoy-proxy:${LABEL}
 
 logrotate: export DOCKER_BUILDKIT := 1
 logrotate:
 	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/logrotate:${LABEL} \
-		-f dockerfiles/utilities/Dockerfile.logrotate dockerfiles/utilities
+		-f dockerfiles/utilities/Dockerfile.logrotate .
 	docker push ${REGISTRY_URI}/logrotate:${LABEL}
 
 protoc: export DOCKER_BUILDKIT := 1
 protoc:
 	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/protoc:${LABEL} \
-		-f dockerfiles/utilities/Dockerfile.protoc dockerfiles/utilities
+		-f dockerfiles/utilities/Dockerfile.protoc .
 	docker push ${REGISTRY_URI}/protoc:${LABEL}
 
 ui: export DOCKER_BUILDKIT := 1
@@ -100,3 +102,9 @@ watchtower:
 	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/watchtower:${LABEL} \
 		-f dockerfiles/watchtower/Dockerfile .
 	docker push ${REGISTRY_URI}/watchtower:${LABEL}
+
+dns: export DOCKER_BUILDKIT := 1
+dns:
+	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/satlab-dns:${LABEL} \
+		-f dockerfiles/dns/Dockerfile .
+	docker push ${REGISTRY_URI}/satlab-dns:${LABEL}

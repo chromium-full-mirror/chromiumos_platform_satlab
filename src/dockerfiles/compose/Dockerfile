@@ -37,6 +37,7 @@ ARG SATLAB_DRONE_VER
 ARG DOWNLOADER_VER
 ARG NGINX_VER
 ARG OPENSSH_SERVER_VER
+ARG DNS_VER
 ARG SATLAB_RPCSERVER_VER
 ARG ENVOY_PROXY_VER
 ARG SATLAB_UI_VER
@@ -90,6 +91,7 @@ RUN  ./override_service_version.sh CONF_CREATOR ${CONF_CREATOR_VER:-${BUILD_VERS
   && ./override_service_version.sh DOWNLOADER ${DOWNLOADER_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh NGINX ${NGINX_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh SATLAB_DRONE ${SATLAB_DRONE_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh DNS ${DNS_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh OPENSSH_SERVER ${OPENSSH_SERVER_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh SATLAB_RPCSERVER ${SATLAB_RPCSERVER_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh ENVOY_PROXY ${ENVOY_PROXY_VER:-${BUILD_VERSION}} \

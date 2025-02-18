@@ -13,7 +13,7 @@ ARG UID=246
 
 RUN addgroup --gid $UID moblab && adduser --ingroup moblab --uid $UID --disabled-password --gecos "" moblab
 
-COPY --chown=moblab envoy.yaml /etc/envoy/envoy.yaml
+COPY --chown=moblab dockerfiles/envoy/envoy.yaml /etc/envoy/envoy.yaml
 
 USER moblab
 

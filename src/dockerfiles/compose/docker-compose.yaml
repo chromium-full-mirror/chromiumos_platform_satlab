@@ -71,23 +71,11 @@ services:
   ##############################################################################dns
   dns:
     container_name: dns
-    image: ${COMMON_CORE_URI:-gcr.io/chromeos-partner-moblab}/moblab-dns:${DNS:-release}
+    image: ${REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab}/satlab-dns:${DNS:-release}
     restart: unless-stopped
     volumes:
       - logs:/var/log/
       - dut_hosts:/etc/dut_hosts:rw
-    command:
-      [
-        '/usr/sbin/dnsmasq',
-        '--no-daemon',
-        '-u',
-        'moblab',
-        '-g',
-        'moblab',
-        '-H',
-        '/etc/dut_hosts/hosts',
-        '--log-debug'
-      ]
     networks:
       satlab:
         ipv4_address: 192.168.100.51

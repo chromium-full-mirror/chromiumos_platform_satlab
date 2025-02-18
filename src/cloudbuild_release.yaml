@@ -16,6 +16,7 @@ substitutions:
   _OPENSSH_SERVER: "${__BUILD_VERSION}"
   _NGINX: "${__BUILD_VERSION}"
   _SATLAB_DRONE: "${__BUILD_VERSION}"
+  _DNS: "${__BUILD_VERSION}"
   _WATCHTOWER_CMD: --enable-lifecycle-hooks --include-stopped --revive-stopped --interval 3600 --include-restarting --label-enable
   _SATLAB_RPCSERVER: "${__BUILD_VERSION}"
   _ENVOY_PROXY: "${__BUILD_VERSION}"
@@ -37,6 +38,14 @@ steps:
   - id: envoyproxy
     name: "gcr.io/cloud-builders/docker"
     args: ["pull", "${_BASE_REGISTRY_URI}/envoyproxy/envoy:v1.15.2"]
+    waitFor: ['-']
+  - id: alpine-3.17
+    name: "gcr.io/cloud-builders/docker"
+    args: [ "pull", "${_BASE_REGISTRY_URI}/alpine:3.17_alpha20220715-edge" ]
+    waitFor: [ '-' ]
+  - id: blacklabelops-logrotate
+    name: "gcr.io/cloud-builders/docker"
+    args: ["pull", "${_BASE_REGISTRY_URI}/blacklabelops/logrotate:latest"]
     waitFor: ['-']
 
   - id: drone-pull
@@ -93,23 +102,6 @@ steps:
       ]
     waitFor:
       - nginx-pull
-  - id: logrotate-pull
-    name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "pull",
-        "${_REGISTRY_URI}/logrotate:${__BUILD_VERSION}",
-      ]
-    waitFor: ['-']
-  - id: logrotate
-    name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "tag",
-        "${_REGISTRY_URI}/logrotate:${__BUILD_VERSION}",
-      ]
-    waitFor:
-      - logrotate-pull
   - id: conf-creator-pull
     name: "gcr.io/cloud-builders/docker"
     args:
@@ -155,6 +147,7 @@ steps:
         "--build-arg", "DOWNLOADER_VER=${_DOWNLOADER}",
         "--build-arg", "NGINX_VER=${_NGINX}",
         "--build-arg", "SATLAB_DRONE_VER=${_SATLAB_DRONE}",
+        "--build-arg", "DNS_VER=${_DNS}",
         "--build-arg", "SATLAB_RPCSERVER_VER=${_SATLAB_RPCSERVER}",
         "--build-arg", "ENVOY_PROXY_VER=${_ENVOY_PROXY}",
         "--build-arg", "LOGROTATE_VER=${_SATLAB_LOGROTATE}",
@@ -182,7 +175,24 @@ steps:
      - downloader
      - nginx
      - conf-creator
-     - logrotate
+
+  - id: dns
+    name: "gcr.io/cloud-builders/docker"
+    dir: src
+    args:
+      [
+        "build",
+        "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
+        "--build-arg", "LABEL=${__LABEL}",
+        "-t", "${_REGISTRY_URI}/satlab-dns:${__LABEL}",
+        "-f", "dockerfiles/dns/Dockerfile",
+        "."
+      ]
+    env:
+    - "DOCKER_BUILDKIT=1"
+    waitFor:
+    - "alpine-3.17"
+
   - id: satlab-remote-access
     name: "gcr.io/cloud-builders/docker"
     dir: src
@@ -227,8 +237,27 @@ steps:
      - "moblab-common"
      - conf-creator
 
+  - id: logrotate
+    name: "gcr.io/cloud-builders/docker"
+    dir: src
+    args:
+      [
+        "build",
+        "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
+        "--build-arg", "LABEL=${__LABEL}",
+        "--build-arg", "BUILD_VERSION=${__BUILD_VERSION}",
+        "-t", "${_REGISTRY_URI}/logrotate:${__LABEL}",
+        "-f", "/workspace/src/dockerfiles/utilities/Dockerfile.logrotate",
+        "."
+      ]
+    env:
+    - "DOCKER_BUILDKIT=1"
+    waitFor:
+    - "blacklabelops-logrotate"
+
   - id: envoy
     name: "gcr.io/cloud-builders/docker"
+    dir: src
     args:
       [
         "build",
@@ -254,7 +283,7 @@ steps:
       ]
 
   - id: protogen-ui
-    name: "gcr.io/cloud-builders/docker"
+    name: "${_REGISTRY_URI}/protoc:${__LABEL}"
     entrypoint: bash
     args: ["/workspace/src/satlab-ui/protogen_ui.sh"]
     waitFor:
@@ -262,6 +291,7 @@ steps:
 
   - id: satlab-ui
     name: "gcr.io/cloud-builders/docker"
+    dir: src
     args:
       [
         "build",
@@ -278,6 +308,7 @@ steps:
 images:
   [
     "${_REGISTRY_URI}/satlab-compose:${__LABEL}",
+    "${_REGISTRY_URI}/satlab-dns:${__LABEL}",
     "${_REGISTRY_URI}/satlab_remote_access:${__LABEL}",
     "${_REGISTRY_URI}/satlab-rpcserver:${__LABEL}",
     "${_REGISTRY_URI}/envoy-proxy:${__LABEL}",
