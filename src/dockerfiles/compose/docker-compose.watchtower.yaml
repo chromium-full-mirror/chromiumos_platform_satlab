@@ -4,10 +4,9 @@
 
 version: "3"
 services:
-
   watchtower:
     container_name: watchtower
-    image: ${COMMON_CORE_REGISTRY:-gcr.io/chromeos-partner-moblab}/watchtower:${WATCHTOWER:-release}
+    image: ${REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab}/watchtower:${WATCHTOWER:-release}
     restart: unless-stopped
     environment:
       - DOCKER_CONFIG=/config
@@ -24,7 +23,6 @@ services:
       nofile:
         soft: 10000
         hard: 16384
-
 volumes:
   docker_config:
     external: True
