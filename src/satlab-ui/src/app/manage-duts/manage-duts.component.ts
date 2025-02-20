@@ -14,12 +14,8 @@ import {AUTO_REFRESH_INTERVAL} from '../constants';
 export class ManageDutsComponent implements AfterViewInit, OnDestroy {
   // duts contains the all duts are enrolled and connected to the SatLab
   protected DUTs: IDut[] = [];
-  // firmwareDUTs contains the connected DUTs that including the firmware information
-  protected firmwareDUTs: IFirmwareDUT[] = [];
   // listDUTsLoading use to indicate we make an API call to list DUTs
   protected listDUTsLoading = false;
-  // listFirmwareLoading use to indicate we make an API call to list DUTs for firmware update
-  protected listFirmwareLoading = false;
   // hostnamePrefix the prefix of hostname when a user want to input a hostname.
   // we need to show a prefix.
   protected hostnamePrefix = '';
@@ -36,7 +32,6 @@ export class ManageDutsComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     this.__getHostnamePrefix();
     this.__listDUTs();
-    this.__listDUTsForFirmware();
   }
 
   ngOnDestroy() {
@@ -49,14 +44,6 @@ export class ManageDutsComponent implements AfterViewInit, OnDestroy {
    */
   protected onDUTsUpdated() {
     this.__listDUTs();
-  }
-
-  /**
-   * onFirmwareUpdated is a handler to handle when any DUTs update a firmware
-   * @protected
-   */
-  protected onFirmwareUpdated() {
-    this.__listDUTsForFirmware();
   }
 
   /**
@@ -97,32 +84,6 @@ export class ManageDutsComponent implements AfterViewInit, OnDestroy {
         },
         error: e => {
           this.notification.error(`List DUTs failed: ${e}`, {dismiss: false});
-        },
-      });
-  }
-
-  /**
-   * list the DUTs for firmware update
-   * @private
-   */
-  private __listDUTsForFirmware() {
-    from(this.service.listDUTsForFirmware())
-      .pipe(
-        startWithTap(() => {
-          this.listFirmwareLoading = true;
-        }),
-        finalize(() => {
-          this.listFirmwareLoading = false;
-        })
-      )
-      .subscribe({
-        next: e => {
-          this.firmwareDUTs = e;
-        },
-        error: e => {
-          this.notification.error(`List firmware failed: ${e}`, {
-            dismiss: false,
-          });
         },
       });
   }

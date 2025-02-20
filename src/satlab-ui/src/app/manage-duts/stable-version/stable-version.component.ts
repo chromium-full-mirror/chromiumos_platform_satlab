@@ -1,30 +1,31 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  Input,
-  OnChanges,
-  SimpleChanges,
-} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, Component} from '@angular/core';
 import {IDut} from 'app/models/dut';
+import {SatlabRpcService} from 'app/services/satlab-rpc.service';
+import {startWithTap} from 'app/utils/rxjs_operator';
+import {finalize, from, tap} from 'rxjs';
 
 @Component({
   selector: 'app-stable-version',
   templateUrl: './stable-version.component.html',
   styleUrls: ['./stable-version.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class StableVersionComponent implements OnChanges {
-  @Input() DUTs: IDut[] = [];
-  @Input() loading = false;
+export class StableVersionComponent implements AfterViewInit {
+  protected loading = false;
 
   protected data: {[key: string]: {[key: string]: boolean}} = {};
 
-  constructor() {}
+  constructor(private service: SatlabRpcService) {}
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if ('DUTs' in changes) {
-      this.data = this.groupBy(changes.DUTs.currentValue);
-    }
+  ngAfterViewInit(): void {
+    from(this.service.listDUTs())
+      .pipe(
+        startWithTap(() => (this.loading = true)),
+        finalize(() => (this.loading = false)),
+        tap(resp => {
+          this.data = this.groupBy(resp);
+        })
+      )
+      .subscribe();
   }
 
   /**
