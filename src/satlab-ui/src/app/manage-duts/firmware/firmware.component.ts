@@ -1,13 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  Output,
-  SimpleChanges,
-} from '@angular/core';
+import {AfterViewInit, Component, OnDestroy, OnInit} from '@angular/core';
 import {IFirmwareDUT} from '../../models/dut';
 import {SelectionModel} from '@angular/cdk/collections';
 import {distinctUntilChanged, finalize, from, map, Subscription} from 'rxjs';
@@ -22,10 +13,9 @@ import {NotificationService} from '../../services/notification.service';
   templateUrl: './firmware.component.html',
   styleUrls: ['./firmware.component.scss'],
 })
-export class FirmwareComponent implements OnInit, OnChanges, OnDestroy {
-  @Input() DUTs: IFirmwareDUT[] = [];
-  @Input() loading = false;
-  @Output() onDUTsUpdated = new EventEmitter();
+export class FirmwareComponent implements OnInit, AfterViewInit, OnDestroy {
+  protected DUTs: IFirmwareDUT[] = [];
+  protected loading = false;
 
   protected selection = new SelectionModel<IFirmwareDUT>(true, []);
   protected selectionCount = 0;
@@ -48,7 +38,7 @@ export class FirmwareComponent implements OnInit, OnChanges, OnDestroy {
         map(e => e.source.selected.length),
         distinctUntilChanged()
       )
-      .subscribe(_ => {
+      .subscribe(() => {
         this.selectionCount = this.selection.selected.length;
         this.checked =
           this.selectionCount > 0 &&
@@ -56,19 +46,38 @@ export class FirmwareComponent implements OnInit, OnChanges, OnDestroy {
       });
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (
-      changes['DUTs'] &&
-      changes['DUTs'].previousValue !== changes['DUTs'].currentValue
-    ) {
-      this.selection.clear();
-      this.checked = false;
-      this.disabled = toIterator(this.DUTs).all(e => e.isLatest);
-    }
+  ngAfterViewInit(): void {
+    this.__listDUTsForFirmware();
   }
 
   ngOnDestroy() {
     this.disposer?.unsubscribe();
+  }
+
+  /**
+   * list the DUTs for firmware update
+   * @private
+   */
+  private __listDUTsForFirmware() {
+    from(this.service.listDUTsForFirmware())
+      .pipe(
+        startWithTap(() => {
+          this.loading = true;
+        }),
+        finalize(() => {
+          this.loading = false;
+        })
+      )
+      .subscribe({
+        next: e => {
+          this.DUTs = e;
+        },
+        error: e => {
+          this.notification.error(`List firmware failed: ${e}`, {
+            dismiss: false,
+          });
+        },
+      });
   }
 
   /**
@@ -127,7 +136,6 @@ export class FirmwareComponent implements OnInit, OnChanges, OnDestroy {
               {dismiss: false}
             )
           );
-          this.onDUTsUpdated.emit();
         },
         error: e => {
           this.notification.error(`Update firmware failed: ${e}`, {
