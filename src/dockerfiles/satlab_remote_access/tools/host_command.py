@@ -131,6 +131,12 @@ def update_system():
         logging.exception("Install system update raised an exception.")
         return "Failed to install update."
 
+
+def stop_ui():
+    """Stop ui of the host box."""
+    host_connector.HostServicesConnector.stop_ui()
+
+
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         f = os.path.basename(sys.argv[1])
