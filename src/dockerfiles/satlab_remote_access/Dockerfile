@@ -60,8 +60,8 @@ RUN apk add --no-cache --upgrade \
     python3 \
     python3-dev \
     zlib-dev && \
-    pip3 install --upgrade pip && pip3 install --no-cache-dir -r requirements.txt && \
-    pip install *.whl && \
+    pip3 install --upgrade pip && pip3 install --no-cache-dir --require-hashes -r requirements.txt && \
+    pip install --no-deps --no-index *.whl && \
     rm -rf /install && \
     apk del \
     alpine-sdk \
