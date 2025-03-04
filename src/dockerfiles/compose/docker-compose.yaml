@@ -83,6 +83,7 @@ services:
   downloader:
     container_name: downloader
     image: ${SFP_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners}/downloader:${DOWNLOADER:-release}
+    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - images:/home/chromeos-test/images
