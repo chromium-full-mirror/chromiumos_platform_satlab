@@ -89,7 +89,9 @@
     <div class="btn-group">
       <button
         (click)="cancelEditing()"
-        *ngIf="editingBoto.key !== '' && !cloudConfigurationDisable"
+        *ngIf="
+          (editingBoto.key !== '' || internalUser) && !cloudConfigurationDisable
+        "
         color="warn"
         mat-raised-button
       >

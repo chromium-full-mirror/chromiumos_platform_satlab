@@ -22,6 +22,7 @@ export class ConfigurationComponent implements AfterViewInit {
   protected editingBoto: IBoto = {...defaultBoto};
   protected cloudConfigurationLoading = false;
   protected cloudConfigurationDisable = true;
+  protected internalUser = false;
 
   constructor(
     private service: SatlabRpcService,
@@ -40,6 +41,12 @@ export class ConfigurationComponent implements AfterViewInit {
           // determine if a user has already logged in
           if (b.key !== '') {
             this.boto = b;
+          } else if (b.key === '' && b.bucket !== '') {
+            this.internalUser = true;
+            this.boto = {
+              ...defaultBoto,
+              bucket: b.bucket,
+            };
           } else {
             this.cloudConfigurationDisable = false;
           }
