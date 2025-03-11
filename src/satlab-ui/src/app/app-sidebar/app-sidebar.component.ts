@@ -15,34 +15,45 @@ export class AppSidebarComponent {
       route: '/manage_duts',
       label: 'Manage DUTs',
       icon: 'devices',
+      outlined: false,
     },
     {
       route: '/run_tests',
       label: 'Run Tests',
       icon: 'play_arrow',
+      outlined: false,
     },
     {
       route: '/pvs',
       label: 'AVL Qualification',
       icon: 'science',
+      outlined: false,
     },
-
+    {
+      route: '/labqual',
+      label: 'Labqual',
+      icon: 'labs',
+      outlined: true,
+    },
     {
       route: 'view_jobs',
       label: 'View Jobs',
       icon: 'visibility',
+      outlined: false,
     },
     {
       route: '/configuration',
       label: 'Configuration',
       icon: 'settings',
       disabled: false,
+      outlined: false,
     },
     {
       route: '/about',
       label: 'About',
       icon: 'info',
       disabled: false,
+      outlined: false,
     },
   ];
 

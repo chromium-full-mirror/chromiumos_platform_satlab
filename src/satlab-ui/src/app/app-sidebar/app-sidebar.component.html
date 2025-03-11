@@ -32,7 +32,11 @@
             class="sidebar-item"
           >
             <div class="flex flex-row items-center gap-2">
-              <span class="material-icon">{{ tab.icon }}</span>
+              <span
+                class="material-icon-base material-icon"
+                [class.material-symbols-outlined]="tab.outlined"
+                >{{ tab.icon }}</span
+              >
               <p>{{ tab.label }}</p>
             </div>
           </div>

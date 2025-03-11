@@ -182,8 +182,7 @@ a:hover {
   }
 }
 
-.material-icon {
-  font-family: 'Material Icons';
+.material-icon-base {
   font-weight: normal;
   font-style: normal;
   font-size: 24px;
@@ -194,6 +193,14 @@ a:hover {
   word-wrap: normal;
   white-space: nowrap;
   direction: ltr;
+}
+
+.material-icon {
+  font-family: 'Material Icons';
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
 }
 
 .ccd-message-error {

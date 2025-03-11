@@ -12,6 +12,7 @@ import {StorageQualComponent} from './run_suite/pvs/storage-qual/storage-qual.co
 import {SingleTestComponent} from './run_suite/single-test/single-test.component';
 import {PvsComponent} from './run_suite/pvs/pvs.component';
 import {QualificationsComponent} from './run_suite/pvs/qualifications/qualifications.component';
+import {LabQualComponent} from './run_suite/lab-qual/lab-qual.component';
 
 const routes: Routes = [
   {
@@ -51,6 +52,8 @@ const routes: Routes = [
     ],
     canActivate: [checkLoggedIn],
   },
+
+  {path: 'labqual', component: LabQualComponent, canActivate: [checkLoggedIn]},
   {
     path: '**',
     component: ManageDutsComponent,

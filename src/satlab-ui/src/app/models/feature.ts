@@ -5,4 +5,5 @@ export interface SidebarEntry {
   label: string;
   icon?: string;
   disabled?: boolean;
+  outlined: boolean;
 }
