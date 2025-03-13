@@ -44,6 +44,8 @@ export interface IDut {
   ccdStatus: string;
 
   dimensions: Object;
+
+  hasPermission: boolean;
 }
 
 /**

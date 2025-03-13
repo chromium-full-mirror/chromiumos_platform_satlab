@@ -991,6 +991,7 @@ function __toIDut(e: Dut) {
         return prev;
       }
     ),
+    hasPermission: e.getHasPermission(),
   };
 
   return dut;

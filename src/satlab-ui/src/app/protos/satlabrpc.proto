@@ -405,6 +405,9 @@ message Dut {
   bool has_test_image = 13;
   BotInfo bot_info = 14;
   string ccd_status = 15;
+  // If the board is granted, returns True.
+  // Otherwise returns False.
+  bool has_permission = 16;
 }
 
 // NEXT_TAG = 5

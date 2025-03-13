@@ -14,17 +14,30 @@ import {MatDialog} from '@angular/material/dialog';
 import {StageBuildComponent} from '../../dialogs/stage-build/stage-build.component';
 import {OpenCcdComponent} from 'app/dialogs/open-ccd/open-ccd.component';
 import {delay} from 'rxjs';
+import {trigger, state, transition, style, animate} from '@angular/animations';
+import {BUILD_ACCESS_REQUEST_URL} from 'app/constants';
 
 @Component({
   selector: 'app-view-duts',
   templateUrl: './view-duts.component.html',
   styleUrls: ['./view-duts.component.scss'],
+  animations: [
+    trigger('detailExpand', [
+      state('collapsed', style({height: '0px', minHeight: '0'})),
+      state('expanded', style({height: '50px'})),
+      transition(
+        'expanded <=> collapsed',
+        animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')
+      ),
+    ]),
+  ],
 })
 export class ViewDutsComponent implements OnChanges {
   @Input() DUTs: IDut[] = [];
   @Input() loading = false;
   @Input() hostnamePrefix = '';
   @Output() selectDUTs = new EventEmitter<IDut[]>();
+  readonly build_access_request_link = BUILD_ACCESS_REQUEST_URL;
 
   protected allSelected = false;
   protected selection = new SelectionModel<IDut>(true, []);
@@ -36,6 +49,7 @@ export class ViewDutsComponent implements OnChanges {
 
   protected displayedColumns = [
     'check',
+    'expand',
     'ip',
     'hostname',
     'board',
@@ -46,6 +60,8 @@ export class ViewDutsComponent implements OnChanges {
     'pools',
     'mac',
   ];
+
+  protected expandInfo: IDut | null = null;
 
   constructor(protected dialog: MatDialog) {}
 
@@ -97,7 +113,7 @@ export class ViewDutsComponent implements OnChanges {
     this.selection.clear();
     if (e.checked) {
       toIterator(this.duts)
-        .filter(e => e.isAccessible)
+        .filter(e => e.isAccessible && e.hasPermission)
         .forEach(e => {
           this.selection.toggle(e);
         });
@@ -200,7 +216,7 @@ export class ViewDutsComponent implements OnChanges {
     this.allSelected =
       this.selectionCount > 0 &&
       toIterator(this.duts)
-        .filter(e => e.isAccessible)
+        .filter(e => e.isAccessible && e.hasPermission)
         .collect().length === this.selectionCount;
   }
 
@@ -230,6 +246,10 @@ export class ViewDutsComponent implements OnChanges {
           ele => ele !== servoSerial
         );
       });
+  }
+
+  toggleExpand(dut: IDut) {
+    this.expandInfo = this.expandInfo === dut ? null : dut;
   }
 }
 
