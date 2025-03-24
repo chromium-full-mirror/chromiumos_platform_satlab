@@ -76,6 +76,9 @@ function start_private_containers () {
   docker-compose up -d drone downloader openssh_server nginx logrotate
 
   if [[ ${UFS_NAMESPACE:-os} != "os-partner" ]]; then
+    export OS_VERSION=$(echo "$(get_host_os_version)"  | grep '^version:' | cut -d '"' -f 2)
+    export TRACK=$(echo "$(get_host_os_version)"  | grep '^track:' | cut -d '"' -f 2 | sed 's/\\n//g')
+
     docker-compose pull opentelemetry-collector
     docker-compose up -d opentelemetry-collector
   fi

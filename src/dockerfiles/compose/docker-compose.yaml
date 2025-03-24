@@ -269,6 +269,9 @@ services:
     environment:
       - GOOGLE_APPLICATION_CREDENTIALS=/data/keys/pubsub-key-do-not-delete.json
       - HOST_IDENTIFIER=${DRONE_HOSTNAME}
+      - SATLAB_VERSION=${BUILD_VERSION}
+      - OS_VERSION=${OS_VERSION}
+      - TRACK=${TRACK}
     networks:
       satlab:
         ipv4_address: 192.168.100.7

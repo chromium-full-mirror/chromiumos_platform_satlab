@@ -2,6 +2,8 @@ receivers:
   docker_stats:
     endpoint: unix:///var/run/docker.sock
     api_version: "1.41"
+    initial_delay: 1m
+    collection_interval: 5m
     metrics:
       # Default Metrics
       container.blockio.io_service_bytes_recursive:
@@ -34,6 +36,8 @@ receivers:
         enabled: false
   hostmetrics:
     root_path: /hostfs
+    initial_delay: 1m
+    collection_interval: 5m
     scrapers:
       filesystem:
         metrics:
@@ -92,6 +96,21 @@ processors:
     - key: host.id
       value:  ${HOST_IDENTIFIER}
       action: insert
+  metricstransform:
+    transforms:
+    - include: .*
+      match_type: regexp
+      action: update
+      operations:
+      - action: add_label
+        new_label: satlab_version
+        new_value: ${SATLAB_VERSION}
+      - action: add_label
+        new_label: os_version
+        new_value: ${OS_VERSION}
+      - action: add_label
+        new_label: track
+        new_value: ${TRACK}
   transform:
     metric_statements:
     - context: datapoint
@@ -110,5 +129,5 @@ service:
   pipelines:
     metrics:
       receivers: [hostmetrics, docker_stats]
-      processors: [resource, transform]
+      processors: [resource, metricstransform, transform]
       exporters: [googlecloud]
