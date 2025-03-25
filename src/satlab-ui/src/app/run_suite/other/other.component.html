@@ -14,11 +14,46 @@
         title="Type or scroll to select custom suite"
       >
       </app-autocomplete-selector>
+      <div *ngIf="customSettings.extraTestFilter">
+        <mat-form-field class="full-width zero-padding">
+          <mat-label>Enter tags you want to include</mat-label>
+          <input
+            [formControl]="tagIncludes"
+            matInput
+            placeholder="Ex: tag1,tag2(separate by comma without space)"
+          />
+        </mat-form-field>
+        <mat-form-field class="full-width zero-padding">
+          <mat-label>Enter tags you want to exclude</mat-label>
+          <input
+            [formControl]="tagExcludes"
+            matInput
+            placeholder="Ex: tag1,tag2(separate by comma without space)"
+          />
+        </mat-form-field>
+        <mat-form-field class="full-width zero-padding">
+          <mat-label>Enter test names you want to include</mat-label>
+          <input
+            [formControl]="testNameIncludes"
+            matInput
+            placeholder="Ex: test1,test2(separate by comma without space)"
+          />
+        </mat-form-field>
+        <mat-form-field class="full-width zero-padding">
+          <mat-label>Enter test names you want to exclude</mat-label>
+          <input
+            [formControl]="testNameExcludes"
+            matInput
+            placeholder="Ex: test1,test2(separate by comma without space)"
+          />
+        </mat-form-field>
+      </div>
     </div>
 
     <app-advanced-settings
       (settingsChanged)="onAdvancedSettingsChanged($event)"
       [disabled]="settingsDisabled"
+      [customSettings]="customSettings"
     ></app-advanced-settings>
 
     <div class="flex justify-center py-4">

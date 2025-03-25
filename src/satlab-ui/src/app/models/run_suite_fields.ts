@@ -42,14 +42,6 @@ export const defaultQualificationsFields: IQualificationsFields = {
   isIncrementalRun: false,
 };
 
-export interface IAdvancedSettings {
-  cft: boolean;
-  trv2: boolean;
-  uploadToCpcon: boolean;
-}
-
-export const defaultAdvancedSettings: IAdvancedSettings = {
-  cft: true,
-  trv2: false,
-  uploadToCpcon: false,
+export type ICustomSettings = {
+  [key: string]: boolean;
 };

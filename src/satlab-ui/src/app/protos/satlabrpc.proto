@@ -208,7 +208,7 @@ message Dim {
   string value = 2;
 }
 
-// NEXT_TAG = 11
+// NEXT_TAG = 15
 message RunSuiteRequest {
   string suite = 1;
   string build_target = 2;
@@ -223,6 +223,10 @@ message RunSuiteRequest {
   bool cft = 8;
   bool trv2 = 9;
   bool upload_to_cpcon = 10;
+  repeated string tag_includes = 11;
+  repeated string tag_excludes = 12;
+  repeated string test_name_includes = 13;
+  repeated string test_name_excludes = 14;
 }
 
 // NEXT_TAG = 2

@@ -8,9 +8,8 @@ import {catchError, from, map, mergeAll, of, tap} from 'rxjs';
 import {startWithTap} from 'app/utils/rxjs_operator';
 import {ITestCase} from 'app/models/testcase';
 import {
-  defaultAdvancedSettings,
   defaultBuildSelectFields,
-  IAdvancedSettings,
+  ICustomSettings,
 } from 'app/models/run_suite_fields';
 import {IBuildSelectFields} from '../../models/run_suite_fields';
 import {ISimpleDUT} from 'app/models/dut';
@@ -29,9 +28,13 @@ export class SingleTestComponent {
   protected duts: ISimpleDUT[];
   protected settingsDisabled = false;
   protected isRunning = false;
+  protected customSettings: ICustomSettings = {
+    cft: true,
+    trv2: false,
+    uploadToCpcon: false,
+  };
 
   private fields: IBuildSelectFields = defaultBuildSelectFields;
-  private advancedSettings: IAdvancedSettings = {...defaultAdvancedSettings};
 
   constructor(
     private service: SatlabRpcService,
@@ -45,8 +48,8 @@ export class SingleTestComponent {
   }
 
   // onAdvanceSettingsChanged handles the advanced settings changes
-  protected onAdvancedSettingsChanged(newValue: IAdvancedSettings) {
-    this.advancedSettings = newValue;
+  protected onAdvancedSettingsChanged(newValue: ICustomSettings) {
+    this.customSettings = newValue;
   }
 
   protected async onRunTestClick() {
@@ -56,10 +59,10 @@ export class SingleTestComponent {
     // Set the `cft` flag, if the user sets the flag to `true`
     // and non custom build.
     const customBuild = isCustomBuild(this.fields.build);
-    const cft = this.advancedSettings.cft && !customBuild;
-    const trv2 = this.advancedSettings.trv2 && !customBuild;
+    const cft = this.customSettings.cft && !customBuild;
+    const trv2 = this.customSettings.trv2 && !customBuild;
     const uploadToCpcon =
-      this.advancedSettings.trv2 && this.advancedSettings.uploadToCpcon;
+      this.customSettings.trv2 && this.customSettings.uploadToCpcon;
 
     from(this.testCases)
       .pipe(
@@ -72,11 +75,12 @@ export class SingleTestComponent {
           return from(
             this.service.runTest({
               ...this.fields,
+              customSettings: {
+                cft: cft,
+                trv2: trv2,
+                uploadToCpcon: uploadToCpcon,
+              },
               tests: [test.name],
-              ...this.advancedSettings,
-              cft: cft,
-              trv2: trv2,
-              uploadToCpcon: uploadToCpcon,
             })
           ).pipe(
             catchError(err => {

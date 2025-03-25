@@ -7,12 +7,12 @@ import {startWithTap} from '../../utils/rxjs_operator';
 import {NotificationService} from 'app/services/notification.service';
 import {checkSelectFields, isCustomBuild} from '../../utils/validators';
 import {
-  defaultAdvancedSettings,
   defaultBuildSelectFields,
-  IAdvancedSettings,
   IBuildSelectFields,
+  ICustomSettings,
 } from '../../models/run_suite_fields';
 import {ISimpleDUT} from 'app/models/dut';
+import {FormControl} from '@angular/forms';
 
 @Component({
   selector: 'app-other',
@@ -36,10 +36,19 @@ export class OtherComponent {
   protected duts: ISimpleDUT[];
   protected settingsDisabled = false;
   protected isRunning = false;
+  protected customSettings: ICustomSettings = {
+    extraTestFilter: false,
+    cft: true,
+    trv2: false,
+    uploadToCpcon: false,
+  };
+  protected tagIncludes = new FormControl('');
+  protected tagExcludes = new FormControl('');
+  protected testNameIncludes = new FormControl('');
+  protected testNameExcludes = new FormControl('');
 
   private suite = '';
   private fields: IBuildSelectFields = defaultBuildSelectFields;
-  private advancedSettings: IAdvancedSettings = {...defaultAdvancedSettings};
 
   constructor(
     private service: SatlabRpcService,
@@ -66,8 +75,8 @@ export class OtherComponent {
   }
 
   // onAdvanceSettingsChanged handles the advanced settings changes
-  protected onAdvancedSettingsChanged(newValue: IAdvancedSettings) {
-    this.advancedSettings = newValue;
+  protected onAdvancedSettingsChanged(newValue: ICustomSettings) {
+    this.customSettings = newValue;
   }
 
   protected onRunSuiteClick() {
@@ -77,19 +86,37 @@ export class OtherComponent {
     // Set the `cft` flag, if the user sets the flag to `true`
     // and non custom build.
     const customBuild = isCustomBuild(this.fields.build);
-    const cft = this.advancedSettings.cft && !customBuild;
-    const trv2 = this.advancedSettings.trv2 && !customBuild;
+    const cft = this.customSettings.cft && !customBuild;
+    const trv2 = this.customSettings.trv2 && !customBuild;
     const uploadToCpcon =
-      this.advancedSettings.trv2 && this.advancedSettings.uploadToCpcon;
+      this.customSettings.trv2 && this.customSettings.uploadToCpcon;
+
+    const tagIncludes = this.customSettings.extraTestFilter
+      ? this.toTagList(this.tagIncludes.value)
+      : [];
+    const tagExcludes = this.customSettings.extraTestFilter
+      ? this.toTagList(this.tagExcludes.value)
+      : [];
+    const testNameIncludes = this.customSettings.extraTestFilter
+      ? this.toTagList(this.testNameIncludes.value)
+      : [];
+    const testNameExcludes = this.customSettings.extraTestFilter
+      ? this.toTagList(this.testNameExcludes.value)
+      : [];
 
     from(
       this.service.runSuite({
         ...this.fields,
         suite: this.suite,
-        ...this.advancedSettings,
-        cft: cft,
-        trv2: trv2,
-        uploadToCpcon: uploadToCpcon,
+        customSettings: {
+          cft: cft,
+          trv2: trv2,
+          uploadToCpcon: uploadToCpcon,
+        },
+        tagIncludes: tagIncludes,
+        tagExcludes: tagExcludes,
+        testNameIncludes: testNameIncludes,
+        testNameExcludes: testNameExcludes,
       })
     )
       .pipe(
@@ -132,5 +159,15 @@ export class OtherComponent {
     const isSuiteValid = this.suite !== '';
 
     return isFieldsValid && isSuiteValid;
+  }
+
+  private toTagList(tagInput: string): string[] {
+    return tagInput.trim()
+      ? tagInput
+          .trim()
+          .split(',')
+          .map(e => e.trim())
+          .filter(e => e !== '')
+      : [];
   }
 }

@@ -95,9 +95,11 @@ export class LabQualComponent implements OnInit, OnDestroy {
 
           return {
             ...this.fields$.value,
-            cft: true,
-            trv2: false,
-            uploadToCpcon: false,
+            customSettings: {
+              cft: true,
+              trv2: false,
+              uploadToCpcon: false,
+            },
             path: path,
           };
         }),

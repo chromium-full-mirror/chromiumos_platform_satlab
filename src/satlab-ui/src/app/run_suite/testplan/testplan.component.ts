@@ -8,10 +8,9 @@ import {BuildSelectFormComponent} from '../common/build-select-form/build-select
 import {NotificationService} from '../../services/notification.service';
 import {checkSelectFields, isCustomBuild} from '../../utils/validators';
 import {
-  defaultAdvancedSettings,
   defaultBuildSelectFields,
-  IAdvancedSettings,
   IBuildSelectFields,
+  ICustomSettings,
 } from '../../models/run_suite_fields';
 import {AutocompleteSelectorComponent} from '../common/autocomplete-selector/autocomplete-selector.component';
 @Component({
@@ -30,8 +29,11 @@ export class TestplanComponent {
   protected errorMessage = '';
   protected settingsDisabled = false;
   protected isRunning = false;
-
-  private advancedSettings: IAdvancedSettings = {...defaultAdvancedSettings};
+  protected customSettings: ICustomSettings = {
+    cft: true,
+    trv2: false,
+    uploadToCpcon: false,
+  };
 
   constructor(
     private service: SatlabRpcService,
@@ -45,8 +47,8 @@ export class TestplanComponent {
   }
 
   // onAdvanceSettingsChanged handles the advanced settings changes.
-  protected onAdvancedSettingsChanged(newValue: IAdvancedSettings) {
-    this.advancedSettings = newValue;
+  protected onAdvancedSettingsChanged(newValue: ICustomSettings) {
+    this.customSettings = newValue;
   }
 
   protected listTestPlans() {
@@ -97,10 +99,10 @@ export class TestplanComponent {
     // Set the `cft` flag, if the user sets the flag to `true`
     // and non custom build.
     const customBuild = isCustomBuild(this.fields.build);
-    const cft = this.advancedSettings.cft && !customBuild;
-    const trv2 = this.advancedSettings.trv2 && !customBuild;
+    const cft = this.customSettings.cft && !customBuild;
+    const trv2 = this.customSettings.trv2 && !customBuild;
     const uploadToCpcon =
-      this.advancedSettings.trv2 && this.advancedSettings.uploadToCpcon;
+      this.customSettings.trv2 && this.customSettings.uploadToCpcon;
 
     from(this.selectedTestPlan)
       .pipe(
@@ -114,10 +116,11 @@ export class TestplanComponent {
             this.service.runTestPlan({
               ...this.fields,
               plan: testPlan.name,
-              ...this.advancedSettings,
-              cft: cft,
-              trv2: trv2,
-              uploadToCpcon: uploadToCpcon,
+              customSettings: {
+                cft: cft,
+                trv2: trv2,
+                uploadToCpcon: uploadToCpcon,
+              },
             })
           ).pipe(
             catchError(err => {

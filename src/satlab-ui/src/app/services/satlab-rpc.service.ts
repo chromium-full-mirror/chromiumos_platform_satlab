@@ -84,8 +84,8 @@ import {
 } from '../models/job';
 import {Timestamp} from 'google-protobuf/google/protobuf/timestamp_pb';
 import {
-  IAdvancedSettings,
   IBuildSelectFields,
+  ICustomSettings,
   IPVSFields,
   IQualificationsFields,
 } from '../models/run_suite_fields';
@@ -196,8 +196,12 @@ export class SatlabRpcService {
   public async runSuite(
     params: {
       suite: string;
-    } & IAdvancedSettings &
-      IBuildSelectFields
+      customSettings: ICustomSettings;
+      tagIncludes: string[];
+      tagExcludes: string[];
+      testNameIncludes: string[];
+      testNameExcludes: string[];
+    } & IBuildSelectFields
   ) {
     const req = new RunSuiteRequest()
       .setModel(params.model)
@@ -206,10 +210,14 @@ export class SatlabRpcService {
       .setBuildVersion(params.build)
       .setPool(params.pool)
       .setSuite(params.suite)
-      .setCft(params.cft)
-      .setTrv2(params.trv2)
-      .setUploadToCpcon(params.uploadToCpcon)
-      .setDimsList(this.toDims(params.dims));
+      .setCft(params.customSettings.cft)
+      .setTrv2(params.customSettings.trv2)
+      .setUploadToCpcon(params.customSettings.uploadToCpcon)
+      .setDimsList(this.toDims(params.dims))
+      .setTagIncludesList(params.tagIncludes)
+      .setTagExcludesList(params.tagExcludes)
+      .setTestNameIncludesList(params.testNameIncludes)
+      .setTestNameExcludesList(params.testNameExcludes);
 
     const resp = await this.client.runSuite(req, {});
 
@@ -220,9 +228,9 @@ export class SatlabRpcService {
    * runLabQual trigger the `lab-qual` test
    */
   public runLabQual(
-    params: IBuildSelectFields & IAdvancedSettings & {path: string}
+    params: IBuildSelectFields & {path: string; customSettings: ICustomSettings}
   ) {
-    const settings = __toAdvancedSettings(params.build, {...params});
+    const settings = __toAdvancedSettings(params.build, params.customSettings);
 
     const req = new RunLabQualRequest()
       .setBoard(params.board)
@@ -429,8 +437,8 @@ export class SatlabRpcService {
     params: {
       tests: string[];
       test_args?: string;
-    } & IBuildSelectFields &
-      IAdvancedSettings
+      customSettings: ICustomSettings;
+    } & IBuildSelectFields
   ) {
     const req = new RunTestRequest()
       .setModel(params.model)
@@ -439,9 +447,9 @@ export class SatlabRpcService {
       .setBuild(params.build)
       .setPool(params.pool)
       .setTestsList(params.tests)
-      .setCft(params.cft)
-      .setTrv2(params.trv2)
-      .setUploadToCpcon(params.uploadToCpcon)
+      .setCft(params.customSettings.cft)
+      .setTrv2(params.customSettings.trv2)
+      .setUploadToCpcon(params.customSettings.uploadToCpcon)
       .setDimsList(this.toDims(params.dims));
 
     if (params.test_args !== undefined) {
@@ -465,9 +473,11 @@ export class SatlabRpcService {
   }) {
     return this.runTest({
       ...params,
-      cft: !isCustomBuild(params.build),
-      trv2: false,
-      uploadToCpcon: false,
+      customSettings: {
+        cft: !isCustomBuild(params.build),
+        trv2: false,
+        uploadToCpcon: false,
+      },
       tests: ['stub_Pass'],
     });
   }
@@ -489,8 +499,8 @@ export class SatlabRpcService {
   public async runTestPlan(
     params: {
       plan: string;
-    } & IAdvancedSettings &
-      IBuildSelectFields
+      customSettings: ICustomSettings;
+    } & IBuildSelectFields
   ) {
     const req = new RunTestPlanRequest()
       .setModel(params.model)
@@ -499,9 +509,9 @@ export class SatlabRpcService {
       .setBuild(params.build)
       .setPool(params.pool)
       .setTestPlanName(params.plan)
-      .setCft(params.cft)
-      .setTrv2(params.trv2)
-      .setUploadToCpcon(params.uploadToCpcon)
+      .setCft(params.customSettings.cft)
+      .setTrv2(params.customSettings.trv2)
+      .setUploadToCpcon(params.customSettings.uploadToCpcon)
       .setDimsList(this.toDims(params.dims));
 
     const resp = await this.client.runTestPlan(req, {});
@@ -832,10 +842,10 @@ function toRepairDUTsResponse(r: RepairDutsResponse.RepairResult[]) {
 function toTags(tags?: JobTags): Tag[] {
   return tags
     ? toIterator(Object.keys(tags))
-        .map(k => {
-          return new Tag().setKey(k).setValue(tags[k]);
-        })
-        .collect()
+      .map(k => {
+        return new Tag().setKey(k).setValue(tags[k]);
+      })
+      .collect()
     : [];
 }
 
@@ -1015,13 +1025,13 @@ function __toStatus(status: string, botInfo?: BotInfo) {
 }
 
 /**
- * Convert the `IAdvancedSettings` to the proto message `AdvancedSettings`
+ * Convert the `ICustomSettings` to the proto message `AdvancedSettings`
  * @param build the build version that user selected
- * @param settings the interface of IAdvancedSettings
+ * @param settings the type of ICustomSettings
  *
  * @returns the proto message AdvancedSettings
  */
-function __toAdvancedSettings(build: string, settings: IAdvancedSettings) {
+function __toAdvancedSettings(build: string, settings: ICustomSettings) {
   const isCustom = isCustomBuild(build);
   const cft = settings.cft && !isCustom;
   const trv2 = settings.trv2 && !isCustom;

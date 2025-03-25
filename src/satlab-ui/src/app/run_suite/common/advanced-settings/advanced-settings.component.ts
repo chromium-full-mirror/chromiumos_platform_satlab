@@ -6,10 +6,7 @@ import {
   OnInit,
   Output,
 } from '@angular/core';
-import {
-  defaultAdvancedSettings,
-  IAdvancedSettings,
-} from 'app/models/run_suite_fields';
+import {ICustomSettings} from 'app/models/run_suite_fields';
 import {BehaviorSubject, Subscription} from 'rxjs';
 
 @Component({
@@ -19,23 +16,24 @@ import {BehaviorSubject, Subscription} from 'rxjs';
 })
 export class AdvancedSettingsComponent implements OnInit, OnDestroy {
   @Input() disabled = false;
+  @Input() customSettings: ICustomSettings = {};
 
-  @Output() settingsChanged = new EventEmitter<IAdvancedSettings>();
+  @Output() settingsChanged = new EventEmitter<ICustomSettings>();
 
-  private settings: BehaviorSubject<IAdvancedSettings> = new BehaviorSubject({
-    ...defaultAdvancedSettings,
-  });
-  protected settings$ = this.settings.asObservable();
+  private _settings: BehaviorSubject<ICustomSettings> = new BehaviorSubject({});
+  protected settings$ = this._settings.asObservable();
   private disposer?: Subscription;
 
   constructor() {}
 
   ngOnInit() {
+    // check the key existence.
+    this.customSettings = this.ensureKeyExistance(this.customSettings);
+
+    this._settings.next(this.customSettings);
     // subscript the `settings` value changed
     // When `settings` changed, we can notify the value has been changed.
-    this.disposer = this.settings.subscribe(e => this.settingsChanged.emit(e));
-    // Notify the value at the first time
-    this.settingsChanged.emit(this.settings.value);
+    this.disposer = this._settings.subscribe(e => this.settingsChanged.emit(e));
   }
 
   ngOnDestroy() {
@@ -43,51 +41,77 @@ export class AdvancedSettingsComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * onExtraTestFilterChanged handles the extraTestFilter flag changed event.
+   */
+  protected onExtraTestFilterChanged(newValue: boolean) {
+    this._settings.next({
+      ...this._settings.value,
+      extraTestFilter: newValue,
+    });
+  }
+
+  /**
    * onCftChanged handles the cft flag changed event.
    */
   protected onCftChanged(newValue: boolean) {
-    // if `cft` is disable, also disable `trv2` and `uploadToCpcon` flag
-    const trv2 = newValue === false ? false : this.settings.value.trv2;
-    const uploadToCpcon =
-      newValue === false ? false : this.settings.value.uploadToCpcon;
-    this.settings.next({
-      ...this.settings.value,
+    let advSettings = {
+      ...this._settings.value,
       cft: newValue,
-      trv2: trv2,
-      uploadToCpcon: uploadToCpcon,
-    });
+    };
+    if (this.customSettings.hasOwnProperty('trv2')) {
+      // if `cft` is disable, also disable `trv2` and `uploadToCpcon` flag
+      advSettings['trv2'] =
+        newValue === false ? false : this._settings.value.trv2;
+    }
+    if (this.customSettings.hasOwnProperty('uploadToCpcon')) {
+      advSettings['uploadToCpcon'] =
+        newValue === false ? false : this._settings.value.uploadToCpcon;
+    }
+    this._settings.next(advSettings);
   }
 
   /**
    * onTrv2Changed handles the trv2 flag changed event.
    */
   protected onTrv2Changed(newValue: boolean) {
-    // if `trv2` flag is true, also enable `cft` flag
-    const cft = newValue ? true : this.settings.value.cft;
-    // if `trv2` flag is false, disables `uploadToCpcon` flag
-    const uploadToCpcon =
-      newValue === false ? false : this.settings.value.uploadToCpcon;
-    this.settings.next({
-      ...this.settings.value,
-      cft: cft,
+    let advSettings = {
+      ...this._settings.value,
+      cft: newValue ? true : this._settings.value.cft,
       trv2: newValue,
-      uploadToCpcon: uploadToCpcon,
-    });
+    };
+    if (this.customSettings.hasOwnProperty('uploadToCpcon')) {
+      // if `trv2` flag is false, disables `uploadToCpcon` flag
+      advSettings['uploadToCpcon'] =
+        newValue === false ? false : this._settings.value.uploadToCpcon;
+    }
+    this._settings.next(advSettings);
   }
 
   /**
    * onUploadToCpconChanged handles the `uplaod cpcon` flag changed event.
    */
   protected onUploadToCpconChanged(newValue: boolean) {
-    // If `uploadToCpcon` is true, enables `trv2` and `cft` flags
-    const trv2 = newValue ? true : this.settings.value.trv2;
-    const cft = newValue ? true : this.settings.value.cft;
-    this.settings.next({
-      ...this.settings.value,
+    this._settings.next({
+      ...this._settings.value,
+      cft: newValue ? true : this._settings.value.cft,
+      trv2: newValue ? true : this._settings.value.trv2,
       uploadToCpcon: newValue,
-      // if uploadToCpcon is true, enables the trv2 flag.
-      trv2: trv2,
-      cft: cft,
     });
+  }
+
+  /**
+   * Check the key relation holds. Ex: If trv2 flag exist, cft flag must exist.
+   */
+  private ensureKeyExistance(settings: ICustomSettings): ICustomSettings {
+    if (settings.hasOwnProperty('uploadToCpcon')) {
+      settings['trv2'] = false;
+      settings['cft'] = true;
+    }
+
+    if (settings.hasOwnProperty('trv2')) {
+      settings['cft'] = true;
+    }
+
+    return settings;
   }
 }
