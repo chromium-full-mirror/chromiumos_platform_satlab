@@ -38,7 +38,8 @@ FROM ${BASE_REGISTRY_URI}/linuxserver/openssh-server:latest
 COPY dockerfiles/satlab_remote_access/testing_rsa.pub /
 COPY --from=docker --chmod=755 /usr/local/bin/docker /usr/local/bin/docker
 
-COPY dockerfiles/satlab_remote_access/requirements.txt ./
+COPY dockerfiles/satlab_remote_access/pip_upgrade_requirements.txt \
+    dockerfiles/satlab_remote_access/requirements.txt ./
 
 RUN mkdir -p /home/moblab
 RUN mkdir -p /home/moblab/.ssh
@@ -60,7 +61,8 @@ RUN apk add --no-cache --upgrade \
     python3 \
     python3-dev \
     zlib-dev && \
-    pip3 install --upgrade pip && pip3 install --no-cache-dir --require-hashes -r requirements.txt && \
+    pip3 install --no-cache-dir --require-hashes -r pip_upgrade_requirements.txt && \
+    pip3 install --no-cache-dir --require-hashes -r requirements.txt && \
     pip install --no-deps --no-index *.whl && \
     rm -rf /install && \
     apk del \
