@@ -50,6 +50,9 @@ import {
   UpdatePoolRequest,
   UploadLogRequest,
   IsAuthRequest,
+  AddTopologyRequest,
+  DeleteTopologyRequest,
+  TopologyRequest,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
 import {
@@ -823,6 +826,24 @@ export class SatlabRpcService {
       })
     );
   }
+
+  public async getTopology(hostname: string) {
+    const req = new TopologyRequest().setHostname(hostname);
+    const res = await this.client.topology(req, {});
+    return res.getPasitHost();
+  }
+
+  public async addTopology(params: {hostname: string; content: string}) {
+    const req = new AddTopologyRequest()
+      .setHostname(params.hostname)
+      .setContent(params.content);
+    return await this.client.addTopology(req, {});
+  }
+
+  public async deleteTopology(hostname: string) {
+    const req = new DeleteTopologyRequest().setHostname(hostname);
+    return await this.client.deleteTopology(req, {});
+  }
 }
 
 function toRepairDUTsResponse(r: RepairDutsResponse.RepairResult[]) {
@@ -842,10 +863,10 @@ function toRepairDUTsResponse(r: RepairDutsResponse.RepairResult[]) {
 function toTags(tags?: JobTags): Tag[] {
   return tags
     ? toIterator(Object.keys(tags))
-      .map(k => {
-        return new Tag().setKey(k).setValue(tags[k]);
-      })
-      .collect()
+        .map(k => {
+          return new Tag().setKey(k).setValue(tags[k]);
+        })
+        .collect()
     : [];
 }
 

@@ -26,6 +26,9 @@ service SatlabRpcService {
   rpc ListTestPlans (ListTestPlansRequest) returns (ListTestPlansResponse);
   rpc RunStorageQual (RunStorageQualRequest) returns (RunStorageQualResponse);
   rpc RunQualification (RunQualificationRequest) returns (RunQualificationResponse);
+  rpc Topology(TopologyRequest) returns (TopologyResponse);
+  rpc AddTopology(AddTopologyRequest) returns (AddTopologyResponse);
+  rpc DeleteTopology(DeleteTopologyRequest) returns (DeleteTopologyResponse);
 
   // services to run different types of test suites
   rpc RunSuite (RunSuiteRequest) returns (RunSuiteResponse);
@@ -874,3 +877,30 @@ message IsAuthRequest {}
 message IsAuthResponse {
   bool is_auth = 1;
 }
+
+// NEXT_TAG = 2
+message TopologyRequest {
+  string hostname = 1;
+}
+
+// NEXT_TAG = 2
+message TopologyResponse {
+  string pasit_host = 1;
+}
+
+// NEXT_TAG = 3
+message AddTopologyRequest {
+  string hostname = 1;
+  string content = 2;
+}
+
+// NEXT_TAG = 1
+message AddTopologyResponse {}
+
+// NEXT_TAG = 2
+message DeleteTopologyRequest {
+  string hostname = 1;
+}
+
+// NEXT_TAG = 1
+message DeleteTopologyResponse {}

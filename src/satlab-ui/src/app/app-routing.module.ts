@@ -13,6 +13,7 @@ import {SingleTestComponent} from './run_suite/single-test/single-test.component
 import {PvsComponent} from './run_suite/pvs/pvs.component';
 import {QualificationsComponent} from './run_suite/pvs/qualifications/qualifications.component';
 import {LabQualComponent} from './run_suite/lab-qual/lab-qual.component';
+import {PasitComponent} from './run_suite/pasit/pasit.component';
 
 const routes: Routes = [
   {
@@ -54,6 +55,7 @@ const routes: Routes = [
   },
 
   {path: 'labqual', component: LabQualComponent, canActivate: [checkLoggedIn]},
+  {path: 'pasit', component: PasitComponent, canActivate: [checkLoggedIn]},
   {
     path: '**',
     component: ManageDutsComponent,

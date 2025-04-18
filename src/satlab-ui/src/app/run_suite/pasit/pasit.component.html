@@ -1,0 +1,53 @@
+<div class="suite-content">
+  <div class="field-wrapper">
+    <app-loading [loading$]="loading$"></app-loading>
+    <div class="select-form">
+      <app-basic-selector
+        #hostnameSelector
+        (select)="onHostnameChanged($event)"
+        [options]="hostnameOptions"
+        id="hostnameSelector"
+        placeholder="Please select a DUT by hostname"
+        title="Select DUT:"
+      >
+      </app-basic-selector>
+
+      <app-build-selector
+        (onChanged)="onBuildChanged($event)"
+        [board]="fields.board"
+        [loading]="loading"
+        [model]="fields.model"
+      ></app-build-selector>
+
+      <app-autocomplete-selector
+        #suiteSelector
+        (inputChanged)="onSuiteChanged($event)"
+        [options]="suiteOptions"
+        id="suiteSelector"
+        placeholder="Type or scroll to select custom suite"
+        title="Type or scroll to select custom suite"
+      >
+      </app-autocomplete-selector>
+    </div>
+
+    <app-advanced-settings
+      (settingsChanged)="onAdvancedSettingsChanged($event)"
+      [customSettings]="customSettings"
+    ></app-advanced-settings>
+
+    <div class="flex justify-center py-4">
+      <app-loading-button
+        (onClick)="onRunPasitClick()"
+        [disabled]="disabled"
+        [loading]="isRunning"
+        [text]="'Run'"
+      ></app-loading-button>
+    </div>
+  </div>
+  <div class="topology-wrapper">
+    <textarea
+      [disabled]="disableTopologyContent"
+      [(ngModel)]="topologyContent"
+    ></textarea>
+  </div>
+</div>

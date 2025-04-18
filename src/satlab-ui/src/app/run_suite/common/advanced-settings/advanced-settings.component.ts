@@ -50,6 +50,13 @@ export class AdvancedSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
+  protected onEditTopologyChanged(newValue: boolean) {
+    this._settings.next({
+      ...this._settings.value,
+      editTopology: newValue,
+    });
+  }
+
   /**
    * onCftChanged handles the cft flag changed event.
    */

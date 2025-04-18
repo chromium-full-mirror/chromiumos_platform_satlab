@@ -1,0 +1,34 @@
+.suite-content {
+  display: flex;
+  justify-content: center;
+  gap: 50px;
+  padding-top: 4rem;
+
+  .field-wrapper {
+    border: 1px solid #ebebeb;
+    border-radius: 0.25rem;
+
+    .select-form {
+      padding: 0.5rem 1.5rem 0 1.5rem;
+      display: flex;
+      flex-direction: column;
+      row-gap: 1rem;
+      width: 26rem;
+    }
+
+    button {
+      width: 12rem;
+      height: 2.5rem;
+    }
+  }
+
+  .topology-wrapper {
+    width: 500px;
+    height: 480px;
+
+    textarea {
+      width: 100%;
+      height: 100%;
+    }
+  }
+}

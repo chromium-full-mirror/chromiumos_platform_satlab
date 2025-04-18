@@ -71,6 +71,7 @@ import {LoadingButtonComponent} from './common/loading-button/loading-button.com
 import {BuildSelectorComponent} from './run_suite/common/build-selector/build-selector.component';
 import {StableVersionComponent} from './manage-duts/stable-version/stable-version.component';
 import {StableVersionCardComponent} from './manage-duts/stable-version-card/stable-version-card.component';
+import {PasitComponent} from './run_suite/pasit/pasit.component';
 
 @NgModule({
   declarations: [
@@ -110,6 +111,7 @@ import {StableVersionCardComponent} from './manage-duts/stable-version-card/stab
     LoadingButtonComponent,
     StableVersionComponent,
     StableVersionCardComponent,
+    PasitComponent,
   ],
   imports: [
     AppRoutingModule,

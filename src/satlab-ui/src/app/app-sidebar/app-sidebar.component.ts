@@ -24,6 +24,12 @@ export class AppSidebarComponent {
       outlined: false,
     },
     {
+      route: '/pasit',
+      label: 'Pasit',
+      icon: 'hub',
+      outlined: false,
+    },
+    {
       route: '/pvs',
       label: 'AVL Qualification',
       icon: 'science',
