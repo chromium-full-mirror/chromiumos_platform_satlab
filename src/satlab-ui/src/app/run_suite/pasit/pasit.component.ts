@@ -10,7 +10,7 @@ import {SatlabRpcService} from 'app/services/satlab-rpc.service';
 import {toIterator} from 'app/utils/iterator';
 import {startWithTap} from 'app/utils/rxjs_operator';
 import {checkSelectFields, isCustomBuild} from 'app/utils/validators';
-import {BehaviorSubject, finalize, from, Subject} from 'rxjs';
+import {BehaviorSubject, finalize, from} from 'rxjs';
 
 @Component({
   selector: 'app-pasit',
@@ -47,7 +47,7 @@ export class PasitComponent implements AfterViewInit {
   protected disabled = true;
   protected isRunning = false;
   protected tagsToInclude: string[] = [];
-  protected disableTopologyContent = false;
+  protected disableInputOnTrigger = false;
 
   constructor(
     private service: SatlabRpcService,
@@ -166,7 +166,7 @@ export class PasitComponent implements AfterViewInit {
           startWithTap(() => {
             this.disabled = true;
             this.isRunning = true;
-            this.disableTopologyContent = true;
+            this.disableInputOnTrigger = true;
             this.showLoading('Editting Topology...');
           }),
           finalize(() => {
@@ -237,7 +237,7 @@ export class PasitComponent implements AfterViewInit {
   #resetController() {
     this.disabled = false;
     this.isRunning = false;
-    this.disableTopologyContent = false;
+    this.disableInputOnTrigger = false;
   }
 
   protected onAdvancedSettingsChanged(newValue: ICustomSettings) {

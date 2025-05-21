@@ -46,7 +46,7 @@
   </div>
   <div class="topology-wrapper">
     <textarea
-      [disabled]="disableTopologyContent"
+      [disabled]="disableInputOnTrigger || !customSettings.editTopology"
       [(ngModel)]="topologyContent"
     ></textarea>
   </div>
