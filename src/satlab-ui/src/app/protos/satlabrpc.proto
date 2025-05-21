@@ -67,6 +67,8 @@ service SatlabRpcService {
   rpc SetCloudConfiguration (SetCloudConfigurationRequest) returns (SetCloudConfigurationResponse);
   rpc GetCloudConfiguration (GetCloudConfigurationRequest) returns (GetCloudConfigurationResponse);
   rpc IsAuth (IsAuthRequest) returns (IsAuthResponse);
+  rpc DutWifiInfo (DutWifiInfoRequest) returns (DutWifiInfoResponse);
+  rpc SetDutWifiInfo (SetDutWifiInfoRequest) returns (SetDutWifiInfoResponse);
 
   // system
   rpc Reboot (RebootRequest) returns (RebootResponse);
@@ -900,6 +902,24 @@ message IsAuthRequest {}
 message IsAuthResponse {
   bool is_auth = 1;
 }
+
+// NEXT_TAG = 1
+message DutWifiInfoRequest {}
+
+// NEXT_TAG = 3
+message DutWifiInfoResponse {
+  string ssid = 1;
+  string password = 2;
+}
+
+// NEXT_TAG = 3
+message SetDutWifiInfoRequest {
+  string ssid = 1;
+  string password = 2;
+}
+
+// NEXT_TAG = 1
+message SetDutWifiInfoResponse {}
 
 // NEXT_TAG = 2
 message TopologyRequest {

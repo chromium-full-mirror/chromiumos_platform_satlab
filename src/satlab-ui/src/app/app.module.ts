@@ -75,6 +75,7 @@ import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterModule} from '@angular/router';
 import {SafeNumberPipe} from './pipes/safe-number.pipe';
+import {WifiConfigComponent} from './wifi-config/wifi-config.component';
 
 @NgModule({
   declarations: [
@@ -115,6 +116,7 @@ import {SafeNumberPipe} from './pipes/safe-number.pipe';
     StableVersionComponent,
     StableVersionCardComponent,
     PasitComponent,
+    WifiConfigComponent,
     SuiteComponent,
     AndroidBuildSelectFormComponent,
     TestPlanComponent,

@@ -82,6 +82,8 @@ import {
   UpdateDutsFirmwareRequest,
   UpdatePoolRequest,
   UploadLogRequest,
+  DutWifiInfoRequest,
+  SetDutWifiInfoRequest,
 } from './satlabrpc_pb';
 import {Injectable} from '@angular/core';
 import {
@@ -885,6 +887,24 @@ export class SatlabRpcService {
     return __toTestlabStatus(res.getEnabled());
   }
 
+  public async getDUTWifiInfo() {
+    const req = new DutWifiInfoRequest();
+    const res = await this.client.dutWifiInfo(req, {});
+
+    return {
+      ssid: res.getSsid(),
+      password: res.getPassword(),
+    };
+  }
+
+  public async setDUTWifiInfo(p: {ssid: string; password: string}) {
+    const req = new SetDutWifiInfoRequest()
+      .setSsid(p.ssid)
+      .setPassword(p.password);
+
+    await this.client.setDutWifiInfo(req, {});
+  }
+
   public async downloadJob(id: string) {
     const req = new DownloadJobLogRequest().setId(id);
     const res = await this.client.downloadJobLog(req, {});
@@ -952,10 +972,10 @@ function toRepairDUTsResponse(r: RepairDutsResponse.RepairResult[]) {
 function toTags(tags?: JobTags): Tag[] {
   return tags
     ? toIterator(Object.keys(tags))
-        .map(k => {
-          return new Tag().setKey(k).setValue(tags[k]);
-        })
-        .collect()
+      .map(k => {
+        return new Tag().setKey(k).setValue(tags[k]);
+      })
+      .collect()
     : [];
 }
 

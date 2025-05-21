@@ -1,5 +1,5 @@
 <div class="wrapper">
-  <div class="cloud-configuration-wrapper">
+  <div class="configuration-wrapper">
     <ng-container *ngIf="cloudConfigurationLoading">
       <div class="loading-overlay">
         <mat-spinner class="spinner"></mat-spinner>
@@ -109,5 +109,8 @@
         Submit
       </button>
     </div>
+  </div>
+  <div class="configuration-wrapper">
+    <app-wifi-config></app-wifi-config>
   </div>
 </div>

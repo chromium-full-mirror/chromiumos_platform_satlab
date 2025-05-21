@@ -1,4 +1,4 @@
-import {Component, ViewChild} from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import {SelectableItem} from '../../models/selectable_item';
 import {SatlabRpcService} from '../../services/satlab-rpc.service';
 import {BuildSelectFormComponent} from '../common/build-select-form/build-select-form.component';
@@ -13,13 +13,14 @@ import {
 } from '../../models/run_suite_fields';
 import {ISimpleDUT} from 'app/models/dut';
 import {FormControl} from '@angular/forms';
+import {IWifiInfo} from 'app/models/wifi';
 
 @Component({
   selector: 'app-other',
   templateUrl: './other.component.html',
   styleUrls: ['./other.component.scss'],
 })
-export class OtherComponent {
+export class OtherComponent implements OnInit {
   @ViewChild(BuildSelectFormComponent) form!: BuildSelectFormComponent;
 
   protected suiteList: string[] = [
@@ -47,6 +48,10 @@ export class OtherComponent {
 
   private suite = '';
   private fields: IBuildSelectFields = defaultBuildSelectFields;
+  private wifiInfo: IWifiInfo = {
+    ssid: '',
+    password: '',
+  };
 
   constructor(
     private service: SatlabRpcService,
@@ -59,6 +64,10 @@ export class OtherComponent {
         label: '',
       };
     });
+  }
+
+  ngOnInit(): void {
+    from(this.service.getDUTWifiInfo()).subscribe(res => (this.wifiInfo = res));
   }
 
   protected allRequiredFieldsSet(fields: IBuildSelectFields) {
@@ -79,6 +88,16 @@ export class OtherComponent {
 
   protected onRunSuiteClick() {
     if (!this.validate()) {
+      return;
+    }
+    if (
+      this.suite === 'cts' &&
+      (this.wifiInfo.ssid === '' || this.wifiInfo.password === '')
+    ) {
+      this.notification.error(
+        `Please make sure the WiFi configuration is set properly before running CTS`,
+        {dismiss: false}
+      );
       return;
     }
     // Set the `cft` flag, if the user sets the flag to `true`

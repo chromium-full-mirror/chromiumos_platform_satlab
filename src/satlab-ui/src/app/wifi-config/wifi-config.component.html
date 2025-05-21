@@ -1,0 +1,57 @@
+<div class="wrapper">
+  <app-spinner-loading [isLoading]="wifiConfigLoading"></app-spinner-loading>
+  <div class="header">
+    <p class="title">DUT WiFi Configuration</p>
+  </div>
+  <mat-form-field class="full-width zero-padding">
+    <mat-label>SSID</mat-label>
+    <input
+      [formControl]="ssidFormControl"
+      matInput
+      placeholder="Enter SSID here"
+    />
+  </mat-form-field>
+  <mat-form-field class="full-width zero-padding">
+    <mat-label>Password</mat-label>
+    <input
+      [formControl]="passwordFormControl"
+      matInput
+      placeholder="Enter Password here"
+      type="password"
+    />
+  </mat-form-field>
+  <div class="btn-group">
+    <button
+      (click)="onUndoClicked()"
+      [disabled]="
+        ssidFormControl.value === wifiInfo.ssid &&
+        passwordFormControl.value === wifiInfo.password
+      "
+      color="primary"
+      mat-raised-button
+    >
+      Undo
+    </button>
+    <button
+      (click)="onSetWifiInfoClicked()"
+      [disabled]="
+        ssidFormControl.value.trim() === '' ||
+        passwordFormControl.value.trim() === '' ||
+        (ssidFormControl.value.trim() === wifiInfo.ssid &&
+          passwordFormControl.value.trim() === wifiInfo.password)
+      "
+      color="primary"
+      mat-raised-button
+    >
+      Save
+    </button>
+    <button
+      (click)="onResetWifiInfoClicked()"
+      [disabled]="wifiInfo.ssid === '' && wifiInfo.password === ''"
+      color="primary"
+      mat-raised-button
+    >
+      Reset
+    </button>
+  </div>
+</div>
