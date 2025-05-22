@@ -19,6 +19,7 @@ services:
     container_name: drone
     image: ${SFP_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners}/drone:${SATLAB_DRONE:-release}
     environment:
+      - ADB_CONNECTION_PORT=5555
       - DOCKER_DRONE_QUEEN_SERVICE=drone-queen-prod.appspot.com
       - DOCKER_DRONE_SWARMING_SERVER_URL=https://chromeos-swarming.appspot.com
       - DOCKER_DRONE_ADMIN_SERVICE=chromeos-skylab-bot-fleet.appspot.com
