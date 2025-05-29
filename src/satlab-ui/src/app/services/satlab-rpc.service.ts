@@ -84,6 +84,7 @@ import {
   UploadLogRequest,
   DutWifiInfoRequest,
   SetDutWifiInfoRequest,
+  IsUpdateAvailableRequest,
 } from './satlabrpc_pb';
 import {Injectable} from '@angular/core';
 import {
@@ -903,6 +904,13 @@ export class SatlabRpcService {
       .setPassword(p.password);
 
     await this.client.setDutWifiInfo(req, {});
+  }
+
+  public async isUpdateAvailable() {
+    const req = new IsUpdateAvailableRequest();
+    const resp = await this.client.isUpdateAvailable(req, {});
+
+    return resp.getIsUpdateAvailable();
   }
 
   public async downloadJob(id: string) {

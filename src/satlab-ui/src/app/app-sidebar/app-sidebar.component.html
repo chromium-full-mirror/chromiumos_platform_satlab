@@ -5,18 +5,40 @@
     color="primary"
     opened="true"
   >
-    <button
-      (click)="drawer.toggle()"
-      aria-label="sidenav button"
-      color="accent"
-      mat-icon-button
-    >
-      <mat-icon class="white-color">menu</mat-icon>
-    </button>
+    <div class="bar-item">
+      <button
+        (click)="drawer.toggle()"
+        aria-label="sidenav button"
+        color="accent"
+        mat-icon-button
+      >
+        <mat-icon class="white-color">menu</mat-icon>
+      </button>
 
-    <mat-icon class="logo-icon" svgIcon="moblab"></mat-icon>
+      <mat-icon class="logo-icon" svgIcon="moblab"></mat-icon>
 
-    <p class="title">Satlab</p>
+      <p class="title">Satlab</p>
+    </div>
+    <div class="bar-item">
+      <p
+        class="update-info"
+        *ngIf="updateService.updateState && !updateService.isLoading"
+      >
+        New Version Available<span
+          class="material-icon warning"
+          title="Please reboot to get the latest update."
+          >priority_high</span
+        >
+      </p>
+      <p
+        class="update-info"
+        *ngIf="!updateService.updateState && !updateService.isLoading"
+      >
+        Up To Date<span class="material-icon safe" title="No new updates."
+          >task_alt</span
+        >
+      </p>
+    </div>
   </mat-toolbar>
 
   <mat-drawer-container autosize>

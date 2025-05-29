@@ -1,6 +1,7 @@
 import {SidebarEntry} from '../models/feature';
 import {INotification} from '../models/notification';
 import {AuthService} from '../services/auth.service';
+import {UpdateService} from '../services/update.service';
 import {NotificationService} from '../services/notification.service';
 import {Component} from '@angular/core';
 
@@ -79,7 +80,8 @@ export class AppSidebarComponent {
 
   constructor(
     public notificationService: NotificationService,
-    protected auth: AuthService
+    protected auth: AuthService,
+    protected updateService: UpdateService
   ) {}
 
   protected trackNotification(_, n: INotification) {

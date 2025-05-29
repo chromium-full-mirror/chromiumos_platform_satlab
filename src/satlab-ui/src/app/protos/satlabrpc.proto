@@ -75,6 +75,7 @@ service SatlabRpcService {
   rpc Reboot (RebootRequest) returns (RebootResponse);
   rpc UploadLog (UploadLogRequest) returns (UploadLogResponse);
   rpc DownloadLog (DownloadLogRequest) returns (stream DownloadLogResponse);
+  rpc IsUpdateAvailable (IsUpdateAvailableRequest) returns (IsUpdateAvailableResponse);
 
   // Jobs/Tasks information
   rpc ListJobs (ListJobsRequest) returns (ListJobsResponse);
@@ -949,6 +950,14 @@ message DeleteTopologyRequest {
 
 // NEXT_TAG = 1
 message DeleteTopologyResponse {}
+
+// NEXT_TAG = 1
+message IsUpdateAvailableRequest {}
+
+// NEXT_TAG = 2
+message IsUpdateAvailableResponse {
+  bool is_update_available = 1;
+}
 
 // NEXT_TAG = 2
 message TestlabRequest {

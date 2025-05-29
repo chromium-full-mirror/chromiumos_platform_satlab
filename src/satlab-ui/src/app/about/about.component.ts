@@ -12,6 +12,7 @@ import {NotificationService} from '../services/notification.service';
 import {INSTRUCTION_URL, REPORT_BUG_URL} from '../constants';
 import {AuthService} from 'app/services/auth.service';
 import {saveAs} from 'file-saver';
+import {UpdateService} from 'app/services/update.service';
 
 @Component({
   selector: 'app-about',
@@ -59,7 +60,8 @@ export class AboutComponent implements OnInit {
   constructor(
     private satlabRpcService: SatlabRpcService,
     private notification: NotificationService,
-    protected auth: AuthService
+    protected auth: AuthService,
+    private updateService: UpdateService
   ) {}
 
   ngOnInit(): void {
@@ -126,6 +128,10 @@ export class AboutComponent implements OnInit {
       finalize: () =>
         (this.loadingStatus = {...this.loadingStatus, logProcess: false}),
     });
+  }
+
+  protected onCheckUpdateClicked() {
+    this.updateService.getUpdate();
   }
 
   private getSystemInfo() {

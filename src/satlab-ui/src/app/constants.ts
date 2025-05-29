@@ -8,6 +8,9 @@ export const REPORT_BUG_URL =
 // define a interval to 1 min.
 export const AUTO_REFRESH_INTERVAL = 60 * 1000;
 
+// define the interval of 1 day
+export const CHECK_UPDATE_INTERVAL = 24 * 60 * 60 * 1000;
+
 export const DUT_STATUS_UNKNOWN = 'unknown';
 export const DUT_STATUS_READY = 'ready';
 export const DUT_STATUS_NEEDS_REPAIR = 'needs_repair';

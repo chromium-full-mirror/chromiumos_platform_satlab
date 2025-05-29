@@ -9,16 +9,40 @@
   position: relative;
 
   .top-bar-wrapper {
-    column-gap: 0.5rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 
-    .logo-icon {
-      width: 48px;
-      height: 48px;
-    }
+    .bar-item {
+      display: flex;
+      flex-direction: row;
+      column-gap: 0.5rem;
+      align-items: center;
 
-    .title {
-      font-size: $font-size-logo-text;
-      font-weight: $font-weight-title;
+      .logo-icon {
+        width: 48px;
+        height: 48px;
+      }
+
+      .title {
+        font-size: $font-size-logo-text;
+        font-weight: $font-weight-title;
+      }
+
+      .update-info {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        column-gap: 0.5rem;
+
+        .warning {
+          color: $color-notification-warn-layout;
+        }
+
+        .safe {
+          color: $color-green;
+        }
+      }
     }
   }
 
