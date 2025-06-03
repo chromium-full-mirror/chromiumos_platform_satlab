@@ -263,6 +263,7 @@ services:
     depends_on:
       - dns
       - envoy-proxy
+      - satlab_rpcserver
   ###########################################################################opentelemetry-collector
   opentelemetry-collector:
     container_name: opentelemetry-collector
@@ -284,6 +285,29 @@ services:
       - satlab_keys:/data/keys
     ports:
       - "9000:9000"
+  ###########################################################################bols
+  bols:
+    container_name: bols
+    image: ${REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab}/satlab-bols:${BOLS:-release}
+    environment:
+      - SERVOD_REGISTRY_URI=${SERVOD_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/common-core}
+      - SERVOD_CONTAINER_LABEL=${SERVOD_CONTAINER_LABEL:-release}
+    entrypoint: /usr/bin/bols_satlab
+    command:
+      [
+        'server',
+        '-port',
+        '9100'
+      ]
+    networks:
+      satlab:
+        ipv4_address: 192.168.100.8
+    dns:
+      - 192.168.100.51
+    volumes:
+      - logs:/tmp/bols
+    ports:
+      - "9100:9100"
   ##############################################################################volumes
 volumes:
   logs: {}

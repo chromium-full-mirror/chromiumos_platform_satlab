@@ -31,13 +31,11 @@ function start_private_containers () {
   docker-compose down -t 1
   docker-compose -f ./docker-compose.watchtower.yaml down -t 1
 
-  docker-compose pull conf_creator
   docker-compose up -d conf_creator
 
   docker rm -f downloader
   docker rm -f partner_testing_rsa
   docker volume rm default_partner_testing_rsa
-  docker-compose pull partner_testing_rsa
   docker-compose up -d partner_testing_rsa
 
   export WATCHTOWER_MONITOR_ONLY=$(jq '.autoupdate |= not | .autoupdate' $USER_SETTINGS)
@@ -72,14 +70,12 @@ function start_private_containers () {
     source ${STABLE_VERSION_SETUP_FILE}
   fi
 
-  docker-compose pull drone downloader openssh_server nginx logrotate
-  docker-compose up -d drone downloader openssh_server nginx logrotate
+  docker-compose up -d drone openssh_server nginx logrotate
 
   if [[ ${UFS_NAMESPACE:-os} != "os-partner" ]]; then
     export OS_VERSION=$(echo "$(get_host_os_version)"  | grep '^version:' | cut -d '"' -f 2)
     export TRACK=$(echo "$(get_host_os_version)"  | grep '^track:' | cut -d '"' -f 2 | sed 's/\\n//g')
 
-    docker-compose pull opentelemetry-collector
     docker-compose up -d opentelemetry-collector
   fi
 
@@ -115,12 +111,9 @@ else
     export DOCKER_DRONE_CERT_PATH=/home/chromeos-test/.docker/certs
   fi
 
-  docker-compose pull dns
-  docker-compose up -d dns
 
   docker rm -f satlab_rpcserver
-  docker-compose pull satlab_rpcserver satlab-ui
-  docker-compose up -d satlab_rpcserver satlab-ui
+  docker-compose up -d satlab-ui
 
   # Connect satlab_remote_access container to satlab network
   # so that user can use the local dns serice to resolve
@@ -139,11 +132,10 @@ else
     else
       echo "Authenticated docker client successfully; starting the rest of the containers"
       start_private_containers
+      docker-compose up -d satlab-ui bols
     fi
   fi
 
-  docker-compose pull envoy-proxy satlab-ui satlab_rpcserver
-  docker-compose up -d envoy-proxy satlab-ui satlab_rpcserver
   # Use labels to filter out containers that shouldn't be pruned.
   docker system prune --filter "label!=skip.while.pruning.docker.system=yes" -f
 
