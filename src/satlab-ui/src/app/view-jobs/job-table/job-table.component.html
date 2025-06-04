@@ -7,7 +7,7 @@
 
   <div class="selection-section" *ngIf="!loading && jobs.length > 0">
     <button (click)="columnSelectionChanged($event)">
-      <span class="material-icon">list</span>
+      <span class="material-icon material-icon-base">list</span>
     </button>
   </div>
 
@@ -79,7 +79,9 @@
                       matTooltip="{{ link.tooltip }}"
                     >
                       <ng-container *ngIf="link.icon">
-                        <span class="material-icon">{{ link.icon }}</span>
+                        <span class="material-icon material-icon-base">{{
+                          link.icon
+                        }}</span>
                       </ng-container>
                       <ng-container *ngIf="link.img">
                         <img
@@ -114,6 +116,72 @@
                   <app-circular-progress
                     [progress]="element.completeJobPercentage"
                   ></app-circular-progress>
+                </ng-container>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container *ngIf="item.type === 'download'">
+            <td mat-cell *matCellDef="let element">
+              <div class="download" *ngIf="taskRecords$ | async as taskMap">
+                <ng-container *ngIf="taskMap[element.id]?.status === 'LOADING'">
+                  <mat-spinner diameter="24"></mat-spinner>
+                </ng-container>
+                <ng-container *ngIf="taskMap[element.id]?.status !== 'LOADING'">
+                  <ng-container
+                    *ngIf="
+                      element.status === 'COMPLETE' &&
+                      (taskMap[element.id] === undefined ||
+                        taskMap[element.id]?.status === 'IDLE')
+                    "
+                  >
+                    <mat-icon
+                      class="material-icon material-icon-base cursor-pointer"
+                      (click)="onClickDownloadJob(element.id)"
+                      matTooltip="Download"
+                      >cloud_download</mat-icon
+                    >
+                  </ng-container>
+                  <ng-container [ngSwitch]="taskMap[element.id]?.status">
+                    <mat-icon
+                      class="material-icon material-icon-base"
+                      *ngSwitchCase="'PENDING'"
+                      matTooltip="Pending..."
+                      >schedule</mat-icon
+                    >
+                    <mat-icon
+                      class="material-icon material-icon-base"
+                      *ngSwitchCase="'DOWNLOADING'"
+                      matTooltip="Downloading..."
+                      >downloading</mat-icon
+                    >
+                    <mat-icon
+                      class="material-icon material-icon-base"
+                      *ngSwitchCase="'ZIPPING'"
+                      matTooltip="Zipping..."
+                      >folder_zip</mat-icon
+                    >
+                    <mat-icon
+                      class="material-icon material-icon-base"
+                      *ngSwitchCase="'UPLOADING'"
+                      matTooltip="Uploading..."
+                      >upload_file</mat-icon
+                    >
+                    <mat-icon
+                      class="material-icon material-icon-base cursor-pointer"
+                      *ngSwitchCase="'COMPLETED'"
+                      matTooltip="Completed"
+                      (click)="onClickToSaveJob(element.id)"
+                      >inventory</mat-icon
+                    >
+                    <mat-icon
+                      class="material-icon material-icon-base cursor-pointer red"
+                      (click)="onClickDownloadJob(element.id)"
+                      *ngSwitchCase="'FAILED'"
+                      matTooltip="Failed. Retry to download"
+                      >cloud_download</mat-icon
+                    >
+                  </ng-container>
                 </ng-container>
               </div>
             </td>

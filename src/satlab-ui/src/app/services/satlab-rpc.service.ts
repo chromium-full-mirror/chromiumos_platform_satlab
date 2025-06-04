@@ -53,6 +53,11 @@ import {
   AddTopologyRequest,
   DeleteTopologyRequest,
   TopologyRequest,
+  JobLogLinkRequest,
+  CheckDownloadJobLogStatusRequest,
+  DownloadJobLogRequest,
+  ListJobLogTasksRequest,
+  DownloadJobLogStatus,
 } from './satlabrpc_pb';
 import {IDUTDetail} from '../models/dut_detail';
 import {
@@ -94,6 +99,7 @@ import {
 } from '../models/run_suite_fields';
 import {Moment} from 'moment';
 import {isCustomBuild} from 'app/utils/validators';
+import {DownloadJobTaskStatus, ITask} from 'app/models/task';
 
 @Injectable({
   providedIn: 'root',
@@ -842,8 +848,58 @@ export class SatlabRpcService {
 
   public async deleteTopology(hostname: string) {
     const req = new DeleteTopologyRequest().setHostname(hostname);
+
     return await this.client.deleteTopology(req, {});
   }
+
+  public async downloadJob(id: string) {
+    const req = new DownloadJobLogRequest().setId(id);
+    const res = await this.client.downloadJobLog(req, {});
+
+    return res.getTaskId();
+  }
+
+  public async checkDownloadJobLogStatus(task_id: string) {
+    const req = new CheckDownloadJobLogStatusRequest().setTaskId(task_id);
+    const res = await this.client.checkDownloadJobLogStatus(req, {});
+
+    return {
+      status: toDownloadJobLogStatus(res.getStatus()),
+      errMsg: res.getErrorMessage(),
+    };
+  }
+
+  public async jobLogLink(task_id: string) {
+    const req = new JobLogLinkRequest().setTaskId(task_id);
+    const res = await this.client.jobLogLink(req, {});
+
+    return res.getLink();
+  }
+
+  public async listJobLogTasks() {
+    const req = new ListJobLogTasksRequest();
+    const res = await this.client.listJobLogTasks(req, {});
+
+    return res.getTasksList().map(task => ({
+      id: task.getId(),
+      status: toDownloadJobLogStatus(task.getStatus()),
+    }));
+  }
+}
+
+function toDownloadJobLogStatus(DownloadJobTaskStatus): DownloadJobTaskStatus {
+  if (DownloadJobTaskStatus === DownloadJobLogStatus.DOWNLOADING) {
+    return 'DOWNLOADING';
+  } else if (DownloadJobTaskStatus === DownloadJobLogStatus.ZIPPING) {
+    return 'ZIPPING';
+  } else if (DownloadJobTaskStatus === DownloadJobLogStatus.UPLOADING) {
+    return 'UPLOADING';
+  } else if (DownloadJobTaskStatus === DownloadJobLogStatus.COMPLETED) {
+    return 'COMPLETED';
+  } else if (DownloadJobTaskStatus === DownloadJobLogStatus.FAILED) {
+    return 'FAILED';
+  }
+  return 'PENDING';
 }
 
 function toRepairDUTsResponse(r: RepairDutsResponse.RepairResult[]) {

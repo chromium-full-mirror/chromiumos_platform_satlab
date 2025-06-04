@@ -106,10 +106,12 @@
       .mat-mdc-cell.cdk-column-luciLink,
       .mat-mdc-header-cell.cdk-column-luciLink,
       .mat-mdc-cell.cdk-column-testResults,
-      .mat-mdc-header-cell.cdk-column-testResults {
-        min-width: 30px;
-        max-width: 30px;
-        padding: 0 3px;
+      .mat-mdc-header-cell.cdk-column-testResults,
+      .mat-mdc-cell.cdk-column-download,
+      .mat-mdc-header-cell.cdk-column-download {
+        min-width: 40px;
+        max-width: 40px;
+        padding: 0 8px;
       }
 
       .links {
@@ -122,6 +124,16 @@
         a {
           width: 24px;
           height: 24px;
+        }
+      }
+
+      .download {
+        mat-icon {
+          color: #1e88e5;
+        }
+
+        .red {
+          color: #f33232;
         }
       }
     }

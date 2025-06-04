@@ -1,4 +1,5 @@
 import {Moment} from 'moment';
+import {DownloadJobTaskStatus} from './task';
 
 export type JobStatus =
   | 'STATUS_NOT_SET'
@@ -27,12 +28,13 @@ export type JobHeader =
   | 'satlabID'
   | 'luciLink'
   | 'testResults'
-  | 'cpconLink';
+  | 'cpconLink'
+  | 'download';
 
 export interface JobColumn {
   header: string;
   def: JobHeader;
-  type: 'string' | 'date' | 'link' | 'empty' | 'checkbox';
+  type: 'string' | 'date' | 'link' | 'empty' | 'checkbox' | 'download';
   actions?: LinkAction[];
 }
 
@@ -62,7 +64,6 @@ export interface IJob {
   cpconUrl: string;
   completeJobPercentage?: number;
 }
-
 export interface IJobResponse {
   token: string;
   jobs: IJob[];

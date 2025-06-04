@@ -14,10 +14,12 @@ import {IJob, IJobQuery, JobColumn, JobHeader, JobStatus} from 'app/models/job';
 import {toIterator} from 'app/utils/iterator';
 import {SatlabRpcService} from '../../services/satlab-rpc.service';
 import {NotificationService} from '../../services/notification.service';
-import {Subscription, finalize, from, map} from 'rxjs';
+import {DownloadService} from '../../services/download.service';
+import {Observable, Subscription, finalize, from, map} from 'rxjs';
 import {startWithTap} from '../../utils/rxjs_operator';
 import {SelectionModel} from '@angular/cdk/collections';
 import {MatCheckboxChange} from '@angular/material/checkbox';
+import {IDownloadTask} from 'app/models/task';
 
 // The columns can not be selected (e.g. diplaying progress, abort job selection)
 const UNSELECTED_COLUMNS: JobHeader[] = ['empty', 'select'];
@@ -49,6 +51,7 @@ const COLUMN_OPTIONS = [
   {text: 'LUCI Link', value: 'luciLink'},
   {text: 'Test Results', value: 'testResults'},
   {text: 'CPCON Link', value: 'cpconLink'},
+  {text: 'Download', value: 'download'},
 ];
 
 const SELECTABLE_STATUSES: JobStatus[] = [
@@ -97,12 +100,15 @@ export class JobTableComponent implements OnChanges, OnInit, OnDestroy {
   protected selectableStatuses = SELECTABLE_STATUSES;
   /* A flag that indicates there is only one column left */
   protected isOneColumnLeft = false;
+  /* taskRecords observes downloadTask from download service */
+  public taskRecords$: Observable<Record<string, IDownloadTask>>;
 
   #disposer?: Subscription;
 
   constructor(
     private service: SatlabRpcService,
     private notificationService: NotificationService,
+    private downloadService: DownloadService,
     private cdf: ChangeDetectorRef
   ) {
     this.#toColumns();
@@ -113,6 +119,7 @@ export class JobTableComponent implements OnChanges, OnInit, OnDestroy {
       this.#updateSelection();
       this.#emitSelectionChange();
     });
+    this.taskRecords$ = this.downloadService.downloadTask$;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -275,6 +282,47 @@ export class JobTableComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   /**
+   * trigger a task to download job in background when clicked
+   */
+  protected onClickDownloadJob(jobId: string) {
+    this.downloadService.createDownloadJobTask(jobId).subscribe({
+      next: () => {
+        this.notificationService.info(
+          `Job ${jobId} is downloading in the background. Please click the icon to save the file once it’s ready.`,
+          {dismiss: false}
+        );
+      },
+      error: err => {
+        this.notificationService.error(
+          `Unable to download job ${jobId}: ${err}`,
+          {dismiss: false}
+        );
+      },
+    });
+  }
+
+  /**
+   * save job when icon is clicked.
+   */
+  protected onClickToSaveJob(id: string) {
+    this.downloadService.getJobLogLink(id).subscribe({
+      next: jobURL => {
+        this.saveJobViaURL(jobURL);
+      },
+      error: err => {
+        this.notificationService.error(
+          `Unable to get job's URL ${id}: ${err}. Please click the download button again.`,
+          {dismiss: false}
+        );
+      },
+    });
+  }
+
+  private saveJobViaURL(url: string) {
+    window.open(url, '_blank');
+  }
+
+  /**
    * Mapping the display columns to columns for each row.
    * @private
    */
@@ -405,5 +453,7 @@ function headerToColumn(header: JobHeader): JobColumn {
           },
         ],
       };
+    case 'download':
+      return {header: '', def: 'download', type: 'download'};
   }
 }

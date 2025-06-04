@@ -65,7 +65,10 @@ service SatlabRpcService {
 
   // Jobs/Tasks information
   rpc ListJobs (ListJobsRequest) returns (ListJobsResponse);
-
+  rpc DownloadJobLog(DownloadJobLogRequest) returns (DownloadJobLogResponse);
+  rpc CheckDownloadJobLogStatus(CheckDownloadJobLogStatusRequest) returns (CheckDownloadJobLogStatusResponse);
+  rpc JobLogLink(JobLogLinkRequest) returns (JobLogLinkResponse);
+  rpc ListJobLogTasks(ListJobLogTasksRequest) returns (ListJobLogTasksResponse);
   // Jobs operation
   rpc AbortJobs (AbortJobsRequest) returns (AbortJobsResponse);
 }
@@ -905,3 +908,60 @@ message DeleteTopologyRequest {
 
 // NEXT_TAG = 1
 message DeleteTopologyResponse {}
+
+// NEXT_TAG = 2
+message DownloadJobLogRequest {
+  string id = 1;
+}
+
+// NEXT_TAG = 2
+message DownloadJobLogResponse {
+  string task_id = 1;
+}
+
+// NEXT_TAG = 2
+message CheckDownloadJobLogStatusRequest {
+  string task_id = 1;
+}
+
+// NEXT_TAG = 6
+// all status for the download job.
+enum DownloadJobLogStatus{
+  PENDING = 0;
+  DOWNLOADING = 1;
+  ZIPPING = 2;
+  UPLOADING = 3;
+  COMPLETED = 4;
+  FAILED = 5;
+}
+
+// NEXT_TAG = 3
+message CheckDownloadJobLogStatusResponse {
+  DownloadJobLogStatus status = 1;
+  string error_message = 2;
+}
+
+// NEXT_TAG = 2
+message JobLogLinkRequest {
+  string task_id = 1;
+}
+
+// NEXT_TAG = 2
+message JobLogLinkResponse {
+  // returns the GCS bucket link for downloading.
+  string link = 1;
+}
+
+// NEXT_TAG = 2
+message ListJobLogTasksRequest {}
+
+// NEXT_TAG = 2
+message ListJobLogTasksResponse {
+// NEXT_TAG = 3
+  message Task {
+    string id = 1;
+    DownloadJobLogStatus status = 2;
+  }
+
+  repeated Task tasks = 1;
+}

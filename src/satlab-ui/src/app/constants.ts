@@ -18,3 +18,6 @@ export const DUT_STATUS_NEEDS_REPLACEMENT = 'needs_replacement';
 export const DUT_STATUS_RUNNING = 'running';
 export const DUT_STATUS_REPAIRING = 'repairing';
 export const DUT_STATUS_DEPLOYING = 'deploying';
+
+export const DOWNLOAD_SERVICE_TIMER = 1000;
+export const CHECK_DOWNLOAD_TASK_THRESHOLD = 5000;
