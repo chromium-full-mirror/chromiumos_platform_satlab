@@ -395,7 +395,7 @@ message RunTestResponse {
 // NEXT_TAG = 1
 message ListEnrolledDutsRequest {}
 
-// NEXT_TAG = 16
+// NEXT_TAG = 18
 message Dut {
   string address = 1;
   string name = 2;
@@ -415,6 +415,7 @@ message Dut {
   // If the board is granted, returns True.
   // Otherwise returns False.
   bool has_permission = 16;
+  bool has_android_desktop_image = 17;
 }
 
 // NEXT_TAG = 5

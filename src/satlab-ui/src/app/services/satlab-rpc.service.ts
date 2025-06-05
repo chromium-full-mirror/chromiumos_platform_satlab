@@ -1006,9 +1006,11 @@ function __toIDut(e: Dut) {
     poolString: e.getPoolsList().join(', '),
     mac: e.getMacAddress(),
     servoSerial: e.getServoSerial(),
-    isConnected: e.getIsPingable() && e.getHasTestImage(),
+    isConnected: e.getIsPingable() && (e.getHasTestImage() || e.getHasAndroidDesktopImage()),
+    hasAndroidDesktopImage: e.getHasAndroidDesktopImage(),
+    hasTestImage: e.getHasTestImage(),
     isAccessible: !(
-      e.getHostname() === '' && !(e.getIsPingable() && e.getHasTestImage())
+      e.getHostname() === '' && !(e.getIsPingable() && (e.getHasTestImage() || e.getHasAndroidDesktopImage()))
     ),
     status: status,
     isServoWiredCorrectly:

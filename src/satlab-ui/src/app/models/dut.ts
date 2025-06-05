@@ -17,6 +17,9 @@ export interface IDut {
   mac: string;
   servoSerial?: string;
   isConnected: boolean;
+  hasTestImage: boolean;
+  hasAndroidDesktopImage: boolean;
+
   // the status from UFS
   status: string;
 

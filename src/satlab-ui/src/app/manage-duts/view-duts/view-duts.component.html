@@ -39,11 +39,19 @@
           <div class="address-wrapper">
             <!-- Enrolled DUT -->
             <ng-container *ngIf="element.hostname !== ''">
-              <!-- Enrolled and Connected DUT -->
+              <!-- Enrolled and Connected DUT (Chrome OS) -->
               <div
-                *ngIf="element.isConnected"
+                *ngIf="element.isConnected && element.hasTestImage"
                 class="material-icon icon green"
-                matTooltip="DUT Connected"
+                matTooltip="DUT Connected (Chrome OS)"
+              >
+                sync_alt
+              </div>
+              <!-- Enrolled and Connected DUT (Android Desktop) -->
+              <div
+                *ngIf="element.isConnected && element.hasAndroidDesktopImage"
+                class="material-icon icon green"
+                matTooltip="DUT Connected (Android Desktop)"
               >
                 sync_alt
               </div>
