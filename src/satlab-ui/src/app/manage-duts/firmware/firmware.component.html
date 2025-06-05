@@ -36,7 +36,7 @@
             <mat-checkbox
               (change)="onDUTCheckboxChanged(element)"
               [checked]="selection.isSelected(element)"
-              [disabled]="element.isLatest"
+              [disabled]="element.isLatest || element.newestFirmware === 'unknown'"
             >
             </mat-checkbox>
           </td>
@@ -56,9 +56,9 @@
           </td>
         </ng-container>
 
-        <!-- Updater Firmware Column -->
+        <!-- Newest Firmware Column -->
         <ng-container matColumnDef="newest">
-          <th *matHeaderCellDef mat-header-cell>Updater Firmware</th>
+          <th *matHeaderCellDef mat-header-cell>Newest Firmware</th>
           <td *matCellDef="let element" mat-cell>
             {{ element.newestFirmware }}
           </td>

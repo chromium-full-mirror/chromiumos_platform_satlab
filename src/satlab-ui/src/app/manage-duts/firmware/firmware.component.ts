@@ -99,7 +99,7 @@ export class FirmwareComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selection.clear();
     if (e.checked) {
       toIterator(this.DUTs)
-        .filter(e => !e.isLatest)
+        .filter(e => !e.isLatest && e.newestFirmware !== 'unknown')
         .forEach(e => {
           this.selection.toggle(e);
         });
