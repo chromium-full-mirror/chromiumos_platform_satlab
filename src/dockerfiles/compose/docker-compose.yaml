@@ -292,6 +292,9 @@ services:
     environment:
       - SERVOD_REGISTRY_URI=${SERVOD_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/common-core}
       - SERVOD_CONTAINER_LABEL=${SERVOD_CONTAINER_LABEL:-release}
+      - DOCKER_CERT_PATH=${DOCKER_CERT_PATH:-}
+      - DOCKER_HOST=${DOCKER_HOST:-}
+      - DOCKER_TLS_VERIFY=${DOCKER_TLS_VERIFY:-}
     entrypoint: /usr/bin/bols_satlab
     command:
       [
