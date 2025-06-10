@@ -25,6 +25,7 @@ ${foreach service, ${OVERRIDE_SERVICES}, \
 
 all:	compose \
 		conf_creator \
+		dhcp \
 		dns \
 		envoy \
 		logrotate \
@@ -92,6 +93,7 @@ ui: protoc
 		-f dockerfiles/ui/Dockerfile .
 	docker push ${REGISTRY_URI}/satlab-ui:${LABEL}
 
+
 opentelemetry-collector: export DOCKER_BUILDKIT := 1
 opentelemetry-collector:
 	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/opentelemetry-collector:${LABEL} \
@@ -108,4 +110,10 @@ dns: export DOCKER_BUILDKIT := 1
 dns:
 	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/satlab-dns:${LABEL} \
 		-f dockerfiles/dns/Dockerfile .
+	docker push ${REGISTRY_URI}/satlab-dns:${LABEL}
+
+dhcp: export DOCKER_BUILDKIT := 1
+dhcp:
+	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/satlab-dhcp:${LABEL} \
+		-f dockerfiles/dhcp/Dockerfile .
 	docker push ${REGISTRY_URI}/satlab-dns:${LABEL}
