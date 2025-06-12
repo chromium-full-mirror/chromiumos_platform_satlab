@@ -77,6 +77,7 @@ import {
   StageBuildRequest,
   StateQuery,
   Tag,
+  TestlabRequest,
   TopologyRequest,
   UpdateDutsFirmwareRequest,
   UpdatePoolRequest,
@@ -94,6 +95,8 @@ import {
   DUT_STATUS_REPAIR_FAILED,
   DUT_STATUS_RUNNING,
   DUT_STATUS_UNKNOWN,
+  TESTLAB_STATUS_DISABLED,
+  TESTLAB_STATUS_ENABLED,
 } from 'app/constants';
 import {DownloadJobTaskStatus, ITask} from 'app/models/task';
 import {isCustomBuild} from 'app/utils/validators';
@@ -853,6 +856,12 @@ export class SatlabRpcService {
     return await this.client.deleteTopology(req, {});
   }
 
+  public async getTestlabEnabled(ip: string) {
+    const req = new TestlabRequest().setIpAddress(ip);
+    const res = await this.client.testlab(req, {});
+    return __toTestlabStatus(res.getEnabled());
+  }
+
   public async downloadJob(id: string) {
     const req = new DownloadJobLogRequest().setId(id);
     const res = await this.client.downloadJobLog(req, {});
@@ -1080,6 +1089,7 @@ function __toIDut(e: Dut) {
       e.getServoSerial() === '' || e.getServoSerial() !== 'NOT DETECTED',
     statusHintText: __toStatusHintText(status),
     ccdStatus: e.getCcdStatus(),
+    testlabEnabled: e.getIsTestlabEnabled(),
     dimensions: toIterator(e.getBotInfo()?.getDimensionsList() ?? []).fold(
       {},
       (prev, elem) => {
@@ -1128,4 +1138,11 @@ function __toAdvancedSettings(build: string, settings: ICustomSettings) {
     .setCft(cft)
     .setTrv2(trv2)
     .setUploadToCpcon(uploadToCpcon);
+}
+
+function __toTestlabStatus(status: boolean) {
+  if (status) {
+    return TESTLAB_STATUS_ENABLED;
+  }
+  return TESTLAB_STATUS_DISABLED;
 }

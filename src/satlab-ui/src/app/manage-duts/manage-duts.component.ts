@@ -1,10 +1,10 @@
-import {AfterViewInit, Component, OnDestroy} from '@angular/core';
-import {IDut, IFirmwareDUT} from '../models/dut';
-import {SatlabRpcService} from '../services/satlab-rpc.service';
-import {finalize, from, interval, Subscription} from 'rxjs';
-import {startWithTap} from '../utils/rxjs_operator';
+import {AUTO_REFRESH_INTERVAL, TESTLAB_STATUS_UNKNOWN} from '../constants';
+import {IDut} from '../models/dut';
 import {NotificationService} from '../services/notification.service';
-import {AUTO_REFRESH_INTERVAL} from '../constants';
+import {SatlabRpcService} from '../services/satlab-rpc.service';
+import {startWithTap} from '../utils/rxjs_operator';
+import {AfterViewInit, Component, OnDestroy} from '@angular/core';
+import {Subscription, finalize, from, interval} from 'rxjs';
 
 @Component({
   selector: 'app-manage-duts',
@@ -81,6 +81,7 @@ export class ManageDutsComponent implements AfterViewInit, OnDestroy {
       .subscribe({
         next: e => {
           this.DUTs = e;
+          this.__listTestlab(e);
         },
         error: e => {
           this.notification.error(`List DUTs failed: ${e}`, {dismiss: false});
@@ -98,4 +99,30 @@ export class ManageDutsComponent implements AfterViewInit, OnDestroy {
       },
     });
   }
+
+  private async __listTestlab(duts: IDut[]) {
+    const ds = duts.filter(dut => shouldGetTestlab(dut));
+
+    for (const dut of ds) {
+      try {
+        await this.service.getTestlabEnabled(dut.address).then(res => {
+          dut.testlabEnabled = res;
+        });
+      } catch (err) {
+        this.notification.error(`Get ${dut.address} testlab failed: ${err}`, {
+          dismiss: false,
+        });
+      }
+    }
+
+    this.DUTs = [
+      ...ds,
+      ...duts
+        .filter(dut => !shouldGetTestlab(dut))
+        .map(dut => ({...dut, testlabEnabled: TESTLAB_STATUS_UNKNOWN})),
+    ];
+  }
+}
+function shouldGetTestlab(dut: IDut): boolean {
+  return dut.hasPermission && dut.isAccessible && dut.isConnected;
 }

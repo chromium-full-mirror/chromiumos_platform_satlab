@@ -60,6 +60,7 @@ service SatlabRpcService {
   rpc ListDutEvents (ListDutEventsRequest) returns (ListDutEventsResponse);
   rpc ListEnrolledDuts (ListEnrolledDutsRequest) returns (ListEnrolledDutsResponse);
   rpc ListDuts (ListDutsRequest) returns (ListDutsResponse);
+  rpc Testlab (TestlabRequest) returns (TestlabResponse);
 
   // setup
   rpc SetCloudConfiguration (SetCloudConfigurationRequest) returns (SetCloudConfigurationResponse);
@@ -409,7 +410,7 @@ message RunTestResponse {
 // NEXT_TAG = 1
 message ListEnrolledDutsRequest {}
 
-// NEXT_TAG = 18
+// NEXT_TAG = 19
 message Dut {
   string address = 1;
   string name = 2;
@@ -430,6 +431,7 @@ message Dut {
   // Otherwise returns False.
   bool has_permission = 16;
   bool has_android_desktop_image = 17;
+  string is_testlab_enabled = 18;
 }
 
 // NEXT_TAG = 5
@@ -922,6 +924,16 @@ message DeleteTopologyRequest {
 
 // NEXT_TAG = 1
 message DeleteTopologyResponse {}
+
+// NEXT_TAG = 2
+message TestlabRequest {
+  string ip_address = 1;
+}
+
+// NEXT_TAG = 2
+message TestlabResponse {
+  bool enabled = 1;
+}
 
 // NEXT_TAG = 2
 message DownloadJobLogRequest {

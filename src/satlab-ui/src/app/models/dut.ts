@@ -46,6 +46,8 @@ export interface IDut {
 
   ccdStatus: string;
 
+  testlabEnabled: string;
+
   dimensions: Object;
 
   hasPermission: boolean;

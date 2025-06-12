@@ -19,6 +19,10 @@ export const DUT_STATUS_RUNNING = 'running';
 export const DUT_STATUS_REPAIRING = 'repairing';
 export const DUT_STATUS_DEPLOYING = 'deploying';
 
+export const TESTLAB_STATUS_ENABLED = 'Enabled';
+export const TESTLAB_STATUS_DISABLED = 'Disabled';
+export const TESTLAB_STATUS_UNKNOWN = 'Unknown';
+
 export const DOWNLOAD_SERVICE_TIMER = 1000;
 export const CHECK_DOWNLOAD_TASK_THRESHOLD = 5000;
 

@@ -55,6 +55,7 @@ export class ViewDutsComponent implements OnChanges {
     'board',
     'model',
     'servo_serial',
+    'testlab',
     'ccd_status',
     'status',
     'pools',
