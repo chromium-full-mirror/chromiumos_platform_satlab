@@ -309,6 +309,10 @@ services:
       - 192.168.100.51
     volumes:
       - logs:/tmp/bols
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - satlab_keys:/home/satlab/keys
+      - leases:/leases:ro
+      - docker_tls:${DOCKER_COMPOSE_CERT_PATH}:ro
     ports:
       - "9100:9100"
   ##############################################################################volumes
