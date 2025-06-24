@@ -24,11 +24,8 @@ export class OtherComponent {
 
   protected suiteList: string[] = [
     'audio',
-    'lab-qual-perbuild',
     'crosbolt_perf_perbuild',
     'graphics_per-build',
-    'labqual',
-    'labqual_informational',
   ];
 
   protected suiteOptions: SelectableItem[] = [];
