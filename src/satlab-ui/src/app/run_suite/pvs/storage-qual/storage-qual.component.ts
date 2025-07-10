@@ -3,6 +3,7 @@ import {
   defaultBuildSelectFields,
   defaultStorageQualFields,
   IBuildSelectFields,
+  ICustomSettings,
   IPVSFields,
 } from '../../../models/run_suite_fields';
 import {SelectableItem} from '../../../models/selectable_item';
@@ -43,6 +44,9 @@ export class StorageQualComponent {
   ];
   private selectedSuite = '';
   private selectedTest = '';
+  protected customSettings: ICustomSettings = {
+    servoRequired: false,
+  };
 
   constructor(
     private service: SatlabRpcService,
@@ -62,6 +66,11 @@ export class StorageQualComponent {
       ...fields,
     };
     this.disabled = !this.#validate();
+  }
+
+  // onAdvanceSettingsChanged handles the advanced settings changes
+  protected onAdvancedSettingsChanged(newValue: ICustomSettings) {
+    this.customSettings = newValue;
   }
 
   /**
@@ -128,6 +137,7 @@ export class StorageQualComponent {
           this.toggleButtonValue === INDIVIDUAL_TEST
             ? this.__mayPrependPrefix(this.selectedTest)
             : '',
+        customSettings: {...this.customSettings},
       })
     )
       .pipe(

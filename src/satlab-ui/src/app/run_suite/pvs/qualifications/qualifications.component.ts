@@ -5,6 +5,7 @@ import {
   defaultBuildSelectFields,
   defaultQualificationsFields,
   IBuildSelectFields,
+  ICustomSettings,
   IQualificationsFields,
 } from 'app/models/run_suite_fields';
 import {
@@ -47,6 +48,9 @@ export class QualificationsComponent implements AfterViewInit {
     ...defaultQualificationsFields,
   };
   protected isRunning = false;
+  protected customSettings: ICustomSettings = {
+    servoRequired: false,
+  };
 
   constructor(
     private service: SatlabRpcService,
@@ -78,6 +82,11 @@ export class QualificationsComponent implements AfterViewInit {
     };
     this.#parseEligibleDlmSkuIDs();
     this.disabled = !this.#validate();
+  }
+
+  // onAdvanceSettingsChanged handles the advanced settings changes
+  protected onAdvancedSettingsChanged(newValue: ICustomSettings) {
+    this.customSettings = newValue;
   }
 
   protected onDutListUpdate(dut: {duts: ISimpleDUT[]}) {
@@ -132,7 +141,12 @@ export class QualificationsComponent implements AfterViewInit {
   }
 
   protected onRunSuiteClick() {
-    from(this.service.runQualification(this.fields))
+    from(
+      this.service.runQualification({
+        ...this.fields,
+        customSettings: this.customSettings,
+      })
+    )
       .pipe(
         startWithTap(() => {
           this.isRunning = true;

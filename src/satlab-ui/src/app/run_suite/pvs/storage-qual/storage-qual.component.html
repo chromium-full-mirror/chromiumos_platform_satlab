@@ -58,6 +58,11 @@
       </mat-form-field>
     </div>
 
+    <app-advanced-settings
+      (settingsChanged)="onAdvancedSettingsChanged($event)"
+      [customSettings]="customSettings"
+    ></app-advanced-settings>
+
     <div class="flex justify-center py-4">
       <app-loading-button
         (onClick)="onRunSuiteClick()"

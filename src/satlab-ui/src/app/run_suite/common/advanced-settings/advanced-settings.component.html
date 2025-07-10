@@ -85,6 +85,15 @@
             </p>
           </div>
         </div>
+
+      <div *ngIf="customSettings.hasOwnProperty('servoRequired')">
+          <div class="flex flex-row gap-4">
+            <mat-slide-toggle (change)="onServoRequiredChanged($event.checked)"
+              >Require Servo
+            </mat-slide-toggle>
+          </div>
+      </div>
+
       </div>
     </mat-expansion-panel>
   </mat-accordion>

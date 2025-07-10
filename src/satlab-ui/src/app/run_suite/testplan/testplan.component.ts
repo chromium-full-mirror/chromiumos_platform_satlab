@@ -33,6 +33,7 @@ export class TestplanComponent {
     cft: true,
     trv2: false,
     uploadToCpcon: false,
+    servoRequired: false,
   };
 
   constructor(
@@ -120,6 +121,7 @@ export class TestplanComponent {
                 cft: cft,
                 trv2: trv2,
                 uploadToCpcon: uploadToCpcon,
+                servoRequired: this.customSettings.servoRequired,
               },
             })
           ).pipe(

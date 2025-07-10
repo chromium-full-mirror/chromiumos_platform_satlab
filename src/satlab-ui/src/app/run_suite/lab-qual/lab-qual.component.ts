@@ -2,6 +2,7 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {
   defaultBuildSelectFields,
   IBuildSelectFields,
+  ICustomSettings,
 } from 'app/models/run_suite_fields';
 import {NotificationService} from 'app/services/notification.service';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
@@ -37,6 +38,9 @@ export class LabQualComponent implements OnInit, OnDestroy {
     });
   // a subscription that subscripts the `fields` changes.
   private disposers: Subscription[];
+  protected customSettings: ICustomSettings = {
+    servoRequired: false,
+  };
 
   constructor(
     private service: SatlabRpcService,
@@ -62,6 +66,11 @@ export class LabQualComponent implements OnInit, OnDestroy {
    */
   protected allRequiredFieldsSet(fields: IBuildSelectFields) {
     this.fields$.next({...this.fields$, ...fields});
+  }
+
+  // onAdvanceSettingsChanged handles the advanced settings changes
+  protected onAdvancedSettingsChanged(newValue: ICustomSettings) {
+    this.customSettings = newValue;
   }
 
   /**
@@ -99,6 +108,7 @@ export class LabQualComponent implements OnInit, OnDestroy {
               cft: true,
               trv2: false,
               uploadToCpcon: false,
+              servoRequired: this.customSettings.servoRequired,
             },
             path: path,
           };

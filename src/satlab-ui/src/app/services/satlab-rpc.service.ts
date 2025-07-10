@@ -215,6 +215,9 @@ export class SatlabRpcService {
       testNameExcludes: string[];
     } & IBuildSelectFields
   ) {
+    const servoRequired =
+      (params.customSettings?.servoRequired as boolean) || false;
+
     const req = new RunSuiteRequest()
       .setModel(params.model)
       .setBuildTarget(params.board)
@@ -225,7 +228,7 @@ export class SatlabRpcService {
       .setCft(params.customSettings.cft as boolean)
       .setTrv2(params.customSettings.trv2 as boolean)
       .setUploadToCpcon(params.customSettings.uploadToCpcon as boolean)
-      .setDimsList(this.toDims(params.dims))
+      .setDimsList(this.toDims(servoRequired, params.dims))
       .setTagIncludesList(params.tagIncludes)
       .setTagExcludesList(params.tagExcludes)
       .setTestNameIncludesList(params.testNameIncludes)
@@ -243,6 +246,8 @@ export class SatlabRpcService {
     params: IBuildSelectFields & {path: string; customSettings: ICustomSettings}
   ) {
     const settings = __toAdvancedSettings(params.build, params.customSettings);
+    const servoRequired =
+      (params.customSettings?.servoRequired as boolean) || false;
 
     const req = new RunLabQualRequest()
       .setBoard(params.board)
@@ -250,7 +255,7 @@ export class SatlabRpcService {
       .setMilestone(params.milestone)
       .setBuild(params.build)
       .setPool(params.pool)
-      .setDimsList(this.toDims(params.dims))
+      .setDimsList(this.toDims(servoRequired, params.dims))
       .setSettings(settings)
       .setFirmwarePath(params.path);
 
@@ -453,6 +458,9 @@ export class SatlabRpcService {
       customSettings: ICustomSettings;
     } & IBuildSelectFields
   ) {
+    const servoRequired =
+      (params.customSettings?.servoRequired as boolean) || false;
+
     const req = new RunTestRequest()
       .setModel(params.model)
       .setBoard(params.board)
@@ -463,7 +471,7 @@ export class SatlabRpcService {
       .setCft(params.customSettings.cft as boolean)
       .setTrv2(params.customSettings.trv2 as boolean)
       .setUploadToCpcon(params.customSettings.uploadToCpcon as boolean)
-      .setDimsList(this.toDims(params.dims));
+      .setDimsList(this.toDims(servoRequired, params.dims));
 
     if (params.test_args !== undefined) {
       req.setTestArgs(params.test_args);
@@ -515,6 +523,9 @@ export class SatlabRpcService {
       customSettings: ICustomSettings;
     } & IBuildSelectFields
   ) {
+    const servoRequired =
+      (params.customSettings?.servoRequired as boolean) || false;
+
     const req = new RunTestPlanRequest()
       .setModel(params.model)
       .setBoard(params.board)
@@ -525,7 +536,7 @@ export class SatlabRpcService {
       .setCft(params.customSettings.cft as boolean)
       .setTrv2(params.customSettings.trv2 as boolean)
       .setUploadToCpcon(params.customSettings.uploadToCpcon as boolean)
-      .setDimsList(this.toDims(params.dims));
+      .setDimsList(this.toDims(servoRequired, params.dims));
 
     const resp = await this.client.runTestPlan(req, {});
 
@@ -686,8 +697,14 @@ export class SatlabRpcService {
    * @param params the basic parameters with bug_id
    */
   public async runStorageQualification(
-    params: IBuildSelectFields & IPVSFields & {test: string; suite: string}
+    params: IBuildSelectFields &
+      IPVSFields & {test: string; suite: string} & {
+        customSettings?: ICustomSettings;
+      }
   ) {
+    const servoRequired =
+      (params.customSettings?.servoRequired as boolean) || false;
+
     const req = new RunStorageQualRequest()
       .setBoard(params.board)
       .setModel(params.model)
@@ -697,7 +714,7 @@ export class SatlabRpcService {
       .setPool(params.pool)
       .setSuite(params.suite)
       .setTest(params.test)
-      .setDimsList(this.toDims(params.dims));
+      .setDimsList(this.toDims(servoRequired, params.dims));
 
     const res = await this.client.runStorageQual(req, {});
 
@@ -705,8 +722,12 @@ export class SatlabRpcService {
   }
 
   public async runQualification(
-    params: IBuildSelectFields & IQualificationsFields
+    params: IBuildSelectFields &
+      IQualificationsFields & {customSettings?: ICustomSettings}
   ) {
+    const servoRequired =
+      (params.customSettings?.servoRequired as boolean) || false;
+
     const req = new RunQualificationRequest()
       .setBoard(params.board)
       .setModel(params.model)
@@ -715,7 +736,7 @@ export class SatlabRpcService {
       .setQualificationId(params.bugID)
       .setPool(params.pool)
       .setCentralizedSuite(params.suite)
-      .setDimsList(this.toDims(params.dims))
+      .setDimsList(this.toDims(servoRequired, params.dims))
       .setIsIncrementalRun(params.isIncrementalRun);
 
     const res = await this.client.runQualification(req, {});
@@ -809,13 +830,15 @@ export class SatlabRpcService {
     this.client.sendMessageToCCDSession(req, {});
   }
 
-  private toDims(input?: IDims) {
-    if (!input) {
-      return [];
+  private toDims(servoRequired: boolean, input?: IDims) {
+    const values = {...input};
+
+    if (servoRequired) {
+      values['label-servo_state'] = 'WORKING';
     }
 
-    return Object.keys(input).map(k => {
-      return new Dim().setKey(k).setValue(input[k]);
+    return Object.entries(values).map(([k, v]) => {
+      return new Dim().setKey(k).setValue(v);
     });
   }
 

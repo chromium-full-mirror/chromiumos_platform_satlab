@@ -36,7 +36,9 @@
             <mat-checkbox
               (change)="onDUTCheckboxChanged(element)"
               [checked]="selection.isSelected(element)"
-              [disabled]="element.isLatest || element.newestFirmware === 'unknown'"
+              [disabled]="
+                element.isLatest || element.newestFirmware === 'unknown'
+              "
             >
             </mat-checkbox>
           </td>

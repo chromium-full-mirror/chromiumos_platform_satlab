@@ -7,7 +7,7 @@ export interface IBuildSelectFields {
   dims?: IDims;
 }
 
-export type DimKey = 'dut_name';
+export type DimKey = 'dut_name' | 'label-servo_state';
 
 export type IDims = {
   [K in DimKey]?: string;
@@ -48,7 +48,8 @@ type BooleanKeys =
   | 'trv2'
   | 'uploadToCpcon'
   | 'extraTestFilter'
-  | 'editTopology';
+  | 'editTopology'
+  | 'servoRequired';
 
 export type ICustomSettings = {
   [K in NumberKeys]?: number;

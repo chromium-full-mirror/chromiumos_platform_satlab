@@ -38,6 +38,7 @@ export class OtherComponent {
     cft: true,
     trv2: false,
     uploadToCpcon: false,
+    servoRequired: false,
   };
   protected tagIncludes = new FormControl('');
   protected tagExcludes = new FormControl('');
@@ -109,6 +110,7 @@ export class OtherComponent {
           cft: cft,
           trv2: trv2,
           uploadToCpcon: uploadToCpcon,
+          servoRequired: this.customSettings.servoRequired,
         },
         tagIncludes: tagIncludes,
         tagExcludes: tagExcludes,

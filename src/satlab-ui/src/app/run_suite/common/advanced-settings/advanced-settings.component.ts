@@ -61,16 +61,16 @@ export class AdvancedSettingsComponent implements OnInit, OnDestroy {
    * onCftChanged handles the cft flag changed event.
    */
   protected onCftChanged(newValue: boolean) {
-    let advSettings = {
+    const advSettings = {
       ...this._settings.value,
       cft: newValue,
     };
-    if (this.customSettings.hasOwnProperty('trv2')) {
+    if (Object.hasOwn(this.customSettings, 'trv2')) {
       // if `cft` is disable, also disable `trv2` and `uploadToCpcon` flag
       advSettings['trv2'] =
         newValue === false ? false : this._settings.value.trv2;
     }
-    if (this.customSettings.hasOwnProperty('uploadToCpcon')) {
+    if (Object.hasOwn(this.customSettings, 'uploadToCpcon')) {
       advSettings['uploadToCpcon'] =
         newValue === false ? false : this._settings.value.uploadToCpcon;
     }
@@ -81,12 +81,12 @@ export class AdvancedSettingsComponent implements OnInit, OnDestroy {
    * onTrv2Changed handles the trv2 flag changed event.
    */
   protected onTrv2Changed(newValue: boolean) {
-    let advSettings = {
+    const advSettings = {
       ...this._settings.value,
       cft: newValue ? true : this._settings.value.cft,
       trv2: newValue,
     };
-    if (this.customSettings.hasOwnProperty('uploadToCpcon')) {
+    if (Object.hasOwn(this.customSettings, 'uploadToCpcon')) {
       // if `trv2` flag is false, disables `uploadToCpcon` flag
       advSettings['uploadToCpcon'] =
         newValue === false ? false : this._settings.value.uploadToCpcon;
@@ -107,15 +107,27 @@ export class AdvancedSettingsComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * onServoRequired handles the `servo required` flag changed event.
+   * @param newValue
+   * @protected
+   */
+  protected onServoRequiredChanged(newValue: boolean) {
+    this._settings.next({
+      ...this._settings.value,
+      servoRequired: newValue,
+    });
+  }
+
+  /**
    * Check the key relation holds. Ex: If trv2 flag exist, cft flag must exist.
    */
   private ensureKeyExistance(settings: ICustomSettings): ICustomSettings {
-    if (settings.hasOwnProperty('uploadToCpcon')) {
+    if (Object.hasOwn(settings, 'uploadToCpcon')) {
       settings['trv2'] = false;
       settings['cft'] = true;
     }
 
-    if (settings.hasOwnProperty('trv2')) {
+    if (Object.hasOwn(settings, 'trv2')) {
       settings['cft'] = true;
     }
 
