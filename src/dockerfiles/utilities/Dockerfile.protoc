@@ -4,7 +4,7 @@
 
 ARG BASE_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/base-containers
 
-FROM ${BASE_REGISTRY_URI}/debian:buster-slim as download
+FROM ${BASE_REGISTRY_URI}/debian:bullseye-slim as download
 
 RUN apt-get update && apt-get install --no-install-recommends -yq \
 	ca-certificates \
@@ -39,7 +39,7 @@ RUN \
   cp bazel-bin/generator/protoc-gen-js /usr/local/bin/protoc-gen-js
 
 ##############################################################################
-FROM ${BASE_REGISTRY_URI}/debian:buster-slim
+FROM ${BASE_REGISTRY_URI}/debian:bullseye-slim
 
 RUN mkdir -p /protoc
 COPY --from=download bin/protoc /protoc
