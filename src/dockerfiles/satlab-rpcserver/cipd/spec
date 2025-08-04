@@ -3,8 +3,7 @@ $ServiceURL https://chrome-infra-packages.appspot.com/
 # This is the CIPD client itself
 infra/tools/cipd/${os}-${arch}  latest
 
-# TODO(filipek): Switch to prod when b/434828779 will be fixed.
-infra/shivas/linux-amd64 7UcPbYvqiOVkeVLZDBA8Y_gPBex7eOJPo40xwXMjno4C
+infra/shivas/linux-amd64 prod
 
 # TODO(gregorynisbet): Switch this to prod.
 infra/cros/satlab/satlab/linux-amd64 latest
