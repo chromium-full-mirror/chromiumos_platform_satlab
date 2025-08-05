@@ -1,15 +1,24 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {Component, EventEmitter, Input, Output, signal} from '@angular/core';
 import {IDut} from '../../models/dut';
 import {SatlabRpcService} from '../../services/satlab-rpc.service';
 import {FormControl, Validators} from '@angular/forms';
 import {toIterator} from '../../utils/iterator';
-import {finalize, from} from 'rxjs';
+import {
+  catchError,
+  combineLatest,
+  concatAll,
+  finalize,
+  from,
+  of,
+  tap,
+} from 'rxjs';
 import {startWithTap} from '../../utils/rxjs_operator';
 import {MatDialog} from '@angular/material/dialog';
 import {ProvisionComponent} from '../../dialogs/provision/provision.component';
 import {NotificationService} from '../../services/notification.service';
 import {runProvisionOnIndividualDUT} from '../../utils/run_tests_helper';
 import {MatSlideToggleChange} from '@angular/material/slide-toggle';
+import {DevicesService, OSRestriction} from '../../services/devices.service';
 
 @Component({
   selector: 'app-enrollment',
@@ -32,8 +41,11 @@ export class EnrollmentComponent {
     Validators.maxLength(20),
   ]);
 
+  protected restrictionDropdown = signal(false);
+
   constructor(
     private service: SatlabRpcService,
+    private deviceService: DevicesService,
     protected dialog: MatDialog,
     private notification: NotificationService
   ) {}
@@ -346,6 +358,49 @@ export class EnrollmentComponent {
           this.notification.error(`failed to repair: ${JSON.stringify(e)}`);
         },
       });
+  }
+
+  protected onSetOSRestrictionClicked() {
+    this.restrictionDropdown.set(!this.restrictionDropdown());
+  }
+
+  protected onUpdateOSRestrictionClicked(value: OSRestriction) {
+    const obs = toIterator(this.selectedDUTs)
+      .filter(enrolled)
+      .map(e => e.hostname)
+      .map(hostname =>
+        this.deviceService.updateDevices(hostname, {OSRestriction: value}).pipe(
+          tap(() => {
+            this.notification.info(
+              `update ${hostname} os-restriction to ${value} successfully`
+            );
+          }),
+          catchError(e => {
+            this.notification.error(
+              `failed to update the DUT ${hostname}, got an error: ${JSON.stringify(
+                e
+              )}`
+            );
+            return of(null);
+          })
+        )
+      )
+      .collect();
+
+    if (obs.length === 0) {
+      return;
+    }
+
+    from(obs)
+      .pipe(
+        startWithTap(() => {
+          this.loading = true;
+          this.restrictionDropdown.set(false);
+        }),
+        concatAll(),
+        finalize(() => (this.loading = false))
+      )
+      .subscribe();
   }
 
   /**

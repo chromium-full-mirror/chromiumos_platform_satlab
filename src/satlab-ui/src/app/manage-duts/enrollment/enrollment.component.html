@@ -28,6 +28,43 @@
     <button mat-raised-button [disabled]="loading" (click)="onProvisionDUTs()">
       Provision DUTs
     </button>
+
+    <div class="relative w-48">
+      <button
+        class="w-full"
+        mat-raised-button
+        [disabled]="loading || !isDUTSelected"
+        (click)="onSetOSRestrictionClicked()"
+      >
+        <div class="flex justify-between items-center flex-row">
+          <span>Set OS Restriction</span>
+          <span class="material-symbols-outlined material-icon-base"
+            >arrow_drop_down</span
+          >
+        </div>
+      </button>
+
+      <div
+        class="absolute top-12 right-0 h-0 flex flex-col gap-y-3 text-left rounded shadow z-10 w-full bg-white overflow-hidden"
+        [class.h-fit]="restrictionDropdown()"
+      >
+        <a
+          class="cursor-pointer px-4 pt-4 whitespace-nowrap"
+          (click)="onUpdateOSRestrictionClicked('ANDROID_ONLY')"
+          >Android only</a
+        >
+        <a
+          class="cursor-pointer px-4 whitespace-nowrap"
+          (click)="onUpdateOSRestrictionClicked('CHROMEOS_ONLY')"
+          >ChromeOS only</a
+        >
+        <a
+          class="cursor-pointer px-4 pb-4 whitespace-nowrap"
+          (click)="onUpdateOSRestrictionClicked('ANY')"
+          >Any</a
+        >
+      </div>
+    </div>
   </div>
 
   <br />

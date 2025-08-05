@@ -52,6 +52,7 @@ service SatlabRpcService {
   rpc OpenCCD(OpenCCDRequest) returns (stream OpenCCDReply);
   rpc SendMessageToCCDSession(SendMessageToCCDSessionRequest) returns (SendMessageToCCDSessionResponse);
   rpc StableVersion(StableVersionRequest) returns (StableVersionResponse);
+  rpc UpdateDevice(UpdateDeviceRequest) returns (UpdateDeviceResponse);
 
   // get DUTs information
   rpc GetDutDetail (GetDutDetailRequest) returns (GetDutDetailResponse);
@@ -1033,3 +1034,14 @@ message ListAndroidTestModulesRequest {
 message ListAndroidTestModulesResponse {
   repeated string modules = 1;
 }
+
+// NEXT_TAG = 3
+message UpdateDeviceRequest {
+  string hostname = 1;
+  // Specify which OS is allowed on the DUT.
+  // Allowed options: [ANDROID_ONLY, ANY, CHROMEOS_ONLY]
+  string os_restriction = 2;
+}
+
+// NEXT_TAG = 1
+message UpdateDeviceResponse {}
