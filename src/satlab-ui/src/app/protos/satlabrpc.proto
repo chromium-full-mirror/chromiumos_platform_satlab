@@ -480,7 +480,7 @@ message GetNetworkInfoResponse {
 
 // NEXT_TAG = 2
 message AddDutsRequest {
-  // NEXT_TAG = 5
+  // NEXT_TAG = 8
   message Param {
     // The IP address that connected to Satlab
     string address = 1;
@@ -494,6 +494,9 @@ message AddDutsRequest {
     repeated string pools = 5;
     // The servo serial number that connected with DUT
     string servo_serial = 6;
+    // The os of the DUT
+    // support 'chromeos', 'android_desktop'
+    string os = 7;
   }
 
   repeated Param duts = 1;

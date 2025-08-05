@@ -404,7 +404,8 @@ export class SatlabRpcService {
           .setModel(e.model)
           .setBoard(e.board)
           .setAddress(e.address)
-          .setHostname(e.inputHostname);
+          .setHostname(e.inputHostname)
+          .setOs(e.hasAndroidDesktopImage ? 'android_desktop' : 'chromeos');
 
         if (e.isServoWiredCorrectly && e.servoSerial !== '') {
           p.setServoSerial(e.servoSerial);
@@ -1062,11 +1063,17 @@ function __toIDut(e: Dut) {
     poolString: e.getPoolsList().join(', '),
     mac: e.getMacAddress(),
     servoSerial: e.getServoSerial(),
-    isConnected: e.getIsPingable() && (e.getHasTestImage() || e.getHasAndroidDesktopImage()),
+    isConnected:
+      e.getIsPingable() &&
+      (e.getHasTestImage() || e.getHasAndroidDesktopImage()),
     hasAndroidDesktopImage: e.getHasAndroidDesktopImage(),
     hasTestImage: e.getHasTestImage(),
     isAccessible: !(
-      e.getHostname() === '' && !(e.getIsPingable() && (e.getHasTestImage() || e.getHasAndroidDesktopImage()))
+      e.getHostname() === '' &&
+      !(
+        e.getIsPingable() &&
+        (e.getHasTestImage() || e.getHasAndroidDesktopImage())
+      )
     ),
     status: status,
     isServoWiredCorrectly:
