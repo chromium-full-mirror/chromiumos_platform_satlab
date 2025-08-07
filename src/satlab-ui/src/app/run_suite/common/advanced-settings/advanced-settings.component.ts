@@ -121,4 +121,16 @@ export class AdvancedSettingsComponent implements OnInit, OnDestroy {
 
     return settings;
   }
+
+  /**
+   * Handle max_in_shard input change event.
+   */
+
+  protected onShardInputChanged(e: Event) {
+    const value = (e.target as HTMLInputElement).value;
+    this._settings.next({
+      ...this._settings.value,
+      maxInShard: value,
+    });
+  }
 }

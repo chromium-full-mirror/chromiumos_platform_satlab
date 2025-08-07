@@ -1,3 +1,4 @@
+import {SelectableItem} from '../../../models/selectable_item';
 import {
   Component,
   EventEmitter,
@@ -9,7 +10,6 @@ import {
   ViewChild,
 } from '@angular/core';
 import {MatSelect} from '@angular/material/select';
-import {SelectableItem} from '../../../models/selectable_item';
 
 @Component({
   selector: 'app-basic-selector',
@@ -44,6 +44,7 @@ export class BasicSelectorComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if ('options' in changes && changes['options']) {
+      this.selected = '';
       this.options = changes['options'].currentValue;
       this.autoSelectedSingleOption();
     }

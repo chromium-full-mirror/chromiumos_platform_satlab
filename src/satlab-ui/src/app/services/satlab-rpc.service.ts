@@ -1,86 +1,13 @@
-import {Injectable} from '@angular/core';
-import {SatlabRpcServiceClient} from './SatlabrpcServiceClientPb';
-import {getRPCHost} from '../utils/misc';
-import {toIterator} from '../utils/iterator';
-import {from, map, of, switchMap} from 'rxjs';
-import {
-  AbortJobsRequest,
-  AddDutsRequest,
-  AddPoolRequest,
-  AdvancedSettings,
-  BotInfo,
-  DeleteDutsRequest,
-  Dim,
-  DownloadLogRequest,
-  Dut,
-  GetCloudConfigurationRequest,
-  GetDutDetailRequest,
-  GetDutDetailResponse,
-  GetNetworkInfoRequest,
-  GetSystemInfoRequest,
-  GetVersionInfoRequest,
-  Job,
-  ListAccessibleModelsRequest,
-  ListBuildTargetsRequest,
-  ListBuildVersionsRequest,
-  ListConnectedDutsFirmwareRequest,
-  ListDutsRequest,
-  ListEnrolledDutsRequest,
-  ListJobsRequest,
-  ListMilestonesRequest,
-  ListTestPlansRequest,
-  RebootRequest,
-  RepairDutsRequest,
-  RepairDutsResponse,
-  RunLabQualRequest,
-  RunQualificationRequest,
-  OpenCCDRequest,
-  SendMessageToCCDSessionRequest,
-  RunStorageQualRequest,
-  RunSuiteRequest,
-  RunTestPlanRequest,
-  RunTestRequest,
-  SetCloudConfigurationRequest,
-  SortBy,
-  StableVersionRequest,
-  StageBuildRequest,
-  StateQuery,
-  Tag,
-  UpdateDutsFirmwareRequest,
-  UpdatePoolRequest,
-  UploadLogRequest,
-  IsAuthRequest,
-  AddTopologyRequest,
-  DeleteTopologyRequest,
-  TopologyRequest,
-  JobLogLinkRequest,
-  CheckDownloadJobLogStatusRequest,
-  DownloadJobLogRequest,
-  ListJobLogTasksRequest,
-  DownloadJobLogStatus,
-} from './satlabrpc_pb';
-import {IDUTDetail} from '../models/dut_detail';
+import {IAuth} from '../models/auth';
+import {IBoto} from '../models/boto';
+import {IDims} from '../models/dims';
 import {
   IDut,
   IFirmwareDUT,
   IUpdateFirmwareResult,
   RepairDUTResponse,
 } from '../models/dut';
-import {IBoto} from '../models/boto';
-import {IAuth} from '../models/auth';
-import {IDims} from '../models/dims';
-import {
-  DUT_STATUS_DEPLOYING,
-  DUT_STATUS_NEEDS_DEPLOY,
-  DUT_STATUS_NEEDS_MANUAL_REPAIR,
-  DUT_STATUS_NEEDS_REPAIR,
-  DUT_STATUS_NEEDS_REPLACEMENT,
-  DUT_STATUS_READY,
-  DUT_STATUS_REPAIR_FAILED,
-  DUT_STATUS_REPAIRING,
-  DUT_STATUS_RUNNING,
-  DUT_STATUS_UNKNOWN,
-} from 'app/constants';
+import {IDUTDetail} from '../models/dut_detail';
 import {
   IJob,
   IJobQuery,
@@ -90,16 +17,89 @@ import {
   JobType,
   RequestStateQuery,
 } from '../models/job';
-import {Timestamp} from 'google-protobuf/google/protobuf/timestamp_pb';
 import {
   IBuildSelectFields,
   ICustomSettings,
   IPVSFields,
   IQualificationsFields,
 } from '../models/run_suite_fields';
-import {Moment} from 'moment';
-import {isCustomBuild} from 'app/utils/validators';
+import {toIterator} from '../utils/iterator';
+import {getRPCHost} from '../utils/misc';
+import {SatlabRpcServiceClient} from './SatlabrpcServiceClientPb';
+import {
+  AbortJobsRequest,
+  AddDutsRequest,
+  AddPoolRequest,
+  AddTopologyRequest,
+  AdvancedSettings,
+  BotInfo,
+  CheckDownloadJobLogStatusRequest,
+  DeleteDutsRequest,
+  DeleteTopologyRequest,
+  Dim,
+  DownloadJobLogRequest,
+  DownloadJobLogStatus,
+  DownloadLogRequest,
+  Dut,
+  GetCloudConfigurationRequest,
+  GetDutDetailRequest,
+  GetDutDetailResponse,
+  GetNetworkInfoRequest,
+  GetSystemInfoRequest,
+  GetVersionInfoRequest,
+  IsAuthRequest,
+  Job,
+  JobLogLinkRequest,
+  ListAccessibleModelsRequest,
+  ListBuildTargetsRequest,
+  ListBuildVersionsRequest,
+  ListConnectedDutsFirmwareRequest,
+  ListDutsRequest,
+  ListEnrolledDutsRequest,
+  ListJobLogTasksRequest,
+  ListJobsRequest,
+  ListMilestonesRequest,
+  ListTestPlansRequest,
+  OpenCCDRequest,
+  RebootRequest,
+  RepairDutsRequest,
+  RepairDutsResponse,
+  RunLabQualRequest,
+  RunQualificationRequest,
+  RunStorageQualRequest,
+  RunSuiteRequest,
+  RunTestPlanRequest,
+  RunTestRequest,
+  SendMessageToCCDSessionRequest,
+  SetCloudConfigurationRequest,
+  SortBy,
+  StableVersionRequest,
+  StageBuildRequest,
+  StateQuery,
+  Tag,
+  TopologyRequest,
+  UpdateDutsFirmwareRequest,
+  UpdatePoolRequest,
+  UploadLogRequest,
+} from './satlabrpc_pb';
+import {Injectable} from '@angular/core';
+import {
+  DUT_STATUS_DEPLOYING,
+  DUT_STATUS_NEEDS_DEPLOY,
+  DUT_STATUS_NEEDS_MANUAL_REPAIR,
+  DUT_STATUS_NEEDS_REPAIR,
+  DUT_STATUS_NEEDS_REPLACEMENT,
+  DUT_STATUS_READY,
+  DUT_STATUS_REPAIRING,
+  DUT_STATUS_REPAIR_FAILED,
+  DUT_STATUS_RUNNING,
+  DUT_STATUS_UNKNOWN,
+} from 'app/constants';
 import {DownloadJobTaskStatus, ITask} from 'app/models/task';
+import {isCustomBuild} from 'app/utils/validators';
+import {Timestamp} from 'google-protobuf/google/protobuf/timestamp_pb';
+import {Moment} from 'moment';
+import {from, map, of, switchMap} from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -219,9 +219,9 @@ export class SatlabRpcService {
       .setBuildVersion(params.build)
       .setPool(params.pool)
       .setSuite(params.suite)
-      .setCft(params.customSettings.cft)
-      .setTrv2(params.customSettings.trv2)
-      .setUploadToCpcon(params.customSettings.uploadToCpcon)
+      .setCft(params.customSettings.cft as boolean)
+      .setTrv2(params.customSettings.trv2 as boolean)
+      .setUploadToCpcon(params.customSettings.uploadToCpcon as boolean)
       .setDimsList(this.toDims(params.dims))
       .setTagIncludesList(params.tagIncludes)
       .setTagExcludesList(params.tagExcludes)
@@ -457,9 +457,9 @@ export class SatlabRpcService {
       .setBuild(params.build)
       .setPool(params.pool)
       .setTestsList(params.tests)
-      .setCft(params.customSettings.cft)
-      .setTrv2(params.customSettings.trv2)
-      .setUploadToCpcon(params.customSettings.uploadToCpcon)
+      .setCft(params.customSettings.cft as boolean)
+      .setTrv2(params.customSettings.trv2 as boolean)
+      .setUploadToCpcon(params.customSettings.uploadToCpcon as boolean)
       .setDimsList(this.toDims(params.dims));
 
     if (params.test_args !== undefined) {
@@ -519,9 +519,9 @@ export class SatlabRpcService {
       .setBuild(params.build)
       .setPool(params.pool)
       .setTestPlanName(params.plan)
-      .setCft(params.customSettings.cft)
-      .setTrv2(params.customSettings.trv2)
-      .setUploadToCpcon(params.customSettings.uploadToCpcon)
+      .setCft(params.customSettings.cft as boolean)
+      .setTrv2(params.customSettings.trv2 as boolean)
+      .setUploadToCpcon(params.customSettings.uploadToCpcon as boolean)
       .setDimsList(this.toDims(params.dims));
 
     const resp = await this.client.runTestPlan(req, {});
@@ -1121,7 +1121,8 @@ function __toAdvancedSettings(build: string, settings: ICustomSettings) {
   const isCustom = isCustomBuild(build);
   const cft = settings.cft && !isCustom;
   const trv2 = settings.trv2 && !isCustom;
-  const uploadToCpcon = settings.trv2 && settings.uploadToCpcon;
+  const uploadToCpcon =
+    (settings.trv2 as boolean) && (settings.uploadToCpcon as boolean);
 
   return new AdvancedSettings()
     .setCft(cft)

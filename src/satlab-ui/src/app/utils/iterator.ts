@@ -40,11 +40,17 @@ function* uniqueByWhere<T>(iter: Iterator<T>, f: (a: T, b: T) => boolean) {
       seen.push(next.value);
       yield next.value;
     } else {
+      let nextValue = next.value;
       for (const s of seen) {
-        if (!f(s, next.value)) {
-          seen.push(next.value);
-          yield next.value;
+        if (f(s, next.value)) {
+          nextValue = undefined;
+          break;
         }
+      }
+
+      if (nextValue) {
+        seen.push(next.value);
+        yield next.value;
       }
     }
     next = iter.next();

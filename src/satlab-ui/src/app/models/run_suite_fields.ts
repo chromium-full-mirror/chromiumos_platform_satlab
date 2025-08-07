@@ -43,5 +43,5 @@ export const defaultQualificationsFields: IQualificationsFields = {
 };
 
 export type ICustomSettings = {
-  [key: string]: boolean;
+  [key: string]: boolean | string;
 };

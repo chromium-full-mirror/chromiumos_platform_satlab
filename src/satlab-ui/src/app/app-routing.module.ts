@@ -1,19 +1,20 @@
-import {NgModule} from '@angular/core';
-import {RouterModule, Routes} from '@angular/router';
-import {RunSuiteComponent} from './run_suite/run_suite.component';
-import {OtherComponent} from './run_suite/other/other.component';
-import {ManageDutsComponent} from './manage-duts/manage-duts.component';
 import {AboutComponent} from './about/about.component';
 import {ConfigurationComponent} from './configuration/configuration.component';
+import {ManageDutsComponent} from './manage-duts/manage-duts.component';
+import {AndroidBuildSelectFormComponent} from './run_suite/android/android-build-select-form/android-build-select-form.component';
+import {LabQualComponent} from './run_suite/lab-qual/lab-qual.component';
+import {OtherComponent} from './run_suite/other/other.component';
+import {PasitComponent} from './run_suite/pasit/pasit.component';
+import {PvsComponent} from './run_suite/pvs/pvs.component';
+import {QualificationsComponent} from './run_suite/pvs/qualifications/qualifications.component';
+import {StorageQualComponent} from './run_suite/pvs/storage-qual/storage-qual.component';
+import {RunSuiteComponent} from './run_suite/run_suite.component';
+import {SingleTestComponent} from './run_suite/single-test/single-test.component';
 import {TestplanComponent} from './run_suite/testplan/testplan.component';
 import {checkLoggedIn} from './utils/auth-guard';
 import {ViewJobsComponent} from './view-jobs/view-jobs.component';
-import {StorageQualComponent} from './run_suite/pvs/storage-qual/storage-qual.component';
-import {SingleTestComponent} from './run_suite/single-test/single-test.component';
-import {PvsComponent} from './run_suite/pvs/pvs.component';
-import {QualificationsComponent} from './run_suite/pvs/qualifications/qualifications.component';
-import {LabQualComponent} from './run_suite/lab-qual/lab-qual.component';
-import {PasitComponent} from './run_suite/pasit/pasit.component';
+import {NgModule} from '@angular/core';
+import {RouterModule, Routes} from '@angular/router';
 
 const routes: Routes = [
   {
@@ -24,10 +25,19 @@ const routes: Routes = [
   {
     path: 'run_tests',
     children: [
-      {path: '', component: RunSuiteComponent},
-      {path: 'other', component: OtherComponent},
-      {path: 'test', component: SingleTestComponent},
-      {path: 'testplan', component: TestplanComponent},
+      {
+        path: 'chromeos',
+        component: RunSuiteComponent,
+        children: [
+          {path: 'other', component: OtherComponent},
+          {path: 'test', component: SingleTestComponent},
+          {path: 'testplan', component: TestplanComponent},
+        ],
+      },
+      {
+        path: 'android',
+        component: AndroidBuildSelectFormComponent,
+      },
     ],
     canActivate: [checkLoggedIn],
   },

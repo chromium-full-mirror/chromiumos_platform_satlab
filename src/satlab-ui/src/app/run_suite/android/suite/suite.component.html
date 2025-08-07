@@ -1,0 +1,51 @@
+<div class="relative">
+  <div class="relative flex gap-4 w-full flex-col">
+    <div>
+      <app-autocomplete-selector
+        #suiteSelector
+        id="suiteSelector"
+        [options]="suiteOptions()"
+        title="Select Suite:"
+        (selectChanged)="onSelectedChanged('suite', $event)"
+      ></app-autocomplete-selector>
+    </div>
+
+    <div
+      class="relative flex gap-4 w-full flex-row justify-center items-center"
+    >
+      <div class="w-full">
+        <app-autocomplete-selector
+          #testSelector
+          [options]="testOptions()"
+          [title]="testTitle"
+          (selectChanged)="onSelectedChanged('test', $event)"
+          id="testSelector"
+        ></app-autocomplete-selector>
+      </div>
+      <button
+        mat-button
+        (click)="onAddTestClicked()"
+        [disabled]="testSignal() === ''"
+        class="add-btn"
+        color="primary"
+        matTooltip="Add test to exclude"
+      >
+        <span class="material-icon-base material-icon">add</span>
+      </button>
+    </div>
+  </div>
+  <div>
+    <ng-content class="advancedSettings"></ng-content>
+  </div>
+  <div class="relative flex gap-4 w-full flex-col">
+    <div
+      class="flex gap-4 w-full flex-row justify-between items-center"
+      *ngFor="let test of selectedTestModulesSignal(); let i = index"
+    >
+      <span>{{ i + 1 }}. {{ test }}</span>
+        <button mat-button (click)="onRemoveTestClicked(i)">
+          <span class="material-icon-base material-icon">delete</span>
+        </button>
+    </div>
+  </div>
+</div>

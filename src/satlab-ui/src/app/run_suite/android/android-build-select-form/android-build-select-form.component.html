@@ -1,0 +1,116 @@
+<div class="w-full flex flex-row">
+  <button
+    (click)="onTabChanged('suite')"
+    class="w-full hover:bg-blue-50 text-gray-500 h-12 [&.active]:text-blue-400 [&.active]:border-b [&.active]:border-b-blue-400 text-md"
+    [class.active]="tabSignal() === 'suite'"
+  >
+    Suite
+  </button>
+
+  <button
+    (click)="onTabChanged('test')"
+    class="w-full hover:bg-blue-50 text-gray-500 h-12 [&.active]:text-blue-400 [&.active]:border-b [&.active]:border-b-blue-400 text-md"
+    [class.active]="tabSignal() === 'test'"
+  >
+    Tests
+  </button>
+</div>
+
+<div
+  class="relative w-full lg:max-w-3xl mx-auto my-[8rem] p-8 border box-shadow rounded"
+>
+  <app-loading [loading$]="loading$"></app-loading>
+  <div class="flex gap-4 w-full flex-col">
+    <app-basic-selector
+      (select)="onPropsChanged('board', $event)"
+      [options]="boardOptions()"
+      title="Select Board:"
+    >
+    </app-basic-selector>
+
+    <app-basic-selector
+      (select)="onPropsChanged('model', $event)"
+      [options]="modelsOptions()"
+      title="Select Model (Optional):"
+    >
+    </app-basic-selector>
+
+    <app-basic-selector
+      (select)="onPropsChanged('branch', $event)"
+      [options]="branchOptions()"
+      title="Select Branch:"
+    >
+    </app-basic-selector>
+
+    <app-basic-selector
+      (select)="onPropsChanged('boardTarget', $event)"
+      [options]="boardTargetOptions()"
+      title="Select Board Target:"
+    >
+    </app-basic-selector>
+
+    <app-basic-selector
+      (select)="onPropsChanged('suiteTarget', $event)"
+      [options]="suiteTargetOptions()"
+      title="Select Suite Target:"
+    >
+    </app-basic-selector>
+
+    <app-basic-selector
+      (select)="onPropsChanged('build', $event)"
+      [options]="buildOptions()"
+      title="Select Build:"
+    >
+    </app-basic-selector>
+
+    <app-basic-selector
+      (select)="onPropsChanged('pool', $event)"
+      [options]="poolsOptions()"
+      title="Select Pool:"
+    >
+    </app-basic-selector>
+
+    <div *ngIf="tabSignal() !== 'testPlan'">
+      <app-suite
+        [build]="buildSignal()"
+        [target]="targets()"
+        [suite]="suiteSignal()"
+        [testTitle]="tabSignal() === 'test' ? 'Test Include:' : 'Test Exclude:'"
+        [selectedTestModules]="testModulesSignal()"
+        (onSuiteChanged)="onPropsChanged('suite', $event)"
+        (onTestModulesChanged)="onPropsChanged('testModules', $event)"
+        (onLoadingChanged)="onChildLoadingChanged($event)"
+      >
+        <div class="advancedSettings">
+          <app-advanced-settings
+            [customSettings]="customSettings()"
+            (settingsChanged)="onCustomSettingsChanged($event)"
+          >
+          </app-advanced-settings>
+        </div>
+      </app-suite>
+    </div>
+
+    <div *ngIf="tabSignal() === 'testPlan'">
+      <app-test-plan>
+        <div class="advancedSettings">
+          <app-advanced-settings
+            [customSettings]="customSettings()"
+            (settingsChanged)="onCustomSettingsChanged($event)"
+          >
+          </app-advanced-settings>
+        </div>
+      </app-test-plan>
+    </div>
+
+    <button
+      mat-button
+      color="primary"
+      (click)="onRunClicked()"
+      [disabled]="!_isRunnable()"
+      class="mt-8 w-24 mx-auto"
+    >
+      Run
+    </button>
+  </div>
+</div>

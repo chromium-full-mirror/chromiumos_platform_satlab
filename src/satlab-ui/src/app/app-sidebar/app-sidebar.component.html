@@ -22,25 +22,67 @@
   <mat-drawer-container autosize>
     <mat-drawer #drawer mode="side" opened="true">
       <div class="sidebar-wrapper">
-        <a
-          *ngFor="let tab of navTabs"
-          routerLink="{{ tab.route }}"
-          routerLinkActive="active-route"
-        >
-          <div
-            [class.disabled]="tab.disabled ?? !(auth.loginState$ | async)"
-            class="sidebar-item"
-          >
-            <div class="flex flex-row items-center gap-2">
-              <span
-                class="material-icon-base material-icon"
-                [class.material-symbols-outlined]="tab.outlined"
-                >{{ tab.icon }}</span
-              >
-              <p>{{ tab.label }}</p>
+        <div *ngFor="let tab of navTabs">
+          <a routerLink="{{ tab.route }}" routerLinkActive="active-route">
+            <div
+              [class.disabled]="tab.disabled ?? !(auth.loginState$ | async)"
+              class="sidebar-item"
+              *ngIf="!tab.children"
+            >
+              <div class="flex flex-row items-center gap-2">
+                <span
+                  class="material-icon-base material-icon"
+                  [class.material-symbols-outlined]="tab.outlined"
+                  >{{ tab.icon }}</span
+                >
+                <p>{{ tab.label }}</p>
+              </div>
             </div>
-          </div>
-        </a>
+          </a>
+
+          <ng-container *ngIf="tab.children">
+            <button
+              routerLink="{{ tab.route }}"
+              routerLinkActive="active-route"
+              disabled="true"
+              class="w-full"
+            >
+              <div
+                [class.disabled]="tab.disabled ?? !(auth.loginState$ | async)"
+                class="sidebar-item"
+              >
+                <div class="flex flex-row items-center gap-2">
+                  <span
+                    class="material-icon-base material-icon"
+                    [class.material-symbols-outlined]="tab.outlined"
+                    >{{ tab.icon }}</span
+                  >
+                  <p>{{ tab.label }}</p>
+                </div>
+              </div>
+            </button>
+
+            <a
+              *ngFor="let child of tab.children"
+              routerLink="{{ child.route }}"
+              routerLinkActive="active-route"
+            >
+              <div
+                [class.disabled]="child.disabled ?? !(auth.loginState$ | async)"
+                class="sidebar-item"
+              >
+                <div class="flex flex-row items-center gap-2 pl-4">
+                  <span
+                    class="material-icon-base material-icon"
+                    [class.material-symbols-outlined]="child.outlined"
+                    >{{ child.icon }}</span
+                  >
+                  <p>{{ child.label }}</p>
+                </div>
+              </div>
+            </a>
+          </ng-container>
+        </div>
       </div>
     </mat-drawer>
 

@@ -1,8 +1,8 @@
-import {Component} from '@angular/core';
 import {SidebarEntry} from '../models/feature';
-import {NotificationService} from '../services/notification.service';
 import {INotification} from '../models/notification';
 import {AuthService} from '../services/auth.service';
+import {NotificationService} from '../services/notification.service';
+import {Component} from '@angular/core';
 
 @Component({
   selector: 'app-sidebar',
@@ -22,6 +22,20 @@ export class AppSidebarComponent {
       label: 'Run Tests',
       icon: 'play_arrow',
       outlined: false,
+      children: [
+        {
+          route: '/run_tests/chromeos',
+          label: 'ChromeOS',
+          icon: 'play_arrow',
+          outlined: false,
+        },
+        {
+          route: '/run_tests/android',
+          label: 'Android',
+          icon: 'play_arrow',
+          outlined: false,
+        },
+      ],
     },
     {
       route: '/pasit',

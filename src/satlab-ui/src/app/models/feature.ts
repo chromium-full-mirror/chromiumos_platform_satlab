@@ -6,4 +6,5 @@ export interface SidebarEntry {
   icon?: string;
   disabled?: boolean;
   outlined: boolean;
+  children?: SidebarEntry[];
 }
