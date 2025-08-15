@@ -7,6 +7,7 @@
         [options]="suiteOptions()"
         title="Select Suite:"
         (selectChanged)="onSelectedChanged('suite', $event)"
+        (inputChanged)="onSelectedChanged('suite', $event)"
       ></app-autocomplete-selector>
     </div>
 
@@ -43,9 +44,9 @@
       *ngFor="let test of selectedTestModulesSignal(); let i = index"
     >
       <span>{{ i + 1 }}. {{ test }}</span>
-        <button mat-button (click)="onRemoveTestClicked(i)">
-          <span class="material-icon-base material-icon">delete</span>
-        </button>
+      <button mat-button (click)="onRemoveTestClicked(i)">
+        <span class="material-icon-base material-icon">delete</span>
+      </button>
     </div>
   </div>
 </div>

@@ -64,25 +64,26 @@
           *ngIf="customSettings.hasOwnProperty('maxInShard')"
           class="flex flex-row gap-4 justify-center"
         >
-
-
-        <div class="relative flex flex-col gap-1">
-        <label for="shard" class="text-blue-500 text-md ">Max in shard</label>
-        <input
-              placeholder="Maximum number of test modules in one shard"
+          <div class="relative flex flex-col gap-1">
+            <label for="shard" class="text-blue-500 text-md"
+              >Maximum number of test modules in one shard</label
+            >
+            <input
               type="number"
               min="0"
               max="65536"
-              [value]="(settings$ | async).maxInShard"
+              [value]="(settings$ | async).maxInShard | safeNumber"
               (input)="onShardInputChanged($event)"
               required
               class="peer invalid:text-red-500 w-[360px] outline-none h-12 border-b border-b-gray-600 focus:border-b-blue-500 bg-transparent invalid:border-b-red-500"
               id="shard"
             />
-            <p class="peer-invalid:text-red-500 peer-invalid:block hidden text-sm">Can't be empty or negative.</p>
-        </div>
-
-
+            <p
+              class="peer-invalid:text-red-500 peer-invalid:block hidden text-sm"
+            >
+              Must be an integer between 0 ~ 65536
+            </p>
+          </div>
         </div>
       </div>
     </mat-expansion-panel>

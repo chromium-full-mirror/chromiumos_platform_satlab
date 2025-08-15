@@ -22,5 +22,5 @@ export const DUT_STATUS_DEPLOYING = 'deploying';
 export const DOWNLOAD_SERVICE_TIMER = 1000;
 export const CHECK_DOWNLOAD_TASK_THRESHOLD = 5000;
 
-export const MAX_IN_SHARD_DEFAULT = '0';
+export const MAX_IN_SHARD_DEFAULT = 0;
 export const ANDROID_TEST_PREFIX = 'tradefed';

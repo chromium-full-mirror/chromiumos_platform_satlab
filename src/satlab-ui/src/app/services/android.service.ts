@@ -91,6 +91,7 @@ export class AndroidService {
 
   public runSuite(params: {
     buildTarget: string;
+    model: string;
     build: string;
     pool: string;
     suite: string;
@@ -102,6 +103,7 @@ export class AndroidService {
     const req = new RunSuiteRequest()
       .setAndroidDesktop(true)
       .setBuildTarget(params.buildTarget)
+      .setModel(params.model)
       .setBuildVersion(params.build)
       .setCft(true)
       .setPool(params.pool)

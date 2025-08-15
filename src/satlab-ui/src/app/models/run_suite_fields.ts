@@ -42,6 +42,16 @@ export const defaultQualificationsFields: IQualificationsFields = {
   isIncrementalRun: false,
 };
 
+type NumberKeys = 'maxInShard';
+type BooleanKeys =
+  | 'cft'
+  | 'trv2'
+  | 'uploadToCpcon'
+  | 'extraTestFilter'
+  | 'editTopology';
+
 export type ICustomSettings = {
-  [key: string]: boolean | string;
+  [K in NumberKeys]?: number;
+} & {
+  [K in BooleanKeys]?: boolean;
 };

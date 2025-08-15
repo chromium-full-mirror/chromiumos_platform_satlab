@@ -44,6 +44,7 @@ export class SuiteComponent implements OnChanges, OnDestroy {
     show: boolean;
     message: string;
   }>();
+  @Output() onSuiteValidChanged = new EventEmitter<boolean>();
 
   protected isLoading = signal<{show: boolean; message: string}>({
     show: false,
@@ -63,6 +64,11 @@ export class SuiteComponent implements OnChanges, OnDestroy {
     );
   });
   protected suiteSignal = signal<string>('');
+  private suiteValid = computed(() => {
+    const suite = this.suiteSignal();
+    return toIterator(this.suiteOptions()).first_where(e => e.value === suite)
+      ?.value as string;
+  });
   protected testSignal = signal<string>('');
 
   protected selectedTestModulesSignal = signal<string[]>([]);
@@ -102,14 +108,10 @@ export class SuiteComponent implements OnChanges, OnDestroy {
           ]);
           const build = untracked(() => this.buildSignal());
           const target = untracked(() => this.suiteTarget());
-          const suite = this.suiteSignal();
+          let suite = this.suiteValid();
 
-          if (build && target && suite) {
+          if (build && target && suite !== undefined) {
             this.__listTests(build, target, suite);
-          }
-
-          if (suite === '') {
-            this.suiteSelector?.clear();
           }
         },
         {
@@ -126,6 +128,14 @@ export class SuiteComponent implements OnChanges, OnDestroy {
       ),
       effect(
         () => {
+          if (this.suiteSignal() === '') {
+            this.suiteSelector?.clear();
+          }
+        },
+        {allowSignalWrites: true}
+      ),
+      effect(
+        () => {
           this.onTestModulesChanged.emit(this.selectedTestModulesSignal());
         },
         {
@@ -135,6 +145,13 @@ export class SuiteComponent implements OnChanges, OnDestroy {
       effect(
         () => {
           this.onLoadingChanged.emit(this.isLoading());
+        },
+        {allowSignalWrites: true}
+      ),
+
+      effect(
+        () => {
+          this.onSuiteValidChanged.emit(this.suiteValid() !== undefined);
         },
         {allowSignalWrites: true}
       ),
@@ -165,13 +182,13 @@ export class SuiteComponent implements OnChanges, OnDestroy {
     }
   }
 
-  protected onSelectedChanged(key: 'suite' | 'test', value: string) {
+  protected onSelectedChanged(key: 'suite' | 'test', value: string | null) {
     switch (key) {
       case 'suite':
-        this.suiteSignal.set(value);
+        this.suiteSignal.set(value ?? '');
         break;
       case 'test':
-        this.testSignal.set(value);
+        this.testSignal.set(value ?? '');
         break;
     }
   }

@@ -77,9 +77,7 @@ export class AndroidBuildSelectFormComponent
   protected suiteOptions = signal<SelectableItem[]>([]);
   protected testOptions = signal<SelectableItem[]>([]);
 
-  protected customSettings = signal<ICustomSettings>({
-    maxInShard: MAX_IN_SHARD_DEFAULT,
-  });
+  protected customSettings = signal({maxInShard: MAX_IN_SHARD_DEFAULT});
 
   protected duts = signal<IDut[]>([]);
   protected androidDuts = computed(() => {
@@ -113,26 +111,7 @@ export class AndroidBuildSelectFormComponent
       .map(e => toSelectedItem(e))
       .collect();
   });
-
-  protected _isRunnable = computed(() => {
-    const extra =
-      this.tabSignal() !== 'test' || this.testModulesSignal().length !== 0;
-
-    return (
-      this.isLoading().show === false &&
-      this.boardSignal() &&
-      this.branchSignal() &&
-      this.targetSignal()[1] !== '' &&
-      this.targetSignal()[2] !== '' &&
-      this.buildSignal() !== '' &&
-      this.poolSignal() !== '' &&
-      this.suiteSignal() !== '' &&
-      this.customSettings().maxInShard !== '' &&
-      Number(this.customSettings().maxInShard) >= 0 &&
-      this.targetType() &&
-      extra
-    );
-  });
+  private suiteValidSignal = signal<boolean>(false);
 
   private refs: EffectRef[] = [];
 
@@ -146,18 +125,14 @@ export class AndroidBuildSelectFormComponent
         () => {
           this.__onBoardChanged(this.boardSignal());
         },
-        {
-          allowSignalWrites: true,
-        }
+        {allowSignalWrites: true}
       ),
-
       effect(
         () => {
           this.__onBranchChanged(this.branchSignal());
         },
         {allowSignalWrites: true}
       ),
-
       effect(
         () => {
           const board = untracked(() => this.boardSignal());
@@ -167,23 +142,6 @@ export class AndroidBuildSelectFormComponent
         },
         {allowSignalWrites: true}
       ),
-
-      effect(
-        () => {
-          this.buildSignal();
-          this.__onBuildChanged();
-        },
-        {allowSignalWrites: true}
-      ),
-
-      effect(
-        () => {
-          this.suiteSignal();
-          resetSignals([this.testModulesSignal]);
-        },
-        {allowSignalWrites: true}
-      ),
-
       effect(
         () => {
           const tab = this.tabSignal();
@@ -211,18 +169,50 @@ export class AndroidBuildSelectFormComponent
     switch (key) {
       case 'board':
         this.boardSignal.set((value as string).trim());
+        resetSignals([
+          this.modelSignal,
+          this.branchSignal,
+          this.buildSignal,
+          this.poolSignal,
+          this.suiteSignal,
+          this.targetSignal,
+          this.testModulesSignal,
+          this.branchOptions,
+          this.targetOptions,
+          this.buildOptions,
+          this.suiteOptions,
+          this.testOptions,
+        ]);
         break;
       case 'model':
         this.modelSignal.set((value as string).trim());
         break;
       case 'branch':
         this.branchSignal.set((value as string).trim());
+        resetSignals([
+          this.buildSignal,
+          this.suiteSignal,
+          this.targetSignal,
+          this.testModulesSignal,
+          this.targetOptions,
+          this.buildOptions,
+          this.suiteOptions,
+          this.testOptions,
+        ]);
         break;
       case 'boardTarget':
         this.targetSignal.set({
           ...this.targetSignal(),
           1: (value as string).trim(),
         });
+        resetSignals([
+          this.buildSignal,
+          this.suiteSignal,
+          this.testModulesSignal,
+          this.buildOptions,
+          this.suiteOptions,
+          this.testOptions,
+        ]);
         break;
       case 'suiteTarget':
         this.targetSignal.set({
@@ -232,12 +222,14 @@ export class AndroidBuildSelectFormComponent
         break;
       case 'build':
         this.buildSignal.set((value as string).trim());
+        resetSignals([this.suiteSignal, this.testModulesSignal]);
         break;
       case 'pool':
         this.poolSignal.set((value as string).trim());
         break;
       case 'suite':
         this.suiteSignal.set((value as string).trim());
+        resetSignals([this.testModulesSignal]);
         break;
       case 'testModules':
         this.testModulesSignal.set(value as string[]);
@@ -246,7 +238,9 @@ export class AndroidBuildSelectFormComponent
   }
 
   protected onCustomSettingsChanged(value: ICustomSettings) {
-    this.customSettings.set(value);
+    this.customSettings.set({
+      maxInShard: value.maxInShard,
+    });
   }
 
   protected onChildLoadingChanged(value: {show: boolean; message: string}) {
@@ -257,8 +251,36 @@ export class AndroidBuildSelectFormComponent
     this.tabSignal.set(tab);
   }
 
+  protected onChildSuiteValidChanged(value: boolean) {
+    this.suiteValidSignal.set(value);
+  }
+
+  protected _isRunnable = computed(() => {
+    const extra =
+      this.tabSignal() !== 'test' || this.testModulesSignal().length !== 0;
+    const shard = this.customSettings().maxInShard;
+
+    return (
+      this.isLoading().show === false &&
+      this.boardSignal() &&
+      this.branchSignal() &&
+      this.targetSignal()[1] !== '' &&
+      this.targetSignal()[2] !== '' &&
+      this.buildSignal() !== '' &&
+      this.poolSignal() !== '' &&
+      this.suiteValidSignal() &&
+      this.targetType() &&
+      !Number.isNaN(shard) &&
+      Number.isInteger(shard) &&
+      shard >= 0 &&
+      shard <= 65536 &&
+      extra
+    );
+  });
+
   protected onRunClicked() {
     const board = this.boardSignal();
+    const model = this.modelSignal();
     const build = this.buildSignal();
     const pool = this.poolSignal();
     const suite =
@@ -274,13 +296,14 @@ export class AndroidBuildSelectFormComponent
       excludes = [...testModules];
     }
 
-    const shard = Number(this.customSettings().maxInShard);
+    const shard = this.customSettings().maxInShard;
 
     if (this.tabSignal() !== 'testPlan') {
       wrapperLoading(
         from(
           this.androidService.runSuite({
             buildTarget: board,
+            model: model,
             build: build,
             pool: pool,
             suite: suite,
@@ -310,60 +333,21 @@ export class AndroidBuildSelectFormComponent
   }
 
   private __onBoardChanged(board: string) {
-    resetSignals([
-      this.modelSignal,
-      this.branchSignal,
-      this.buildSignal,
-      this.poolSignal,
-      this.suiteSignal,
-      this.targetSignal,
-      this.testModulesSignal,
-      this.branchOptions,
-      this.targetOptions,
-      this.buildOptions,
-      this.suiteOptions,
-      this.testOptions,
-    ]);
-
     if (board) {
       this.__listBranches(board);
     }
   }
 
   private __onBranchChanged(branch: string) {
-    resetSignals([
-      this.buildSignal,
-      this.suiteSignal,
-      this.targetSignal,
-      this.testModulesSignal,
-      this.targetOptions,
-      this.buildOptions,
-      this.suiteOptions,
-      this.testOptions,
-    ]);
-
     if (branch) {
       this.__listTargets(branch);
     }
   }
 
   private __onTargetChanged(board: string, branch: string, targets: string[]) {
-    resetSignals([
-      this.buildSignal,
-      this.suiteSignal,
-      this.testModulesSignal,
-      this.buildOptions,
-      this.suiteOptions,
-      this.testOptions,
-    ]);
-
     if (board !== '' && branch !== '' && targets) {
       this.__listBuilds(board, branch, targets);
     }
-  }
-
-  private __onBuildChanged() {
-    resetSignals([this.suiteSignal, this.testModulesSignal]);
   }
 
   private __listBranches(board: string) {

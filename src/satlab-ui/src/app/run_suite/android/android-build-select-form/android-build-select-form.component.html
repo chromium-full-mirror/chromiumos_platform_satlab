@@ -80,6 +80,7 @@
         (onSuiteChanged)="onPropsChanged('suite', $event)"
         (onTestModulesChanged)="onPropsChanged('testModules', $event)"
         (onLoadingChanged)="onChildLoadingChanged($event)"
+        (onSuiteValidChanged)="onChildSuiteValidChanged($event)"
       >
         <div class="advancedSettings">
           <app-advanced-settings

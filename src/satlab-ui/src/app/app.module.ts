@@ -74,6 +74,7 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterModule} from '@angular/router';
+import {SafeNumberPipe} from './pipes/safe-number.pipe';
 
 @NgModule({
   declarations: [
@@ -117,6 +118,7 @@ import {RouterModule} from '@angular/router';
     SuiteComponent,
     AndroidBuildSelectFormComponent,
     TestPlanComponent,
+    SafeNumberPipe,
   ],
   imports: [
     AppRoutingModule,

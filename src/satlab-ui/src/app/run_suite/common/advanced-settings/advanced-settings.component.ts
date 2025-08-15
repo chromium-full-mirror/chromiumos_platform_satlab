@@ -130,7 +130,7 @@ export class AdvancedSettingsComponent implements OnInit, OnDestroy {
     const value = (e.target as HTMLInputElement).value;
     this._settings.next({
       ...this._settings.value,
-      maxInShard: value,
+      maxInShard: parseFloat(value),
     });
   }
 }
