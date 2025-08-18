@@ -129,6 +129,15 @@ export class AndroidBuildSelectFormComponent
       ),
       effect(
         () => {
+          this.modelSignal();
+          this.__onModelChanged();
+        },
+        {
+          allowSignalWrites: true,
+        }
+      ),
+      effect(
+        () => {
           this.__onBranchChanged(this.branchSignal());
         },
         {allowSignalWrites: true}
@@ -336,6 +345,10 @@ export class AndroidBuildSelectFormComponent
     if (board) {
       this.__listBranches(board);
     }
+  }
+
+  private __onModelChanged() {
+    resetSignals([this.poolSignal]);
   }
 
   private __onBranchChanged(branch: string) {
