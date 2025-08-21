@@ -36,6 +36,7 @@ export class AndroidBuildSelectFormComponent
   protected branchSignal = signal<string>('');
   protected targetSignal = signal<{[key: number]: string}>({1: '', 2: ''});
   protected buildSignal = signal<string>('');
+  protected validBuildSignal = signal<string>('');
   protected poolSignal = signal<string>('');
   protected suiteSignal = signal<string>('');
   protected testModulesSignal = signal<string[]>([]);
@@ -143,6 +144,16 @@ export class AndroidBuildSelectFormComponent
       ),
       effect(
         () => {
+          const board = untracked(() => this.boardSignal());
+          const branch = untracked(() => this.branchSignal());
+          const target = untracked(() => this.targets());
+          const build = this.buildSignal();
+          this.__onBuildChanged(board, branch, target, build);
+        },
+        {allowSignalWrites: true}
+      ),
+      effect(
+        () => {
           this.tabSignal();
 
           resetSignals([
@@ -173,6 +184,7 @@ export class AndroidBuildSelectFormComponent
           this.modelSignal,
           this.branchSignal,
           this.buildSignal,
+          this.validBuildSignal,
           this.poolSignal,
           this.suiteSignal,
           this.targetSignal,
@@ -193,6 +205,7 @@ export class AndroidBuildSelectFormComponent
         this.branchSignal.set((value as string).trim());
         resetSignals([
           this.buildSignal,
+          this.validBuildSignal,
           this.suiteSignal,
           this.targetSignal,
           this.testModulesSignal,
@@ -210,6 +223,7 @@ export class AndroidBuildSelectFormComponent
         });
         resetSignals([
           this.buildSignal,
+          this.validBuildSignal,
           this.suiteSignal,
           this.testModulesSignal,
           this.buildOptions,
@@ -223,11 +237,24 @@ export class AndroidBuildSelectFormComponent
           ...this.targetSignal(),
           2: (value as string).trim(),
         });
-        resetSignals([this.notAvailableMsg]);
+        resetSignals([
+          this.buildSignal,
+          this.validBuildSignal,
+          this.suiteSignal,
+          this.testModulesSignal,
+          this.buildOptions,
+          this.suiteOptions,
+          this.testOptions,
+          this.notAvailableMsg,
+        ]);
         break;
       case 'build':
         this.buildSignal.set((value as string).trim());
-        resetSignals([this.suiteSignal, this.testModulesSignal]);
+        resetSignals([
+          this.validBuildSignal,
+          this.suiteSignal,
+          this.testModulesSignal,
+        ]);
         break;
       case 'pool':
         this.poolSignal.set((value as string).trim());
@@ -293,10 +320,14 @@ export class AndroidBuildSelectFormComponent
     );
   });
 
+  protected onBuildInputValueChanged(value: string) {
+    this.onPropsChanged('build', value);
+  }
+
   protected onRunClicked() {
     const board = this.boardSignal();
     const model = this.modelSignal();
-    const build = this.buildSignal();
+    const build = this.validBuildSignal();
     const pool = this.poolSignal();
     const suite =
       this.tabSignal() === 'suite' ? `suite:${this.suiteSignal()}` : '';
@@ -372,6 +403,21 @@ export class AndroidBuildSelectFormComponent
     }
   }
 
+  private __onBuildChanged(
+    board: string,
+    branch: string,
+    targets: string[],
+    build: string
+  ) {
+    if (
+      board !== '' &&
+      branch !== '' &&
+      targets.length !== 0 &&
+      /^\d{8}$/.test(build)
+    ) {
+      this.__isBuildValid(board, branch, targets, build);
+    }
+  }
   private __listBranches(board: string) {
     wrapperLoading(
       this.androidService.listBranches(board),
@@ -431,6 +477,30 @@ export class AndroidBuildSelectFormComponent
       },
       error: e => {
         this.notification.error(`List DUTs failed: ${e}`, {dismiss: false});
+      },
+    });
+  }
+
+  private __isBuildValid(
+    board: string,
+    branch: string,
+    targets: string[],
+    build: string
+  ) {
+    wrapperLoading(
+      this.androidService.validateBuild(board, branch, targets, build),
+      this.isLoading,
+      'Validating build...'
+    ).subscribe({
+      next: isValid => {
+        if (isValid) {
+          this.validBuildSignal.set(build);
+        }
+      },
+      error: e => {
+        this.notification.error(`Validate build failed: ${e}`, {
+          dismiss: false,
+        });
       },
     });
   }

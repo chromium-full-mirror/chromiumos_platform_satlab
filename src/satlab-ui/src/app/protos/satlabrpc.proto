@@ -36,6 +36,7 @@ service SatlabRpcService {
   rpc ListAndroidTestModules(ListAndroidTestModulesRequest) returns (ListAndroidTestModulesResponse);
   rpc ListAndroidBuilds(ListAndroidBuildsRequest) returns (ListAndroidBuildsResponse);
   rpc ListAndroidSuites(ListAndroidSuitesRequest) returns (ListAndroidSuitesResponse);
+  rpc ValidateAndroidBuild(ValidateAndroidBuildRequest) returns (ValidateAndroidBuildResponse);
 
   // services to run different types of test suites
   rpc RunSuite (RunSuiteRequest) returns (RunSuiteResponse);
@@ -1059,3 +1060,16 @@ message UpdateDeviceRequest {
 
 // NEXT_TAG = 1
 message UpdateDeviceResponse {}
+
+// NEXT_TAG = 5
+message ValidateAndroidBuildRequest {
+  string board = 1;
+  string branch = 2;
+  repeated string targets = 3;
+  string build = 4;
+}
+
+// NEXT_TAG = 2
+message ValidateAndroidBuildResponse {
+  bool is_valid = 1;
+}

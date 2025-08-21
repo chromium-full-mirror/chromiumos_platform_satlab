@@ -1,3 +1,5 @@
+import {SelectableItem} from '../../../models/selectable_item';
+import {toIterator} from '../../../utils/iterator';
 import {
   Component,
   EventEmitter,
@@ -6,13 +8,11 @@ import {
   OnDestroy,
   OnInit,
   Output,
-  signal,
   SimpleChanges,
+  signal,
 } from '@angular/core';
-import {SelectableItem} from '../../../models/selectable_item';
 import {FormControl} from '@angular/forms';
-import {toIterator} from '../../../utils/iterator';
-import {debounceTime, distinctUntilChanged, Subscription} from 'rxjs';
+import {Subscription, debounceTime, distinctUntilChanged} from 'rxjs';
 
 @Component({
   selector: 'app-autocomplete-selector',

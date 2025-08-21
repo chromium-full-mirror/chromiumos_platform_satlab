@@ -65,14 +65,6 @@
     </app-basic-selector>
 
     <app-basic-selector
-      (select)="onPropsChanged('build', $event)"
-      [options]="buildOptions()"
-      [disabled]="isRunLoadingSignal()"
-      title="Select Build:"
-    >
-    </app-basic-selector>
-
-    <app-basic-selector
       (select)="onPropsChanged('pool', $event)"
       [options]="poolsOptions()"
       [disabled]="isRunLoadingSignal()"
@@ -80,9 +72,16 @@
     >
     </app-basic-selector>
 
+    <app-autocomplete-selector
+      [options]="buildOptions()"
+      title="Select Build:"
+      (selectChanged)="onPropsChanged('build', $event)"
+      (inputValueChanged)="onBuildInputValueChanged($event)"
+    ></app-autocomplete-selector>
+
     <div *ngIf="tabSignal() !== 'testPlan'">
       <app-suite
-        [build]="buildSignal()"
+        [build]="validBuildSignal()"
         [target]="targets()"
         [suite]="suiteSignal()"
         [testTitle]="tabSignal() === 'test' ? 'Test Include:' : 'Test Exclude:'"

@@ -7,6 +7,7 @@ import {
   ListAndroidTestModulesRequest,
   ListTestPlansRequest,
   RunSuiteRequest,
+  ValidateAndroidBuildRequest,
 } from './satlabrpc_pb';
 import {Injectable} from '@angular/core';
 import {getRPCHost} from 'app/utils/misc';
@@ -116,6 +117,25 @@ export class AndroidService {
     return from(
       this.client.runSuite(req, {}).then(resp => {
         return resp.getBuildLink();
+      })
+    );
+  }
+
+  public validateBuild(
+    board: string,
+    branch: string,
+    targets: string[],
+    build: string
+  ) {
+    const req = new ValidateAndroidBuildRequest()
+      .setBoard(board)
+      .setBranch(branch)
+      .setTargetsList(targets)
+      .setBuild(build);
+
+    return from(
+      this.client.validateAndroidBuild(req, {}).then(resp => {
+        return resp.getIsValid();
       })
     );
   }
