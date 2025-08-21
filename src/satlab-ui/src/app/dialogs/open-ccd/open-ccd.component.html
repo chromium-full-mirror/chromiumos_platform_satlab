@@ -24,9 +24,17 @@
   <div class="content-group">
     <div innerHTML="{{ hintMessage }}"></div>
   </div>
-  <div class="bottom-group">
-    <div *ngIf="rmaAuth && (loading$ | async).show" class="input-group">
-      <input matInput placeholder="Enter RMA code" [(ngModel)]="rmaCode" />
+  <div class="relative flex w-full justify-between align-center flex-row">
+    <div
+      class="flex flex-row items-center justify-end px-4 w-full gap-4"
+      *ngIf="rmaAuth && (loading$ | async).show"
+    >
+      <input
+        matInput
+        placeholder="Enter RMA code"
+        [(ngModel)]="rmaCode"
+        class="border-2 rounded h-8 px-2 w-full"
+      />
       <button mat-raised-button color="primary" (click)="onSubmitClicked()">
         Submit
       </button>
