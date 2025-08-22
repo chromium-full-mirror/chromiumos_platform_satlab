@@ -27,7 +27,8 @@ import {Observable, finalize, from} from 'rxjs';
   styleUrls: ['./android-build-select-form.component.scss'],
 })
 export class AndroidBuildSelectFormComponent
-  implements AfterViewInit, OnDestroy {
+  implements AfterViewInit, OnDestroy
+{
   protected tabSignal = signal<'suite' | 'test' | 'testPlan'>('suite');
 
   protected boardSignal = signal<string>('');
@@ -62,13 +63,14 @@ export class AndroidBuildSelectFormComponent
   protected branchOptions = signal<SelectableItem[]>([]);
   protected targetOptions = signal<SelectableItem[]>([]);
   protected boardTargetOptions = computed(() => {
+    const board = this.boardSignal();
     return toIterator(this.targetOptions())
-      .filter(e => e.text.endsWith('userdebug'))
+      .filter(e => e.text.includes(board) && e.text.endsWith('userdebug'))
       .collect();
   });
   protected suiteTargetOptions = computed(() => {
     return toIterator(this.targetOptions())
-      .filter(e => !e.text.endsWith('userdebug'))
+      .filter(e => e.text.startsWith('test_suites'))
       .collect();
   });
   protected buildOptions = signal<SelectableItem[]>([]);
