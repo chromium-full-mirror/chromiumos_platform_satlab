@@ -2,16 +2,18 @@
   class="wrapper"
   matTooltip="{{ disabledMessage }}"
   matTooltipPosition="right"
+  appClickDetector
+  (outside)="onOutsideClicked()"
 >
   <div class="selector-wrapper">
     <mat-form-field class="full-width zero-padding">
       <mat-label>{{ title }}</mat-label>
       <input
         #search
-        (focusin)="onInputFocusIn()"
-        (focusout)="onInputFocusout()"
         [formControl]="searchFormControl"
         [placeholder]="placeholder"
+        (click)="onInputClicked()"
+        (change)="onInputChanged()"
         matInput
       />
       <mat-hint *ngIf="errorMessage !== ''" class="error"
@@ -20,12 +22,8 @@
     </mat-form-field>
   </div>
 
-  <ng-container *ngIf="isShown">
-    <div
-      (mouseenter)="onMouseEnter()"
-      (mouseleave)="onMouseLeave()"
-      class="items-wrapper"
-    >
+  <ng-container *ngIf="isOpened()">
+    <div class="items-wrapper">
       <mat-list role="list">
         <mat-list-item
           (click)="onOptionClicked(option.label === 'Failed' ? null : option)"

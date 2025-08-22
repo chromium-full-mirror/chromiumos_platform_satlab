@@ -6,6 +6,7 @@ import {
   OnDestroy,
   OnInit,
   Output,
+  signal,
   SimpleChanges,
 } from '@angular/core';
 import {SelectableItem} from '../../../models/selectable_item';
@@ -21,7 +22,6 @@ import {debounceTime, distinctUntilChanged, Subscription} from 'rxjs';
 export class AutocompleteSelectorComponent
   implements OnChanges, OnInit, OnDestroy
 {
-  @Input() isShown = false;
   // the flag to control the selector can be selected
   @Input() disabled = false;
   // the reason of why the component is disabled
@@ -41,11 +41,14 @@ export class AutocompleteSelectorComponent
   @Output() inputChanged = new EventEmitter();
   // the event that parent component can listen the select element change.
   @Output() selectChanged = new EventEmitter();
+  // the event that parent component can listen the input element change when user un-focus.
+  @Output() inputValueChanged = new EventEmitter();
 
   protected filteredOptions: SelectableItem[] = [];
   protected searchFormControl = new FormControl('');
-  protected isHover = false;
   private disposer?: Subscription;
+
+  protected isOpened = signal(false);
 
   ngOnInit() {
     if (this.disabled) {
@@ -88,33 +91,33 @@ export class AutocompleteSelectorComponent
     this.searchFormControl.reset();
   }
 
-  protected onInputFocusIn() {
-    this.isShown = true;
+  protected onInputClicked() {
+    this.isOpened.update(cur => !cur);
   }
 
-  protected onInputFocusout() {
-    if (!this.isHover) {
-      this.isShown = false;
-    }
-  }
-
-  protected onMouseEnter() {
-    this.isHover = true;
-  }
-
-  protected onMouseLeave() {
-    this.isHover = false;
+  protected onInputChanged() {
+    this.inputValueChanged.emit(this.searchFormControl.value);
   }
 
   protected onOptionClicked(option?: SelectableItem) {
+    this.__closeDropdownIfOpened();
     if (!option) {
       return;
     }
-    this.isHover = false;
-    this.isShown = false;
+
     const newValue =
       typeof option.value === 'string' ? option.value : option.text;
     this.searchFormControl.setValue(newValue);
     this.selectChanged.emit(newValue);
+  }
+
+  protected onOutsideClicked() {
+    this.__closeDropdownIfOpened();
+  }
+
+  private __closeDropdownIfOpened() {
+    if (this.isOpened()) {
+      this.isOpened.set(false);
+    }
   }
 }
