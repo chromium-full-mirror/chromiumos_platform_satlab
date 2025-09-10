@@ -18,6 +18,7 @@ else
 endif
 export REGISTRY := us-docker.pkg.dev/chromeos-partner-moblab/satlab
 export SFP_REGISTRY_URI := us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners
+export REGISTRY_PRIVATE := us-docker.pkg.dev/chromeos-partner-moblab/satlab-private
 # Please Note: This make file does not build any core Satlab containers(
 # drone, downloader, nginx). These are build separately and we just
 # use these images in the compose. BUILD_VERSION here is the version

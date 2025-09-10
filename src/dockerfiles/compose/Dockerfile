@@ -32,17 +32,18 @@ RUN apk add --no-cache --upgrade \
   zlib-dev
 
 # If the args left empty the script will leave the values in .env as is.
+ARG ATS_CONTROLLER_BRIDGE_VER
 ARG CONF_CREATOR_VER
-ARG SATLAB_DRONE_VER
+ARG DNS_VER
 ARG DOWNLOADER_VER
+ARG ENVOY_PROXY_VER
+ARG LOGROTATE_VER
 ARG NGINX_VER
 ARG OPENSSH_SERVER_VER
-ARG DNS_VER
-ARG SATLAB_RPCSERVER_VER
-ARG ENVOY_PROXY_VER
-ARG SATLAB_UI_VER
-ARG LOGROTATE_VER
 ARG OPENTELEMETRY_COLLECTOR_VER
+ARG SATLAB_DRONE_VER
+ARG SATLAB_RPCSERVER_VER
+ARG SATLAB_UI_VER
 
 # These are re-defined because ARG has a different scope
 # before and after the FROM instruction.
@@ -89,17 +90,18 @@ RUN chmod u+x compose_startup.sh
 COPY dockerfiles/compose/override_service_version.sh .
 RUN chmod u+x override_service_version.sh
 
-RUN  ./override_service_version.sh CONF_CREATOR ${CONF_CREATOR_VER:-${BUILD_VERSION}} \
-  && ./override_service_version.sh DOWNLOADER ${DOWNLOADER_VER:-${BUILD_VERSION}} \
-  && ./override_service_version.sh NGINX ${NGINX_VER:-${BUILD_VERSION}} \
-  && ./override_service_version.sh SATLAB_DRONE ${SATLAB_DRONE_VER:-${BUILD_VERSION}} \
+RUN  ./override_service_version.sh ATS_CONTROLLER_BRIDGE ${ATS_CONTROLLER_BRIDGE_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh CONF_CREATOR ${CONF_CREATOR_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh DNS ${DNS_VER:-${BUILD_VERSION}} \
-  && ./override_service_version.sh OPENSSH_SERVER ${OPENSSH_SERVER_VER:-${BUILD_VERSION}} \
-  && ./override_service_version.sh SATLAB_RPCSERVER ${SATLAB_RPCSERVER_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh DOWNLOADER ${DOWNLOADER_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh ENVOY_PROXY ${ENVOY_PROXY_VER:-${BUILD_VERSION}} \
-  && ./override_service_version.sh SATLAB_UI ${SATLAB_UI_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh LOGROTATE ${LOGROTATE_VER:-${BUILD_VERSION}} \
-  && ./override_service_version.sh OPENTELEMETRY_COLLECTOR ${OPENTELEMETRY_COLLECTOR_VER:-${BUILD_VERSION}}
+  && ./override_service_version.sh NGINX ${NGINX_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh OPENSSH_SERVER ${OPENSSH_SERVER_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh OPENTELEMETRY_COLLECTOR ${OPENTELEMETRY_COLLECTOR_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh SATLAB_DRONE ${SATLAB_DRONE_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh SATLAB_RPCSERVER ${SATLAB_RPCSERVER_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh SATLAB_UI ${SATLAB_UI_VER:-${BUILD_VERSION}}
 
 # Add routine to check export environment variable from .env file
 COPY tools/export_env_file.sh /

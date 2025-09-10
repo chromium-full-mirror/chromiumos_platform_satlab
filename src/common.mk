@@ -4,6 +4,7 @@
 
 REGISTRY_URI := ${REGISTRY}
 SFP_REGISTRY_URI := ${SFP_REGISTRY_URI}
+REGISTRY_PRIVATE := ${REGISTRY_PRIVATE}
 EXTRA_ARGS+= --no-cache
 EXTRA_ARGS+= --build-arg REGISTRY_URI="${REGISTRY_URI}"
 EXTRA_ARGS+= --build-arg LABEL="${LABEL}"
@@ -19,11 +20,13 @@ OVERRIDE_SERVICES := \
 	OPENTELEMETRY_COLLECTOR \
 	LOGROTATE \
 	SATLAB_RPCSERVER \
-	SATLAB_UI
+	SATLAB_UI \
+	ATS_CONTROLLER_BRIDGE
 ${foreach service, ${OVERRIDE_SERVICES}, \
 	${eval EXTRA_ARGS+= --build-arg ${service}_VER=${LABEL}}}
 
-all:	compose \
+all:	ats-controller-bridge \
+        compose \
 		conf_creator \
 		dhcp \
 		dns \
@@ -93,7 +96,6 @@ ui: protoc
 		-f dockerfiles/ui/Dockerfile .
 	docker push ${REGISTRY_URI}/satlab-ui:${LABEL}
 
-
 opentelemetry-collector: export DOCKER_BUILDKIT := 1
 opentelemetry-collector:
 	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/opentelemetry-collector:${LABEL} \
@@ -117,3 +119,9 @@ dhcp:
 	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/satlab-dhcp:${LABEL} \
 		-f dockerfiles/dhcp/Dockerfile .
 	docker push ${REGISTRY_URI}/satlab-dns:${LABEL}
+
+ats-controller-bridge: export DOCKER_BUILDKIT := 1
+ats-controller-bridge:
+	docker build ${EXTRA_ARGS} -t ${REGISTRY_PRIVATE}/ats-controller-bridge:${LABEL} \
+		-f dockerfiles/ats-controller-bridge/Dockerfile .
+	docker push ${REGISTRY_PRIVATE}/ats-controller-bridge:${LABEL}
