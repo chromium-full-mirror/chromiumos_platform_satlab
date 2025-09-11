@@ -1,0 +1,102 @@
+<div class="flex flex-col relative items-center pt-[4rem]">
+  <div class="pb-[2rem] w-[26rem] border border-solid rounded-[0.25rem]">
+    <app-loading [loading$]="loading$"></app-loading>
+    <div class="px-6 flex flex-col gap-y-4">
+      <app-basic-selector
+        (select)="onPropsChanged('model', $event)"
+        [disabled]="dutsSignal().length === 0 || isLoading().show"
+        placeholder="Please select a model"
+        [options]="modelOpts()"
+        title="Select Model:"
+      >
+      </app-basic-selector>
+
+      <app-basic-selector
+        (select)="onPropsChanged('board', $event)"
+        [disabledMessage]="!modelSignal() ? 'Please select a model' : ''"
+        [disabled]="!modelSignal() || isLoading().show"
+        placeholder="Please select a board"
+        [options]="boardOpts()"
+        title="Select Board:"
+      >
+      </app-basic-selector>
+
+      <app-basic-selector
+        (select)="onPropsChanged('milestone', $event)"
+        [disabledMessage]="
+          !boardSignal() || !modelSignal()
+            ? 'Please select a model and board'
+            : ''
+        "
+        [disabled]="!boardSignal() || !modelSignal() || isLoading().show"
+        placeholder="Please select a milestone"
+        [options]="milestoneOpts()"
+        title="Select Milestone: "
+      ></app-basic-selector>
+
+      <app-basic-selector
+        (select)="onPropsChanged('build', $event)"
+        [disabledMessage]="
+          !boardSignal() || !modelSignal() ? 'Please select a milestone' : ''
+        "
+        [disabled]="
+          !boardSignal() ||
+          !modelSignal() ||
+          !milestoneSignal() ||
+          isLoading().show
+        "
+        placeholder="Please select a build"
+        [options]="buildOpts()"
+        title="Select build: "
+      ></app-basic-selector>
+
+      <app-basic-selector
+        (select)="onPropsChanged('pool', $event)"
+        [options]="poolOpts()"
+        [disabledMessage]="!modelSignal() ? 'Please select a model' : ''"
+        [disabled]="!modelSignal() || isLoading().show"
+        placeholder="Please select a pool"
+        title="Select Pool:"
+      >
+      </app-basic-selector>
+
+      <app-basic-selector
+        (select)="onFaftChanged($event)"
+        [disabled]="isRunningSignal()"
+        [options]="faftSuiteTestOpts"
+        title="Select Test:"
+      >
+      </app-basic-selector>
+
+      <div *ngIf="customSettingsSignal().testArgs">
+        <mat-form-field class="full-width zero-padding">
+          <mat-label>Enter test arguments</mat-label>
+          <input
+            [value]="testArgsSignal() ? testArgsSignal() : ''"
+            matInput
+            (input)="testArgsSignal.set($any($event.target).value)"
+            placeholder="Ex: arg1,arg2(separate by comma without space)"
+            [disabled]="isRunningSignal()"
+          />
+        </mat-form-field>
+      </div>
+
+      <app-advanced-settings
+        (settingsChanged)="onAdvancedSettingsChanged($event)"
+        [disabled]="false"
+        [customSettings]="customSettingsSignal()"
+      ></app-advanced-settings>
+
+      <div class="flex justify-center py-4">
+        <app-loading-button
+          (click)="onRunClicked()"
+          [disabled]="!ableToRun()"
+          [loading]="isRunningSignal()"
+          [text]="'Run'"
+          class="width-[12.5rem] height-[2.5rem]"
+        >
+        </app-loading-button>
+      </div>
+    </div>
+  </div>
+</div>

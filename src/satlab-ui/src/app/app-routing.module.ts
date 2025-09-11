@@ -2,6 +2,7 @@ import {AboutComponent} from './about/about.component';
 import {ConfigurationComponent} from './configuration/configuration.component';
 import {ManageDutsComponent} from './manage-duts/manage-duts.component';
 import {AndroidBuildSelectFormComponent} from './run_suite/android/android-build-select-form/android-build-select-form.component';
+import {RunComponent} from './run_suite/chromeos/run/run.component';
 import {LabQualComponent} from './run_suite/lab-qual/lab-qual.component';
 import {OtherComponent} from './run_suite/other/other.component';
 import {PasitComponent} from './run_suite/pasit/pasit.component';
@@ -66,6 +67,7 @@ const routes: Routes = [
 
   {path: 'labqual', component: LabQualComponent, canActivate: [checkLoggedIn]},
   {path: 'pasit', component: PasitComponent, canActivate: [checkLoggedIn]},
+  {path: 'faft', component: RunComponent, canActivate: [checkLoggedIn]},
   {
     path: '**',
     component: ManageDutsComponent,

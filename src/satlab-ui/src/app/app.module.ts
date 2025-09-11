@@ -76,6 +76,7 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterModule} from '@angular/router';
 import {SafeNumberPipe} from './pipes/safe-number.pipe';
 import {WifiConfigComponent} from './wifi-config/wifi-config.component';
+import {RunComponent} from './run_suite/chromeos/run/run.component';
 
 @NgModule({
   declarations: [
@@ -121,6 +122,7 @@ import {WifiConfigComponent} from './wifi-config/wifi-config.component';
     AndroidBuildSelectFormComponent,
     TestPlanComponent,
     SafeNumberPipe,
+    RunComponent,
   ],
   imports: [
     AppRoutingModule,

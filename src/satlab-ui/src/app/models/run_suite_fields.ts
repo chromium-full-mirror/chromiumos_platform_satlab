@@ -49,7 +49,8 @@ type BooleanKeys =
   | 'uploadToCpcon'
   | 'extraTestFilter'
   | 'editTopology'
-  | 'servoRequired';
+  | 'servoRequired'
+  | 'testArgs';
 
 export type ICustomSettings = {
   [K in NumberKeys]?: number;

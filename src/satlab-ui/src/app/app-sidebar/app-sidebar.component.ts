@@ -57,6 +57,12 @@ export class AppSidebarComponent {
       outlined: true,
     },
     {
+      route: '/faft',
+      label: 'FAFT',
+      icon: 'developer_board',
+      outlined: false,
+    },
+    {
       route: 'view_jobs',
       label: 'View Jobs',
       icon: 'visibility',

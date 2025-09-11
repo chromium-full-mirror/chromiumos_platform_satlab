@@ -1,3 +1,4 @@
+import {RunAndroidOSRequest, RunChromeOSRequest, Test} from 'app/models/run';
 import {IAuth} from '../models/auth';
 import {IBoto} from '../models/boto';
 import {IDims} from '../models/dims';
@@ -66,6 +67,7 @@ import {
   RepairDutsResponse,
   RunLabQualRequest,
   RunQualificationRequest,
+  RunRequest,
   RunStorageQualRequest,
   RunSuiteRequest,
   RunTestPlanRequest,
@@ -202,6 +204,63 @@ export class SatlabRpcService {
     const resp = await this.client.listBuildVersions(req, {});
 
     return resp.getBuildVersionsList();
+  }
+
+  /**
+   * run a runChromeOS by given model, board, milestone, build version, pool, suite,
+   * and additional tags if needed.
+   * @param params an object contains the required information
+   */
+  public async run(params: RunChromeOSRequest | RunAndroidOSRequest) {
+    const settings = new AdvancedSettings();
+    settings.setCft(params.advanceSettings.cft ?? false);
+    settings.setTrv2(params.advanceSettings.trv2 ?? false);
+    settings.setUploadToCpcon(params.advanceSettings.uploadToCpcon ?? false);
+    settings.setMaxInShard(params.advanceSettings.maxInShard ?? 0);
+
+    const servoRequired =
+      (params.advanceSettings?.servoRequired as boolean) ?? false;
+
+    const req = new RunRequest()
+      .setOs(params.os)
+      .setModel(params.model)
+      .setBoard(params.board)
+      .setBuild(params.build)
+      .setPool(params.pool)
+      .setDimsList(this.toDims(servoRequired, params.dims))
+      .setTagIncludesList(params.tags.tagsToInclude)
+      .setTagExcludesList(params.tags.tagsToExclude)
+      .setTestNameIncludesList(params.tags.testNamesInclude)
+      .setTestNameExcludesList(params.tags.testNamesExclude)
+      .setSettings(settings);
+
+    if (params.os === 'chromeos') {
+      req.setModel(params.model).setMilestone(params.milestone);
+    } else {
+      req.setModel(params.model ?? '').setTargetType(params.targetType);
+    }
+
+    switch (params.run.kind) {
+      case 'suite':
+        const suite = new RunRequest.Suite();
+        suite.setName(params.run.name);
+        req.setSuite(suite);
+        break;
+      case 'test':
+        const test = new RunRequest.Test();
+        test.setName(params.run.name);
+        test.setArgs((params.run as Test).args);
+        req.setTest(test);
+        break;
+      case 'testplan':
+        const testplan = new RunRequest.Testplan();
+        testplan.setName(params.run.name);
+        req.setPlan(testplan);
+        break;
+    }
+    const resp = await this.client.run(req, {});
+
+    return resp.getLink();
   }
 
   /**

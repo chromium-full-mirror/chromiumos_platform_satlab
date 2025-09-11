@@ -29,7 +29,6 @@ service SatlabRpcService {
   rpc Topology(TopologyRequest) returns (TopologyResponse);
   rpc AddTopology(AddTopologyRequest) returns (AddTopologyResponse);
   rpc DeleteTopology(DeleteTopologyRequest) returns (DeleteTopologyResponse);
-  rpc Run (RunRequest) returns (RunResponse);
 
   // Android Desktop
   rpc ListAndroidBranches(ListAndroidBranchesRequest) returns (ListAndroidBranchesResponse);
@@ -44,6 +43,7 @@ service SatlabRpcService {
   rpc RunTest (RunTestRequest) returns (RunTestResponse);
   rpc RunTestPlan (RunTestPlanRequest) returns (RunTestPlanResponse);
   rpc RunLabQual (RunLabQualRequest) returns (RunLabQualResponse);
+  rpc Run (RunRequest) returns (RunResponse);
 
   // manage DUTs
   rpc AddPool (AddPoolRequest) returns (AddPoolResponse);
@@ -858,7 +858,7 @@ message SendMessageToCCDSessionRequest {
 // NEXT_TAG = 1
 message SendMessageToCCDSessionResponse {}
 
-// NEXT_TAG = 4
+// NEXT_TAG = 5
 message AdvancedSettings {
   bool cft = 1;
   bool trv2 = 2;
@@ -1111,23 +1111,28 @@ message RunRequest {
   message Suite {
     string name = 1;
   }
+
   // NEXT_TAG = 3
   message Test {
     string name = 1;
     string args = 2;
   }
+
   // NEXT_TAG = 2
   message Testplan {
     string name = 1;
   }
+
   oneof task {
     Suite suite = 1;
     Test test = 2;
     Testplan plan = 3;
   }
+
   // set the DUT OS.
   // it only supports "android" / "chromeos" now.
   string os = 4;
+
   // base information
   string board = 5;
   optional string model = 6;
@@ -1135,11 +1140,13 @@ message RunRequest {
   optional string target_type = 8;
   string build = 9;
   string pool = 10;
+
   repeated Dim dims = 11;
   repeated string tag_includes = 12;
   repeated string tag_excludes = 13;
   repeated string test_name_includes = 14;
   repeated string test_name_excludes = 15;
+
   AdvancedSettings settings = 16;
 }
 

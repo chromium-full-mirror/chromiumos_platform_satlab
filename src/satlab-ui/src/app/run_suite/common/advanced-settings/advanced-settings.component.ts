@@ -2,9 +2,11 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnChanges,
   OnDestroy,
   OnInit,
   Output,
+  SimpleChanges,
 } from '@angular/core';
 import {ICustomSettings} from 'app/models/run_suite_fields';
 import {BehaviorSubject, Subscription} from 'rxjs';
@@ -14,7 +16,7 @@ import {BehaviorSubject, Subscription} from 'rxjs';
   templateUrl: './advanced-settings.component.html',
   styleUrls: ['./advanced-settings.component.scss'],
 })
-export class AdvancedSettingsComponent implements OnInit, OnDestroy {
+export class AdvancedSettingsComponent implements OnInit, OnChanges, OnDestroy {
   @Input() disabled = false;
   @Input() customSettings: ICustomSettings = {};
 
@@ -34,6 +36,16 @@ export class AdvancedSettingsComponent implements OnInit, OnDestroy {
     // subscript the `settings` value changed
     // When `settings` changed, we can notify the value has been changed.
     this.disposer = this._settings.subscribe(e => this.settingsChanged.emit(e));
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (
+      changes['customSettings'] &&
+      changes['customSettings'].previousValue !==
+        changes['customSettings'].currentValue
+    ) {
+      this._settings.next(changes['customSettings'].currentValue);
+    }
   }
 
   ngOnDestroy() {
@@ -143,6 +155,13 @@ export class AdvancedSettingsComponent implements OnInit, OnDestroy {
     this._settings.next({
       ...this._settings.value,
       maxInShard: parseFloat(value),
+    });
+  }
+
+  protected onTestArgsChanged(value: boolean) {
+    this._settings.next({
+      ...this._settings.value,
+      testArgs: value,
     });
   }
 }
