@@ -169,7 +169,6 @@ export class BuildSelectFormComponent
 
   #parseAPIResponse(duts: IDut[]): void {
     this.duts = duts
-      .filter(e => !e.hasAndroidDesktopImage)
       .map(e => {
         const dut: ISimpleDUT = {
           hostname: e.hostname,
