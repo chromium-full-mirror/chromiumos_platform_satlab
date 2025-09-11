@@ -46,7 +46,7 @@ export class AndroidBuildSelectFormComponent
       e.endsWith('userdebug')
     );
     const splitTarget = userDebug?.split(`${this.boardSignal()}-`);
-    if (splitTarget?.length == 2) {
+    if (splitTarget?.length === 2) {
       return splitTarget[1];
     }
 
@@ -80,17 +80,14 @@ export class AndroidBuildSelectFormComponent
   protected customSettings = signal({maxInShard: MAX_IN_SHARD_DEFAULT});
 
   protected duts = signal<IDut[]>([]);
-  protected androidDuts = computed(() => {
-    return this.duts().filter(e => e.hasAndroidDesktopImage === true);
-  });
   protected boardOptions = computed(() => {
-    return toIterator(this.androidDuts())
+    return toIterator(this.duts())
       .unique_by_where((a, b) => a.board === b.board)
       .map(e => toSelectedItem(e.board))
       .collect();
   });
   protected modelsOptions = computed(() => {
-    return toIterator(this.androidDuts())
+    return toIterator(this.duts())
       .filter(e => e.board === this.boardSignal())
       .unique_by_where((a, b) => {
         return a.model === b.model;
@@ -99,7 +96,7 @@ export class AndroidBuildSelectFormComponent
       .collect();
   });
   protected poolsOptions = computed(() => {
-    return toIterator(this.androidDuts())
+    return toIterator(this.duts())
       .filter(
         e =>
           e.board === this.boardSignal() &&
