@@ -17,10 +17,10 @@
 </div>
 
 <div
-  class="relative w-full lg:max-w-3xl mx-auto my-[8rem] p-8 border box-shadow rounded"
+  class="relative w-full lg:max-w-3xl mx-auto my-[4rem] px-6 pt-0 pb-6 border box-shadow rounded"
 >
   <app-loading [loading$]="loading$"></app-loading>
-  <div class="flex gap-4 w-full flex-col">
+  <div class="flex gap-2 w-full flex-col">
     <app-basic-selector
       (select)="onPropsChanged('board', $event)"
       [options]="boardOptions()"
@@ -104,14 +104,12 @@
       </app-test-plan>
     </div>
 
-    <button
-      mat-button
-      color="primary"
-      (click)="onRunClicked()"
+    <app-loading-button
+      class="mx-auto"
+      (onClick)="onRunClicked()"
       [disabled]="!_isRunnable()"
-      class="mt-8 w-24 mx-auto"
-    >
-      Run
-    </button>
+      [loading]="isRunLoadingSignal()"
+      [text]="'Run'"
+    ></app-loading-button>
   </div>
 </div>

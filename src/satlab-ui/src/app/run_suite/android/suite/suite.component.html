@@ -38,12 +38,12 @@
   <div>
     <ng-content class="advancedSettings"></ng-content>
   </div>
-  <div class="relative flex gap-4 w-full flex-col">
+  <div class="relative flex gap-2 w-full flex-col-reverse">
     <div
       class="flex gap-4 w-full flex-row justify-between items-center"
       *ngFor="let test of selectedTestModulesSignal(); let i = index"
     >
-      <span>{{ i + 1 }}. {{ test }}</span>
+      <span>{{ test }}</span>
       <button mat-button (click)="onRemoveTestClicked(i)">
         <span class="material-icon-base material-icon">delete</span>
       </button>

@@ -40,6 +40,7 @@ export class AndroidBuildSelectFormComponent
   protected suiteSignal = signal<string>('');
   protected testModulesSignal = signal<string[]>([]);
   protected testPlanSignal = signal<string>('');
+  protected isRunLoadingSignal = signal<boolean>(false);
   private targets = computed(() => Object.values(this.targetSignal()));
   private targetType = computed(() => {
     const userDebug = toIterator(this.targets()).first_where(e =>
@@ -321,20 +322,27 @@ export class AndroidBuildSelectFormComponent
         ),
         this.isLoading,
         `Running ${this.tabSignal()}...`
-      ).subscribe({
-        next: buildLink => {
-          this.notification.info(
-            [
-              `Triggering ${this.tabSignal()} succeed! Link:`,
-              {type: 'url', url: buildLink},
-            ],
-            {dismiss: false}
-          );
-        },
-        error: e => {
-          this.notification.error(`Trigger job failed: ${e}`, {dismiss: false});
-        },
-      });
+      )
+        .pipe(
+          startWithTap(() => this.isRunLoadingSignal.set(true)),
+          finalize(() => this.isRunLoadingSignal.set(false))
+        )
+        .subscribe({
+          next: buildLink => {
+            this.notification.info(
+              [
+                `Triggering ${this.tabSignal()} succeed! Link:`,
+                {type: 'url', url: buildLink},
+              ],
+              {dismiss: false}
+            );
+          },
+          error: e => {
+            this.notification.error(`Trigger job failed: ${e}`, {
+              dismiss: false,
+            });
+          },
+        });
     }
   }
 
