@@ -41,6 +41,7 @@ export class AndroidBuildSelectFormComponent
   protected testModulesSignal = signal<string[]>([]);
   protected testPlanSignal = signal<string>('');
   protected isRunLoadingSignal = signal<boolean>(false);
+  protected notAvailableMsg = signal<string>('');
   private targets = computed(() => Object.values(this.targetSignal()));
   private targetType = computed(() => {
     const userDebug = toIterator(this.targets()).first_where(e =>
@@ -189,6 +190,7 @@ export class AndroidBuildSelectFormComponent
           this.buildOptions,
           this.suiteOptions,
           this.testOptions,
+          this.notAvailableMsg,
         ]);
         break;
       case 'model':
@@ -205,6 +207,7 @@ export class AndroidBuildSelectFormComponent
           this.buildOptions,
           this.suiteOptions,
           this.testOptions,
+          this.notAvailableMsg,
         ]);
         break;
       case 'boardTarget':
@@ -219,6 +222,7 @@ export class AndroidBuildSelectFormComponent
           this.buildOptions,
           this.suiteOptions,
           this.testOptions,
+          this.notAvailableMsg,
         ]);
         break;
       case 'suiteTarget':
@@ -226,6 +230,7 @@ export class AndroidBuildSelectFormComponent
           ...this.targetSignal(),
           2: (value as string).trim(),
         });
+        resetSignals([this.notAvailableMsg]);
         break;
       case 'build':
         this.buildSignal.set((value as string).trim());
@@ -363,7 +368,7 @@ export class AndroidBuildSelectFormComponent
   }
 
   private __onTargetChanged(board: string, branch: string, targets: string[]) {
-    if (board !== '' && branch !== '' && targets) {
+    if (board !== '' && branch !== '' && targets.length > 0) {
       this.__listBuilds(board, branch, targets);
     }
   }
@@ -375,6 +380,7 @@ export class AndroidBuildSelectFormComponent
       'Loading branches...'
     ).subscribe({
       next: e => {
+        this.notAvailableMsg.set(e.length === 0 ? 'No branches available' : '');
         this.branchOptions.set(e.map(toSelectedItem));
       },
       error: e => {
@@ -390,6 +396,7 @@ export class AndroidBuildSelectFormComponent
       'Loading targets...'
     ).subscribe({
       next: e => {
+        this.notAvailableMsg.set(e.length === 0 ? 'No targets available' : '');
         this.targetOptions.set(e.map(toSelectedItem));
       },
       error: e => {
@@ -405,6 +412,7 @@ export class AndroidBuildSelectFormComponent
       'Loading builds...'
     ).subscribe({
       next: e => {
+        this.notAvailableMsg.set(e.length === 0 ? 'No builds available' : '');
         this.buildOptions.set(e.map(toSelectedItem));
       },
       error: e => {
