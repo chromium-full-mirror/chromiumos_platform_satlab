@@ -128,15 +128,6 @@ export class AndroidBuildSelectFormComponent
       ),
       effect(
         () => {
-          this.modelSignal();
-          this.__onModelChanged();
-        },
-        {
-          allowSignalWrites: true,
-        }
-      ),
-      effect(
-        () => {
           this.__onBranchChanged(this.branchSignal());
         },
         {allowSignalWrites: true}
@@ -152,7 +143,7 @@ export class AndroidBuildSelectFormComponent
       ),
       effect(
         () => {
-          const tab = this.tabSignal();
+          this.tabSignal();
 
           resetSignals([
             this.suiteSignal,
@@ -174,6 +165,7 @@ export class AndroidBuildSelectFormComponent
   }
 
   protected onPropsChanged(key: string, value: string | string[]) {
+    console.log(`${key}: ${value}`);
     switch (key) {
       case 'board':
         this.boardSignal.set((value as string).trim());
@@ -194,6 +186,7 @@ export class AndroidBuildSelectFormComponent
         ]);
         break;
       case 'model':
+        resetSignals([this.poolSignal]);
         this.modelSignal.set((value as string).trim());
         break;
       case 'branch':
@@ -271,6 +264,16 @@ export class AndroidBuildSelectFormComponent
     const extra =
       this.tabSignal() !== 'test' || this.testModulesSignal().length !== 0;
     const shard = this.customSettings().maxInShard;
+
+    console.log(
+      `extra: ${extra}, shard: ${shard}, loading: ${
+        this.isLoading().show
+      }, board: ${this.boardSignal()}, branch: ${this.branchSignal()}, t1: ${
+        this.targetSignal()[1]
+      } t2: ${
+        this.targetSignal()[2]
+      }, build: ${this.buildSignal()}, pool: ${this.poolSignal()}, suite: ${this.suiteValidSignal()}, targetType: ${this.targetType()}`
+    );
 
     return (
       this.isLoading().show === false &&
@@ -355,10 +358,6 @@ export class AndroidBuildSelectFormComponent
     if (board) {
       this.__listBranches(board);
     }
-  }
-
-  private __onModelChanged() {
-    resetSignals([this.poolSignal]);
   }
 
   private __onBranchChanged(branch: string) {
