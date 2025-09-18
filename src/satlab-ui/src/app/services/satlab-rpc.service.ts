@@ -1089,7 +1089,6 @@ function __toIDut(e: Dut) {
       e.getServoSerial() === '' || e.getServoSerial() !== 'NOT DETECTED',
     statusHintText: __toStatusHintText(status),
     ccdStatus: e.getCcdStatus(),
-    testlabEnabled: e.getIsTestlabEnabled(),
     dimensions: toIterator(e.getBotInfo()?.getDimensionsList() ?? []).fold(
       {},
       (prev, elem) => {
@@ -1098,6 +1097,7 @@ function __toIDut(e: Dut) {
       }
     ),
     hasPermission: e.getHasPermission(),
+    testlabEnabled: '',
   };
 
   return dut;

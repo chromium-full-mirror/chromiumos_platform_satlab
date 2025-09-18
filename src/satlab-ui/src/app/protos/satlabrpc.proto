@@ -412,6 +412,9 @@ message ListEnrolledDutsRequest {}
 
 // NEXT_TAG = 19
 message Dut {
+  // because the field `is_testlab_enabeld` doesn't
+  // exist in the RPC server.
+  reserved 18;
   string address = 1;
   string name = 2;
   string hostname = 3;
@@ -431,7 +434,6 @@ message Dut {
   // Otherwise returns False.
   bool has_permission = 16;
   bool has_android_desktop_image = 17;
-  string is_testlab_enabled = 18;
 }
 
 // NEXT_TAG = 5

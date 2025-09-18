@@ -1,3 +1,4 @@
+import {toIterator} from 'app/utils/iterator';
 import {AUTO_REFRESH_INTERVAL, TESTLAB_STATUS_UNKNOWN} from '../constants';
 import {IDut} from '../models/dut';
 import {NotificationService} from '../services/notification.service';
@@ -101,28 +102,43 @@ export class ManageDutsComponent implements AfterViewInit, OnDestroy {
   }
 
   private async __listTestlab(duts: IDut[]) {
-    const ds = duts.filter(dut => shouldGetTestlab(dut));
+    toIterator(duts)
+      .filter(dut => !shouldGetTestlab(dut))
+      .forEach(dut => {
+        const d = {...dut};
+        d.testlabEnabled = TESTLAB_STATUS_UNKNOWN;
+        this.DUTs = [...[d], ...this.DUTs.filter(e => e.address !== d.address)];
+      });
 
-    for (const dut of ds) {
-      try {
-        await this.service.getTestlabEnabled(dut.address).then(res => {
-          dut.testlabEnabled = res;
-        });
-      } catch (err) {
-        this.notification.error(`Get ${dut.address} testlab failed: ${err}`, {
-          dismiss: false,
-        });
-      }
-    }
+    const futures = toIterator(duts)
+      .filter(dut => shouldGetTestlab(dut))
+      .map(async dut => {
+        const d = {...dut};
+        d.testlabEnabled = TESTLAB_STATUS_UNKNOWN;
+        return this.service
+          .getTestlabEnabled(dut.address)
+          .then(r => {
+            d.testlabEnabled = r;
+            this.DUTs = [
+              ...[d],
+              ...this.DUTs.filter(e => e.address !== d.address),
+            ];
+          })
+          .catch(e => {
+            console.error(
+              `get ${dut.address} testlab failed, got an error: ${e}`
+            );
+            this.DUTs = [
+              ...[d],
+              ...this.DUTs.filter(e => e.address !== d.address),
+            ];
+          });
+      })
+      .collect();
 
-    this.DUTs = [
-      ...ds,
-      ...duts
-        .filter(dut => !shouldGetTestlab(dut))
-        .map(dut => ({...dut, testlabEnabled: TESTLAB_STATUS_UNKNOWN})),
-    ];
+    await Promise.all(futures);
   }
 }
 function shouldGetTestlab(dut: IDut): boolean {
-  return dut.hasPermission && dut.isAccessible && dut.isConnected;
+  return dut.isConnected;
 }
