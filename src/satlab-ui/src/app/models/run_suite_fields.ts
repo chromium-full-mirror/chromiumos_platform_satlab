@@ -57,3 +57,38 @@ export type ICustomSettings = {
 } & {
   [K in BooleanKeys]?: boolean;
 };
+
+export type OS = 'chromeos' | 'android';
+
+type ChromeOSProvisionFields = {
+  board: string;
+  model: string;
+  pool: string;
+  milestone: string;
+  build: string;
+  hostname: string;
+}
+
+type AndroidProvisionFields = {
+  board: string;
+  model: string;
+  pool: string;
+  targetType: string;
+  build: string;
+  hostname: string;
+}
+
+export type ProvisionFields = {
+  os: OS;
+} & ChromeOSProvisionFields & AndroidProvisionFields;
+
+export const defaultProvisionFields: ProvisionFields = {
+  os: 'chromeos',
+  board: '',
+  model: '',
+  pool: '',
+  hostname: '',
+  milestone: '',
+  build: '',
+  targetType: '',
+}

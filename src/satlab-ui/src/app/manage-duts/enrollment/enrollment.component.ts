@@ -1,24 +1,24 @@
-import {Component, EventEmitter, Input, Output, signal} from '@angular/core';
-import {IDut} from '../../models/dut';
-import {SatlabRpcService} from '../../services/satlab-rpc.service';
-import {FormControl, Validators} from '@angular/forms';
-import {toIterator} from '../../utils/iterator';
-import {
-  catchError,
-  combineLatest,
-  concatAll,
-  finalize,
-  from,
-  of,
-  tap,
-} from 'rxjs';
-import {startWithTap} from '../../utils/rxjs_operator';
-import {MatDialog} from '@angular/material/dialog';
 import {ProvisionComponent} from '../../dialogs/provision/provision.component';
-import {NotificationService} from '../../services/notification.service';
-import {runProvisionOnIndividualDUT} from '../../utils/run_tests_helper';
-import {MatSlideToggleChange} from '@angular/material/slide-toggle';
+import {IDut} from '../../models/dut';
 import {DevicesService, OSRestriction} from '../../services/devices.service';
+import {NotificationService} from '../../services/notification.service';
+import {SatlabRpcService} from '../../services/satlab-rpc.service';
+import {toIterator} from '../../utils/iterator';
+import {runProvisionOnIndividualDUT} from '../../utils/run_tests_helper';
+import {startWithTap} from '../../utils/rxjs_operator';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  computed,
+  signal,
+} from '@angular/core';
+import {FormControl, Validators} from '@angular/forms';
+import {MatDialog} from '@angular/material/dialog';
+import {MatSlideToggleChange} from '@angular/material/slide-toggle';
+import {AndroidService} from 'app/services/android.service';
+import {catchError, concatAll, finalize, from, of, tap} from 'rxjs';
 
 @Component({
   selector: 'app-enrollment',
@@ -34,7 +34,7 @@ export class EnrollmentComponent {
   @Output() updateDUTs = new EventEmitter();
   @Output() autoRefresh = new EventEmitter<boolean>();
 
-  protected selectedDUTs: IDut[] = [];
+  protected selectedDUTs = signal<IDut[]>([]);
   protected isDUTSelected = false;
   protected pool = new FormControl('', [
     Validators.pattern('[a-zA-Z0-9]+[a-zA-Z0-9-]*?'),
@@ -42,10 +42,19 @@ export class EnrollmentComponent {
   ]);
 
   protected restrictionDropdown = signal(false);
+  protected isProvisionable = computed(() => {
+    const duts = this.selectedDUTs();
+    return (
+      duts.length > 0 &&
+      duts.filter(enrolled).filter(d => d.board === duts[0].board).length ===
+        duts.length
+    );
+  });
 
   constructor(
     private service: SatlabRpcService,
     private deviceService: DevicesService,
+    private androidService: AndroidService,
     protected dialog: MatDialog,
     private notification: NotificationService
   ) {}
@@ -56,7 +65,7 @@ export class EnrollmentComponent {
    * @protected
    */
   protected onDUTsSelectionChanged(d: IDut[]) {
-    this.selectedDUTs = d;
+    this.selectedDUTs.set(d);
     this.isDUTSelected = d.length > 0;
   }
 
@@ -65,7 +74,7 @@ export class EnrollmentComponent {
    * @protected
    */
   protected onEnrollClicked() {
-    const d = toIterator(this.selectedDUTs)
+    const d = toIterator(this.selectedDUTs())
       .filter(this.__canBeEnrolled)
       .collect();
 
@@ -123,7 +132,7 @@ export class EnrollmentComponent {
    * @protected
    */
   protected onUnEnrollClicked() {
-    const d = toIterator(this.selectedDUTs)
+    const d = toIterator(this.selectedDUTs())
       .filter(e => e.hostname !== '')
       .map(e => e.hostname)
       .collect();
@@ -166,45 +175,66 @@ export class EnrollmentComponent {
    * @protected
    */
   protected onProvisionDUTs() {
-    const d = toIterator(this.DUTs)
-      .filter(e => e.hostname !== '')
-      .collect();
+    const d = this.selectedDUTs();
 
     if (d.length === 0) {
       return;
     }
-    const dialogRef = this.dialog.open(ProvisionComponent, {data: {duts: d}});
+    const dialogRef = this.dialog.open(ProvisionComponent, {
+      data: {
+        board: d[0].board,
+        models: toIterator(d)
+          .map(e => e.model)
+          .collect(),
+      },
+    });
 
-    dialogRef.afterClosed().subscribe(async res => {
+    dialogRef.afterClosed().subscribe(res => {
       if (res) {
-        this.loading = true;
-        const result = await runProvisionOnIndividualDUT(
-          this.service,
-          d,
-          res.milestone,
-          res.build,
-          res.pool
-        );
-
-        for (const f of result) {
-          try {
-            const r = await f;
-            if (r.link) {
-              this.notification.info(
-                ['Provision succeed: ', {type: 'url', url: r.link}],
-                {dismiss: false}
-              );
-            } else {
-              this.notification.error(`${r.hostname} Provision failed`, {
-                dismiss: false,
-              });
-            }
-          } catch (e) {
-            this.notification.error(`Provision failed: ${e}`, {dismiss: false});
+        d.map(ds => {
+          switch (res.os) {
+            case 'android':
+              return runProvisionOnIndividualDUT(this.androidService, ds, res);
+            case 'chromeos':
+              return runProvisionOnIndividualDUT(this.service, ds, res);
+            default:
+              return {
+                link: of(''),
+                hostname: ds.hostname,
+              };
           }
-        }
-
-        this.loading = false;
+        }).map(ob => {
+          ob.link
+            .pipe(
+              startWithTap(() => {
+                this.loading = true;
+              }),
+              finalize(() => {
+                this.loading = false;
+              })
+            )
+            .subscribe({
+              next: link => {
+                link === ''
+                  ? this.notification.error(`No link for ${ob.hostname}`, {
+                      dismiss: false,
+                    })
+                  : this.notification.info(
+                      [
+                        `Provision ${ob.hostname} succeed: `,
+                        {type: 'url', url: link},
+                      ],
+                      {dismiss: false}
+                    );
+              },
+              error: err => {
+                this.notification.error(
+                  `Provision ${ob.hostname} failed: ${err}`,
+                  {dismiss: false}
+                );
+              },
+            });
+        });
       }
     });
   }
@@ -214,12 +244,12 @@ export class EnrollmentComponent {
    * @protected
    */
   protected onAddPoolClicked() {
-    const hostnames = toIterator(this.selectedDUTs)
+    const hostnames = toIterator(this.selectedDUTs())
       .filter(e => e.hostname !== '')
       .map(e => e.hostname)
       .collect();
 
-    this.__checkIsDUTDeployed(this.selectedDUTs);
+    this.__checkIsDUTDeployed(this.selectedDUTs());
 
     if (hostnames.length === 0 || !this.pool.value) {
       return;
@@ -254,7 +284,7 @@ export class EnrollmentComponent {
    * @protected
    */
   protected onRemovePoolClicked() {
-    let items = toIterator(this.selectedDUTs)
+    let items = toIterator(this.selectedDUTs())
       .filter(e => {
         return e.hostname !== '' && e.pools.includes(this.pool.value!);
       })
@@ -267,7 +297,7 @@ export class EnrollmentComponent {
       })
       .collect();
 
-    this.__checkIsDUTDeployed(this.selectedDUTs);
+    this.__checkIsDUTDeployed(this.selectedDUTs());
     this.__checkPoolsIsEmpty(items);
 
     items = toIterator(items)
@@ -317,7 +347,7 @@ export class EnrollmentComponent {
    */
   protected onRepairClicked() {
     // filter all deployed DUTs
-    const hostnames = toIterator(this.selectedDUTs)
+    const hostnames = toIterator(this.selectedDUTs())
       .filter(enrolled)
       .map(e => e.hostname)
       .collect();
@@ -365,7 +395,7 @@ export class EnrollmentComponent {
   }
 
   protected onUpdateOSRestrictionClicked(value: OSRestriction) {
-    const obs = toIterator(this.selectedDUTs)
+    const obs = toIterator(this.selectedDUTs())
       .filter(enrolled)
       .map(e => e.hostname)
       .map(hostname =>

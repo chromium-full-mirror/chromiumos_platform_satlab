@@ -1,42 +1,70 @@
-<div class="wrapper">
+<div class="relative w-[480px] flex flex-col p-4">
   <app-loading [loading$]="loading$"></app-loading>
+  <p class="text-red-500 text-center">{{ notAvailableMsg() }}</p>
 
-  <div class="content">
+  <div class="w-full flex flex-row gap-2">
+    <label
+      ><input
+        type="radio"
+        name="os"
+        (click)="onChromeOSClicked()"
+        checked
+      />ChromeOS</label
+    >
+    <label
+      ><input
+        type="radio"
+        name="os"
+        (click)="onAndroidOSClicked()"
+      />AndroidOS</label
+    >
+  </div>
+
+  <div *ngIf="os() === 'chromeos'" class="w-full flex flex-col gap-4 my-4">
     <app-basic-selector
-      #poolSelector
-      id="poolSelector"
-      title="Select Pool:"
-      placeholder="Please select a pool"
-      [options]="poolOptions"
-      (select)="onPoolChanged($event)"
+      (select)="onPropsChanged('milestone', $event)"
+      [options]="milestoneOptions()"
+      title="Select Milestone:"
+    >
+    </app-basic-selector>
+    <app-basic-selector
+      (select)="onPropsChanged('build', $event)"
+      [options]="buildOptions()"
+      title="Select Build:"
+    >
+    </app-basic-selector>
+  </div>
+
+  <div *ngIf="os() === 'android'" class="w-full flex flex-col gap-4 my-4">
+    <app-basic-selector
+      (select)="onPropsChanged('branch', $event)"
+      [options]="branchOptions()"
+      title="Select Branch:"
+    >
+    </app-basic-selector>
+    <app-basic-selector
+      (select)="onPropsChanged('boardTarget', $event)"
+      [options]="boardTargetOptions()"
+      title="Select Board Target:"
     >
     </app-basic-selector>
 
-    <app-build-selector
-      [board]="fields.board"
-      [model]="fields.model"
-      [loading]="loading"
-      (onChanged)="onBuildChanged($event)"
-    >
-    </app-build-selector>
+    <app-autocomplete-selector
+      [options]="buildOptions()"
+      title="Select Build:"
+      (selectChanged)="onPropsChanged('build', $event)"
+      (inputValueChanged)="onBuildInputValueChanged($event)"
+    ></app-autocomplete-selector>
+  </div>
 
-    <div class="btn-group">
-      <button mat-button mat-dialog-close>Cancel</button>
-      <button
-        mat-button
-        [mat-dialog-close]="fields"
-        [disabled]="
-          !(
-            this.fields.board !== '' &&
-            this.fields.model !== '' &&
-            this.fields.milestone !== '' &&
-            this.fields.build !== '' &&
-            this.fields.pool !== ''
-          )
-        "
-      >
-        Start
-      </button>
-    </div>
+  <div class="w-full flex flex-row justify-end gap-2">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button
+      mat-button
+      [mat-dialog-close]="fieldSignal()"
+      [disabled]="!isRunnable()"
+    >
+      Start
+    </button>
   </div>
 </div>

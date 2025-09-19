@@ -1,18 +1,18 @@
-import {Component, ViewChild} from '@angular/core';
-import {BuildSelectFormComponent} from '../common/build-select-form/build-select-form.component';
-import {SatlabRpcService} from 'app/services/satlab-rpc.service';
-import {NotificationService} from 'app/services/notification.service';
-import {checkSelectFields, isCustomBuild} from 'app/utils/validators';
-import {FormControl} from '@angular/forms';
-import {catchError, from, map, mergeAll, of, tap} from 'rxjs';
-import {startWithTap} from 'app/utils/rxjs_operator';
-import {ITestCase} from 'app/models/testcase';
-import {
-  defaultBuildSelectFields,
-  ICustomSettings,
-} from 'app/models/run_suite_fields';
 import {IBuildSelectFields} from '../../models/run_suite_fields';
+import {BuildSelectFormComponent} from '../common/build-select-form/build-select-form.component';
+import {Component, ViewChild} from '@angular/core';
+import {FormControl} from '@angular/forms';
 import {ISimpleDUT} from 'app/models/dut';
+import {
+  ICustomSettings,
+  defaultBuildSelectFields,
+} from 'app/models/run_suite_fields';
+import {ITestCase} from 'app/models/testcase';
+import {NotificationService} from 'app/services/notification.service';
+import {SatlabRpcService} from 'app/services/satlab-rpc.service';
+import {startWithTap} from 'app/utils/rxjs_operator';
+import {checkSelectFields, isCustomBuild} from 'app/utils/validators';
+import {finalize} from 'rxjs';
 
 @Component({
   selector: 'app-single-test',
@@ -65,61 +65,44 @@ export class SingleTestComponent {
     const uploadToCpcon =
       this.customSettings.trv2 && this.customSettings.uploadToCpcon;
 
-    from(this.testCases)
-      .pipe(
-        startWithTap(() => {
-          this.form.showLoading('Triggering tests...');
-          this.disabled = true;
-          this.isRunning = true;
-        }),
-        map(test => {
-          return from(
-            this.service.runTest({
-              ...this.fields,
-              customSettings: {
-                cft: cft,
-                trv2: trv2,
-                uploadToCpcon: uploadToCpcon,
-                servoRequired: this.customSettings.servoRequired,
-              },
-              tests: [test.name],
-            })
-          ).pipe(
-            catchError(err => {
-              this.notification.error(`Trigger test failed! Error: ${err}`, {
-                dismiss: false,
-              });
-              return of('');
-            }),
-            tap({
-              next: link => {
-                if (link === '') {
-                  return;
-                }
-                this.notification.info(
-                  [
-                    `Trigger test ${test.name} successfully! Test link:`,
-                    {type: 'url', url: link},
-                  ],
-                  {dismiss: false}
-                );
-              },
-            })
-          );
-        }),
-        mergeAll()
-      )
-      .subscribe({
-        error: () => {
-          this.form.hideLoading();
-          this.isRunning = false;
-        },
-        complete: () => {
-          this.form.hideLoading();
-          this.testCases = [];
-          this.isRunning = false;
-        },
-      });
+    this.testCases.map(test => {
+      this.service
+        .runTest({
+          ...this.fields,
+          customSettings: {
+            cft: cft,
+            trv2: trv2,
+            uploadToCpcon: uploadToCpcon,
+            servoRequired: this.customSettings.servoRequired,
+          },
+          tests: [test.name],
+        })
+        .pipe(
+          startWithTap(() => {
+            this.isRunning = true;
+          }),
+          finalize(() => {
+            this.isRunning = false;
+          })
+        )
+        .subscribe({
+          next: buildLink => {
+            this.notification.info(
+              [
+                `Trigger test ${test.name} successfully! Test link:`,
+                {type: 'url', url: buildLink},
+              ],
+              {dismiss: false}
+            );
+          },
+          error: err => {
+            this.notification.error(
+              `Trigger test ${test.name} failed! Error: ${err}`,
+              {dismiss: false}
+            );
+          },
+        });
+    });
   }
 
   protected onAddTestClick() {

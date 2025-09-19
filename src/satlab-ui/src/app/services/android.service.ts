@@ -1,5 +1,6 @@
 import {SatlabRpcServiceClient} from './SatlabrpcServiceClientPb';
 import {
+  Dim,
   ListAndroidBranchesRequest,
   ListAndroidBuildsRequest,
   ListAndroidSuitesRequest,
@@ -11,6 +12,8 @@ import {
   ValidateAndroidBuildRequest,
 } from './satlabrpc_pb';
 import {Injectable} from '@angular/core';
+import {PROVISION_JOB_NAME} from 'app/constants';
+import {IDims} from 'app/models/run_suite_fields';
 import {getRPCHost} from 'app/utils/misc';
 import {from} from 'rxjs';
 
@@ -101,6 +104,7 @@ export class AndroidService {
     testInclude: string[];
     testExclulde: string[];
     maxInShard: number;
+    dims?: IDims;
   }) {
     const req = new RunSuiteRequest()
       .setAndroidDesktop(true)
@@ -113,13 +117,36 @@ export class AndroidService {
       .setTestNameIncludesList(params.testInclude)
       .setTestNameExcludesList(params.testExclulde)
       .setTargetType(params.targetType)
-      .setMaxShard(params.maxInShard);
+      .setMaxShard(params.maxInShard)
+      .setDimsList(this.toDims(params.dims));
 
     return from(
       this.client.runSuite(req, {}).then(resp => {
         return resp.getBuildLink();
       })
     );
+  }
+
+  public provision(params: {
+    buildTarget: string;
+    model: string;
+    build: string;
+    pool: string;
+    targetType: string;
+    dims: IDims;
+  }) {
+    return this.runSuite({
+      buildTarget: params.buildTarget,
+      model: params.model,
+      build: params.build,
+      pool: params.pool,
+      suite: '',
+      targetType: params.targetType,
+      testInclude: [PROVISION_JOB_NAME],
+      testExclulde: [],
+      maxInShard: 0,
+      dims: params.dims,
+    });
   }
 
   public validateBuild(
@@ -139,6 +166,16 @@ export class AndroidService {
         return resp.getIsValid();
       })
     );
+  }
+
+  private toDims(input?: IDims) {
+    if (!input) {
+      return [];
+    }
+
+    return Object.keys(input).map(k => {
+      return new Dim().setKey(k).setValue(input[k]);
+    });
   }
 
   public runLabqual(

@@ -25,7 +25,11 @@
       Repair
     </button>
 
-    <button mat-raised-button [disabled]="loading" (click)="onProvisionDUTs()">
+    <button
+      mat-raised-button
+      [disabled]="loading || !isProvisionable()"
+      (click)="onProvisionDUTs()"
+    >
       Provision DUTs
     </button>
 

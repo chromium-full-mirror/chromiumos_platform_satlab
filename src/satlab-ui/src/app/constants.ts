@@ -31,3 +31,6 @@ export const CHECK_DOWNLOAD_TASK_THRESHOLD = 5000;
 
 export const MAX_IN_SHARD_DEFAULT = 0;
 export const ANDROID_TEST_PREFIX = 'tradefed';
+
+export const PROVISION_JOB_NAME =
+  'tradefed.cts.CtsJvmtiRunTest1911HostTestCases';

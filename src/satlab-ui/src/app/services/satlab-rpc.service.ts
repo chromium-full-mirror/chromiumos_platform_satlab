@@ -514,7 +514,7 @@ export class SatlabRpcService {
    * run a test by given model, board, milestone, build version, pool, test, and test_args.
    * @param params an object contains the required information
    */
-  public async runTest(
+  public runTest(
     params: {
       tests: string[];
       test_args?: string;
@@ -539,15 +539,19 @@ export class SatlabRpcService {
     if (params.test_args !== undefined) {
       req.setTestArgs(params.test_args);
     }
-    const resp = await this.client.runTest(req, {});
-    return resp.getBuildLink();
+
+    return from(
+      this.client.runTest(req, {}).then(resp => {
+        return resp.getBuildLink();
+      })
+    );
   }
 
   /**
    * run a provision test on the DUTs that fit the parameters
    * @param params an object contains the information that we want to run on some DUTs
    */
-  public async provision(params: {
+  public provision(params: {
     model: string;
     board: string;
     milestone: string;

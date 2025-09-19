@@ -206,3 +206,7 @@ a:hover {
 .ccd-message-error {
   color: $color-error;
 }
+
+.mat-mdc-dialog-container .mdc-dialog__surface {
+  overflow:initial;
+}
