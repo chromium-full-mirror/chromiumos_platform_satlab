@@ -88,6 +88,9 @@ COPY dockerfiles/satlab_remote_access/fix_ping.run ./run
 COPY --chmod=755 tools/reboot \
      tools/factory_reset /usr/local/bin/
 
+RUN curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-amd64 && \
+    chmod +x /usr/local/bin/ctop
+
 ###########################################################
 
 # All paths to the host environment are relative paths.
