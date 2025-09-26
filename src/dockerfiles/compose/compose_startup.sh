@@ -24,6 +24,20 @@ echo "Command is ${1}"
 
 USER_SETTINGS=/home/satlab/shared/satlab-user-settings.json
 
+function pull_private_containers() {
+  docker-compose pull --include-deps conf_creator
+  docker-compose pull --include-deps partner_testing_rsa
+
+  export WATCHTOWER_MONITOR_ONLY=$(jq '.autoupdate |= not | .autoupdate' $USER_SETTINGS)
+  docker-compose -f ./docker-compose.watchtower.yaml pull
+
+  docker-compose pull --include-deps drone openssh_server nginx logrotate
+
+  if [[ ${UFS_NAMESPACE:-os} != "os-partner" ]]; then
+    docker-compose pull --include-deps opentelemetry-collector
+  fi
+}
+
 # start_private_containers start the containters that required docker client authenticated.
 function start_private_containers () {
   # This is in case the device was not shutdown cleanly there might be
@@ -101,6 +115,23 @@ then
   docker-compose rm -s -f
 
   docker-compose -f ./docker-compose.watchtower.yaml down -t 1
+elif [ "${1}" == "pull" ]
+then
+  SERVICE_ACCOUNT_KEY=/home/satlab/keys/pubsub-key-do-not-delete.json
+  # Check if the service acout key is NOT an existing non-empty file.
+  if ! [ -s "${SERVICE_ACCOUNT_KEY}" ]
+  then
+    echo "Service account key missing, you need service account key to access Satlab images."
+  else
+    cat ${SERVICE_ACCOUNT_KEY} | docker login -u _json_key --password-stdin ${SFP_REGISTRY_URI}
+    if [ "$?" -ne 0 ]; then
+      echo "Failed to authenticate docker, please try again!"
+    else
+      echo "Authenticated docker client successfully; pulling the containers"
+      pull_private_containers
+      docker-compose pull --include-deps satlab-ui bols
+    fi
+  fi
 else
   # Set the environement from satlab-config.json before any container start.
   python3 /usr/local/bin/update_satlab_config_override.py

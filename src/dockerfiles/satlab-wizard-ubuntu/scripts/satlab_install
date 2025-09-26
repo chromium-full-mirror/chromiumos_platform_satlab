@@ -140,14 +140,15 @@ docker pull ${REMOTE_ACCESS_IMAGE}
 docker pull ${DHCP_DOCKER_IMAGE}
 docker pull ${COMPOSE_DOCKER_IMAGE}
 docker rm compose-pull || true
+
+# @todo: remove compose_startup.sh bind once the updated compose image is available
 docker run -it --rm --name compose-pull \
     --mount type=volume,source=satlab_keys,target=/home/satlab/keys/ \
     --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
-    --mount type=bind,source="$(dirname "$0")/compose_pull.sh",target=/compose_pull.sh \
-    --entrypoint /compose_pull.sh \
+    --mount type=bind,source="$(dirname "$0")/compose_pull.sh",target=/compose_startup.sh \
     -e LABEL="${LABEL}" \
     -e VOLUME_KEYS_FOLDER="${VOLUME_KEYS_FOLDER}" \
-    ${COMPOSE_DOCKER_IMAGE}
+    ${COMPOSE_DOCKER_IMAGE} pull
 
 echo -e "\n${C_YELLOW}Configuring cgroups for legacy compatibility...${C_NC}"
 if ! grep -q "systemd.unified_cgroup_hierarchy=0" /etc/default/grub; then
