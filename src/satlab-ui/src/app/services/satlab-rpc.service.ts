@@ -1154,7 +1154,7 @@ function __toStatusHintText(status: string) {
   } else if (status === DUT_STATUS_NEEDS_DEPLOY) {
     return 'Please Unenroll, then Enroll DUT';
   } else if (status === DUT_STATUS_NEEDS_MANUAL_REPAIR) {
-    return 'Please menually repair the dut, Auto-repair is not be fix it';
+    return 'Please manually repair the DUT; auto-repair is unable to fix it';
   } else if (status === DUT_STATUS_NEEDS_REPLACEMENT) {
     return 'Hardware issues found, please unenroll and replace DUT';
   } else if (status === DUT_STATUS_RUNNING) {

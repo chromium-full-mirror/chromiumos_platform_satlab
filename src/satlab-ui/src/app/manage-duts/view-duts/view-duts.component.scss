@@ -84,6 +84,7 @@
     .mat-mdc-header-cell.cdk-column-status {
       max-width: 10rem;
       min-width: 8.5rem;
+      text-wrap-mode: nowrap;
     }
 
     .mat-mdc-cell.cdk-column-ip,
