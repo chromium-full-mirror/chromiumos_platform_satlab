@@ -7,19 +7,26 @@ import {startWithTap} from '../../../utils/rxjs_operator';
 import {
   AfterViewInit,
   Component,
-  EffectRef,
-  OnDestroy,
-  WritableSignal,
   computed,
   effect,
+  EffectRef,
+  OnDestroy,
   signal,
   untracked,
+  WritableSignal,
 } from '@angular/core';
 import {toObservable} from '@angular/core/rxjs-interop';
 import {MAX_IN_SHARD_DEFAULT} from 'app/constants';
 import {ICustomSettings} from 'app/models/run_suite_fields';
 import {NotificationService} from 'app/services/notification.service';
-import {Observable, finalize, from} from 'rxjs';
+import {finalize, from, Observable} from 'rxjs';
+import {
+  RunAndroidOSRequest,
+  RunService,
+  Suite,
+  Test,
+  Testplan,
+} from '../../../services/run.service';
 
 @Component({
   selector: 'app-android-build-select-form',
@@ -43,7 +50,7 @@ export class AndroidBuildSelectFormComponent
   protected testPlanSignal = signal<string>('');
   protected isRunLoadingSignal = signal<boolean>(false);
   protected notAvailableMsg = signal<string>('');
-  private targets = computed(() => Object.values(this.targetSignal()));
+  protected targets = computed(() => Object.values(this.targetSignal()));
   private targetType = computed(() => {
     const userDebug = toIterator(this.targets()).first_where(e =>
       e.endsWith('userdebug')
@@ -117,6 +124,7 @@ export class AndroidBuildSelectFormComponent
 
   constructor(
     private androidService: AndroidService,
+    private runService: RunService,
     private service: SatlabRpcService,
     private notification: NotificationService
   ) {
@@ -291,6 +299,10 @@ export class AndroidBuildSelectFormComponent
     const extra =
       this.tabSignal() !== 'test' || this.testModulesSignal().length !== 0;
     const shard = this.customSettings().maxInShard;
+    const taskValid =
+      this.tabSignal() === 'testPlan'
+        ? this.testPlanSignal() !== ''
+        : this.suiteValidSignal();
 
     console.log(
       `extra: ${extra}, shard: ${shard}, loading: ${
@@ -299,7 +311,7 @@ export class AndroidBuildSelectFormComponent
         this.targetSignal()[1]
       } t2: ${
         this.targetSignal()[2]
-      }, build: ${this.buildSignal()}, pool: ${this.poolSignal()}, suite: ${this.suiteValidSignal()}, targetType: ${this.targetType()}`
+      }, build: ${this.buildSignal()}, pool: ${this.poolSignal()}, taskValid: ${taskValid}, targetType: ${this.targetType()}`
     );
 
     return (
@@ -310,7 +322,7 @@ export class AndroidBuildSelectFormComponent
       this.targetSignal()[2] !== '' &&
       this.buildSignal() !== '' &&
       this.poolSignal() !== '' &&
-      this.suiteValidSignal() &&
+      taskValid &&
       this.targetType() &&
       !Number.isNaN(shard) &&
       Number.isInteger(shard) &&
@@ -324,6 +336,10 @@ export class AndroidBuildSelectFormComponent
     this.onPropsChanged('build', value);
   }
 
+  protected onPlanChanged(value: string) {
+    this.testPlanSignal.set(value);
+  }
+
   protected onRunClicked() {
     const board = this.boardSignal();
     const model = this.modelSignal();
@@ -334,55 +350,77 @@ export class AndroidBuildSelectFormComponent
     const testModules = this.testModulesSignal();
     const targetType = this.targetType();
 
-    let includes = [];
-    let excludes = [];
+    let testIncludes = [];
+    let textExcludes = [];
+    let tagIncludes = [];
     if (this.tabSignal() === 'test') {
-      includes = [...testModules];
+      testIncludes = [...testModules];
     } else {
-      excludes = [...testModules];
+      textExcludes = [...testModules];
     }
 
     const shard = this.customSettings().maxInShard;
 
-    if (this.tabSignal() !== 'testPlan') {
-      wrapperLoading(
-        from(
-          this.androidService.runSuite({
-            buildTarget: board,
-            model: model,
-            build: build,
-            pool: pool,
-            suite: suite,
-            targetType: targetType,
-            testInclude: includes,
-            testExclulde: excludes,
-            maxInShard: shard,
-          })
-        ),
-        this.isLoading,
-        `Running ${this.tabSignal()}...`
-      )
-        .pipe(
-          startWithTap(() => this.isRunLoadingSignal.set(true)),
-          finalize(() => this.isRunLoadingSignal.set(false))
-        )
-        .subscribe({
-          next: buildLink => {
-            this.notification.info(
-              [
-                `Triggering ${this.tabSignal()} succeed! Link:`,
-                {type: 'url', url: buildLink},
-              ],
-              {dismiss: false}
-            );
-          },
-          error: e => {
-            this.notification.error(`Trigger job failed: ${e}`, {
-              dismiss: false,
-            });
-          },
-        });
+    let task: Suite | Test | Testplan;
+    if (this.tabSignal() === 'suite' || this.tabSignal() === 'test') {
+      task = {
+        kind: 'suite',
+        name: suite,
+      };
+      if (suite !== '') {
+        tagIncludes = [...tagIncludes, suite];
+      }
+    } else if (this.tabSignal() === 'testPlan') {
+      task = {
+        kind: 'testplan',
+        name: this.testPlanSignal(),
+      };
     }
+
+    const req: RunAndroidOSRequest = {
+      os: 'android',
+      board: board,
+      model: model,
+      pool: pool,
+      targetType: targetType,
+      build: build,
+      tags: {
+        testNamesExclude: textExcludes,
+        testNamesInclude: testIncludes,
+        tagsToInclude: tagIncludes,
+      },
+      run: task,
+      advanceSettings: {
+        cft: true,
+        maxInShard: shard,
+      },
+    };
+
+    wrapperLoading(
+      this.runService.run(req),
+      this.isLoading,
+      `Running ${this.tabSignal()}...`
+    )
+      .pipe(
+        startWithTap(() => this.isRunLoadingSignal.set(true)),
+        finalize(() => this.isRunLoadingSignal.set(false))
+      )
+      .subscribe({
+        next: buildLink => {
+          this.notification.info(
+            [
+              `Triggering ${this.tabSignal()} succeed! Link:`,
+              {type: 'url', url: buildLink},
+            ],
+            {dismiss: false}
+          );
+        },
+        error: e => {
+          this.notification.error(`Trigger job failed: ${e}`, {
+            dismiss: false,
+          });
+        },
+      });
   }
 
   private __onBoardChanged(board: string) {
