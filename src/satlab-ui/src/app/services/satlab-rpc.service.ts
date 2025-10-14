@@ -972,10 +972,10 @@ function toRepairDUTsResponse(r: RepairDutsResponse.RepairResult[]) {
 function toTags(tags?: JobTags): Tag[] {
   return tags
     ? toIterator(Object.keys(tags))
-      .map(k => {
-        return new Tag().setKey(k).setValue(tags[k]);
-      })
-      .collect()
+        .map(k => {
+          return new Tag().setKey(k).setValue(tags[k]);
+        })
+        .collect()
     : [];
 }
 

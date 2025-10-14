@@ -29,6 +29,7 @@ service SatlabRpcService {
   rpc Topology(TopologyRequest) returns (TopologyResponse);
   rpc AddTopology(AddTopologyRequest) returns (AddTopologyResponse);
   rpc DeleteTopology(DeleteTopologyRequest) returns (DeleteTopologyResponse);
+  rpc Run (RunRequest) returns (RunResponse);
 
   // Android Desktop
   rpc ListAndroidBranches(ListAndroidBranchesRequest) returns (ListAndroidBranchesResponse);
@@ -861,6 +862,7 @@ message AdvancedSettings {
   bool cft = 1;
   bool trv2 = 2;
   bool upload_to_cpcon = 3;
+  int64 max_in_shard = 4;
 }
 
 // NEXT_TAG = 9
@@ -1092,4 +1094,47 @@ message ValidateAndroidBuildRequest {
 // NEXT_TAG = 2
 message ValidateAndroidBuildResponse {
   bool is_valid = 1;
+}
+
+// NEXT_TAG = 17
+message RunRequest {
+  // NEXT_TAG = 2
+  message Suite {
+    string name = 1;
+  }
+  // NEXT_TAG = 3
+  message Test {
+    string name = 1;
+    string args = 2;
+  }
+  // NEXT_TAG = 2
+  message Testplan {
+    string name = 1;
+  }
+  oneof task {
+    Suite suite = 1;
+    Test test = 2;
+    Testplan plan = 3;
+  }
+  // set the DUT OS.
+  // it only supports "android" / "chromeos" now.
+  string os = 4;
+  // base information
+  string board = 5;
+  optional string model = 6;
+  optional string milestone = 7;
+  optional string target_type = 8;
+  string build = 9;
+  string pool = 10;
+  repeated Dim dims = 11;
+  repeated string tag_includes = 12;
+  repeated string tag_excludes = 13;
+  repeated string test_name_includes = 14;
+  repeated string test_name_excludes = 15;
+  AdvancedSettings settings = 16;
+}
+
+// NEXT_TAG = 2
+message RunResponse {
+  string link = 1;
 }

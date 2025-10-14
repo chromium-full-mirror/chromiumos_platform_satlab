@@ -168,20 +168,19 @@ export class BuildSelectFormComponent
   }
 
   #parseAPIResponse(duts: IDut[]): void {
-    this.duts = duts
-      .map(e => {
-        const dut: ISimpleDUT = {
-          hostname: e.hostname,
-          model: e.model,
-          board: e.board,
-          pools: e.pools,
-          dlmSkuID:
-            (e.dimensions[labelDlmSkuID]?.length ?? 0) > 0
-              ? e.dimensions[labelDlmSkuID][0]
-              : '',
-        };
-        return dut;
-      });
+    this.duts = duts.map(e => {
+      const dut: ISimpleDUT = {
+        hostname: e.hostname,
+        model: e.model,
+        board: e.board,
+        pools: e.pools,
+        dlmSkuID:
+          (e.dimensions[labelDlmSkuID]?.length ?? 0) > 0
+            ? e.dimensions[labelDlmSkuID][0]
+            : '',
+      };
+      return dut;
+    });
 
     this.#parseModelOptionsFromDUTs(this.duts);
   }
