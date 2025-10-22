@@ -115,6 +115,7 @@ COPY --chmod=755 dockerfiles/satlab_remote_access/tools/host_command.py \
     dockerfiles/satlab_remote_access/tools/get_host_mac \
     dockerfiles/satlab_remote_access/tools/get_host_os_version \
     dockerfiles/satlab_remote_access/tools/is_update_available \
+    dockerfiles/satlab_remote_access/tools/pasit_test \
     dockerfiles/satlab_remote_access/tools/satlab_setup \
     dockerfiles/satlab_remote_access/tools/stop_ui \
     dockerfiles/satlab_remote_access/tools/update_system \
