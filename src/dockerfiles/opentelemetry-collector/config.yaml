@@ -1,4 +1,10 @@
 receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: "0.0.0.0:4317"
+      http:
+        endpoint: "0.0.0.0:4318"
   docker_stats:
     endpoint: unix:///var/run/docker.sock
     api_version: "1.41"
@@ -128,6 +134,6 @@ processors:
 service:
   pipelines:
     metrics:
-      receivers: [hostmetrics, docker_stats]
+      receivers: [hostmetrics, docker_stats, otlp]
       processors: [resource, metricstransform, transform]
       exporters: [googlecloud]
