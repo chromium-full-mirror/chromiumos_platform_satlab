@@ -51,16 +51,10 @@ export class AndroidBuildSelectFormComponent
   protected isRunLoadingSignal = signal<boolean>(false);
   protected notAvailableMsg = signal<string>('');
   protected targets = computed(() => Object.values(this.targetSignal()));
-  private targetType = computed(() => {
-    const userDebug = toIterator(this.targets()).first_where(e =>
-      e.endsWith('userdebug')
+  private target = computed(() => {
+    return toIterator(this.targets()).first_where(
+      e => !e.includes('test_suites')
     );
-    const splitTarget = userDebug?.split(`${this.boardSignal()}-`);
-    if (splitTarget?.length === 2) {
-      return splitTarget[1];
-    }
-
-    return null;
   });
 
   protected isLoading = signal<{show: boolean; message: string}>({
@@ -74,8 +68,13 @@ export class AndroidBuildSelectFormComponent
   protected targetOptions = signal<SelectableItem[]>([]);
   protected boardTargetOptions = computed(() => {
     const board = this.boardSignal();
+    const model = this.modelSignal();
     return toIterator(this.targetOptions())
-      .filter(e => e.text.includes(board) && e.text.endsWith('userdebug'))
+      .filter(
+        e =>
+          (e.text.includes(board) || e.text.includes(model)) &&
+          !e.text.includes('test_suites')
+      )
       .collect();
   });
   protected suiteTargetOptions = computed(() => {
@@ -311,7 +310,7 @@ export class AndroidBuildSelectFormComponent
         this.targetSignal()[1]
       } t2: ${
         this.targetSignal()[2]
-      }, build: ${this.buildSignal()}, pool: ${this.poolSignal()}, taskValid: ${taskValid}, targetType: ${this.targetType()}`
+      }, build: ${this.buildSignal()}, pool: ${this.poolSignal()}, taskValid: ${taskValid}, target: ${this.target()}`
     );
 
     return (
@@ -323,7 +322,7 @@ export class AndroidBuildSelectFormComponent
       this.buildSignal() !== '' &&
       this.poolSignal() !== '' &&
       taskValid &&
-      this.targetType() &&
+      this.target() &&
       !Number.isNaN(shard) &&
       Number.isInteger(shard) &&
       shard >= 0 &&
@@ -348,7 +347,6 @@ export class AndroidBuildSelectFormComponent
     const suite =
       this.tabSignal() === 'suite' ? `suite:${this.suiteSignal()}` : '';
     const testModules = this.testModulesSignal();
-    const targetType = this.targetType();
 
     let testIncludes = [];
     let textExcludes = [];
@@ -382,7 +380,7 @@ export class AndroidBuildSelectFormComponent
       board: board,
       model: model,
       pool: pool,
-      targetType: targetType,
+      target: this.target(),
       build: build,
       tags: {
         testNamesExclude: textExcludes,

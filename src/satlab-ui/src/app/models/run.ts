@@ -44,5 +44,5 @@ export type RunChromeOSRequest = {
 export type RunAndroidOSRequest = {
   os: 'android';
   model?: string;
-  targetType: string;
+  target: string;
 } & CommonFields;

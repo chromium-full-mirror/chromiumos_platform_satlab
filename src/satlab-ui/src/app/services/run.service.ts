@@ -46,7 +46,7 @@ export type RunChromeOSRequest = {
 export type RunAndroidOSRequest = {
   os: 'android';
   model?: string;
-  targetType: string;
+  target: string;
 } & CommonFields;
 
 @Injectable({
@@ -89,7 +89,7 @@ export class RunService {
     if (params.os === 'chromeos') {
       req.setModel(params.model).setMilestone(params.milestone);
     } else {
-      req.setModel(params.model ?? '').setTargetType(params.targetType);
+      req.setModel(params.model ?? '').setTarget(params.target);
     }
 
     switch (params.run.kind) {

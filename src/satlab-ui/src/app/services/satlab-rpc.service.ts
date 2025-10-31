@@ -237,7 +237,7 @@ export class SatlabRpcService {
     if (params.os === 'chromeos') {
       req.setModel(params.model).setMilestone(params.milestone);
     } else {
-      req.setModel(params.model ?? '').setTargetType(params.targetType);
+      req.setModel(params.model ?? '').setTarget(params.target);
     }
 
     switch (params.run.kind) {
