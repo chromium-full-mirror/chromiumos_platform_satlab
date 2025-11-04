@@ -1049,9 +1049,10 @@ message ListAndroidSuitesResponse {
   repeated string suites = 1;
 }
 
-// NEXT_TAG = 2
+// NEXT_TAG = 3
 message ListAndroidBranchesRequest {
-  string board = 1;
+  string board = 1 [deprecated = true];
+  repeated string targets = 2;
 }
 
 // NEXT_TAG = 2

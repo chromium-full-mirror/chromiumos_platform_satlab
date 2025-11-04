@@ -23,8 +23,8 @@ export class AndroidService {
     this.client = new SatlabRpcServiceClient(getRPCHost());
   }
 
-  public listBranches(board: string) {
-    const req = new ListAndroidBranchesRequest().setBoard(board);
+  public listBranches(targets: string[]) {
+    const req = new ListAndroidBranchesRequest().setTargetsList(targets);
 
     return from(
       this.client.listAndroidBranches(req, {}).then(resp => {

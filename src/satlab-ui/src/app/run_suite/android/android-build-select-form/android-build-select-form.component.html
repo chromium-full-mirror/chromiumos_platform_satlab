@@ -43,6 +43,7 @@
     <app-basic-selector
       (select)="onPropsChanged('model', $event)"
       [options]="modelsOptions()"
+      [value]="modelSignal()"
       [disabled]="isRunLoadingSignal()"
       title="Select Model (Optional):"
     >
@@ -51,6 +52,7 @@
     <app-basic-selector
       (select)="onPropsChanged('branch', $event)"
       [options]="branchOptions()"
+      [value]="branchSignal()"
       [disabled]="isRunLoadingSignal()"
       title="Select Branch:"
     >

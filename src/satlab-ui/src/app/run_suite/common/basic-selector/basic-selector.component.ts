@@ -10,6 +10,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import {MatSelect} from '@angular/material/select';
+import {toIterator} from '../../../utils/iterator';
 
 @Component({
   selector: 'app-basic-selector',
@@ -33,6 +34,8 @@ export class BasicSelectorComponent implements OnInit, OnChanges {
   @Input() placeholder = '';
   // the label that show to a user
   @Input() title = '';
+  // the value that a user selected.
+  @Input() value = '';
   // the event that parent component can listen the selected element change.
   @Output() select = new EventEmitter();
 
@@ -47,6 +50,11 @@ export class BasicSelectorComponent implements OnInit, OnChanges {
       this.selected = '';
       this.options = changes['options'].currentValue;
       this.autoSelectedSingleOption();
+    }
+    if (changes['value']) {
+      this.selected = toIterator(this.options).first_where(
+        e => e.value === changes['value'].currentValue
+      )?.value;
     }
   }
 

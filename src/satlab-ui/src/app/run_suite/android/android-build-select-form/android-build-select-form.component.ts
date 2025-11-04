@@ -39,6 +39,13 @@ export class AndroidBuildSelectFormComponent
   protected tabSignal = signal<'suite' | 'test' | 'testPlan'>('suite');
 
   protected boardSignal = signal<string>('');
+  protected allModels = computed(() => {
+    const board = this.boardSignal();
+    return toIterator(this.duts())
+      .filter(e => e.board === board)
+      .map(e => e.model)
+      .collect();
+  });
   protected modelSignal = signal<string>('');
   protected branchSignal = signal<string>('');
   protected targetSignal = signal<{[key: number]: string}>({1: '', 2: ''});
@@ -205,11 +212,23 @@ export class AndroidBuildSelectFormComponent
         ]);
         break;
       case 'model':
-        resetSignals([this.poolSignal]);
+        resetSignals([
+          this.branchSignal,
+          this.buildSignal,
+          this.validBuildSignal,
+          this.poolSignal,
+          this.suiteSignal,
+          this.targetSignal,
+          this.testModulesSignal,
+          this.targetOptions,
+          this.buildOptions,
+          this.suiteOptions,
+          this.testOptions,
+          this.notAvailableMsg,
+        ]);
         this.modelSignal.set((value as string).trim());
         break;
       case 'branch':
-        this.branchSignal.set((value as string).trim());
         resetSignals([
           this.buildSignal,
           this.validBuildSignal,
@@ -222,6 +241,16 @@ export class AndroidBuildSelectFormComponent
           this.testOptions,
           this.notAvailableMsg,
         ]);
+
+        // Set the model value if users select the
+        // model branch and didn't set the model value.
+        for (const model of this.allModels()) {
+          if (value.includes(model) && this.modelSignal() !== model) {
+            this.modelSignal.set(model);
+          }
+        }
+
+        this.branchSignal.set((value as string).trim());
         break;
       case 'boardTarget':
         this.targetSignal.set({
@@ -423,7 +452,7 @@ export class AndroidBuildSelectFormComponent
 
   private __onBoardChanged(board: string) {
     if (board) {
-      this.__listBranches(board);
+      this.__listBranches([...this.allModels(), board]);
     }
   }
 
@@ -454,9 +483,9 @@ export class AndroidBuildSelectFormComponent
       this.__isBuildValid(board, branch, targets, build);
     }
   }
-  private __listBranches(board: string) {
+  private __listBranches(targets: string[]) {
     wrapperLoading(
-      this.androidService.listBranches(board),
+      this.androidService.listBranches(targets),
       this.isLoading,
       'Loading branches...'
     ).subscribe({
