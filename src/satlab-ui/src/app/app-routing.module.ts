@@ -4,6 +4,7 @@ import {ManageDutsComponent} from './manage-duts/manage-duts.component';
 import {AndroidBuildSelectFormComponent} from './run_suite/android/android-build-select-form/android-build-select-form.component';
 import {RunComponent} from './run_suite/chromeos/run/run.component';
 import {LabQualComponent} from './run_suite/lab-qual/lab-qual.component';
+import {LabqualComponent as AndroidLabqualComponent} from './run_suite/android/labqual/labqual.component';
 import {OtherComponent} from './run_suite/other/other.component';
 import {PasitComponent} from './run_suite/pasit/pasit.component';
 import {PvsComponent} from './run_suite/pvs/pvs.component';
@@ -37,7 +38,10 @@ const routes: Routes = [
       },
       {
         path: 'android',
-        component: AndroidBuildSelectFormComponent,
+        children: [
+          {path: '', component: AndroidBuildSelectFormComponent},
+          {path: 'labqual', component: AndroidLabqualComponent},
+        ],
       },
     ],
     canActivate: [checkLoggedIn],

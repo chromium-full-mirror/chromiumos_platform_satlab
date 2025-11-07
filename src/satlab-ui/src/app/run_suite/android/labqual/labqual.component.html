@@ -1,0 +1,62 @@
+<div
+  class="relative w-full lg:max-w-3xl mx-auto my-[4rem] px-6 pt-0 pb-6 border box-shadow rounded"
+>
+  <app-loading [loading$]="loading$"></app-loading>
+  <div class="min-h-[1.5rem]">
+    <p class="text-red-500 text-center">{{ notAvailableMsg() }}</p>
+  </div>
+  <div class="flex gap-2 w-full flex-col">
+    <app-basic-selector
+      (select)="onPropsChanged('hostname', $event)"
+      [options]="hostnameOptions()"
+      [disabled]="isRunLoadingSignal()"
+      title="Select Dut:"
+    >
+    </app-basic-selector>
+
+    <app-basic-selector
+      (select)="onPropsChanged('branch', $event)"
+      [options]="branchOptions()"
+      [value]="branchSignal()"
+      [disabled]="isRunLoadingSignal()"
+      title="Select Branch:"
+    >
+    </app-basic-selector>
+
+    <app-basic-selector
+      (select)="onPropsChanged('target', $event)"
+      [options]="targetOptions()"
+      [disabled]="isRunLoadingSignal()"
+      title="Select Target:"
+    >
+    </app-basic-selector>
+
+    <app-autocomplete-selector
+      [options]="buildOptions()"
+      title="Select Build:"
+      (selectChanged)="onPropsChanged('build', $event)"
+      (inputValueChanged)="onBuildInputValueChanged($event)"
+    ></app-autocomplete-selector>
+
+    <mat-divider></mat-divider>
+    <div class="px-6">
+      <app-build-selector
+        (onChanged)="onFirmwareChanged($event)"
+        [board]="dutInfo()?.board ?? ''"
+        [model]="dutInfo()?.model ?? ''"
+        [disabled]="hostnameSignal() === ''"
+        [loading]="firmwareLoading$"
+        [type]="'firmware'"
+      ></app-build-selector>
+    </div>
+    <mat-divider></mat-divider>
+
+    <app-loading-button
+      class="mx-auto"
+      (onClick)="onRunClicked()"
+      [disabled]="!_isRunnable()"
+      [loading]="isRunLoadingSignal()"
+      [text]="'Run'"
+    ></app-loading-button>
+  </div>
+</div>

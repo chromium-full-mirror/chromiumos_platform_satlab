@@ -11,13 +11,30 @@ import {
   SimpleChanges,
   signal,
 } from '@angular/core';
-import {FormControl} from '@angular/forms';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {Subscription, debounceTime, distinctUntilChanged} from 'rxjs';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {ClickDetectorDirective} from '../../../click-detector.directive';
+import {MatSelectModule} from '@angular/material/select';
+import {NgForOf, NgIf} from '@angular/common';
+import {MatListModule} from '@angular/material/list';
+import {MatInputModule} from '@angular/material/input';
 
 @Component({
   selector: 'app-autocomplete-selector',
   templateUrl: './autocomplete-selector.component.html',
   styleUrls: ['./autocomplete-selector.component.scss'],
+  standalone: true,
+  imports: [
+    MatTooltipModule,
+    ClickDetectorDirective,
+    MatSelectModule,
+    ReactiveFormsModule,
+    NgForOf,
+    NgIf,
+    MatListModule,
+    MatInputModule,
+  ],
 })
 export class AutocompleteSelectorComponent
   implements OnChanges, OnInit, OnDestroy

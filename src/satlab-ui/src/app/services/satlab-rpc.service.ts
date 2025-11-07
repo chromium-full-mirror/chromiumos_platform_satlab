@@ -103,7 +103,7 @@ import {
   TESTLAB_STATUS_DISABLED,
   TESTLAB_STATUS_ENABLED,
 } from 'app/constants';
-import {DownloadJobTaskStatus, ITask} from 'app/models/task';
+import {DownloadJobTaskStatus} from 'app/models/task';
 import {isCustomBuild} from 'app/utils/validators';
 import {Timestamp} from 'google-protobuf/google/protobuf/timestamp_pb';
 import {Moment} from 'moment';

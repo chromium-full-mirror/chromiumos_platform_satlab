@@ -6,6 +6,7 @@ import {
   ListAndroidTargetsRequest,
   ListAndroidTestModulesRequest,
   ListTestPlansRequest,
+  RunAndroidLabqualRequest,
   RunSuiteRequest,
   ValidateAndroidBuildRequest,
 } from './satlabrpc_pb';
@@ -137,6 +138,25 @@ export class AndroidService {
       this.client.validateAndroidBuild(req, {}).then(resp => {
         return resp.getIsValid();
       })
+    );
+  }
+
+  public runLabqual(
+    hostname: string,
+    board: string,
+    model: string,
+    build: string,
+    firmwarePath: string
+  ) {
+    const req = new RunAndroidLabqualRequest()
+      .setBoard(board)
+      .setModel(model)
+      .setBuild(build)
+      .setHostname(hostname)
+      .setFirmwarePath(firmwarePath);
+
+    return from(
+      this.client.runAndroidLabqual(req, {}).then(resp => resp.getLink())
     );
   }
 }

@@ -8,6 +8,7 @@ import {
 
 @Directive({
   selector: '[appClickDetector]',
+  standalone: true,
 })
 export class ClickDetectorDirective {
   @Output() outside = new EventEmitter<PointerEvent>();

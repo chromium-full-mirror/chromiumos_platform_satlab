@@ -28,12 +28,15 @@ import {BasicSelectorComponent} from '../basic-selector/basic-selector.component
 import {startWithTap} from 'app/utils/rxjs_operator';
 import {toIterator} from 'app/utils/iterator';
 import {NotificationService} from 'app/services/notification.service';
+import {AsyncPipe, NgIf} from '@angular/common';
 
 @Component({
   selector: 'app-build-selector',
   templateUrl: './build-selector.component.html',
   styleUrls: ['./build-selector.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [BasicSelectorComponent, AsyncPipe, NgIf],
 })
 export class BuildSelectorComponent implements OnInit, OnChanges, OnDestroy {
   @Input() board: string;
