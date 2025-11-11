@@ -64,45 +64,55 @@
 
           <ng-container *ngIf="tab.children">
             <button
-              routerLink="{{ tab.route }}"
-              routerLinkActive="active-route"
-              disabled="true"
-              class="w-full"
+              class="w-full cursor-pointer"
+              (click)="onToggleChildClicked(tab.label)"
             >
               <div
                 [class.disabled]="tab.disabled ?? !(auth.loginState$ | async)"
                 class="sidebar-item"
               >
-                <div class="flex flex-row items-center gap-2">
-                  <span
-                    class="material-icon-base material-icon"
-                    [class.material-symbols-outlined]="tab.outlined"
-                    >{{ tab.icon }}</span
-                  >
-                  <p>{{ tab.label }}</p>
+                <div class="flex flex-row justify-between gap-6 pr-4">
+                  <div class="flex flex-row items-center gap-2">
+                    <span
+                      class="material-icon-base material-icon"
+                      [class.material-symbols-outlined]="tab.outlined"
+                      >{{ tab.icon }}</span
+                    >
+                    <p>{{ tab.label }}</p>
+                  </div>
+                  <span class="material-icon-base material-icon">{{
+                    tab.showChildren
+                      ? 'keyboard_arrow_down'
+                      : 'keyboard_arrow_right'
+                  }}</span>
                 </div>
               </div>
             </button>
 
-            <a
-              *ngFor="let child of tab.children"
-              routerLink="{{ child.route }}"
-              routerLinkActive="active-route"
-            >
-              <div
-                [class.disabled]="child.disabled ?? !(auth.loginState$ | async)"
-                class="sidebar-item"
+            <ng-container *ngIf="tab.showChildren">
+              <a
+                *ngFor="let child of tab.children"
+                routerLink="{{ child.route }}"
+                routerLinkActive="active-route"
+                [routerLinkActiveOptions]="{ exact: true }"
               >
-                <div class="flex flex-row items-center gap-2 pl-4">
-                  <span
-                    class="material-icon-base material-icon"
-                    [class.material-symbols-outlined]="child.outlined"
-                    >{{ child.icon }}</span
-                  >
-                  <p>{{ child.label }}</p>
+                <div
+                  [class.disabled]="
+                    child.disabled ?? !(auth.loginState$ | async)
+                  "
+                  class="sidebar-item"
+                >
+                  <div class="flex flex-row items-center gap-2 pl-4">
+                    <span
+                      class="material-icon-base material-icon"
+                      [class.material-symbols-outlined]="child.outlined"
+                      >{{ child.icon }}</span
+                    >
+                    <p>{{ child.label }}</p>
+                  </div>
                 </div>
-              </div>
-            </a>
+              </a>
+            </ng-container>
           </ng-container>
         </div>
       </div>

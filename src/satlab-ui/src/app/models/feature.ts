@@ -7,4 +7,5 @@ export interface SidebarEntry {
   disabled?: boolean;
   outlined: boolean;
   children?: SidebarEntry[];
+  showChildren?: boolean;
 }
