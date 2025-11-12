@@ -356,17 +356,27 @@ services:
       - 192.168.100.51
     environment:
       - OPERATION_MODE=on_premise
-      - OMNI_MODE_USAGE=cts_testing
+      - OMNI_MODE_USAGE=private_usage
       - MTT_CONTROL_SERVER_URL=http://ats-controller-bridge:8900
       - MTT_CONTROL_FILE_SERVER_URL=http://ats-controller-bridge:8906
       - TZ=Etc/UTC
-      - JSON_KEY_PATH=/home/satlab/keys/pubsub-key-do-not-delete.json
-      - GOOGLE_APPLICATION_CREDENTIALS=/home/satlab/keys/pubsub-key-do-not-delete.json
       - MTT_SERVER_LOG_LEVEL=debug
       - IS_OMNILAB_BASED=true
-      - LAB_SERVER_OPTS=--grpc_port=${WORKER_GRPC_PORT} --file_transfer_cloud_bucket=${CLOUD_FILE_TRANSFER_BUCKET}
+      - LAB_SERVER_OPTS=
+        >
+        --grpc_port=${WORKER_GRPC_PORT}
+        --file_transfer_cloud_bucket=${CLOUD_FILE_TRANSFER_BUCKET}
+        --enable_cloud_file_transfer=true
+        --file_transfer_cred_file=/tmp/keyfile/key.json
+        --ats_file_server_uploader_file_cleanup=false
+        --external_res_jar=/mtt/libexternal_resources.jar
       - GCP_PROJECT=${GCP_PROJECT}
       - MTT_MH_WORK_DIR=/mh
+    command: [
+      "/bin/sh",
+      "-c",
+      "mkdir -p /tmp/keyfile/ && ln -fs /home/satlab/keys/pubsub-key-do-not-delete.json /tmp/keyfile/key.json && /mtt/scripts/init.sh"
+    ]
     depends_on:
       - ats-controller-bridge
       - dns
