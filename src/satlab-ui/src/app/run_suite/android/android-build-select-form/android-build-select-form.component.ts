@@ -86,7 +86,7 @@ export class AndroidBuildSelectFormComponent
   });
   protected suiteTargetOptions = computed(() => {
     return toIterator(this.targetOptions())
-      .filter(e => e.text.startsWith('test_suites'))
+      .filter(e => e.text.includes('test_suites'))
       .collect();
   });
   protected buildOptions = signal<SelectableItem[]>([]);
