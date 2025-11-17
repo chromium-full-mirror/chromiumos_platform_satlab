@@ -60,7 +60,7 @@ export class SuiteComponent implements OnChanges, OnDestroy {
 
   private suiteTarget = computed(() => {
     return toIterator(this.targetSignal()).first_where(e =>
-      e.startsWith('test_suites')
+      e.includes('test_suites')
     );
   });
   protected suiteSignal = signal<string>('');
