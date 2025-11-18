@@ -46,4 +46,5 @@ export type RunAndroidOSRequest = {
   os: 'android';
   model?: string;
   target: string;
+  test_target: string;
 } & CommonFields;

@@ -1,43 +1,50 @@
-import {toIterator} from '../../../../app/utils/iterator';
-import {IDut} from '../../../models/dut';
-import {SelectableItem} from '../../../models/selectable_item';
-import {AndroidService} from '../../../services/android.service';
-import {
-  RunAndroidOSRequest,
-  RunService,
-  Suite,
-  Test,
-  Testplan,
-} from '../../../services/run.service';
-import {SatlabRpcService} from '../../../services/satlab-rpc.service';
-import {startWithTap} from '../../../utils/rxjs_operator';
+import {LoadingButtonComponent} from '../../../common/loading-button/loading-button.component';
+import {AutocompleteSelectorComponent} from '../../common/autocomplete-selector/autocomplete-selector.component';
+import {BasicSelectorComponent} from '../../common/basic-selector/basic-selector.component';
+import {LoadingComponent} from '../../common/loading/loading.component';
+import {NgIf} from '@angular/common';
 import {
   AfterViewInit,
   Component,
   EffectRef,
   OnDestroy,
-  WritableSignal,
   computed,
   effect,
   signal,
   untracked,
 } from '@angular/core';
 import {toObservable} from '@angular/core/rxjs-interop';
-import {MAX_IN_SHARD_DEFAULT} from 'app/constants';
-import {ICustomSettings} from 'app/models/run_suite_fields';
+import {IDut} from 'app/models/dut';
+import {RunAndroidOSRequest, Suite, Test, Testplan} from 'app/models/run';
+import {SelectableItem} from 'app/models/selectable_item';
+import {BuildSelectorComponent} from 'app/run_suite/common/build-selector/build-selector.component';
+import {AndroidService} from 'app/services/android.service';
 import {NotificationService} from 'app/services/notification.service';
-import {Observable, finalize, from} from 'rxjs';
+import {RunService} from 'app/services/run.service';
+import {SatlabRpcService} from 'app/services/satlab-rpc.service';
+import {toIterator} from 'app/utils/iterator';
+import {
+  resetSignals,
+  toSelectedItem,
+  wrapperLoading,
+} from 'app/utils/operators';
+import {startWithTap} from 'app/utils/rxjs_operator';
+import {finalize, from} from 'rxjs';
 
 @Component({
-  selector: 'app-android-build-select-form',
-  templateUrl: './android-build-select-form.component.html',
-  styleUrls: ['./android-build-select-form.component.scss'],
+  selector: 'app-pvs',
+  templateUrl: './pvs.component.html',
+  styleUrls: ['./pvs.component.scss'],
+  standalone: true,
+  imports: [
+    LoadingComponent,
+    BasicSelectorComponent,
+    AutocompleteSelectorComponent,
+    LoadingButtonComponent,
+    NgIf,
+  ],
 })
-export class AndroidBuildSelectFormComponent
-  implements AfterViewInit, OnDestroy
-{
-  protected tabSignal = signal<'suite' | 'test' | 'testPlan'>('suite');
-
+export class PvsComponent implements AfterViewInit, OnDestroy {
   protected boardSignal = signal<string>('');
   protected allModels = computed(() => {
     const board = this.boardSignal();
@@ -51,10 +58,7 @@ export class AndroidBuildSelectFormComponent
   protected targetSignal = signal<{[key: number]: string}>({1: '', 2: ''});
   protected buildSignal = signal<string>('');
   protected validBuildSignal = signal<string>('');
-  protected poolSignal = signal<string>('');
-  protected suiteSignal = signal<string>('');
-  protected testModulesSignal = signal<string[]>([]);
-  protected testPlanSignal = signal<string>('');
+  protected hostnameSignal = signal<string>('');
   protected isRunLoadingSignal = signal<boolean>(false);
   protected notAvailableMsg = signal<string>('');
   protected targets = computed(() => Object.values(this.targetSignal()));
@@ -89,11 +93,15 @@ export class AndroidBuildSelectFormComponent
       .filter(e => e.text.includes('test_suites'))
       .collect();
   });
+  protected hostnameOptions = computed(() => {
+    const board = this.boardSignal();
+    const model = this.modelSignal();
+    return toIterator(this.duts())
+      .filter(e => e.board === board && (model === '' || e.model === model))
+      .map(e => toSelectedItem(e.hostname))
+      .collect();
+  });
   protected buildOptions = signal<SelectableItem[]>([]);
-  protected suiteOptions = signal<SelectableItem[]>([]);
-  protected testOptions = signal<SelectableItem[]>([]);
-
-  protected customSettings = signal({maxInShard: MAX_IN_SHARD_DEFAULT});
 
   protected duts = signal<IDut[]>([]);
   protected boardOptions = computed(() => {
@@ -111,20 +119,33 @@ export class AndroidBuildSelectFormComponent
       .map(e => toSelectedItem(e.model))
       .collect();
   });
-  protected poolsOptions = computed(() => {
-    return toIterator(this.duts())
-      .filter(
-        e =>
-          e.board === this.boardSignal() &&
-          (this.modelSignal() === '' || e.model === this.modelSignal())
-      )
-      .map(e => e.pools)
-      .flatten()
-      .unique_by()
-      .map(e => toSelectedItem(e))
-      .collect();
+  protected tabSignal = signal<'storage' | 'memory'>('storage');
+  protected testTypeSignal = signal<'testplan' | 'test'>('testplan');
+  protected testPlanSignal = computed(() => {
+    switch (this.tabSignal()) {
+      case 'storage':
+        return this.STORAGE_TESTPLAN_NAME;
+      case 'memory':
+        return this.MEMORY_TESTPLAN_NAME;
+      default:
+        return '';
+    }
   });
+  protected testNameSignal = signal<string>('');
+  protected testOptions = computed(() => {
+    return this.tabSignal() === 'storage'
+      ? toIterator(this.STORAGE_TEST_NAMES).map(toSelectedItem).collect()
+      : toIterator(this.MEMORY_TEST_NAMES).map(toSelectedItem).collect();
+  });
+
   private suiteValidSignal = signal<boolean>(false);
+  private MEMORY_TESTPLAN_NAME = 'avs/component/memory';
+  private STORAGE_TESTPLAN_NAME = 'avs/component/storage';
+  private STORAGE_TEST_NAMES = [
+    'tradefed.dts.DesktopStorageAvlHostTestCases',
+    'tradefed.dts.DesktopStorageTestCasesStress',
+  ];
+  private MEMORY_TEST_NAMES = [];
 
   private refs: EffectRef[] = [];
 
@@ -135,6 +156,12 @@ export class AndroidBuildSelectFormComponent
     private notification: NotificationService
   ) {
     this.refs = [
+      effect(
+        () => {
+          this.__onTabChanged(this.tabSignal());
+        },
+        {allowSignalWrites: true}
+      ),
       effect(
         () => {
           this.__onBoardChanged(this.boardSignal());
@@ -161,20 +188,10 @@ export class AndroidBuildSelectFormComponent
           const board = untracked(() => this.boardSignal());
           const branch = untracked(() => this.branchSignal());
           const target = untracked(() => this.targets());
-          const build = this.buildSignal();
-          this.__onBuildChanged(board, branch, target, build);
-        },
-        {allowSignalWrites: true}
-      ),
-      effect(
-        () => {
-          this.tabSignal();
-
-          resetSignals([
-            this.suiteSignal,
-            this.testModulesSignal,
-            this.testPlanSignal,
-          ]);
+          const build = this.buildSignal().trim();
+          if (build !== '') {
+            this.__onBuildChanged(board, branch, target, build);
+          }
         },
         {allowSignalWrites: true}
       ),
@@ -190,8 +207,11 @@ export class AndroidBuildSelectFormComponent
   }
 
   protected onPropsChanged(key: string, value: string | string[]) {
-    console.log(`${key}: ${value}`);
     switch (key) {
+      case 'tab':
+        this.tabSignal.set(value as 'storage' | 'memory');
+        resetSignals([this.testNameSignal]);
+        break;
       case 'board':
         this.boardSignal.set((value as string).trim());
         resetSignals([
@@ -199,15 +219,11 @@ export class AndroidBuildSelectFormComponent
           this.branchSignal,
           this.buildSignal,
           this.validBuildSignal,
-          this.poolSignal,
-          this.suiteSignal,
           this.targetSignal,
-          this.testModulesSignal,
+          this.hostnameSignal,
           this.branchOptions,
           this.targetOptions,
           this.buildOptions,
-          this.suiteOptions,
-          this.testOptions,
           this.notAvailableMsg,
         ]);
         break;
@@ -216,14 +232,10 @@ export class AndroidBuildSelectFormComponent
           this.branchSignal,
           this.buildSignal,
           this.validBuildSignal,
-          this.poolSignal,
-          this.suiteSignal,
           this.targetSignal,
-          this.testModulesSignal,
+          this.hostnameSignal,
           this.targetOptions,
           this.buildOptions,
-          this.suiteOptions,
-          this.testOptions,
           this.notAvailableMsg,
         ]);
         this.modelSignal.set((value as string).trim());
@@ -232,13 +244,9 @@ export class AndroidBuildSelectFormComponent
         resetSignals([
           this.buildSignal,
           this.validBuildSignal,
-          this.suiteSignal,
           this.targetSignal,
-          this.testModulesSignal,
           this.targetOptions,
           this.buildOptions,
-          this.suiteOptions,
-          this.testOptions,
           this.notAvailableMsg,
         ]);
 
@@ -260,11 +268,7 @@ export class AndroidBuildSelectFormComponent
         resetSignals([
           this.buildSignal,
           this.validBuildSignal,
-          this.suiteSignal,
-          this.testModulesSignal,
           this.buildOptions,
-          this.suiteOptions,
-          this.testOptions,
           this.notAvailableMsg,
         ]);
         break;
@@ -276,88 +280,54 @@ export class AndroidBuildSelectFormComponent
         resetSignals([
           this.buildSignal,
           this.validBuildSignal,
-          this.suiteSignal,
-          this.testModulesSignal,
           this.buildOptions,
-          this.suiteOptions,
-          this.testOptions,
           this.notAvailableMsg,
         ]);
+        break;
+      case 'hostname':
+        this.hostnameSignal.set((value as string).trim());
         break;
       case 'build':
+        const build = this.buildSignal();
+        if (value === build) break;
         this.buildSignal.set((value as string).trim());
-        resetSignals([
-          this.validBuildSignal,
-          this.suiteSignal,
-          this.testModulesSignal,
-          this.notAvailableMsg,
-        ]);
+        resetSignals([this.validBuildSignal, this.notAvailableMsg]);
         break;
-      case 'pool':
-        this.poolSignal.set((value as string).trim());
+      case 'testType':
+        this.testTypeSignal.set(value as 'testplan' | 'test');
+        resetSignals([this.testNameSignal]);
         break;
-      case 'suite':
-        this.suiteSignal.set((value as string).trim());
-        resetSignals([this.testModulesSignal]);
-        break;
-      case 'testModules':
-        this.testModulesSignal.set(value as string[]);
+      case 'test':
+        this.testNameSignal.set((value as string).trim());
         break;
     }
-  }
-
-  protected onCustomSettingsChanged(value: ICustomSettings) {
-    this.customSettings.set({
-      maxInShard: value.maxInShard,
-    });
   }
 
   protected onChildLoadingChanged(value: {show: boolean; message: string}) {
     this.isLoading.set(value);
   }
 
-  protected onTabChanged(tab: 'suite' | 'test' | 'testPlan') {
-    this.tabSignal.set(tab);
-  }
-
   protected onChildSuiteValidChanged(value: boolean) {
     this.suiteValidSignal.set(value);
   }
 
+  protected onTestInputValueChanged(value: string) {
+    this.testNameSignal.set(value);
+  }
+
   protected _isRunnable = computed(() => {
-    const extra =
-      this.tabSignal() !== 'test' || this.testModulesSignal().length !== 0;
-    const shard = this.customSettings().maxInShard;
-    const taskValid =
-      this.tabSignal() === 'testPlan'
-        ? this.testPlanSignal() !== ''
-        : this.suiteValidSignal();
-
-    console.log(
-      `extra: ${extra}, shard: ${shard}, loading: ${
-        this.isLoading().show
-      }, board: ${this.boardSignal()}, branch: ${this.branchSignal()}, t1: ${
-        this.targetSignal()[1]
-      } t2: ${
-        this.targetSignal()[2]
-      }, build: ${this.buildSignal()}, pool: ${this.poolSignal()}, taskValid: ${taskValid}, target: ${this.target()}`
-    );
-
     return (
       this.isLoading().show === false &&
       this.boardSignal() &&
       this.branchSignal() &&
       this.targetSignal()[1] !== '' &&
       this.targetSignal()[2] !== '' &&
-      this.buildSignal() !== '' &&
-      this.poolSignal() !== '' &&
-      taskValid &&
       this.target() &&
-      !Number.isNaN(shard) &&
-      Number.isInteger(shard) &&
-      shard >= 0 &&
-      shard <= 65536 &&
-      extra
+      this.buildSignal() !== '' &&
+      this.validBuildSignal() !== '' &&
+      this.hostnameSignal() !== '' &&
+      this.notAvailableMsg() === '' &&
+      (this.testTypeSignal() !== 'test' || this.testNameSignal() !== '')
     );
   });
 
@@ -365,92 +335,82 @@ export class AndroidBuildSelectFormComponent
     this.onPropsChanged('build', value);
   }
 
-  protected onPlanChanged(value: string) {
-    this.testPlanSignal.set(value);
-  }
-
-  protected onRunClicked() {
+  onRunClicked() {
     const board = this.boardSignal();
     const model = this.modelSignal();
     const build = this.validBuildSignal();
-    const pool = this.poolSignal();
-    const test_target = this.targetSignal()[2];
-    const suite =
-      this.tabSignal() === 'suite' ? `suite:${this.suiteSignal()}` : '';
-    const testModules = this.testModulesSignal();
-
-    let testIncludes = [];
-    let textExcludes = [];
-    let tagIncludes = [];
-    if (this.tabSignal() === 'test') {
-      testIncludes = [...testModules];
-    } else {
-      textExcludes = [...testModules];
-    }
-
-    const shard = this.customSettings().maxInShard;
-
-    let task: Suite | Test | Testplan;
-    if (this.tabSignal() === 'suite' || this.tabSignal() === 'test') {
-      task = {
-        kind: 'suite',
-        name: suite,
-      };
-      if (suite !== '') {
-        tagIncludes = [...tagIncludes, suite];
-      }
-    } else if (this.tabSignal() === 'testPlan') {
-      task = {
-        kind: 'testplan',
-        name: this.testPlanSignal(),
-      };
-    }
+    const hostname = this.hostnameSignal();
+    const pool = toIterator(this.duts()).first_where(
+      e => e.hostname === hostname
+    ).pools[0];
+    const testplan = this.testPlanSignal();
+    const test = this.testNameSignal();
+    const testType = this.testTypeSignal();
+    const target = this.target();
+    const testTarget = this.targetSignal()[2];
+    const task: Testplan | Suite =
+      testType === 'testplan'
+        ? {
+            kind: 'testplan',
+            name: testplan,
+          }
+        : {
+            kind: 'suite',
+            name: test,
+          };
 
     const req: RunAndroidOSRequest = {
       os: 'android',
       board: board,
       model: model,
       pool: pool,
-      target: this.target(),
-      test_target: test_target,
+      target: target,
+      test_target: testTarget,
       build: build,
       tags: {
-        testNamesExclude: textExcludes,
-        testNamesInclude: testIncludes,
-        tagsToInclude: tagIncludes,
+        tagsToInclude: ['suite:dts'],
+        testNamesInclude: testType === 'test' ? [test] : [],
+      },
+      dims: {
+        dut_name: hostname,
       },
       run: task,
       advanceSettings: {
         cft: true,
-        maxInShard: shard,
+        trv2: true,
+        uploadToCpcon: true,
       },
     };
 
     wrapperLoading(
       this.runService.run(req),
       this.isLoading,
-      `Running ${this.tabSignal()}...`
+      `Running ${testplan}...`
     )
       .pipe(
         startWithTap(() => this.isRunLoadingSignal.set(true)),
         finalize(() => this.isRunLoadingSignal.set(false))
       )
       .subscribe({
-        next: buildLink => {
+        next: link => {
           this.notification.info(
             [
-              `Triggering ${this.tabSignal()} succeed! Link:`,
-              {type: 'url', url: buildLink},
+              `Triggering ${task.name} succeed! Link:`,
+              {type: 'url', url: link},
             ],
             {dismiss: false}
           );
         },
         error: e => {
-          this.notification.error(`Trigger job failed: ${e}`, {
-            dismiss: false,
-          });
+          this.notification.error(`Trigger job failed: ${e}`, {dismiss: false});
         },
       });
+  }
+
+  private __onTabChanged(tab: 'storage' | 'memory') {
+    if (tab === 'memory') {
+      this.testTypeSignal.set('testplan');
+    }
   }
 
   private __onBoardChanged(board: string) {
@@ -466,7 +426,13 @@ export class AndroidBuildSelectFormComponent
   }
 
   private __onTargetChanged(board: string, branch: string, targets: string[]) {
-    if (board !== '' && branch !== '' && targets.length > 0) {
+    if (
+      board !== '' &&
+      branch !== '' &&
+      toIterator(targets)
+        .filter(t => t.trim() !== '')
+        .collect().length > 1
+    ) {
       this.__listBuilds(board, branch, targets);
     }
   }
@@ -484,8 +450,13 @@ export class AndroidBuildSelectFormComponent
       /^\d{8}$/.test(build)
     ) {
       this.__isBuildValid(board, branch, targets, build);
+    } else {
+      this.notAvailableMsg.set(
+        'Make sure board, branch, targets exist, and build should be 8 digit nubmer.'
+      );
     }
   }
+
   private __listBranches(targets: string[]) {
     wrapperLoading(
       this.androidService.listBranches(targets),
@@ -564,7 +535,9 @@ export class AndroidBuildSelectFormComponent
         if (isValid) {
           this.validBuildSignal.set(build);
         } else {
-          this.notAvailableMsg.set('The build is not valid.');
+          this.notAvailableMsg.set(
+            'The build is invalid, please choose another one.'
+          );
         }
       },
       error: e => {
@@ -573,62 +546,5 @@ export class AndroidBuildSelectFormComponent
         });
       },
     });
-  }
-}
-
-function toSelectedItem(value: string): SelectableItem {
-  return {
-    label: '',
-    value: value,
-    text: value,
-  };
-}
-
-function wrapperLoading<T>(
-  o: Observable<T>,
-  loading: WritableSignal<{show: boolean; message: string}>,
-  msg: string
-) {
-  return o.pipe(
-    startWithTap(() => {
-      loading.set({
-        show: true,
-        message: msg,
-      });
-    }),
-    finalize(() => {
-      loading.set({
-        show: false,
-        message: '',
-      });
-    })
-  );
-}
-
-function resetSignals(
-  signals: WritableSignal<unknown>[],
-  defaultValue?: unknown
-) {
-  if (signals.length > 0) {
-    if (defaultValue === undefined) {
-      signals.forEach(e => {
-        const value = untracked(() => {
-          if (defaultValue) {
-            return defaultValue;
-          }
-
-          if (typeof e() === 'string') {
-            return '';
-          } else if (Array.isArray(e())) {
-            return [];
-          } else if (typeof e() === 'object') {
-            return {};
-          }
-
-          throw Error(`Unknown type of signal: ${typeof e()}`);
-        });
-        e.set(value);
-      });
-    }
   }
 }

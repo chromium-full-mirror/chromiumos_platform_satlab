@@ -76,6 +76,12 @@ export class AppSidebarComponent {
           outlined: false,
         },
         {
+          route: '/run_tests/android/pvs',
+          label: 'AVL Qualification',
+          icon: 'science',
+          outlined: false,
+        },
+        {
           route: 'run_tests/android/labqual',
           label: 'Labqual',
           icon: 'labs',

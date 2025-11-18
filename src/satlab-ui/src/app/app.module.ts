@@ -19,9 +19,11 @@ import {ManageDutsComponent} from './manage-duts/manage-duts.component';
 import {StableVersionCardComponent} from './manage-duts/stable-version-card/stable-version-card.component';
 import {StableVersionComponent} from './manage-duts/stable-version/stable-version.component';
 import {ViewDutsComponent} from './manage-duts/view-duts/view-duts.component';
+import {SafeNumberPipe} from './pipes/safe-number.pipe';
 import {AndroidBuildSelectFormComponent} from './run_suite/android/android-build-select-form/android-build-select-form.component';
 import {SuiteComponent} from './run_suite/android/suite/suite.component';
 import {TestPlanComponent} from './run_suite/android/test-plan/test-plan.component';
+import {RunComponent} from './run_suite/chromeos/run/run.component';
 import {AdvancedSettingsComponent} from './run_suite/common/advanced-settings/advanced-settings.component';
 import {AutocompleteSelectorComponent} from './run_suite/common/autocomplete-selector/autocomplete-selector.component';
 import {BasicSelectorComponent} from './run_suite/common/basic-selector/basic-selector.component';
@@ -39,6 +41,7 @@ import {SingleTestComponent} from './run_suite/single-test/single-test.component
 import {TestplanComponent} from './run_suite/testplan/testplan.component';
 import {JobTableComponent} from './view-jobs/job-table/job-table.component';
 import {ViewJobsComponent} from './view-jobs/view-jobs.component';
+import {WifiConfigComponent} from './wifi-config/wifi-config.component';
 import {LayoutModule} from '@angular/cdk/layout';
 import {CommonModule} from '@angular/common';
 import {HttpClientModule} from '@angular/common/http';
@@ -74,9 +77,6 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterModule} from '@angular/router';
-import {SafeNumberPipe} from './pipes/safe-number.pipe';
-import {WifiConfigComponent} from './wifi-config/wifi-config.component';
-import {RunComponent} from './run_suite/chromeos/run/run.component';
 
 @NgModule({
   declarations: [
@@ -114,9 +114,9 @@ import {RunComponent} from './run_suite/chromeos/run/run.component';
     WifiConfigComponent,
     SuiteComponent,
     AndroidBuildSelectFormComponent,
-    TestPlanComponent,
     SafeNumberPipe,
     RunComponent,
+    TestPlanComponent,
   ],
   imports: [
     AppRoutingModule,

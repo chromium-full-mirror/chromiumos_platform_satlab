@@ -1,0 +1,120 @@
+<div class="w-full flex flex-row justify-between">
+  <button
+    class="w-full hover:bg-blue-50 text-gray-500 h-12 [&.active]:text-blue-400 [&.active]:border-b [&.active]:border-b-blue-400 text-md"
+    [class.active]="tabSignal() === 'storage'"
+    (click)="onPropsChanged('tab', 'storage')"
+  >
+    Storage AVL
+  </button>
+  <button
+    class="w-full hover:bg-blue-50 text-gray-500 h-12 [&.active]:text-blue-400 [&.active]:border-b [&.active]:border-b-blue-400 text-md"
+    [class.active]="tabSignal() === 'memory'"
+    (click)="onPropsChanged('tab', 'memory')"
+  >
+    Memory AVL
+  </button>
+</div>
+
+<div
+  class="relative w-5/12 lg:max-w-3xl mx-auto my-[4rem] px-6 pt-0 pb-6 border box-shadow rounded"
+>
+  <app-loading [loading$]="loading$"></app-loading>
+  <div class="min-h-[1.5rem]">
+    <p class="text-red-500 text-center">{{ notAvailableMsg() }}</p>
+  </div>
+  <div class="flex gap-4 w-full flex-col">
+    <app-basic-selector
+      (select)="onPropsChanged('board', $event)"
+      [options]="boardOptions()"
+      [disabled]="isRunLoadingSignal()"
+      title="Select Board:"
+    >
+    </app-basic-selector>
+
+    <app-basic-selector
+      (select)="onPropsChanged('model', $event)"
+      [options]="modelsOptions()"
+      [value]="modelSignal()"
+      [disabled]="isRunLoadingSignal()"
+      title="Select Model (Optional):"
+    >
+    </app-basic-selector>
+
+    <app-basic-selector
+      (select)="onPropsChanged('branch', $event)"
+      [options]="branchOptions()"
+      [value]="branchSignal()"
+      [disabled]="isRunLoadingSignal()"
+      title="Select Branch:"
+    >
+    </app-basic-selector>
+
+    <app-basic-selector
+      (select)="onPropsChanged('boardTarget', $event)"
+      [options]="boardTargetOptions()"
+      [disabled]="isRunLoadingSignal()"
+      title="Select Board Target:"
+    >
+    </app-basic-selector>
+
+    <app-basic-selector
+      (select)="onPropsChanged('suiteTarget', $event)"
+      [options]="suiteTargetOptions()"
+      [disabled]="isRunLoadingSignal()"
+      title="Select Suite Target:"
+    >
+    </app-basic-selector>
+
+    <app-basic-selector
+      (select)="onPropsChanged('hostname', $event)"
+      [options]="hostnameOptions()"
+      [disabled]="isRunLoadingSignal()"
+      title="Select hostname:"
+    >
+    </app-basic-selector>
+
+    <app-autocomplete-selector
+      [options]="buildOptions()"
+      title="Select Build:"
+      (selectChanged)="onPropsChanged('build', $event)"
+      (inputValueChanged)="onBuildInputValueChanged($event)"
+    ></app-autocomplete-selector>
+
+    <div
+      class="w-11/12 flex flex-row mx-auto p-2"
+      *ngIf="tabSignal() === 'storage'"
+    >
+      <button
+        class="w-full hover:bg-blue-50 text-gray-500 h-12 border border-gray-100 bg-gray-50 rounded-md [&.active]:bg-blue-500 [&.active]:text-white [&.active]:border [&.active]:border-blue-500 text-md"
+        [class.active]="testTypeSignal() === 'testplan'"
+        (click)="onPropsChanged('testType', 'testplan')"
+      >
+        Test Plan
+      </button>
+      <button
+        class="w-full hover:bg-blue-50 text-gray-500 h-12 border border-gray-100 bg-gray-50 rounded-md [&.active]:bg-blue-500 [&.active]:text-white [&.active]:border [&.active]:border-blue-500 text-md"
+        [class.active]="testTypeSignal() === 'test'"
+        (click)="onPropsChanged('testType', 'test')"
+      >
+        Individual Test
+      </button>
+    </div>
+
+    <ng-container *ngIf="testTypeSignal() === 'test'">
+      <app-basic-selector
+        (select)="onPropsChanged('test', $event)"
+        [options]="testOptions()"
+        [disabled]="isRunLoadingSignal()"
+        title="Select test:"
+      ></app-basic-selector>
+    </ng-container>
+
+    <app-loading-button
+      class="mx-auto"
+      (onClick)="onRunClicked()"
+      [disabled]="!_isRunnable()"
+      [loading]="isRunLoadingSignal()"
+      [text]="'Run'"
+    ></app-loading-button>
+  </div>
+</div>
