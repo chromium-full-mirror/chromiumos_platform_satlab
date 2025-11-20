@@ -1,42 +1,43 @@
-import {
-  AfterViewInit,
-  Component,
-  computed,
-  effect,
-  EffectRef,
-  OnDestroy,
-  signal,
-  untracked,
-} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {
-  BehaviorSubject,
-  catchError,
-  finalize,
-  from,
-  lastValueFrom,
-  of,
-  Subscription,
-} from 'rxjs';
+import {LoadingButtonComponent} from '../../../common/loading-button/loading-button.component';
+import {IDut} from '../../../models/dut';
+import {SelectableItem} from '../../../models/selectable_item';
+import {AndroidService} from '../../../services/android.service';
+import {NotificationService} from '../../../services/notification.service';
 import {SatlabRpcService} from '../../../services/satlab-rpc.service';
+import {toIterator} from '../../../utils/iterator';
 import {
   resetSignals,
   toSelectedItem,
   wrapperLoading,
 } from '../../../utils/operators';
-import {IDut} from '../../../models/dut';
-import {NotificationService} from '../../../services/notification.service';
-import {toIterator} from '../../../utils/iterator';
-import {SelectableItem} from '../../../models/selectable_item';
-import {AndroidService} from '../../../services/android.service';
-import {toObservable} from '@angular/core/rxjs-interop';
-import {LoadingComponent} from '../../common/loading/loading.component';
-import {BasicSelectorComponent} from '../../common/basic-selector/basic-selector.component';
-import {AutocompleteSelectorComponent} from '../../common/autocomplete-selector/autocomplete-selector.component';
-import {LoadingButtonComponent} from '../../../common/loading-button/loading-button.component';
-import {MatDividerModule} from '@angular/material/divider';
-import {BuildSelectorComponent} from '../../common/build-selector/build-selector.component';
 import {startWithTap} from '../../../utils/rxjs_operator';
+import {AutocompleteSelectorComponent} from '../../common/autocomplete-selector/autocomplete-selector.component';
+import {BasicSelectorComponent} from '../../common/basic-selector/basic-selector.component';
+import {BuildSelectorComponent} from '../../common/build-selector/build-selector.component';
+import {LoadingComponent} from '../../common/loading/loading.component';
+import {CommonModule} from '@angular/common';
+import {
+  AfterViewInit,
+  Component,
+  EffectRef,
+  OnDestroy,
+  computed,
+  effect,
+  signal,
+  untracked,
+} from '@angular/core';
+import {toObservable} from '@angular/core/rxjs-interop';
+import {MatDividerModule} from '@angular/material/divider';
+import {BUILD_ACCESS_REQUEST_URL} from 'app/constants';
+import {
+  BehaviorSubject,
+  Subscription,
+  catchError,
+  finalize,
+  from,
+  lastValueFrom,
+  of,
+} from 'rxjs';
 
 @Component({
   selector: 'app-labqual',
@@ -80,12 +81,15 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
   protected targetSignal = signal<string>('');
   protected buildSignal = signal<string>('');
   protected notAvailableMsg = signal<string>('');
+  protected branchError = signal<string>('');
+  readonly buildAccessRequestLink = BUILD_ACCESS_REQUEST_URL;
   protected isRunLoadingSignal = signal<boolean>(false);
   protected _isRunnable = computed(() => {
     const isHostnameValid = this.hostnameSignal() !== '';
     const infoValid = this.dutInfo() !== null;
+    const notAvailableMsg = this.notAvailableMsg() === '';
 
-    return isHostnameValid && infoValid;
+    return isHostnameValid && infoValid && notAvailableMsg;
   });
   protected dutInfo = computed(() => {
     const hostname = this.hostnameSignal();
@@ -180,6 +184,8 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
           this.branchOptions,
           this.targetOptions,
           this.buildOptions,
+          this.notAvailableMsg,
+          this.branchError,
         ]);
         this.hostnameSignal.set((value as string).trim());
         break;
@@ -311,7 +317,12 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
       'Loading branches...'
     ).subscribe({
       next: e => {
-        this.notAvailableMsg.set(e.length === 0 ? 'No branches available' : '');
+        this.notAvailableMsg.set(
+          e.length === 0
+            ? 'No branches available - please request the permission by '
+            : ''
+        );
+        this.branchError.set(e.length === 0 ? 'this link.' : '');
         this.branchOptions.set(e.map(toSelectedItem));
       },
       error: e => {

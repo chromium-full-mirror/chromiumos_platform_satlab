@@ -3,7 +3,15 @@
 >
   <app-loading [loading$]="loading$"></app-loading>
   <div class="min-h-[1.5rem]">
-    <p class="text-red-500 text-center">{{ notAvailableMsg() }}</p>
+    <p class="text-red-500 text-center">
+      {{ notAvailableMsg()
+      }}<a
+        class="text-blue font-bold"
+        href="{{ buildAccessRequestLink }}"
+        target="_blank"
+        >{{ branchError() }}</a
+      >
+    </p>
   </div>
   <div class="flex gap-2 w-full flex-col">
     <app-basic-selector
