@@ -47,6 +47,7 @@ export type RunAndroidOSRequest = {
   os: 'android';
   model?: string;
   target: string;
+  test_target: string;
 } & CommonFields;
 
 @Injectable({
@@ -90,6 +91,7 @@ export class RunService {
       req.setModel(params.model).setMilestone(params.milestone);
     } else {
       req.setModel(params.model ?? '').setTarget(params.target);
+      req.setTestTarget(params.test_target);
     }
 
     switch (params.run.kind) {
