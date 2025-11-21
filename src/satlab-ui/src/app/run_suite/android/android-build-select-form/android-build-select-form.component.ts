@@ -373,6 +373,7 @@ export class AndroidBuildSelectFormComponent
     const model = this.modelSignal();
     const build = this.validBuildSignal();
     const pool = this.poolSignal();
+    const test_target = this.targetSignal()[2];
     const suite =
       this.tabSignal() === 'suite' ? `suite:${this.suiteSignal()}` : '';
     const testModules = this.testModulesSignal();
@@ -410,6 +411,7 @@ export class AndroidBuildSelectFormComponent
       model: model,
       pool: pool,
       target: this.target(),
+      test_target: test_target,
       build: build,
       tags: {
         testNamesExclude: textExcludes,

@@ -1107,7 +1107,7 @@ message ValidateAndroidBuildResponse {
   bool is_valid = 1;
 }
 
-// NEXT_TAG = 18
+// NEXT_TAG = 19
 message RunRequest {
   // NEXT_TAG = 2
   message Suite {
@@ -1141,6 +1141,7 @@ message RunRequest {
   optional string milestone = 7;
   optional string target_type = 8 [deprecated = true];
   optional string target = 17;
+  optional string test_target = 18;
   string build = 9;
   string pool = 10;
 
