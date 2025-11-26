@@ -1,24 +1,78 @@
-<div class="duts-wrapper">
+<div class="w-full relative min-h-[256px]">
   <ng-container *ngIf="loading">
     <div class="loading-overlay">
       <mat-spinner class="spinner"></mat-spinner>
     </div>
   </ng-container>
 
-  <div class="content-wrapper">
-    <div class="header" *ngIf="!loading">
-      <div class="col">Board</div>
-      <div class="col">Model</div>
-      <div class="col medium">OS image</div>
-      <div class="col large">Fw version</div>
-      <div class="col large">Fw image</div>
+  <div class="m-[5%]">
+    <div class="space-x-6" *ngIf="!loading">
+      <label>
+        <input
+          type="checkbox"
+          [checked]="filterOS === 'chromeos'"
+          (change)="filterOSBy('chromeos', $event.target.checked)"
+        />
+        ChromeOS
+      </label>
+      <label>
+        <input
+          type="checkbox"
+          [checked]="filterOS === 'android'"
+          (change)="filterOSBy('android', $event.target.checked)"
+        />
+        Android
+      </label>
     </div>
+    <div
+      class="flex flex-row space-x-16 bg-white border-b border-gray-200"
+      *ngIf="!loading"
+    >
+      <div
+        class="w-[100px] h-12 flex justify-center items-center leading-12 text-lg font-medium"
+      >
+        Board
+      </div>
+      <div
+        class="w-[100px] h-12 flex justify-center items-center leading-12 text-lg font-medium"
+      >
+        Model
+      </div>
+
+      <div
+        class="medium w-[200px] h-12 flex justify-center items-center leading-12 text-lg font-medium"
+      >
+        OS image
+      </div>
+
+      <div
+        class="large w-[300px] h-12 flex justify-center items-center leading-12 text-lg font-medium"
+      >
+        Fw version
+      </div>
+      <div
+        class="large w-[300px] h-12 flex justify-center items-center leading-12 text-lg font-medium"
+      >
+        Fw image
+      </div>
+
+      <div
+        class="w-[100px] h-12 flex justify-center items-center leading-12 text-lg font-medium"
+      >
+        OS type
+      </div>
+    </div>
+
     <div *ngFor="let item of data | keyvalue">
       <div *ngFor="let m of item.value | keyvalue">
-        <app-stable-version-card
-          [board]="item.key"
-          [model]="m.key"
-        ></app-stable-version-card>
+        <div *ngFor="let osType of OSOptions">
+          <app-stable-version-card
+            [board]="item.key"
+            [model]="m.key"
+            [os]="osType"
+            [filterOS]="filterOS"
+          ></app-stable-version-card>
+        </div>
       </div>
     </div>
   </div>

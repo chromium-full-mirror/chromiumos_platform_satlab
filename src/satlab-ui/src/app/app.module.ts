@@ -77,6 +77,7 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterModule} from '@angular/router';
+import {SingleLineEllipsisDirective} from './single-line-ellipsis.directive';
 
 @NgModule({
   declarations: [
@@ -117,6 +118,7 @@ import {RouterModule} from '@angular/router';
     SafeNumberPipe,
     RunComponent,
     TestPlanComponent,
+    SingleLineEllipsisDirective,
   ],
   imports: [
     AppRoutingModule,

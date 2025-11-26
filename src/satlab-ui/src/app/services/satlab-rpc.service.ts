@@ -910,10 +910,17 @@ export class SatlabRpcService {
     });
   }
 
-  public getStableVersion(p: {board: string; model: string}) {
+  public getStableVersion(p: {
+    board: string;
+    model: string;
+    isDesktop: boolean;
+  }) {
     return of(p).pipe(
       map(e => {
-        return new StableVersionRequest().setBoard(e.board).setModel(e.model);
+        return new StableVersionRequest()
+          .setBoard(e.board)
+          .setModel(e.model)
+          .setIsDesktop(e.isDesktop);
       }),
       switchMap(req => from(this.client.stableVersion(req, {}))),
       map(resp => {

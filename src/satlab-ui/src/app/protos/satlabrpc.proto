@@ -887,9 +887,11 @@ message RunLabQualResponse {
   string build_link= 1;
 }
 
+// NEXT_TAG = 4
 message StableVersionRequest {
   string board = 1;
   string model = 2;
+  bool is_desktop = 3;
 }
 
 // NEXT_TAG = 4

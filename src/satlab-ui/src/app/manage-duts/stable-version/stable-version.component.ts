@@ -1,8 +1,9 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component} from '@angular/core';
+import {AfterViewInit, Component} from '@angular/core';
 import {IDut} from 'app/models/dut';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
 import {startWithTap} from 'app/utils/rxjs_operator';
 import {finalize, from, tap} from 'rxjs';
+import {OSType} from '../../models/os';
 
 @Component({
   selector: 'app-stable-version',
@@ -14,6 +15,19 @@ export class StableVersionComponent implements AfterViewInit {
 
   protected data: {[key: string]: {[key: string]: boolean}} = {};
 
+  // OSOptions contains possible OS shown on Stable Version Page.
+  protected OSOptions: OSType[] = ['chromeos', 'android'];
+  // filterOS saves the state of chosen OS. It can be `chromeos`, `android` or both.
+  protected filterOS: OSType | null = null;
+  // filterOSBy determines which OS is chosen to filter.
+  filterOSBy(value: OSType, checked: boolean) {
+    if (checked) {
+      this.filterOS = value;
+    } else {
+      this.filterOS = null;
+    }
+  }
+
   constructor(private service: SatlabRpcService) {}
 
   ngAfterViewInit(): void {
@@ -22,7 +36,9 @@ export class StableVersionComponent implements AfterViewInit {
         startWithTap(() => (this.loading = true)),
         finalize(() => (this.loading = false)),
         tap(resp => {
-          this.data = this.groupBy(resp);
+          this.data = this.groupBy(
+            resp.filter(d => d.board !== '' && d.model !== '')
+          );
         })
       )
       .subscribe();

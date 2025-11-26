@@ -1,22 +1,75 @@
-<div class="stable-version-card-wrapper">
-  <div class="col">
-    <p>{{ (data$ | async).board }}</p>
+<div
+  class="flex flex-row items-center bg-white relative space-x-16 border-b border-gray-200"
+>
+  <div
+    class="col w-[100px] h-12 flex justify-center items-center leading-12 overflow-hidden"
+    *ngIf="(data$ | async).os === filterOS || filterOS === null"
+  >
+    <p class="whitespace-nowrap overflow-hidden text-ellipsis">
+      {{ (data$ | async).board }}
+    </p>
   </div>
-  <div class="col">
-    <p>{{ (data$ | async).model }}</p>
+
+  <div
+    class="w-[100px] h-12 flex justify-center items-center leading-12 overflow-hidden"
+    *ngIf="(data$ | async).os === filterOS || filterOS === null"
+  >
+    <p class="whitespace-nowrap overflow-hidden text-ellipsis">
+      {{ (data$ | async).model }}
+    </p>
   </div>
-  <div class="col medium">
-    <p>{{ (data$ | async).osImage }}</p>
+
+  <div
+    class="w-[200px] h-12 flex justify-center items-center leading-12 overflow-hidden"
+    *ngIf="(data$ | async).os === filterOS || filterOS === null"
+  >
+    <p *ngIf="!loading" class="whitespace-nowrap overflow-hidden text-ellipsis">
+      {{ (data$ | async).osImage }}
+    </p>
   </div>
-  <div class="col large">
-    <div class="loading" *ngIf="loading">
+
+  <div
+    class="w-[300px] h-12 flex justify-center items-center leading-12 overflow-hidden"
+    *ngIf="(data$ | async).os === filterOS || filterOS === null"
+  >
+    <div class="loading inline-block w-6 h-6 my-3" *ngIf="loading">
       <mat-spinner [diameter]="24"></mat-spinner>
     </div>
 
-    <p *ngIf="!isError">{{ (data$ | async).fwVersion }}</p>
-    <p *ngIf="isError" class="error">can't fetch the stable version</p>
+    <p
+      *ngIf="!loading"
+      class="whitespace-nowrap overflow-hidden text-ellipsis"
+      appSingleLineEllipsis
+      (isEllipsis)="handleVersionEllipsisState($event)"
+      [matTooltip]="isFwVersionTruncated ? (data$ | async).fwVersion : null"
+    >
+      {{ (data$ | async).fwVersion }}
+    </p>
+
+    <p *ngIf="isError" class="text-red-500">can't fetch the stable version</p>
   </div>
-  <div class="col large">
-    <p>{{ (data$ | async).fwImage }}</p>
+
+  <div
+    class="w-[300px] h-12 flex justify-center items-center leading-12 overflow-hidden"
+    *ngIf="(data$ | async).os === filterOS || filterOS === null"
+  >
+    <p
+      *ngIf="!loading"
+      class="whitespace-nowrap overflow-hidden text-ellipsis"
+      appSingleLineEllipsis
+      (isEllipsis)="handleFwImageEllipsisState($event)"
+      [matTooltip]="isFwImageTruncated ? (data$ | async).fwImage : null"
+    >
+      {{ (data$ | async).fwImage }}
+    </p>
+  </div>
+
+  <div
+    class="w-[100px] h-12 flex justify-center items-center leading-12 overflow-hidden"
+    *ngIf="(data$ | async).os === filterOS || filterOS === null"
+  >
+    <p *ngIf="!loading" class="whitespace-nowrap overflow-hidden text-ellipsis">
+      {{ OSLabel[os] }}
+    </p>
   </div>
 </div>
