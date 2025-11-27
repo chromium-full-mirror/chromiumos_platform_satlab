@@ -99,6 +99,7 @@ then
   docker-compose -f ./docker-compose.watchtower.yaml down -t 1
 else
   # Set the environement from satlab-config.json before any container start.
+  python3 /usr/local/bin/update_satlab_config_override.py
   ENV_SETUP_FILE=/export_env_file.sh
   if [[ -f "${ENV_SETUP_FILE}" ]]; then
     source ${ENV_SETUP_FILE}
