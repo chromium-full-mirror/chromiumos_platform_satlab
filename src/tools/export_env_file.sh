@@ -8,6 +8,7 @@
 # via saltab_remote_access.
 
 SATLAB_CONFIG_FILENAME=/home/satlab/keys/satlab-config.json
+SATLAB_CONFIG_OVERRIDE_FILENAME=/home/satlab/keys/satlab-config-override.json
 
 # This function takes JSON file as input and parses key-values to env
 # vairables and then exports
@@ -26,6 +27,16 @@ function export_env_from_config() {
   if [ "$?" -ne 0 ]; then
     echo -e "\nERROR: Failed parse the Satlab Configuration file, aborting setup!"
     exit
+  fi
+
+  # If exists, load the overwrite JSON file into a temporary file
+  if [[ -f "${SATLAB_CONFIG_OVERRIDE_FILENAME}" ]]; then
+    sed '/\/\//d' "${SATLAB_CONFIG_OVERRIDE_FILENAME}" | \
+      jq -r 'to_entries[] | [.key, .value] | join("=")' >> "${TMP_FILE}"
+
+    if [ "$?" -ne 0 ]; then
+      echo -e "\nWARNING: Failed to parse the Configuration Override file, continuing without overrides."
+    fi
   fi
 
   # Write each key-value pair as an environment variable in .env file
