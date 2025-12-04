@@ -165,7 +165,7 @@ export class SatlabRpcService {
    */
   public async listMilestones(
     p: {model: string; board: string},
-    filterType?: 'firmware' | 'release'
+    filterType?: 'firmware' | 'release' | 'all'
   ) {
     const req = new ListMilestonesRequest().setModel(p.model).setBoard(p.board);
 
@@ -188,7 +188,7 @@ export class SatlabRpcService {
       board: string;
       milestone: string;
     },
-    filterType?: 'firmware' | 'release'
+    filterType?: 'firmware' | 'release' | 'all'
   ) {
     const req = new ListBuildVersionsRequest()
       .setBoard(p.board)

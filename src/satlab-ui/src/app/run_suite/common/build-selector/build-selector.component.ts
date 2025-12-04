@@ -43,7 +43,7 @@ export class BuildSelectorComponent implements OnInit, OnChanges, OnDestroy {
   @Input() model: string;
   @Input() loading = new BehaviorSubject({show: false, message: ''});
   @Input() disabled = false;
-  @Input() type: 'release' | 'firmware' = 'release';
+  @Input() type: 'release' | 'firmware' | 'all' = 'release';
 
   @ViewChild('milestoneSelector') milestoneSelector?: BasicSelectorComponent;
   @ViewChild('buildSelector') buildSelector?: BasicSelectorComponent;
