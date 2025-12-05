@@ -17,7 +17,17 @@ import {
 import {toIterator} from 'app/utils/iterator';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
 import {NotificationService} from 'app/services/notification.service';
-import {finalize, from} from 'rxjs';
+import {
+  BehaviorSubject,
+  filter,
+  finalize,
+  from,
+  lastValueFrom,
+  map,
+  Subscription,
+  switchMap,
+  tap,
+} from 'rxjs';
 import {SelectableItem} from 'app/models/selectable_item';
 import {ICustomSettings, IDims} from 'app/models/run_suite_fields';
 import {
@@ -77,8 +87,12 @@ export class RunComponent implements AfterViewInit, OnDestroy {
     message: '',
   });
   protected loading$ = toObservable(this.isLoading);
-  // loading faft default test config.
-  readonly faftConfig = faftRunConfig;
+  // remove later, we need to change the component `buildSelector` to
+  // support `signal`.
+  protected firmwareLoading = new BehaviorSubject<{
+    show: boolean;
+    message: string;
+  }>({show: false, message: ''});
   // parsing all the suite/test name based on keys.
   protected faftSuiteTestOpts: SelectableItem[] = toIterator(
     Object.entries(faftRunConfig)
@@ -137,11 +151,45 @@ export class RunComponent implements AfterViewInit, OnDestroy {
       this.buildSignal() !== '' &&
       this.poolSignal() !== '' &&
       this.isSuiteTestPlanSignal() !== '' &&
-      this.jobSignal() !== ''
+      this.jobSignal() !== '' &&
+      this.isFirmwareValid()
     );
+  });
+  protected firmwares = signal<{
+    1: {milestone: string; build: string};
+    2: {milestone: string; build: string};
+  }>({1: {milestone: '', build: ''}, 2: {milestone: '', build: ''}});
+  private isFirmwareValid = computed(() => {
+    const fw1 = this.firmwares()['1'];
+    const fw2 = this.firmwares()['2'];
+
+    const fw1Valid = fw1.build !== '' || !this.stableBuildNotFound();
+
+    if (this.jobSignal() === 'faft_fw_update') {
+      return fw1Valid && fw2.build !== '';
+    }
+
+    return fw1Valid;
+  });
+  protected stableMilestone = signal<string>('');
+  protected stableBuild = signal<string>('');
+  protected stableVersion = computed(() => {
+    return {
+      milestone: this.stableMilestone(),
+      build: this.stableBuild(),
+    };
+  });
+  protected stableBuildNotFound = signal<boolean>(false);
+  protected isFirmwareSelectable = computed(() => {
+    const isFetchedStableBuild =
+      (this.stableBuild() !== '' && this.stableMilestone() !== '') ||
+      this.stableBuildNotFound();
+    const loading = this.isLoading().show || this.isRunningSignal();
+    return !isFetchedStableBuild || loading;
   });
 
   private refs: EffectRef[] = [];
+  private disposers: Subscription[] = [];
 
   constructor(
     private satlab_rpcservice: SatlabRpcService,
@@ -155,6 +203,7 @@ export class RunComponent implements AfterViewInit, OnDestroy {
 
           if (board && model) {
             this.__listMilestone(board, model);
+            this.__getStableBuild(board, model);
           }
         },
         {
@@ -176,10 +225,17 @@ export class RunComponent implements AfterViewInit, OnDestroy {
         }
       ),
     ];
+
+    this.disposers = [
+      this.firmwareLoading.subscribe(e => {
+        this.isLoading.set(e);
+      }),
+    ];
   }
 
   ngOnDestroy() {
     this.refs.forEach(e => e.destroy());
+    this.disposers.forEach(e => e.unsubscribe());
   }
 
   protected onPropsChanged(key: string, value: string) {
@@ -228,13 +284,22 @@ export class RunComponent implements AfterViewInit, OnDestroy {
       ...settings,
       testArgs: select.value.kind === 'test' && !!select.value.testArgs,
     }));
+
+    this.firmwares.update(f => ({...f, 2: {milestone: '', build: ''}}));
   }
 
   protected onAdvancedSettingsChanged(newValue: ICustomSettings) {
     this.customSettingsSignal.set(newValue);
   }
 
-  protected onRunClicked() {
+  protected onFirmwareChanged(
+    key: 1 | 2,
+    e: {milestone: string; build: string}
+  ) {
+    this.firmwares.update(f => ({...f, [key]: e}));
+  }
+
+  protected async onRunClicked() {
     if (!this.ableToRun()) {
       return;
     }
@@ -251,6 +316,11 @@ export class RunComponent implements AfterViewInit, OnDestroy {
     const testArgs = isTestArgsOn ? this.testArgsSignal() : '';
 
     const runTask = buildRunTask(isSuiteTestPlan, jobName, testArgs);
+
+    const firmwares = await this.stageFirmware();
+    const containerInfo = this.createContainerInfo(firmwares);
+    const filter =
+      containerInfo === null ? [] : [JSON.stringify(containerInfo)];
 
     const req: RunChromeOSRequest = {
       run: runTask,
@@ -272,6 +342,7 @@ export class RunComponent implements AfterViewInit, OnDestroy {
         trv2: trv2,
         uploadToCpcon: uploadToCpcon,
       },
+      userDefinedFilter: filter,
     };
 
     wrapperLoading(
@@ -299,6 +370,108 @@ export class RunComponent implements AfterViewInit, OnDestroy {
           this.notification.error(`Trigger job failed: ${e}`, {dismiss: false});
         },
       });
+  }
+
+  private async stageFirmware() {
+    this.isLoading.set({show: true, message: 'staging firmware'});
+    this.isRunningSignal.set(true);
+    const futures: Promise<{key: string; path: string; bucket: string}>[] = [];
+
+    // Use the stable build if the user didn't specify a build.
+    const firmwares = this.firmwares();
+    if (firmwares['1'].build === '') {
+      firmwares['1'].build = this.stableBuild();
+    }
+
+    for (const key of Object.keys(firmwares)) {
+      if (this.firmwares()[key].build) {
+        futures.push(
+          lastValueFrom(
+            this.satlab_rpcservice.stageBuild(
+              {
+                board: this.boardSignal(),
+                model: this.modelSignal(),
+                build: this.firmwares()[key].build,
+              },
+              'firmware'
+            )
+          ).then(resp => {
+            return {
+              key: key,
+              ...resp,
+            };
+          })
+        );
+      }
+    }
+
+    if (futures.length === 0) {
+      this.isRunningSignal.set(false);
+      this.isLoading.set({show: false, message: ''});
+      return {};
+    }
+
+    try {
+      const resp = await Promise.all(futures);
+      const result: Record<string, {path: string; bucket: string}> = {};
+      for (const firmware of resp) {
+        result[firmware.key] = {
+          path: firmware.path,
+          bucket: firmware.bucket,
+        };
+      }
+      return result;
+    } catch (e: unknown) {
+      this.notification.error(`Stage firmware failed: ${e}`, {dismiss: false});
+      this.isRunningSignal.set(false);
+      return {};
+    } finally {
+      this.isLoading.set({show: false, message: ''});
+    }
+  }
+
+  private createContainerInfo(
+    firmwares: Record<string, {bucket: string; path: string}>
+  ) {
+    const createPath = (bucket: string, path: string) => {
+      const b = bucket.endsWith('/') ? bucket : bucket + '/';
+      return path.endsWith('/')
+        ? `gs://${b}${path}firmware_from_source.tar.bz2`
+        : `gs://${b}${path}/firmware_from_source.tar.bz2`;
+    };
+
+    const args = [];
+    if (firmwares['1'] && firmwares['1'].bucket && firmwares['1'].path) {
+      const p1 = createPath(firmwares['1'].bucket, firmwares['1'].path);
+      args.push('-ro', p1, '-rw', p1);
+    }
+
+    if (firmwares['2'] && firmwares['2'].bucket && firmwares['2'].path) {
+      const p2 = createPath(firmwares['2'].bucket, firmwares['2'].path);
+      args.push(
+        '-testarg',
+        `firmware.apro=${p2}`,
+        '-testarg',
+        `firmware.aprw=${p2}`
+      );
+    }
+
+    return args.length === 0
+      ? null
+      : {
+          containerInfo: {
+            binaryArgs: args,
+            container: {
+              name: 'firmware-filter',
+              tags: ['prod_firmware-filter'],
+              digest: 'sha256:',
+              repository: {
+                hostname: 'us-docker.pkg.dev',
+                project: 'cros-registry/partner-test-services',
+              },
+            },
+          },
+        };
   }
 
   ngAfterViewInit(): void {
@@ -372,6 +545,51 @@ export class RunComponent implements AfterViewInit, OnDestroy {
         this.buildOpts.set(opts);
       },
     });
+  }
+
+  private __getStableBuild(board: string, model: string) {
+    this.satlab_rpcservice
+      .getStableVersion({board, model})
+      .pipe(
+        startWithTap(() => this.stableBuildNotFound.set(false)),
+
+        map(res => {
+          const match = res.fwVersion?.match(/(\d+(?:\.\d+){2,})/);
+          return match ? match[1] : null;
+        }),
+
+        tap(version => {
+          if (!version) this.stableBuildNotFound.set(true);
+        }),
+
+        // Only continue RPC pipeline if version exists
+        filter((version): version is string => !!version),
+
+        tap(version => this.stableBuild.set(version)),
+
+        switchMap(version =>
+          this.satlab_rpcservice
+            .stageBuild({board, model, build: version}, 'firmware')
+            .pipe(
+              map(res => {
+                const regex = /R(\d+)(?=-)/;
+                const match = res.path.match(regex);
+                return match ? match[1] : null;
+              }),
+
+              tap(version => {
+                if (!version) this.stableBuildNotFound.set(true);
+              }),
+
+              filter((version): version is string => !!version),
+
+              tap(version => this.stableMilestone.set(version))
+            )
+        )
+      )
+      .subscribe({
+        error: err => console.error(err),
+      });
   }
 }
 

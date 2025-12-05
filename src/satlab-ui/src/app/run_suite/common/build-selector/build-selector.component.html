@@ -1,6 +1,6 @@
 <div class="wrapper">
   <div *ngIf="type === 'firmware' || type === 'all'">
-    <h3>Firmware path</h3>
+    <h3>{{ title }}</h3>
   </div>
 
   <app-basic-selector
@@ -10,7 +10,11 @@
       board === '' || model === '' ? 'Please select a model and board' : ''
     "
     [disabled]="
-      board === '' || model === '' || disabled || (loading | async).show
+      board === '' ||
+      model === '' ||
+      disabled ||
+      (loading | async).show ||
+      (isFetchingMilestones | async)
     "
     [options]="milestoneOptions"
     [placeholder]="'Please select a milestone'"
@@ -18,6 +22,8 @@
       type === 'firmware' ? 'Select Firmware Milestone:' : 'Select Milestone:'
     "
     id="milestoneSelector"
+    [autoSelect]="autoSelect"
+    [value]="defaultValue?.milestone"
   >
   </app-basic-selector>
 
@@ -34,7 +40,8 @@
       model === '' ||
       (milestone$ | async) === '' ||
       disabled ||
-      (loading | async).show
+      (loading | async).show ||
+      (isFetchingBuilds | async)
     "
     [options]="buildOptions"
     [placeholder]="'Please select a build version'"
@@ -44,6 +51,8 @@
         : 'Select Build Version'
     "
     id="buildSelector"
+    [autoSelect]="autoSelect"
+    [value]="defaultValue?.build"
   >
   </app-basic-selector>
 </div>

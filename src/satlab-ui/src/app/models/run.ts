@@ -33,6 +33,7 @@ type CommonFields = {
   dims?: IDims;
   tags?: Partial<Record<Tags, string[]>>;
   advanceSettings: ICustomSettings;
+  userDefinedFilter?: string[];
 };
 
 export type RunChromeOSRequest = {
