@@ -62,7 +62,7 @@
 
       <app-basic-selector
         (select)="onFaftChanged($event)"
-        [disabled]="isRunningSignal()"
+        [disabled]="isRunningSignal() || isLoading().show"
         [options]="faftSuiteTestOpts"
         title="Select Test:"
       >
@@ -79,6 +79,41 @@
             [disabled]="isRunningSignal()"
           />
         </mat-form-field>
+      </div>
+
+      <div class="flew flew-row gap-4">
+        <app-build-selector
+          [board]="boardSignal()"
+          [model]="modelSignal()"
+          [type]="'firmware'"
+          [loading]="firmwareLoading"
+          (onChanged)="onFirmwareChanged(1, $event)"
+          [title]="'Firmware path'"
+          [disabled]="isFirmwareSelectable()"
+          [autoSelect]="false"
+          [defaultValue]="stableVersion()"
+        ></app-build-selector>
+
+        <p
+          *ngIf="stableBuildNotFound()"
+          class="text-sm text-amber-500 font-medium"
+        >
+          Warning: Can't find stable build for this {{ boardSignal() }} and
+          {{ modelSignal() }}. Please select a firmware.
+        </p>
+      </div>
+
+      <div *ngIf="jobSignal() === 'faft_fw_update'">
+        <app-build-selector
+          [board]="boardSignal()"
+          [model]="modelSignal()"
+          [type]="'firmware'"
+          [loading]="firmwareLoading"
+          (onChanged)="onFirmwareChanged(2, $event)"
+          [title]="'Update firmware path'"
+          [disabled]="isFirmwareSelectable()"
+          [autoSelect]="false"
+        ></app-build-selector>
       </div>
 
       <app-advanced-settings

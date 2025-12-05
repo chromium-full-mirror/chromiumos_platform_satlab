@@ -68,4 +68,8 @@ export const faftRunConfig: Record<string, TestConfig> = {
     name: 'tast.firmware.ConsecutiveBoot.shutdown_cmd_dev_mode',
     testArgs: 'firmware.consecutiveBootIters=500',
   },
+  faft_fw_update: {
+    kind: 'suite',
+    testNamesInclude: ['tast.firmware.FWAutoupdate.*'],
+  },
 };
