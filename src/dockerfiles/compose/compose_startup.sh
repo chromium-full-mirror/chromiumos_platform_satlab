@@ -79,6 +79,10 @@ function start_private_containers () {
     docker-compose up -d opentelemetry-collector
   fi
 
+  if [[ ${ATS_ENABLED:-false} == true ]]; then
+    docker-compose up -d omnilab-ats
+  fi
+
   # set permission for ssp volume to create lxc containers
   # b/190623503
   docker exec drone chmod 0777 /usr/local/autotest/containers/ssp_volume
