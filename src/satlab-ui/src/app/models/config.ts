@@ -56,16 +56,16 @@ export const faftRunConfig: Record<string, TestConfig> = {
   faft_suspend_endurance: {
     kind: 'test',
     name: 'tast.firmware.SuspendStress.fw_qual',
-    testArgs: 'firmware_consecutiveBootIters=2500',
+    testArgs: 'firmware.suspendStressIters=2500',
   },
   faft_reboot_endurance_norm: {
     kind: 'test',
     name: 'tast.firmware.ConsecutiveBoot.shutdown_cmd_normal_mode',
-    testArgs: 'firmware_consecutiveBootIters=1500',
+    testArgs: 'firmware.consecutiveBootIters=1500',
   },
   faft_reboot_endurance_dev: {
     kind: 'test',
     name: 'tast.firmware.ConsecutiveBoot.shutdown_cmd_dev_mode',
-    testArgs: 'firmware_consecutiveBootIters=500',
+    testArgs: 'firmware.consecutiveBootIters=500',
   },
 };
