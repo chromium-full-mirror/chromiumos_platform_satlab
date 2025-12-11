@@ -261,7 +261,8 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
         this.dutInfo()!.board,
         this.dutInfo()!.model,
         this.buildSignal(),
-        firmwarePath
+        firmwarePath,
+        this.targetSignal()
       ),
       this.isLoading,
       `Running a Labqual...`

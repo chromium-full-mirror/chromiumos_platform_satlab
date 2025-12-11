@@ -1160,13 +1160,14 @@ message RunResponse {
   string link = 1;
 }
 
-// NEXT_TAG = 6
+// NEXT_TAG = 7
 message RunAndroidLabqualRequest {
   string hostname = 1;
   string firmware_path = 2;
   string build = 3;
   string board = 4;
   string model = 5;
+  optional string target = 6;
 }
 
 // NEXT_TAG = 2

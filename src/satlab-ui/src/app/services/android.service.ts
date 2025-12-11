@@ -146,13 +146,15 @@ export class AndroidService {
     board: string,
     model: string,
     build: string,
-    firmwarePath: string
+    firmwarePath: string,
+    target: string
   ) {
     const req = new RunAndroidLabqualRequest()
       .setBoard(board)
       .setModel(model)
       .setBuild(build)
       .setHostname(hostname)
+      .setTarget(target)
       .setFirmwarePath(firmwarePath);
 
     return from(
