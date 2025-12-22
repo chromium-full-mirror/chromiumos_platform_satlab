@@ -12,7 +12,6 @@
 .vscode
 /.cache/
 /.coverage
-*_pb2*py
 *.idea/
 *pb*.ts
 *pb*.js

@@ -1,0 +1,18 @@
+#!/bin/bash
+# Copyright 2025 The Chromium OS Authors.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+source /etc/satlab/satlab.conf
+##################################################################
+# Data specified by user.
+echo "Name used for drone: ${DRONE_HOSTNAME}"
+echo "External network port: ${EXTERNAL_PORT_TO_INTERNET}"
+echo "Private network port: ${INTERNAL_PORT_TO_DUTS}"
+##################################################################
+# Docker preparation as access to the file is always gone after reboot.
+chmod 666 /var/run/docker.sock
+
+source $(dirname "$0")/satlab_network
+source $(dirname "$0")/satlab_remote_access
+source $(dirname "$0")/satlab_compose

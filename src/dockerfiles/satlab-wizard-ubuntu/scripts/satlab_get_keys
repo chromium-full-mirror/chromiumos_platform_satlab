@@ -1,0 +1,95 @@
+#!/bin/bash
+# Copyright 2025 The Chromium OS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# Folder where all the keys/configs are stored
+KEYS_FOLDER=/home/satlab/keys
+# Folder where all the recovery versions are stored
+RECOVERY_VERSIONS_FOLDER=recovery_versions
+# TODO(prasadv): Move this to environment variable
+GCLOUD_SDK_VERSION=530.0.0
+# Docker command to run gcloud sdk
+GCLOUD="docker run --rm -ti -a stdout -v satlab_keys:${KEYS_FOLDER} -v gcloud:/root/.config/gcloud google/cloud-sdk:${GCLOUD_SDK_VERSION}-slim"
+# Satlab configuration file name to be downloaed from GCS
+SATLAB_CONFIG_FILENAME=satlab-config.json
+# Directory where the .env file is stored
+SATLAB_ENV_DIR=/home/satlab/config
+# File path to the .env file where environmental variables are stored
+SATLAB_ENV_FILE=${SATLAB_ENV_DIR}/.env
+# Service account key file name
+SATLAB_SA_FILENAME="pubsub-key-do-not-delete.json"
+# File name of service account key to use by drone container
+SKYLAB_DRONE_KEY_FILENAME="skylab-drone.json"
+
+clear >$(tty)
+cat << EOF
+###############################################################################
+IMPORTANT: Please read below information
+###############################################################################
+Setting up Satlab requires special privileges, you need access to
+the Google Storage Bucket and to download artifacts.
+This script will authenticate the user to access the required artifacts.
+
+The following the are steps this script executes:
+
+1. Asks for Google Storage Bucket name
+
+  *  Google Partners have to provide the GS bucket information assigned to them.
+
+  *  Satlab internal users(googlers), please use "chromeos-satlab-internal-users"
+     as your GS bucket
+
+2. Authenticate user using GCloud SDK(uses gcloud-sdk docker container),
+   when prompted please use your account(@google.com or Partner Domain account)
+3. Pulls in required artifacts once the user is verified.
+###############################################################################
+
+EOF
+while true; do
+    read -p "Do you want to continue with the Satlab setup(y/n)?" yn
+    case $yn in
+        [Yy]* ) break;;
+        [Nn]* ) exit;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
+
+echo -e "\nStarting Satlab setup.....\n"
+read -p "Please enter your GS Bucket name (for details pls read the instructions above): " PROJECT_GS_BUCKET
+echo -e "\nAuthenticating the user, please follow the instructions..."
+
+${GCLOUD} gcloud auth login
+if [ "$?" -ne 0 ]; then
+  echo -e "\nERROR:Failed to authenticate the user, you must use your @google.com account. Please try again!"
+  exit
+fi
+
+echo
+echo "Downloading artifacts..."
+# Download service account key since 10 keys limit per service account.
+# TODO (anhdle): Investigate Wwrkload identity federation
+${GCLOUD} gcloud storage cp gs://${PROJECT_GS_BUCKET}/${SATLAB_SA_FILENAME} ${KEYS_FOLDER}
+if [ "$?" -ne 0 ]; then
+  echo -e "\nERROR:Failed to download service account key, please try again!"
+  exit
+fi
+${GCLOUD} chmod 666 ${KEYS_FOLDER}/${SATLAB_SA_FILENAME}
+
+# Create skylab drone service account key file due to hardcoded path in drone processes.
+${GCLOUD} ln -rsf ${KEYS_FOLDER}/${SATLAB_SA_FILENAME} ${KEYS_FOLDER}/${SKYLAB_DRONE_KEY_FILENAME}
+#${GCLOUD} bash -c "cd ${KEYS_FOLDER} && ln -sf ${SATLAB_SA_FILENAME} ${SKYLAB_DRONE_KEY_FILENAME}"
+
+# Download Satlab configuration file.
+${GCLOUD} gcloud storage cp gs://${PROJECT_GS_BUCKET}/${SATLAB_CONFIG_FILENAME} ${KEYS_FOLDER}
+
+if [ "$?" -ne 0 ]; then
+  echo -e "\nERROR:Failed to download Satlab Configuration file please try again!"
+  exit
+fi
+
+# Create directory to store recovery versions
+${GCLOUD} mkdir -p ${KEYS_FOLDER}/${RECOVERY_VERSIONS_FOLDER}
+${GCLOUD} chmod 777 ${KEYS_FOLDER}/${RECOVERY_VERSIONS_FOLDER}
+echo -e "\nRecovery Versions directory created\n"
+echo -e "Satlab setup successful, please reboot\n"

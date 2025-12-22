@@ -1,0 +1,169 @@
+#!/bin/bash
+# Copyright 2025 The Chromium OS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# This script configures a Satlab drone environment.
+# It includes robust error handling to ensure a safe and reliable setup.
+
+# Exit immediately if a command exits with a non-zero status.
+# Treat unset variables as an error.
+# The return value of a pipeline is the status of the last command to exit with a non-zero status.
+set -euo pipefail
+
+# --- UI Colors ---
+C_YELLOW='\033[1;33m'
+C_GREEN='\033[1;32m'
+C_RED='\033[0;31m'
+C_NC='\033[0m' # No Color
+
+##
+# Centralized error handler. It's triggered by the 'trap' command below.
+##
+error_handler() {
+  local line_number=$1
+  local failed_command=$2
+  echo -e "\n${C_RED}Error on line ${line_number}: Command failed: '${failed_command}'${C_NC}"
+  echo -e "${C_RED}Aborting script execution.${C_NC}"
+}
+
+# Trap errors and call the error_handler function
+trap 'error_handler ${LINENO} "$BASH_COMMAND"' ERR
+
+# --- Configuration and Function Sourcing ---
+
+# Define the CONFIG path early so it's available to sourced files
+CONFIG="/etc/satlab/satlab.conf"
+
+# Attempt to source the config file to load the set_config function and variables.
+if [[ -f "$CONFIG" ]]; then
+    source "$CONFIG"
+fi
+
+# Verify set_config was loaded from the file; if not, define it as a fallback.
+# This ensures the script works on a fresh system.
+if ! declare -F "set_config" > /dev/null; then
+    echo -e "${C_YELLOW}Info: 'set_config' function not found in config file. Using fallback definition.${C_NC}"
+    function set_config(){
+        local key=$1
+        local value=$2
+        # Use the global CONFIG variable
+        mkdir -p "$(dirname "$CONFIG")"
+        touch "$CONFIG"
+        if grep -q "^${key}=" "$CONFIG"; then
+            # Use | as a delimiter for sed to avoid issues with paths
+            sed -i "s|^\(${key}\s*=\s*\).*$|\1${value}|" "$CONFIG"
+        else
+            echo "${key}=${value}" >> "$CONFIG"
+        fi
+    }
+fi
+
+# --- Pre-flight Checks ---
+
+# Check if running as root
+if [[ $EUID -ne 0 ]]; then
+   echo -e "${C_RED}This script must be run as root. Please use sudo.${C_NC}"
+   exit 1
+fi
+
+# Check if running in SSH (optional)
+if [[ -z ${SSH_TTY:-} ]]; then
+    echo -e "${C_YELLOW}It's recommended to run this script within an SSH session.${C_NC}"
+    while true; do
+        read -p "Do you want to continue (y/n)?" yn
+        case $yn in
+            [Yy]* ) break;;
+            [Nn]* ) exit;;
+            * ) echo -e "${C_YELLOW}Please answer yes or no.${C_NC}";;
+        esac
+    done
+fi
+
+# --- Main Execution ---
+
+echo -e "\n${C_YELLOW}Choosing the software channel for Satlab...${C_NC}"
+set_channel_script="$(dirname "$0")/satlab_channel"
+if [[ ! -f "$set_channel_script" ]]; then
+    echo -e "${C_RED}Error: Required script (set_channel_script) not found in the same directory.${C_NC}"
+    exit 1
+fi
+source "$set_channel_script"
+
+echo -e "\n${C_YELLOW}Configuring packages...${C_NC}"
+apt-get update -y
+apt-get install -y bridge-utils net-tools python3-grpcio python3-netifaces python3-protobuf
+systemctl stop unattended-upgrades || true
+systemctl disable unattended-upgrades || true
+apt-get remove --purge -y unattended-upgrades
+
+echo -e "\n${C_YELLOW}Sourcing local configuration scripts...${C_NC}"
+# Check that required scripts exist before trying to source them
+nic_config_script="$(dirname "$0")/satlab_config_nics"
+get_keys_script="$(dirname "$0")/satlab_get_keys"
+if [[ ! -f "$nic_config_script" ]] || [[ ! -f "$get_keys_script" ]]; then
+    echo -e "${C_RED}Error: Required scripts (satlab_config_nics, satlab_get_keys) not found in the same directory.${C_NC}"
+    exit 1
+fi
+source "$nic_config_script"
+source "$get_keys_script"
+
+echo -e "\n${C_YELLOW}Configuring SSH server...${C_NC}"
+sed -i -E 's/^#?Port\s+22\b/Port 2233/' /etc/ssh/sshd_config
+
+echo -e "\n${C_YELLOW}Configuring Satlab services...${C_NC}"
+ln -sf /etc/satlab/satlab-upstart.service /etc/systemd/system/satlab-upstart.service
+systemctl enable satlab-upstart
+
+ln -sf /etc/satlab/host_server/satlab-host-server.service /etc/systemd/system/satlab-host-server.service
+systemctl enable satlab-host-server
+
+echo -e "\n${C_YELLOW}Configuring the Docker socket...${C_NC}"
+mkdir -p /etc/systemd/system/docker.service.d/
+cat > /etc/systemd/system/docker.service.d/override.conf <<'EOT'
+[Service]
+ExecStart=
+ExecStart=/usr/bin/dockerd -H fd:// -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2375
+EOT
+
+echo -e "\n${C_YELLOW}Configuring the Satlab hostname...${C_NC}"
+if [[ ! -f /etc/machine-id ]]; then
+    echo -e "${C_RED}Error: /etc/machine-id not found. Cannot generate hostname.${C_NC}"
+    exit 1
+fi
+satlab_hostname="satlab-$(cat /etc/machine-id | sha256sum | head -c 10)"
+echo "Setting drone hostname: ${satlab_hostname}"
+set_config "DRONE_HOSTNAME" "$satlab_hostname"
+
+echo -e "\n${C_YELLOW}Pulling Docker images...${C_NC}"
+docker pull ${REMOTE_ACCESS_IMAGE}
+docker pull ${DHCP_DOCKER_IMAGE}
+docker pull ${COMPOSE_DOCKER_IMAGE}
+docker rm compose-pull || true
+docker run -it --rm --name compose-pull \
+    --mount type=volume,source=satlab_keys,target=/home/satlab/keys/ \
+    --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
+    --mount type=bind,source="$(dirname "$0")/compose_pull.sh",target=/compose_pull.sh \
+    --entrypoint /compose_pull.sh \
+    -e LABEL="${LABEL}" \
+    -e VOLUME_KEYS_FOLDER="${VOLUME_KEYS_FOLDER}" \
+    ${COMPOSE_DOCKER_IMAGE}
+
+echo -e "\n${C_YELLOW}Configuring cgroups for legacy compatibility...${C_NC}"
+if ! grep -q "systemd.unified_cgroup_hierarchy=0" /etc/default/grub; then
+    echo "Adding cgroup kernel parameter to GRUB..."
+    sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT=".*\)"/\1 systemd.unified_cgroup_hierarchy=0"/' /etc/default/grub
+    update-grub
+else
+    echo "GRUB cgroup parameter already set. Skipping."
+fi
+
+echo -e "\n${C_GREEN}Configuration complete! A reboot is required to apply all changes.${C_NC}"
+while true; do
+    read -p "Do you want to reboot now? (y/n) " yn
+    case $yn in
+        [Yy]* ) reboot; break;;
+        [Nn]* ) echo -e "${C_GREEN}Reboot cancelled.${C_NC}"; break;;
+        * ) echo -e "${C_GREEN}Please answer yes or no.${C_NC}";;
+    esac
+done

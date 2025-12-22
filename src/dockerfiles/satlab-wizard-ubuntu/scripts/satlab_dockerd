@@ -1,0 +1,122 @@
+#!/bin/bash
+# Copyright 2025 The Chromium OS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+source /etc/satlab/satlab.conf
+
+# not on Linux used yet
+
+HELPER_IMG=us-docker.pkg.dev/chromeos-partner-moblab/satlab/satlab-helper:release
+
+
+
+  mkdir -p /var/log/bootup/ # croslint: disable: ensure that the logging directory exists
+  exec >>/var/log/bootup/UPSTART_JOB.log 2>&1
+  set -x
+
+  # Hope to stop too many file handle open issues on docker
+  # default was 1024 went 4x
+  ulimit -n 16384
+
+  # Migrate the docker data root away from moblab home directory but
+  # keep on the stateful partition.  A bug was caused by setting the
+  # ownership of all files in the moblab home directory.
+  OLD_DOCKER_DATA_ROOT=/home/moblab/containers/docker
+  DOCKER_DATA_ROOT=/var/docker/data
+  mkdir -p "${DOCKER_DATA_ROOT}" # croslint: disable: ensure that the directory exists before Docker attempts to use it
+  if [ -d "${OLD_DOCKER_DATA_ROOT}/volumes" ] && [ ! -e "${DOCKER_DATA_ROOT}/volumes" ]
+  then
+    ln -s "${OLD_DOCKER_DATA_ROOT}/volumes" "${DOCKER_DATA_ROOT}/volumes" # croslint: disable: ensure that existing Docker volumes from the old data are still accessible
+    find "${OLD_DOCKER_DATA_ROOT}" -maxdepth 1 -not -name volumes -not -name docker -exec rm -rf {} \;
+  fi
+
+  mkdir -p /var/run/dockerd # croslint: disable: dockerd expects this directory to exist
+
+  DOCKER_IP=192.168.231.1
+  DOCKER_PORT=2376
+  DOCKER_HOST=tcp://${DOCKER_IP}:${DOCKER_PORT}
+  mkdir -p ${DOCKER_CERT_PATH} # croslint: disable: docker expects specific location
+  openssl genrsa \
+    -aes256 \
+    -out ${DOCKER_CERT_PATH}/ca-key.pem \
+    -passout pass:pass 4096
+  openssl rsa \
+    -in ${DOCKER_CERT_PATH}/ca-key.pem \
+    -passin pass:pass \
+    -out ${DOCKER_CERT_PATH}/ca-key.pem
+  openssl req \
+    -new \
+    -x509 \
+    -days 365 \
+    -key ${DOCKER_CERT_PATH}/ca-key.pem \
+    -sha256 -out ${DOCKER_CERT_PATH}/ca.pem \
+    -passin pass:pass \
+    -subj "/C=US/ST=CA/L=SJC/O=Google/OU=DFP/CN=${DOCKER_IP}/emailAddress=email"
+  openssl genrsa -out ${DOCKER_CERT_PATH}/server-key.pem 4096
+  openssl req \
+    -subj "/CN=${DOCKER_IP}" \
+    -sha256 \
+    -new \
+    -key ${DOCKER_CERT_PATH}/server-key.pem \
+    -out ${DOCKER_CERT_PATH}/server.csr
+  echo subjectAltName = IP:${DOCKER_IP} > ${DOCKER_CERT_PATH}/extfile.cnf
+  echo extendedKeyUsage = serverAuth >> ${DOCKER_CERT_PATH}/extfile.cnf
+  openssl x509 \
+    -req \
+    -days 365 \
+    -sha256 \
+    -in ${DOCKER_CERT_PATH}/server.csr \
+    -CA ${DOCKER_CERT_PATH}/ca.pem \
+    -CAkey ${DOCKER_CERT_PATH}/ca-key.pem \
+    -CAcreateserial \
+    -out ${DOCKER_CERT_PATH}/server-cert.pem \
+    -extfile ${DOCKER_CERT_PATH}/extfile.cnf \
+    -passin pass:pass
+  openssl genrsa -out ${DOCKER_CERT_PATH}/key.pem 4096
+  openssl req \
+    -subj '/CN=client' \
+    -new \
+    -key ${DOCKER_CERT_PATH}/key.pem \
+    -out ${DOCKER_CERT_PATH}/client.csr
+  echo extendedKeyUsage = clientAuth > ${DOCKER_CERT_PATH}/extfile-client.cnf
+  openssl x509 \
+    -req -days 365 \
+    -sha256 \
+    -in ${DOCKER_CERT_PATH}/client.csr \
+    -CA ${DOCKER_CERT_PATH}/ca.pem \
+    -CAkey ${DOCKER_CERT_PATH}/ca-key.pem \
+    -CAcreateserial \
+    -out ${DOCKER_CERT_PATH}/cert.pem \
+    -extfile ${DOCKER_CERT_PATH}/extfile-client.cnf \
+    -passin pass:pass
+  rm ${DOCKER_CERT_PATH}/*.csr ${DOCKER_CERT_PATH}/*.cnf # croslint: disable: docker expects specific location
+  chmod -v 0400 ${DOCKER_CERT_PATH}/ca-key.pem ${DOCKER_CERT_PATH}/server-key.pem # croslint: disable: docker expects specific location
+  chmod -v 0444 ${DOCKER_CERT_PATH}/key.pem ${DOCKER_CERT_PATH}/ca.pem ${DOCKER_CERT_PATH}/server-cert.pem ${DOCKER_CERT_PATH}/cert.pem # croslint: disable: docker expects specific location
+
+  EXTRA_ARGS="--tlsverify \
+    --tlscacert=${DOCKER_CERT_PATH}/ca.pem \
+    --tlscert=${DOCKER_CERT_PATH}/server-cert.pem \
+    --tlskey=${DOCKER_CERT_PATH}/server-key.pem \
+    -H ${DOCKER_HOST} \
+    -H unix:///var/run/docker.sock"
+
+  echo "DOCKER_CERT_PATH=${DOCKER_CERT_PATH}" > ${DOCKER_CERT_PATH}/.env
+  echo "DOCKER_HOST=${DOCKER_HOST}" >> ${DOCKER_CERT_PATH}/.env
+  echo "DOCKER_TLS_VERIFY=true" >> ${DOCKER_CERT_PATH}/.env
+
+  /usr/bin/dockerd --data-root "${DOCKER_DATA_ROOT}" ${EXTRA_ARGS}
+
+
+
+
+
+  while ! docker info ; do sleep 1 ; done
+
+  # Use hello-world container to create a volume to store tls certs.
+  id=$(docker container create -v docker_tls:/docker_tls ${HELPER_IMG})
+  PEMS="ca cert key"
+  for p in ${PEMS}; do
+    docker cp ${DOCKER_CERT_PATH}/$p.pem $id:/docker_tls
+  done
+  docker rm $id

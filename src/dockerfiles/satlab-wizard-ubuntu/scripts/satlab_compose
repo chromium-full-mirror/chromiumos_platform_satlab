@@ -1,0 +1,35 @@
+#!/bin/bash
+# Copyright 2025 The Chromium OS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+source /etc/satlab/satlab.conf
+
+# DOCKER_IP=192.168.231.1
+# DOCKER_PORT=2376
+# DOCKER_HOST=tcp://${DOCKER_IP}:${DOCKER_PORT}
+
+# if [ -n "${DOCKER_CERT_PATH}" ]; then
+#   DOCKER_TLS_ARGS="-v docker_tls:${DOCKER_CERT_PATH}:ro \
+#     -e DOCKER_CERT_PATH=${DOCKER_CERT_PATH} \
+#     -e DOCKER_TLS_VERIFY=true \
+#     -e DOCKER_HOST=${DOCKER_HOST}"
+# fi
+
+# Restart compose.
+echo "Starting preparation the host for usage"
+docker rm compose --force || true
+docker pull ${COMPOSE_DOCKER_IMAGE} || true
+docker run -d --restart unless-stopped --name compose \
+    --label=com.centurylinklabs.watchtower.lifecycle.pre-update="docker-compose down" \
+    --label=com.centurylinklabs.watchtower.stop-signal=KILL \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v docker_config:/root/.docker \
+    -v satlab_keys:${VOLUME_KEYS_FOLDER} \
+    -v cache_server:/home/satlab/cache_server \
+    -v shared:/home/satlab/shared \
+    -e DRONE_HOSTNAME="${DRONE_HOSTNAME}" \
+    -e LABEL="${LABEL}" \
+    -e DRONE_AGENT_DUT_CAPACITY=60 \
+    --add-host dockerhost:172.17.0.1 \
+    ${COMPOSE_DOCKER_IMAGE} up

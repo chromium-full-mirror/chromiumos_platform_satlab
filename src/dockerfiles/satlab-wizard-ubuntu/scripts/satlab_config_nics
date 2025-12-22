@@ -1,0 +1,115 @@
+#!/bin/bash
+# Copyright 2025 The Chromium OS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# configuration script to get and set the port values from a configuration file
+CONFIG="/etc/satlab/satlab.conf"
+source "$CONFIG"
+
+# --- UI Colors ---
+C_YELLOW='\033[1;33m'
+C_GREEN='\033[1;32m'
+C_RED='\033[0;31m'
+C_NC='\033[0m' # No Color
+
+# --- Main Script Logic ---
+
+echo "Welcome to the Satlab network configuration utility."
+echo "---------------------------------------------------"
+
+# 1. Gather all available (non-virtual) network interfaces
+mapfile -t network_interfaces < <(find /sys/class/net -mindepth 1 -maxdepth 1 \! -lname '*virtual*' -printf '%f\n')
+if [[ ${#network_interfaces[@]} -eq 0 ]]; then
+    echo "Error: No network interfaces found. Exiting."
+    exit 1
+fi
+
+# 2. Configure EXTERNAL_PORT_TO_INTERNET
+echo
+echo -e "${C_YELLOW}Please specify the port connected to the Internet:${C_NC}"
+echo -e "Current value: ${C_YELLOW}${EXTERNAL_PORT_TO_INTERNET:-not set}${C_NC}"
+
+# Suggest and reorder interfaces for the external port
+suggested_iface=$(ip route | grep default | awk '{print $5}' | head -n 1)
+options=("${network_interfaces[@]}")
+if [[ -n "$suggested_iface" && " ${network_interfaces[*]} " =~ " ${suggested_iface} " ]]; then
+    echo -e "Suggested interface (chosen based on the default route): ${C_YELLOW}${suggested_iface}${C_NC}"
+    # Re-order the options array with the suggestion at the top
+    reordered_options=("$suggested_iface")
+    for iface in "${network_interfaces[@]}"; do
+        if [[ "$iface" != "$suggested_iface" ]]; then
+            reordered_options+=("$iface")
+        fi
+    done
+    options=("${reordered_options[@]}")
+fi
+
+PS3="Please enter your choice (1-${#options[@]}): "
+select opt in "${options[@]}"; do
+    if [[ -n "$opt" ]]; then
+        new_external_port=$opt
+        break
+    else
+        echo "{C_YELLOW}Invalid selection. Please try again.${C_NC}"
+    fi
+done
+
+# 3. Configure INTERNAL_PORT_TO_DUTS
+echo
+echo "Please specify the port connected to the DUTs:"
+echo -e "Current value: ${C_YELLOW}${INTERNAL_PORT_TO_DUTS:-not set}${C_NC}"
+
+# Create a new list for the internal port, excluding the chosen external one.
+declare -a internal_options=()
+for iface in "${network_interfaces[@]}"; do
+    if [[ "$iface" != "$new_external_port" ]]; then
+        internal_options+=("$iface")
+    fi
+done
+
+PS3="Please enter your choice (1-${#internal_options[@]}): "
+select opt in "${internal_options[@]}"; do
+    if [[ -n "$opt" ]]; then
+        new_internal_port=$opt
+        break
+    else
+        echo "Invalid selection. Please try again."
+    fi
+done
+
+# 4. Display a summary of all changes for confirmation
+echo
+echo "---------------------------------------------------"
+echo -e "${C_YELLOW}Configuration Summary${C_NC}"
+echo "---------------------------------------------------"
+printf "${C_GREEN}%-30s${C_NC}\n" "External Port (to Internet)"
+printf "  %-10s %s\n" "Current:" "'${EXTERNAL_PORT_TO_INTERNET:-not set}'"
+printf "  %-10s %s\n" "New:" "'${new_external_port}'"
+echo
+printf "${C_GREEN}%-30s${C_NC}\n" "Internal Port (to DUTs)"
+printf "  %-10s %s\n" "Current:" "'${INTERNAL_PORT_TO_DUTS:-not set}'"
+printf "  %-10s %s\n" "New:" "'${new_internal_port}'"
+echo
+
+# 5. Ask for confirmation, apply and verify
+read -rp "Apply these changes? (y/N): " confirm
+if [[ "${confirm,,}" == "y" || "${confirm,,}" == "yes" ]]; then
+    echo "Applying configuration..."
+    set_config "EXTERNAL_PORT_TO_INTERNET" "$new_external_port"
+    set_config "INTERNAL_PORT_TO_DUTS" "$new_internal_port"
+
+    # --- Verification Step ---
+    # Read the newly saved values back from the config file
+    saved_external_port=$(grep "^EXTERNAL_PORT_TO_INTERNET=" "$CONFIG" | cut -d'=' -f2)
+    saved_internal_port=$(grep "^INTERNAL_PORT_TO_DUTS=" "$CONFIG" | cut -d'=' -f2)
+
+    # Compare the saved values with what we intended to write
+    if [[ "$saved_external_port" == "$new_external_port" && "$saved_internal_port" == "$new_internal_port" ]]; then
+        echo -e "${C_GREEN}Configuration saved and verified successfully in $CONFIG!${C_NC}"
+    else
+        echo -e "${C_RED}Error: Failed to save changes to $CONFIG. Please check permissions and file contents.${C_NC}"
+    fi
+else
+    echo "Configuration cancelled. No changes were made."
+fi

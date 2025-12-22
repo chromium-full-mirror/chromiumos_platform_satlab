@@ -1,0 +1,48 @@
+#!/bin/bash
+# Copyright 2025 The Chromium OS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+source /etc/satlab/satlab.conf
+
+# Allow port to be available outside.
+# TODO: need working on this part.
+# sudo ufw allow ${REMOTE_ACCESS_SSH_PORT}
+
+echo "Remote access docker container for port ${REMOTE_ACCESS_SSH_PORT}"
+
+# DOCKER_IP=192.168.231.1
+# DOCKER_PORT=2376
+# DOCKER_HOST=tcp://${DOCKER_IP}:${DOCKER_PORT}
+
+# if [ -n "${DOCKER_CERT_PATH}" ]; then
+#   DOCKER_TLS_ARGS="-v docker_tls:${DOCKER_CERT_PATH}:ro \
+#     -e DOCKER_CERT_PATH=${DOCKER_CERT_PATH} \
+#     -e DOCKER_TLS_VERIFY=true \
+#     -e DOCKER_HOST=${DOCKER_HOST}"
+# fi
+
+# Remote access required access to the key which already downloaded and verified in compose.
+# Remove old image always to avoid any issues with that and pull new one.
+docker stop satlab_remote_access || true
+docker rm satlab_remote_access || true
+docker pull "${REMOTE_ACCESS_IMAGE}"
+docker run -ti -d -v logs:/var/log/satlab \
+  -v /var/log/bootup:/var/log/bootup \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v satlab_keys:${VOLUME_KEYS_FOLDER} \
+  -v cache_server:/home/satlab/cache_server \
+  -v leases:/leases:ro \
+  -v shared:/home/satlab/shared \
+  --name satlab_remote_access \
+  -e PUBLIC_KEY_FILE=/testing_rsa.pub \
+  -e PUID=246 \
+  -e PGID=246 \
+  -e TZ=Etc/UTC \
+  -e USER_NAME=moblab \
+  -e DOCKER_MODS=linuxserver/mods:openssh-server-ssh-tunnel \
+  -e SUDO_ACCESS=true \
+  -p ${REMOTE_ACCESS_SSH_PORT}:2222 \
+  --dns 192.168.100.51 \
+  --add-host dockerhost:172.17.0.1 \
+  "${REMOTE_ACCESS_IMAGE}"
