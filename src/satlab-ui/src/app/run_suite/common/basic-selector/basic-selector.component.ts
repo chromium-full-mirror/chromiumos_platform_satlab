@@ -62,14 +62,9 @@ export class BasicSelectorComponent implements OnInit, OnChanges {
     }
   }
 
-  // If the user provides a value, we will auto-select the option that has the same value.
-  // If the user doesn't provide a value, we will auto-select the first option if the only one option.
+  // select the option if there is only one option
   public autoSelectedSingleOption() {
-    if (this.value) {
-      this.selected = toIterator(this.options).first_where(
-        e => e.value === this.value
-      )?.value;
-    } else if (this.autoSelect && this.options.length === 1) {
+    if (this.autoSelect && this.options.length === 1) {
       this.selectOption(0);
     }
   }
