@@ -232,8 +232,7 @@ export class SatlabRpcService {
       .setTagExcludesList(params.tags.tagsToExclude)
       .setTestNameIncludesList(params.tags.testNamesInclude)
       .setTestNameExcludesList(params.tags.testNamesExclude)
-      .setSettings(settings)
-      .setUserDefinedFilterList(params.userDefinedFilter ?? []);
+      .setSettings(settings);
 
     if (params.os === 'chromeos') {
       req.setModel(params.model).setMilestone(params.milestone);
@@ -681,7 +680,6 @@ export class SatlabRpcService {
   /**
    * stage a build in the partner bucket
    * @param f
-   * @param filterType
    */
   public stageBuild(
     f: {board: string; model: string; build: string},

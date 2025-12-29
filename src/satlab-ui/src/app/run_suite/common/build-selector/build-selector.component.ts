@@ -44,9 +44,6 @@ export class BuildSelectorComponent implements OnInit, OnChanges, OnDestroy {
   @Input() loading = new BehaviorSubject({show: false, message: ''});
   @Input() disabled = false;
   @Input() type: 'release' | 'firmware' | 'all' = 'release';
-  @Input() title = 'Firmware path';
-  @Input() autoSelect = true;
-  @Input() defaultValue: {milestone: string; build: string};
 
   @ViewChild('milestoneSelector') milestoneSelector?: BasicSelectorComponent;
   @ViewChild('buildSelector') buildSelector?: BasicSelectorComponent;
@@ -59,10 +56,10 @@ export class BuildSelectorComponent implements OnInit, OnChanges, OnDestroy {
   protected milestoneOptions: SelectableItem[] = [];
   protected buildOptions: SelectableItem[] = [];
   protected milestone$ = new BehaviorSubject<string>('');
-  protected isFetchingMilestones = new BehaviorSubject<boolean>(false);
-  protected isFetchingBuilds = new BehaviorSubject<boolean>(false);
 
   private init$ = new Subject<{board: string; model: string}>();
+  private isFetchingMilestones = new BehaviorSubject<boolean>(false);
+  private isFetchingBuilds = new BehaviorSubject<boolean>(false);
   private data: {milestone: string; build: string} = {milestone: '', build: ''};
   private build$ = new BehaviorSubject<string>('');
   private disposers: Subscription[] = [];
@@ -134,17 +131,6 @@ export class BuildSelectorComponent implements OnInit, OnChanges, OnDestroy {
         },
       }),
     ];
-
-    this.init$.next({board: this.board, model: this.model});
-
-    if (this.defaultValue) {
-      if (this.defaultValue.milestone) {
-        this.milestone$.next(this.defaultValue.milestone);
-      }
-      if (this.defaultValue.build) {
-        this.build$.next(this.defaultValue.build);
-      }
-    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -171,17 +157,6 @@ export class BuildSelectorComponent implements OnInit, OnChanges, OnDestroy {
         const model =
           'model' in changes ? changes.model.currentValue : this.model;
         this.init$.next({board: board, model: model});
-      }
-    }
-
-    const isDefaultValueChanged = 'defaultValue' in changes;
-    if (isDefaultValueChanged) {
-      const defaultValue = changes.defaultValue.currentValue;
-      if (defaultValue.milestone) {
-        this.milestone$.next(defaultValue.milestone);
-      }
-      if (defaultValue.build) {
-        this.build$.next(defaultValue.build);
       }
     }
   }
