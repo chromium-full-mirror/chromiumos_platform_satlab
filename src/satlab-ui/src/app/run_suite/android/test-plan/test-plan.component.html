@@ -12,7 +12,11 @@
       >Test plan</label
     >
   </div>
-
+  <div *ngIf="autoQualActive()" class="mt-5 ml-5 mb-3.5">
+    <mat-slide-toggle (change)="onAutoQualChanged($event.checked)">
+      Use Auto-Qual
+    </mat-slide-toggle>
+  </div>
   <div>
     <ng-content class="advancedSettings"></ng-content>
   </div>

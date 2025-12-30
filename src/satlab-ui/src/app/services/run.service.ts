@@ -1,9 +1,9 @@
-import {Injectable} from '@angular/core';
-import {SatlabRpcServiceClient} from './SatlabrpcServiceClientPb';
-import {getRPCHost} from '../utils/misc';
 import {IDims} from '../models/dims';
 import {ICustomSettings} from '../models/run_suite_fields';
+import {getRPCHost} from '../utils/misc';
+import {SatlabRpcServiceClient} from './SatlabrpcServiceClientPb';
 import {AdvancedSettings, Dim, RunRequest} from './satlabrpc_pb';
+import {Injectable} from '@angular/core';
 import {from} from 'rxjs';
 
 export type Suite = {
@@ -20,6 +20,7 @@ export type Test = {
 export type Testplan = {
   kind: 'testplan';
   name: string;
+  autoQual?: boolean;
 };
 
 export type Tags =
@@ -111,6 +112,7 @@ export class RunService {
       case 'testplan': {
         const testplan = new RunRequest.Testplan();
         testplan.setName(params.run.name);
+        testplan.setAutoQual(params.run.autoQual);
         req.setPlan(testplan);
         break;
       }

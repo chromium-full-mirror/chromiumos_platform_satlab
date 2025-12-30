@@ -1,5 +1,7 @@
+import {ClickDetectorDirective} from '../../../click-detector.directive';
 import {SelectableItem} from '../../../models/selectable_item';
 import {toIterator} from '../../../utils/iterator';
+import {NgForOf, NgIf} from '@angular/common';
 import {
   Component,
   EventEmitter,
@@ -12,13 +14,11 @@ import {
   signal,
 } from '@angular/core';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
-import {Subscription, debounceTime, distinctUntilChanged} from 'rxjs';
-import {MatTooltipModule} from '@angular/material/tooltip';
-import {ClickDetectorDirective} from '../../../click-detector.directive';
-import {MatSelectModule} from '@angular/material/select';
-import {NgForOf, NgIf} from '@angular/common';
-import {MatListModule} from '@angular/material/list';
 import {MatInputModule} from '@angular/material/input';
+import {MatListModule} from '@angular/material/list';
+import {MatSelectModule} from '@angular/material/select';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {Subscription, debounceTime, distinctUntilChanged} from 'rxjs';
 
 @Component({
   selector: 'app-autocomplete-selector',
@@ -124,8 +124,11 @@ export class AutocompleteSelectorComponent
 
     const newValue =
       typeof option.value === 'string' ? option.value : option.text;
-    this.searchFormControl.setValue(newValue);
-    this.selectChanged.emit(newValue);
+
+    if (this.searchFormControl.value !== newValue) {
+      this.searchFormControl.setValue(newValue);
+      this.selectChanged.emit(newValue);
+    }
   }
 
   protected onOutsideClicked() {

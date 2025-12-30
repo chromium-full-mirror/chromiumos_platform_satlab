@@ -1,4 +1,11 @@
-import {Component, effect, EventEmitter, Output, signal} from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Output,
+  computed,
+  effect,
+  signal,
+} from '@angular/core';
 
 @Component({
   selector: 'app-test-plan',
@@ -7,8 +14,15 @@ import {Component, effect, EventEmitter, Output, signal} from '@angular/core';
 })
 export class TestPlanComponent {
   protected inputValue = signal('');
+  protected autoQualValue = signal(false);
+  protected autoQualActive = computed(() => {
+    const supportList = ['avs/firmware'];
+    const testplan = this.inputValue();
+    return supportList.includes(testplan);
+  });
 
   @Output() changed = new EventEmitter<string>();
+  @Output() autoQual = new EventEmitter<boolean>();
 
   constructor() {
     effect(
@@ -19,9 +33,22 @@ export class TestPlanComponent {
         allowSignalWrites: true,
       }
     );
+
+    effect(
+      () => {
+        this.autoQual.emit(this.autoQualValue());
+      },
+      {
+        allowSignalWrites: true,
+      }
+    );
   }
 
   protected onValueChanged(e: Event) {
     this.inputValue.set((e.target as HTMLInputElement).value);
+  }
+
+  protected onAutoQualChanged(value: boolean) {
+    this.autoQualValue.set(value);
   }
 }

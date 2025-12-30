@@ -1122,9 +1122,10 @@ message RunRequest {
     string args = 2;
   }
 
-  // NEXT_TAG = 2
+  // NEXT_TAG = 3
   message Testplan {
     string name = 1;
+    bool auto_qual = 2;
   }
 
   oneof task {

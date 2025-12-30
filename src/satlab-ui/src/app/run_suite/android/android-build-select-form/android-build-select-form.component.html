@@ -16,9 +16,9 @@
   </button>
 
   <button
-    (click)="onTabChanged('testPlan')"
+    (click)="onTabChanged('Testplan')"
     class="w-full hover:bg-blue-50 text-gray-500 h-12 [&.active]:text-blue-400 [&.active]:border-b [&.active]:border-b-blue-400 text-md"
-    [class.active]="tabSignal() === 'testPlan'"
+    [class.active]="tabSignal() === 'Testplan'"
   >
     Testplan
   </button>
@@ -89,7 +89,7 @@
       (inputValueChanged)="onBuildInputValueChanged($event)"
     ></app-autocomplete-selector>
 
-    <div *ngIf="tabSignal() !== 'testPlan'">
+    <div *ngIf="tabSignal() !== 'Testplan'">
       <app-suite
         [build]="validBuildSignal()"
         [target]="targets()"
@@ -111,8 +111,11 @@
       </app-suite>
     </div>
 
-    <div *ngIf="tabSignal() === 'testPlan'">
-      <app-test-plan (changed)="onPlanChanged($event)">
+    <div *ngIf="tabSignal() === 'Testplan'">
+      <app-test-plan
+        (changed)="onPlanChanged($event)"
+        (autoQual)="onAutoQualChanged($event)"
+      >
         <div class="advancedSettings">
           <app-advanced-settings
             [disabled]="true"

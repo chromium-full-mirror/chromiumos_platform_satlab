@@ -15,9 +15,8 @@ import {
 } from '@angular/core';
 import {toObservable} from '@angular/core/rxjs-interop';
 import {IDut} from 'app/models/dut';
-import {RunAndroidOSRequest, Suite, Test, Testplan} from 'app/models/run';
+import {RunAndroidOSRequest, Suite, Testplan} from 'app/models/run';
 import {SelectableItem} from 'app/models/selectable_item';
-import {BuildSelectorComponent} from 'app/run_suite/common/build-selector/build-selector.component';
 import {AndroidService} from 'app/services/android.service';
 import {NotificationService} from 'app/services/notification.service';
 import {RunService} from 'app/services/run.service';

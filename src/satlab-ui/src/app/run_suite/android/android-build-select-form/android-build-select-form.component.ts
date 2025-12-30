@@ -36,7 +36,7 @@ import {Observable, finalize, from} from 'rxjs';
 export class AndroidBuildSelectFormComponent
   implements AfterViewInit, OnDestroy
 {
-  protected tabSignal = signal<'suite' | 'test' | 'testPlan'>('suite');
+  protected tabSignal = signal<'suite' | 'test' | 'Testplan'>('suite');
 
   protected boardSignal = signal<string>('');
   protected allModels = computed(() => {
@@ -55,6 +55,7 @@ export class AndroidBuildSelectFormComponent
   protected suiteSignal = signal<string>('');
   protected testModulesSignal = signal<string[]>([]);
   protected testPlanSignal = signal<string>('');
+  protected autoQualSignal = signal<boolean>(false);
   protected isRunLoadingSignal = signal<boolean>(false);
   protected notAvailableMsg = signal<string>('');
   protected targets = computed(() => Object.values(this.targetSignal()));
@@ -163,18 +164,6 @@ export class AndroidBuildSelectFormComponent
           const target = untracked(() => this.targets());
           const build = this.buildSignal();
           this.__onBuildChanged(board, branch, target, build);
-        },
-        {allowSignalWrites: true}
-      ),
-      effect(
-        () => {
-          this.tabSignal();
-
-          resetSignals([
-            this.suiteSignal,
-            this.testModulesSignal,
-            this.testPlanSignal,
-          ]);
         },
         {allowSignalWrites: true}
       ),
@@ -316,8 +305,14 @@ export class AndroidBuildSelectFormComponent
     this.isLoading.set(value);
   }
 
-  protected onTabChanged(tab: 'suite' | 'test' | 'testPlan') {
+  protected onTabChanged(tab: 'suite' | 'test' | 'Testplan') {
     this.tabSignal.set(tab);
+    resetSignals([
+      this.suiteSignal,
+      this.testModulesSignal,
+      this.testPlanSignal,
+      this.autoQualSignal,
+    ]);
   }
 
   protected onChildSuiteValidChanged(value: boolean) {
@@ -329,9 +324,13 @@ export class AndroidBuildSelectFormComponent
       this.tabSignal() !== 'test' || this.testModulesSignal().length !== 0;
     const shard = this.customSettings().maxInShard;
     const taskValid =
-      this.tabSignal() === 'testPlan'
+      this.tabSignal() === 'Testplan'
         ? this.testPlanSignal() !== ''
         : this.suiteValidSignal();
+
+    const loading = this.isLoading();
+    const target = this.targetSignal();
+    const errorMsg = this.notAvailableMsg();
 
     console.log(
       `extra: ${extra}, shard: ${shard}, loading: ${
@@ -344,11 +343,13 @@ export class AndroidBuildSelectFormComponent
     );
 
     return (
-      this.isLoading().show === false &&
-      this.boardSignal() &&
-      this.branchSignal() &&
-      this.targetSignal()[1] !== '' &&
-      this.targetSignal()[2] !== '' &&
+      errorMsg === '' &&
+      loading.show === false &&
+      this.boardSignal() !== '' &&
+      this.modelSignal() !== '' &&
+      this.branchSignal() !== '' &&
+      target[1] !== '' &&
+      target[2] !== '' &&
       this.buildSignal() !== '' &&
       this.poolSignal() !== '' &&
       taskValid &&
@@ -369,6 +370,10 @@ export class AndroidBuildSelectFormComponent
     this.testPlanSignal.set(value);
   }
 
+  protected onAutoQualChanged(value: boolean) {
+    this.autoQualSignal.set(value);
+  }
+
   protected onRunClicked() {
     const board = this.boardSignal();
     const model = this.modelSignal();
@@ -378,11 +383,15 @@ export class AndroidBuildSelectFormComponent
     const suite =
       this.tabSignal() === 'suite' ? `suite:${this.suiteSignal()}` : '';
     const testModules = this.testModulesSignal();
+    const autoQual = this.autoQualSignal();
+    const tab = this.tabSignal();
+    const testplan = this.testPlanSignal();
+    const target = this.target();
 
     let testIncludes = [];
     let textExcludes = [];
     let tagIncludes = [];
-    if (this.tabSignal() === 'test') {
+    if (tab === 'test') {
       testIncludes = [...testModules];
     } else {
       textExcludes = [...testModules];
@@ -391,7 +400,7 @@ export class AndroidBuildSelectFormComponent
     const shard = this.customSettings().maxInShard;
 
     let task: Suite | Test | Testplan;
-    if (this.tabSignal() === 'suite' || this.tabSignal() === 'test') {
+    if (tab === 'suite' || tab === 'test') {
       task = {
         kind: 'suite',
         name: suite,
@@ -399,10 +408,11 @@ export class AndroidBuildSelectFormComponent
       if (suite !== '') {
         tagIncludes = [...tagIncludes, suite];
       }
-    } else if (this.tabSignal() === 'testPlan') {
+    } else if (tab === 'Testplan') {
       task = {
         kind: 'testplan',
-        name: this.testPlanSignal(),
+        name: testplan,
+        autoQual: autoQual,
       };
     }
 
@@ -411,7 +421,7 @@ export class AndroidBuildSelectFormComponent
       board: board,
       model: model,
       pool: pool,
-      target: this.target(),
+      target: target,
       test_target: test_target,
       build: build,
       tags: {
@@ -429,7 +439,7 @@ export class AndroidBuildSelectFormComponent
     wrapperLoading(
       this.runService.run(req),
       this.isLoading,
-      `Running ${this.tabSignal()}...`
+      `Running ${tab}...`
     )
       .pipe(
         startWithTap(() => this.isRunLoadingSignal.set(true)),
@@ -437,13 +447,20 @@ export class AndroidBuildSelectFormComponent
       )
       .subscribe({
         next: buildLink => {
-          this.notification.info(
-            [
-              `Triggering ${this.tabSignal()} succeed! Link:`,
-              {type: 'url', url: buildLink},
-            ],
-            {dismiss: false}
-          );
+          if (autoQual && tab === 'Testplan') {
+            this.notification.info(
+              [`Triggering ${tab}: ${testplan} succeed!`],
+              {dismiss: false}
+            );
+          } else {
+            this.notification.info(
+              [
+                `Triggering ${tab} succeed! Link:`,
+                {type: 'url', url: buildLink},
+              ],
+              {dismiss: false}
+            );
+          }
         },
         error: e => {
           this.notification.error(`Trigger job failed: ${e}`, {
