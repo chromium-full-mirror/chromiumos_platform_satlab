@@ -203,12 +203,17 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
         this.targetSignal.set((value as string).trim());
         break;
       case 'build':
+        resetSignals([this.notAvailableMsg]);
         this.buildSignal.set((value as string).trim());
         break;
     }
   }
 
   protected async onBuildInputValueChanged(value: string) {
+    if (value.length !== 8) {
+      this.notAvailableMsg.set('invalid build.');
+      return;
+    }
     const board = this.dutInfo()?.board ?? '';
     const branch = this.branchSignal();
     const target = this.targetSignal();
@@ -218,6 +223,8 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
     );
     if (resp) {
       this.buildSignal.set(build);
+    } else {
+      this.notAvailableMsg.set('invalid build.');
     }
   }
 

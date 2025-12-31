@@ -1,6 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { PvsComponent } from './pvs.component';
+import {PvsComponent} from './pvs.component';
 
 describe('PvsComponent', () => {
   let component: PvsComponent;
@@ -8,7 +8,7 @@ describe('PvsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [PvsComponent]
+      declarations: [PvsComponent],
     });
     fixture = TestBed.createComponent(PvsComponent);
     component = fixture.componentInstance;

@@ -67,7 +67,7 @@ type ChromeOSProvisionFields = {
   milestone: string;
   build: string;
   hostname: string;
-}
+};
 
 type AndroidProvisionFields = {
   board: string;
@@ -76,11 +76,12 @@ type AndroidProvisionFields = {
   targetType: string;
   build: string;
   hostname: string;
-}
+};
 
 export type ProvisionFields = {
   os: OS;
-} & ChromeOSProvisionFields & AndroidProvisionFields;
+} & ChromeOSProvisionFields &
+  AndroidProvisionFields;
 
 export const defaultProvisionFields: ProvisionFields = {
   os: 'chromeos',
@@ -91,4 +92,4 @@ export const defaultProvisionFields: ProvisionFields = {
   milestone: '',
   build: '',
   targetType: '',
-}
+};
