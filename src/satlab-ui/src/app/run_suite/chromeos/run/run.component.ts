@@ -549,7 +549,7 @@ export class RunComponent implements AfterViewInit, OnDestroy {
 
   private __getStableBuild(board: string, model: string) {
     this.satlab_rpcservice
-      .getStableVersion({board, model})
+      .getStableVersion({board: board, model: model, isDesktop: false})
       .pipe(
         startWithTap(() => this.stableBuildNotFound.set(false)),
 
