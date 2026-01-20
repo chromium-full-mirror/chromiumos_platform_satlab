@@ -298,7 +298,13 @@ function merge(from: IDut[], to: IDut[]) {
     })
     .collect();
 
-  return [...enrolled, ...merged, ...withOutTestImage];
+  return [
+    ...enrolled.sort((a, b) => {
+      return a.hostname.localeCompare(b.hostname);
+    }),
+    ...merged,
+    ...withOutTestImage,
+  ];
 }
 
 /**
