@@ -15,7 +15,24 @@ set -euo pipefail
 C_YELLOW='\033[1;33m'
 C_GREEN='\033[1;32m'
 C_RED='\033[0;31m'
+B_WHITE='\033[1;37m'
 C_NC='\033[0m' # No Color
+
+# --- Default channel ---
+CHANNEL="release"
+
+# --- Argument Parsing ---
+for arg in "$@"; do
+  case $arg in
+    --beta)
+      CHANNEL="beta"
+      shift
+      ;;
+    *)
+      # Ignore unknown arguments or handle them here
+      ;;
+  esac
+done
 
 ##
 # Centralized error handler. It's triggered by the 'trap' command below.
@@ -80,15 +97,66 @@ if [[ -z ${SSH_TTY:-} ]]; then
     done
 fi
 
-# --- Main Execution ---
+# --- Kernel Version Check ---
 
-echo -e "\n${C_YELLOW}Choosing the software channel for Satlab...${C_NC}"
-set_channel_script="$(dirname "$0")/satlab_channel"
-if [[ ! -f "$set_channel_script" ]]; then
-    echo -e "${C_RED}Error: Required script (set_channel_script) not found in the same directory.${C_NC}"
+KERNEL_FULL=$(uname -r)
+KERNEL_MAJOR=$(echo "$KERNEL_FULL" | cut -d. -f1)
+KERNEL_MINOR=$(echo "$KERNEL_FULL" | cut -d. -f2)
+
+echo -e "${C_YELLOW}Checking kernel compatibility...${C_NC}"
+
+if [[ "$KERNEL_MAJOR" -gt 6 ]] || [[ "$KERNEL_MAJOR" -eq 6 && "$KERNEL_MINOR" -gt 13 ]]; then
+    echo -e "${C_RED}Error: Incompatible kernel version found: ($KERNEL_FULL).${C_NC}"
+    echo -e "${C_RED}Satlab requires kernel version 6.13 or lower.${C_NC}"
+    echo "Aborting installation."
+    exit 1
+else
+    echo -e "${C_GREEN}Kernel version $KERNEL_FULL is compatible.${C_NC}"
+fi
+
+# --- Configure swap memory ---
+
+SWAP_FILE="/swap.img"
+DESIRED_GB=32
+# Calculate KiB for assertion (32 * 1024 * 1024).
+# We'll check if the reported size is "close enough" (within 1% of this value).
+TARGET_KIB=$(( DESIRED_GB * 1024 * 1024 ))
+
+echo -e "\n${C_YELLOW}Setting swap memory size to ${DESIRED_GB}GB...${C_NC}"
+# Disable current swap if it's active (ignore errors if it isn't)
+swapoff "$SWAP_FILE" 2>/dev/null || true
+# Resize the file. Using 'fallocate' is fast; if it fails, 'dd' is a fallback.
+if ! fallocate -l "${DESIRED_GB}G" "$SWAP_FILE"; then
+    echo -e "${C_YELLOW}fallocate failed, attempting dd...${C_NC}"
+    dd if=/dev/zero of="$SWAP_FILE" bs=1M count=$(( DESIRED_GB * 1024 ))
+fi
+# Secure the file permissions (critical for swap security)
+chmod 600 "$SWAP_FILE"
+# Format and enable
+mkswap "$SWAP_FILE"
+swapon "$SWAP_FILE"
+
+# Assertion Logic
+ACTUAL_KIB=$(awk -v f="$SWAP_FILE" '$1==f {print $3}' /proc/swaps)
+if [[ -n "$ACTUAL_KIB" ]]; then
+    # Calculate a 1% margin of error for filesystem overhead
+    MARGIN=$(( TARGET_KIB / 100 ))
+    DIFF=$(( TARGET_KIB - ACTUAL_KIB ))
+    # Check if the absolute difference is within the margin
+    if [ "${DIFF#-}" -lt "$MARGIN" ]; then
+        echo -e "${C_GREEN}Swap resized successfully to ~${DESIRED_GB}GB (${ACTUAL_KIB} KiB).${C_NC}"
+    else
+        echo -e "${C_RED}Assertion Failed: Swap size is ${ACTUAL_KIB} KiB, expected ~${TARGET_KIB} KiB.${C_NC}"
+        exit 1
+    fi
+else
+    echo -e "${C_RED}Error: Swap file $SWAP_FILE is not active.${C_NC}"
     exit 1
 fi
-source "$set_channel_script"
+
+echo -e "Using software channel: ${C_YELLOW}${CHANNEL}${C_NC}"
+
+# --- Configure packages ---
 
 echo -e "\n${C_YELLOW}Configuring packages...${C_NC}"
 apt-get update -y
@@ -96,9 +164,45 @@ apt-get install -y bridge-utils net-tools python3-grpcio python3-netifaces pytho
 systemctl stop unattended-upgrades || true
 systemctl disable unattended-upgrades || true
 apt-get remove --purge -y unattended-upgrades
+apt-mark hold linux-image-generic \
+  docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras
+
+# --- Optional: Install Graphical Environment (Xfce) ---
+
+echo -e "\n${B_WHITE}Optional: Install desktop environment${C_NC}"
+read -p "Do you want to install the Xfce desktop environment? (y/N): " install_gui
+
+if [[ "${install_gui,,}" =~ ^(y|yes)$ ]]; then
+    echo -e "${C_YELLOW}Installing Xfce and LightDM (this may take a few minutes)...${C_NC}"
+    # Pre-configure LightDM to avoid interactive debconf prompts during install
+    echo "lightdm shared/default-x-display-manager select lightdm" | debconf-set-selections
+    # Install Xfce, the X server, and the display manager
+    # --no-install-recommends keeps the installation lightweight
+    apt-get install -y xfce4 xfce4-goodies xfce4-session xorg lightdm lightdm-gtk-greeter dbus-x11 chromium-browser --no-install-recommends
+    # Force Xfce in AccountsService so it doesn't look for 'ubuntu'
+    if [ -f /var/lib/AccountsService/users/satlab ]; then
+        sed -i 's/Session=.*/Session=xfce/' /var/lib/AccountsService/users/satlab
+    else
+        # If the file doesn't exist, create it with xfce as default
+        mkdir -p /var/lib/AccountsService/users/
+        echo -e "[User]\nSession=xfce" > /var/lib/AccountsService/users/satlab
+    fi
+    # Create the .dmrc for the user
+    echo -e "[Desktop]\nSession=xfce" > /home/satlab/.dmrc
+    chown satlab:satlab /home/satlab/.dmrc
+    # System-wide override
+    mkdir -p /etc/lightdm/lightdm.conf.d/
+    echo -e "[Seat:*]\nuser-session=xfce" > /etc/lightdm/lightdm.conf.d/90-xfce.conf
+    # Set the system to boot into the graphical target
+    systemctl set-default graphical.target
+    echo -e "${C_GREEN}Xfce Desktop Environment installed successfully.${C_NC}"
+else
+    echo -e "Skipping desktop environment installation."
+fi
+
+# --- Configure the host ---
 
 echo -e "\n${C_YELLOW}Sourcing local configuration scripts...${C_NC}"
-# Check that required scripts exist before trying to source them
 nic_config_script="$(dirname "$0")/satlab_config_nics"
 get_keys_script="$(dirname "$0")/satlab_get_keys"
 if [[ ! -f "$nic_config_script" ]] || [[ ! -f "$get_keys_script" ]]; then
@@ -106,7 +210,20 @@ if [[ ! -f "$nic_config_script" ]] || [[ ! -f "$get_keys_script" ]]; then
     exit 1
 fi
 source "$nic_config_script"
-source "$get_keys_script"
+
+echo -e "\n${C_YELLOW}Download Service Account Key (if you are going to provide a BOTO key in the UI later (mostly partner accounts), please skip)${C_NC}"
+read -p "Do you want to download the service account key now? (y/N) " download_keys
+
+if [[ "${download_keys,,}" =~ ^(y|yes)$ ]]; then
+    if [[ -f "$get_keys_script" ]]; then
+        source "$get_keys_script"
+        echo -e "${C_GREEN}Service account key downloaded successfully.${C_NC}"
+    else
+        echo -e "${C_RED}Error: $get_keys_script not found.${C_NC}"
+    fi
+else
+    echo "Skipping service account key download."
+fi
 
 echo -e "\n${C_YELLOW}Configuring SSH server...${C_NC}"
 sed -i -E 's/^#?Port\s+22\b/Port 2233/' /etc/ssh/sshd_config
@@ -135,20 +252,28 @@ satlab_hostname="satlab-$(cat /etc/machine-id | sha256sum | head -c 10)"
 echo "Setting drone hostname: ${satlab_hostname}"
 set_config "DRONE_HOSTNAME" "$satlab_hostname"
 
+# --- Download images ---
+
 echo -e "\n${C_YELLOW}Pulling Docker images...${C_NC}"
 docker pull ${REMOTE_ACCESS_IMAGE}
 docker pull ${DHCP_DOCKER_IMAGE}
 docker pull ${COMPOSE_DOCKER_IMAGE}
-docker rm compose-pull || true
 
-# @todo: remove compose_startup.sh bind once the updated compose image is available
-docker run -it --rm --name compose-pull \
-    --mount type=volume,source=satlab_keys,target=/home/satlab/keys/ \
-    --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
-    --mount type=bind,source="$(dirname "$0")/compose_pull.sh",target=/compose_startup.sh \
-    -e LABEL="${LABEL}" \
-    -e VOLUME_KEYS_FOLDER="${VOLUME_KEYS_FOLDER}" \
-    ${COMPOSE_DOCKER_IMAGE} pull
+if [[ "${download_keys,,}" =~ ^(y|yes)$ ]]; then
+    echo -e "\n${C_YELLOW}Pulling images via docker-compose...${C_NC}"
+    docker rm compose-pull 2> /dev/null || true
+    docker run -it --rm --name compose-pull \
+        --mount type=volume,source=satlab_keys,target=/home/satlab/keys/ \
+        --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
+        -e LABEL="${LABEL}" \
+        -e VOLUME_KEYS_FOLDER="${VOLUME_KEYS_FOLDER}" \
+        "${COMPOSE_DOCKER_IMAGE}" pull
+    echo -e "${C_GREEN}Docker images pulled successfully.${C_NC}"
+else
+    echo -e "\n${C_YELLOW}Skipping Docker image pull (partner user).${C_NC}"
+fi
+
+# --- Switch to cgroups v1 ---
 
 echo -e "\n${C_YELLOW}Configuring cgroups for legacy compatibility...${C_NC}"
 if ! grep -q "systemd.unified_cgroup_hierarchy=0" /etc/default/grub; then
@@ -158,6 +283,8 @@ if ! grep -q "systemd.unified_cgroup_hierarchy=0" /etc/default/grub; then
 else
     echo "GRUB cgroup parameter already set. Skipping."
 fi
+
+# --- Finish the installation ---
 
 echo -e "\n${C_GREEN}Configuration complete! A reboot is required to apply all changes.${C_NC}"
 while true; do

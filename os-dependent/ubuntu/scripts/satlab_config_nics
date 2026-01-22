@@ -18,67 +18,97 @@ C_NC='\033[0m' # No Color
 echo "Welcome to the Satlab network configuration utility."
 echo "---------------------------------------------------"
 
-# 1. Gather all available (non-virtual) network interfaces
-mapfile -t network_interfaces < <(find /sys/class/net -mindepth 1 -maxdepth 1 \! -lname '*virtual*' -printf '%f\n')
+# Gather Physical Ethernet interfaces (Excluding Virtual and Wireless)
+mapfile -t network_interfaces < <(
+    for iface_path in /sys/class/net/*; do
+        iface=$(basename "$iface_path")
+        # Skip loopback
+        [ "$iface" = "lo" ] && continue
+        # Skip Virtual: check if the symlink target contains 'virtual'
+        if readlink "$iface_path/device" | grep -q "virtual"; then
+            continue
+        fi
+        # Skip Wireless: check for wireless or phy80211 directories
+        if [ -d "$iface_path/wireless" ] || [ -d "$iface_path/phy80211" ]; then
+            continue
+        fi
+        # Double check it is actually a physical device link
+        if [ -L "$iface_path/device" ]; then
+            echo "$iface"
+        fi
+    done
+)
+
 if [[ ${#network_interfaces[@]} -eq 0 ]]; then
-    echo "Error: No network interfaces found. Exiting."
+    echo -e "${C_RED}Error: No physical Ethernet interfaces found. Exiting.${C_NC}"
     exit 1
 fi
 
-# 2. Configure EXTERNAL_PORT_TO_INTERNET
-echo
-echo -e "${C_YELLOW}Please specify the port connected to the Internet:${C_NC}"
-echo -e "Current value: ${C_YELLOW}${EXTERNAL_PORT_TO_INTERNET:-not set}${C_NC}"
+# Configure EXTERNAL_PORT_TO_INTERNET
+while true; do
+    echo
+    echo -e "${C_YELLOW}Please specify the port connected to the Internet (EXTERNAL_PORT_TO_INTERNET).${C_NC}"
 
-# Suggest and reorder interfaces for the external port
-suggested_iface=$(ip route | grep default | awk '{print $5}' | head -n 1)
-options=("${network_interfaces[@]}")
-if [[ -n "$suggested_iface" && " ${network_interfaces[*]} " =~ " ${suggested_iface} " ]]; then
-    echo -e "Suggested interface (chosen based on the default route): ${C_YELLOW}${suggested_iface}${C_NC}"
-    # Re-order the options array with the suggestion at the top
-    reordered_options=("$suggested_iface")
-    for iface in "${network_interfaces[@]}"; do
-        if [[ "$iface" != "$suggested_iface" ]]; then
-            reordered_options+=("$iface")
+    # Suggestion logic
+    suggested_iface=$(ip route | grep default | awk '{print $5}' | head -n 1)
+    options=("${network_interfaces[@]}")
+
+    if [[ -n "$suggested_iface" && " ${network_interfaces[*]} " =~ " ${suggested_iface} " ]]; then
+        echo "Suggested interface (based on the default route): $suggested_iface"
+        options=("$suggested_iface")
+        for iface in "${network_interfaces[@]}"; do
+            [[ "$iface" != "$suggested_iface" ]] && options+=("$iface")
+        done
+    fi
+
+    PS3="Please enter your choice (1-${#options[@]}): "
+    select opt in "${options[@]}"; do
+        if [[ -n "$opt" ]]; then
+            echo -e "Testing connectivity on ${C_YELLOW}$opt${C_NC}..."
+            if ping -I "$opt" -c 2 -W 2 8.8.8.8 > /dev/null 2>&1; then
+                echo -e "${C_GREEN}Connectivity verified!${C_NC}"
+                new_external_port=$opt
+                break 2
+            else
+                echo -e "${C_RED}Assertion Failed: No Internet access detected on $opt.${C_NC}"
+                echo "Please check the cable connection and try again."
+                break # Exit 'select' to re-prompt the 'while' loop
+            fi
+        else
+            echo "Invalid selection. Please try again."
         fi
     done
-    options=("${reordered_options[@]}")
+done
+
+# Configure INTERNAL_PORT_TO_DUTS
+
+echo -e "\n${C_YELLOW}Configuring the port connected to the DUTs (INTERNAL_PORT_TO_DUTS)...${C_NC}"
+# Filter out the already-chosen external port
+internal_options=()
+for iface in "${network_interfaces[@]}"; do
+    [[ "$iface" != "$new_external_port" ]] && internal_options+=("$iface")
+done
+
+if [[ ${#internal_options[@]} -eq 0 ]]; then
+    echo -e "${C_RED}Warning: No other physical interfaces available for DUT connection.${C_NC}"
+    new_internal_port="none"
+elif [[ ${#internal_options[@]} -eq 1 ]]; then
+    new_internal_port="${internal_options[0]}"
+    echo -e "Only one interface remains. ${C_GREEN}Automatically selecting: $new_internal_port${C_NC}"
+else
+    echo -e "Please specify the port connected to the DUTs:"
+    PS3="Please enter your choice (1-${#internal_options[@]}): "
+    select opt in "${internal_options[@]}"; do
+        if [[ -n "$opt" ]]; then
+            new_internal_port=$opt
+            break
+        else
+            echo -e "${C_RED}Invalid selection. Please try again.${C_NC}"
+        fi
+    done
 fi
 
-PS3="Please enter your choice (1-${#options[@]}): "
-select opt in "${options[@]}"; do
-    if [[ -n "$opt" ]]; then
-        new_external_port=$opt
-        break
-    else
-        echo "{C_YELLOW}Invalid selection. Please try again.${C_NC}"
-    fi
-done
-
-# 3. Configure INTERNAL_PORT_TO_DUTS
-echo
-echo "Please specify the port connected to the DUTs:"
-echo -e "Current value: ${C_YELLOW}${INTERNAL_PORT_TO_DUTS:-not set}${C_NC}"
-
-# Create a new list for the internal port, excluding the chosen external one.
-declare -a internal_options=()
-for iface in "${network_interfaces[@]}"; do
-    if [[ "$iface" != "$new_external_port" ]]; then
-        internal_options+=("$iface")
-    fi
-done
-
-PS3="Please enter your choice (1-${#internal_options[@]}): "
-select opt in "${internal_options[@]}"; do
-    if [[ -n "$opt" ]]; then
-        new_internal_port=$opt
-        break
-    else
-        echo "Invalid selection. Please try again."
-    fi
-done
-
-# 4. Display a summary of all changes for confirmation
+# Display a summary of all changes for confirmation
 echo
 echo "---------------------------------------------------"
 echo -e "${C_YELLOW}Configuration Summary${C_NC}"
@@ -92,7 +122,7 @@ printf "  %-10s %s\n" "Current:" "'${INTERNAL_PORT_TO_DUTS:-not set}'"
 printf "  %-10s %s\n" "New:" "'${new_internal_port}'"
 echo
 
-# 5. Ask for confirmation, apply and verify
+# Ask for confirmation, apply and verify
 read -rp "Apply these changes? (y/N): " confirm
 if [[ "${confirm,,}" == "y" || "${confirm,,}" == "yes" ]]; then
     echo "Applying configuration..."

@@ -6,14 +6,54 @@
 source /etc/satlab/satlab.conf
 
 ##################################################################
-# Do not edit below this line.
+echo "Waiting for interface $INTERNAL_PORT_TO_DUTS to become available..."
+timeout=30
+count=0
+while [ ! -d "/sys/class/net/$INTERNAL_PORT_TO_DUTS" ]; do
+    if [ $count -ge $timeout ]; then
+        echo "Error: Interface $INTERNAL_PORT_TO_DUTS not found after ${timeout}s."
+        exit 1
+    fi
+    sleep 1
+    ((count++))
+done
+echo "Interface $INTERNAL_PORT_TO_DUTS is ready. Proceeding with bridge creation."
 ##################################################################
-brctl addbr ${DHCPD_IFACE} || true
-brctl setfd ${DHCPD_IFACE} 0 || true
-ifconfig ${DHCPD_IFACE} allmulti
-ifconfig "${INTERNAL_PORT_TO_DUTS}" allmulti
-ifconfig ${DHCPD_IFACE} ${SERVER_ADDRESS} netmask ${SERVER_NETMASK} up
-brctl addif ${DHCPD_IFACE} "${INTERNAL_PORT_TO_DUTS}"
+# Wait for the physical interface to be recognized by the kernel
+timeout=15
+count=0
+while [ ! -d "/sys/class/net/${INTERNAL_PORT_TO_DUTS}" ]; do
+    if [ $count -ge $timeout ]; then
+        echo "Error: Physical interface ${INTERNAL_PORT_TO_DUTS} not found."
+        exit 1
+    fi
+    sleep 1
+    ((count++))
+done
+
+# Create the bridge if it doesn't exist
+if ! ip link show "${DHCPD_IFACE}" >/dev/null 2>&1; then
+    echo "Creating bridge ${DHCPD_IFACE}..."
+    ip link add name "${DHCPD_IFACE}" type bridge
+fi
+
+ip link set dev "${DHCPD_IFACE}" type bridge forward_delay 0
+ip link set dev "${DHCPD_IFACE}" allmulticast on
+ip link set dev "${INTERNAL_PORT_TO_DUTS}" allmulticast on
+ip link set dev "${INTERNAL_PORT_TO_DUTS}" up
+
+# Add the physical port to the bridge (if not already a member)
+if [[ "$(cat /sys/class/net/${INTERNAL_PORT_TO_DUTS}/master/uevent 2>/dev/null)" != *"INTERFACE=${DHCPD_IFACE}"* ]]; then
+    echo "Adding ${INTERNAL_PORT_TO_DUTS} to ${DHCPD_IFACE}..."
+    ip link set dev "${INTERNAL_PORT_TO_DUTS}" master "${DHCPD_IFACE}"
+else
+    echo "${INTERNAL_PORT_TO_DUTS} is already a member of ${DHCPD_IFACE}."
+fi
+
+# Assign IP Address to the bridge
+echo "Assigning IP ${SERVER_ADDRESS} to ${DHCPD_IFACE}..."
+ip addr replace "${SERVER_ADDRESS}/${SERVER_NETMASK}" dev "${DHCPD_IFACE}"
+ip link set dev "${DHCPD_IFACE}" up
 ############################################################
 # You can't have --rm and --restart on a docker run command.
 # However this means that on a non clean shutdown the dhcp container is
