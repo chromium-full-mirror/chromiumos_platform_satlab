@@ -133,7 +133,7 @@
         [build]="buildForListingSuite()"
         [target]="testTarget()"
         [suite]="suiteSignal()"
-        [testTitle]="tabSignal() === 'test' ? 'Test Include:' : 'Test Exclude:'"
+        [testTitle]="tabSignal() === 'test' ? 'include' : 'exclude'"
         [selectedTestModules]="testModulesSignal()"
         (onSuiteChanged)="onPropsChanged('suite', $event)"
         (onTestModulesChanged)="onPropsChanged('testModules', $event)"

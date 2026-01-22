@@ -86,6 +86,9 @@ export class SuiteComponent implements OnChanges, OnDestroy {
 
   protected selectedTestModulesSignal = signal<string[]>([]);
 
+  protected testInputTabSignal = signal<'single' | 'multiple'>('single');
+  protected multipleTestInputSignal = signal<string>('');
+
   private effectRefs: EffectRef[] = [];
 
   constructor(
@@ -95,11 +98,6 @@ export class SuiteComponent implements OnChanges, OnDestroy {
     this.effectRefs = [
       effect(
         () => {
-          resetSignals([
-            this.suiteOptions,
-            this.testOptions,
-            this.selectedTestModulesSignal,
-          ]);
           const build = this.buildSignal();
           const t2 = this.targetSignal();
 
@@ -114,11 +112,6 @@ export class SuiteComponent implements OnChanges, OnDestroy {
 
       effect(
         () => {
-          resetSignals([
-            this.testOptions,
-            this.selectedTestModulesSignal,
-            this.testSignal,
-          ]);
           const build = untracked(() => this.buildSignal());
           const target = untracked(() => this.targetSignal());
           let suite = this.suiteValid();
@@ -178,12 +171,27 @@ export class SuiteComponent implements OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     if ('build' in changes && changes['build']) {
+      resetSignals([
+        this.suiteOptions,
+        this.testOptions,
+        this.selectedTestModulesSignal,
+      ]);
       this.buildSignal.set(changes['build'].currentValue);
     }
     if ('target' in changes && changes['target']) {
+      resetSignals([
+        this.suiteOptions,
+        this.testOptions,
+        this.selectedTestModulesSignal,
+      ]);
       this.targetSignal.set(changes['target'].currentValue);
     }
     if ('suite' in changes && changes['suite']) {
+      resetSignals([
+        this.testOptions,
+        this.selectedTestModulesSignal,
+        this.testSignal,
+      ]);
       this.suiteSignal.set(changes['suite'].currentValue);
     }
     if ('test' in changes && changes['test']) {
@@ -207,6 +215,12 @@ export class SuiteComponent implements OnChanges, OnDestroy {
     }
   }
 
+  protected onInputTabChanged(tab: 'single' | 'multiple') {
+    this.testInputTabSignal.set(tab);
+    resetSignals([this.testSignal, this.multipleTestInputSignal]);
+    this.selector?.clear();
+  }
+
   protected onAddTestClicked() {
     const newValue = [
       ...this.selectedTestModulesSignal(),
@@ -221,6 +235,26 @@ export class SuiteComponent implements OnChanges, OnDestroy {
     const newValue = [...this.selectedTestModulesSignal()];
     newValue.splice(index, 1);
     this.selectedTestModulesSignal.set(newValue);
+  }
+
+  protected onMultiLineTestInputChanged(event: Event) {
+    const value = (event.target as HTMLTextAreaElement).value;
+    this.multipleTestInputSignal.set(value);
+  }
+
+  protected onAddMultiTestsClicked() {
+    const testsInput = this.multipleTestInputSignal();
+    const tests = toIterator(testsInput.split(','))
+      .map(e => e.trim())
+      .filter(e => e !== '')
+      .map(
+        e => `${ANDROID_TEST_PREFIX}.${this.suiteSignal()}.${e}`
+      ).collect();
+    this.selectedTestModulesSignal.set([
+      ...this.selectedTestModulesSignal(),
+      ...tests,
+    ]);
+    resetSignals([this.multipleTestInputSignal]);
   }
 
   private __listSuites(build: string, target: string) {
