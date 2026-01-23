@@ -106,7 +106,9 @@ function start_private_containers () {
   # Ensure correct permissions for the service_accounts directory.
   docker exec drone chmod 777 /creds/service_accounts/
   # Remove old CFT docker test image.
-  docker exec drone docker image prune -a -f
+  if jq -e '.prune_drone' "$USER_SETTINGS"; then
+    docker exec drone docker system prune -a -f
+  fi
 }
 
 if [ "${1}" == "down" ]
