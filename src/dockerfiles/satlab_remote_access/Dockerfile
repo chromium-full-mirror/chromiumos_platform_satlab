@@ -9,10 +9,11 @@ ARG COMMON_CORE_URI=gcr.io/chromeos-partner-moblab
 
 FROM ${BASE_REGISTRY_URI}/alpine/git as adb
 
-ARG PLATFORM_TOOLS_VER=35.0.1
+ARG PLATFORM_TOOLS_VER=36.0.2
 ARG PLATFORM_TOOLS_ZIP=platform-tools_r${PLATFORM_TOOLS_VER}-linux.zip
-RUN wget https://dl.google.com/android/repository/${PLATFORM_TOOLS_ZIP}
-RUN unzip ${PLATFORM_TOOLS_ZIP} -d /adb
+RUN wget -q https://dl.google.com/android/repository/${PLATFORM_TOOLS_ZIP} \
+    && unzip -q -j ${PLATFORM_TOOLS_ZIP} "platform-tools/adb" -d /adb \
+    && rm ${PLATFORM_TOOLS_ZIP}
 RUN git clone --depth 1 --no-checkout --filter=blob:none https://chromium.googlesource.com/chromiumos/third_party/autotest.git
 RUN git -C autotest checkout main -- server/cros/tradefed/tradefed_constants.py
 RUN apk add python3
@@ -171,7 +172,7 @@ COPY --chmod=777 dockerfiles/satlab_remote_access/tools/check_for_update.sh /etc
 # Add adb
 RUN apk add --no-cache gcompat
 ENV ADB_VENDOR_KEYS=/root/.android/arc_adbkey
-COPY --from=adb /adb/platform-tools/adb /bin
+COPY --from=adb /adb/adb /bin
 COPY --from=adb /adb/arc_adbkey ${ADB_VENDOR_KEYS}
 
 COPY --chmod=444 dockerfiles/satlab_remote_access/satlab-default-settings.json /
