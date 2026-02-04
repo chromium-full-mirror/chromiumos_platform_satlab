@@ -7,10 +7,10 @@ import {
   EventEmitter,
   Input,
   OnChanges,
-  OnDestroy,
   OnInit,
-  Output,
+  OnDestroy,
   SimpleChanges,
+  Output,
   signal,
 } from '@angular/core';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
@@ -113,7 +113,9 @@ export class AutocompleteSelectorComponent
   }
 
   protected onInputChanged() {
-    this.inputValueChanged.emit(this.searchFormControl.value);
+    this.inputValueChanged.emit(
+      this.searchFormControl.valid ? this.searchFormControl.value : ''
+    );
   }
 
   protected onOptionClicked(option?: SelectableItem) {
@@ -127,7 +129,7 @@ export class AutocompleteSelectorComponent
 
     if (this.searchFormControl.value !== newValue) {
       this.searchFormControl.setValue(newValue);
-      this.selectChanged.emit(newValue);
+      this.selectChanged.emit(this.searchFormControl.valid ? newValue : '');
     }
   }
 

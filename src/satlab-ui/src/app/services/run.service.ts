@@ -49,6 +49,8 @@ export type RunAndroidOSRequest = {
   model?: string;
   target: string;
   test_target: string;
+  test_branch?: string;
+  test_build?: string;
 } & CommonFields;
 
 @Injectable({
@@ -102,6 +104,8 @@ export class RunService {
     } else {
       req.setModel(params.model ?? '').setTarget(params.target);
       req.setTestTarget(params.test_target);
+      req.setTestBranch(params.test_branch ?? '');
+      req.setTestBuild(params.test_build ?? '');
     }
 
     switch (params.run.kind) {

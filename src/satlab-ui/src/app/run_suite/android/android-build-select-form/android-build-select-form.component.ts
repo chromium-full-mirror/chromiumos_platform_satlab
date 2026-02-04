@@ -11,20 +11,25 @@ import {
   Testplan,
 } from '../../../services/run.service';
 import {SatlabRpcService} from '../../../services/satlab-rpc.service';
-import {startWithTap} from '../../../utils/rxjs_operator';
 import {
   AfterViewInit,
   Component,
+  DestroyRef,
   EffectRef,
   OnDestroy,
   ViewChild,
-  WritableSignal,
   computed,
   effect,
+  inject,
   signal,
   untracked,
 } from '@angular/core';
-import {toObservable} from '@angular/core/rxjs-interop';
+import {toObservable, takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {
+  toSelectedItem,
+  wrapperLoading,
+  resetSignals,
+} from '../../../../app/utils/operators';
 import {
   CustomSetting,
   getDefaultCTPTimeout,
@@ -36,7 +41,6 @@ import {
 } from 'app/models/run_suite_fields';
 import {NotificationService} from 'app/services/notification.service';
 import {
-  Observable,
   debounceTime,
   distinctUntilChanged,
   finalize,
@@ -51,6 +55,10 @@ import {AutocompleteSelectorComponent} from 'app/run_suite/common/autocomplete-s
 import {SuiteComponent} from '../suite/suite.component';
 import {TestPlanComponent} from '../test-plan/test-plan.component';
 import {LoadingButtonComponent} from 'app/common/loading-button/loading-button.component';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {AndroidBuildPickerComponent} from '../android-build-picker/android-build-picker.component';
+import {startWithTap} from 'app/utils/rxjs_operator';
+import {ERROR_KEY_MSG_CONFIGS} from 'app/models/error';
 
 @Component({
   selector: 'app-android-build-select-form',
@@ -67,6 +75,8 @@ import {LoadingButtonComponent} from 'app/common/loading-button/loading-button.c
     SettingsComponent,
     SuiteComponent,
     TestPlanComponent,
+    MatSlideToggleModule,
+    AndroidBuildPickerComponent,
   ],
 })
 export class AndroidBuildSelectFormComponent
@@ -89,17 +99,13 @@ export class AndroidBuildSelectFormComponent
   protected validBuildSignal = signal<string>('');
   protected poolSignal = signal<string>('');
   protected suiteSignal = signal<string>('');
+
+  protected isBuildValidSignal = signal<boolean>(true);
   protected testModulesSignal = signal<string[]>([]);
   protected testPlanSignal = signal<string>('');
   protected autoQualSignal = signal<boolean>(false);
   protected isRunLoadingSignal = signal<boolean>(false);
-  protected notAvailableMsg = signal<string>('');
   protected targets = computed(() => Object.values(this.targetSignal()));
-  private target = computed(() => {
-    return toIterator(this.targets()).first_where(
-      e => !e.includes('test_suites')
-    );
-  });
 
   protected isLoading = signal<{show: boolean; message: string}>({
     show: false,
@@ -107,20 +113,68 @@ export class AndroidBuildSelectFormComponent
   });
 
   protected loading$ = toObservable(this.isLoading);
+  protected config = computed(() => ERROR_KEY_MSG_CONFIGS['common']);
+  protected errMap = signal<{[key: string]: string}>({});
+  protected combinedErrorMsg = computed(() => {
+    const parentErrors = Object.values(this.errMap());
+    const provision = this._provisionPicker();
+    const test = this._testPicker();
+
+    const provisionErrors = provision ? Object.values(provision.errMap()) : [];
+    const testErrors = test ? Object.values(test.errMap()) : [];
+
+    return [...parentErrors, ...provisionErrors, ...testErrors]
+      .filter(msg => msg !== '')
+      .join(' | ');
+  });
 
   protected branchOptions = signal<SelectableItem[]>([]);
   protected targetOptions = signal<SelectableItem[]>([]);
+  // Filter branch options based on model.
+  // If model is present, include branches that include the model or exclude all other models with the same board.
+  // If model is not present, include branches that include any model with the same board.
+  protected filteredBranchOptions = computed(() => {
+    const model = this.modelSignal();
+    const branchOptions = this.branchOptions();
+    const notSelectedModels = this.sameBoardModels().filter(e => e !== model);
+    if (branchOptions.length === 0) return [];
+    return branchOptions.filter(
+      e =>
+        e.text.includes(model) ||
+        notSelectedModels.every(m => !e.text.includes(m))
+    );
+  });
   protected boardTargetOptions = computed(() => {
     const board = this.boardSignal();
     const model = this.modelSignal();
-    return toIterator(this.targetOptions())
-      .filter(
+    const sameBoardModels = this.sameBoardModels();
+
+    const targetOptions = this.targetOptions();
+    if (targetOptions.length === 0) return [];
+    // If not test, model is present, show targets that include board or model and not test_suites.
+    if (model) {
+      return targetOptions.filter(
         e =>
           (e.text.includes(board) || e.text.includes(model)) &&
           !e.text.includes('test_suites')
-      )
-      .collect();
+      );
+    }
+    // If not test, model is not present, show targets that include board or any connected model and not test_suites.
+    return targetOptions.filter(
+      e =>
+        (e.text.includes(board) ||
+          sameBoardModels.some(m => e.text.includes(m))) &&
+        !e.text.includes('test_suites')
+    );
   });
+
+  protected sameBoardModels = computed(() => {
+    const board = this.boardSignal();
+    return this.duts()
+      .filter(e => e.board === board)
+      .map(e => e.model);
+  });
+
   protected suiteTargetOptions = computed(() => {
     return toIterator(this.targetOptions())
       .filter(e => e.text.includes('test_suites'))
@@ -129,6 +183,33 @@ export class AndroidBuildSelectFormComponent
   protected buildOptions = signal<SelectableItem[]>([]);
   protected suiteOptions = signal<SelectableItem[]>([]);
   protected testOptions = signal<SelectableItem[]>([]);
+
+  protected isCrossBranchTestingSignal = signal<boolean>(false);
+
+  protected testBranchSignal = signal<string>('');
+  protected testTargetSignal = signal<string>('');
+  protected testValidBuildSignal = signal<string>('');
+  protected provisionBranchSignal = signal<string>('');
+  protected provisionTargetSignal = signal<string>('');
+  protected provisionValidBuildSignal = signal<string>('');
+
+  protected provisionTarget = computed(() => {
+    return this.isCrossBranchTestingSignal()
+      ? this.provisionTargetSignal()
+      : this.targetSignal()[1];
+  });
+
+  protected testTarget = computed(() => {
+    return this.isCrossBranchTestingSignal()
+      ? this.testTargetSignal()
+      : this.targetSignal()[2];
+  });
+
+  protected buildForListingSuite = computed(() => {
+    return this.isCrossBranchTestingSignal()
+      ? this.testValidBuildSignal()
+      : this.validBuildSignal();
+  });
 
   // The default settings for the run suite/test.
   protected settings = [
@@ -144,6 +225,20 @@ export class AndroidBuildSelectFormComponent
   ];
 
   @ViewChild('settingsRef') settingsRef!: SettingsComponent;
+  private _provisionPicker = signal<AndroidBuildPickerComponent | undefined>(
+    undefined
+  );
+  @ViewChild('provisionPicker') set provisionPicker(
+    val: AndroidBuildPickerComponent
+  ) {
+    this._provisionPicker.set(val);
+  }
+  private _testPicker = signal<AndroidBuildPickerComponent | undefined>(
+    undefined
+  );
+  @ViewChild('testPicker') set testPicker(val: AndroidBuildPickerComponent) {
+    this._testPicker.set(val);
+  }
 
   protected customSettings = signal<CustomSetting[]>([...this.settings]);
 
@@ -179,17 +274,23 @@ export class AndroidBuildSelectFormComponent
   private suiteValidSignal = signal<boolean>(false);
 
   private refs: EffectRef[] = [];
+  private destroyRef = inject(DestroyRef);
 
   constructor(
     private androidService: AndroidService,
-    private runService: RunService,
     private service: SatlabRpcService,
+    private runService: RunService,
     private notification: NotificationService
   ) {
     this.refs = [
       effect(
         () => {
-          this.__onBoardChanged(this.boardSignal());
+          const board = this.boardSignal();
+          const isCrossBranch = this.isCrossBranchTestingSignal();
+
+          if (board !== '' && !isCrossBranch) {
+            this.__onBoardChanged(board);
+          }
         },
         {allowSignalWrites: true}
       ),
@@ -204,7 +305,9 @@ export class AndroidBuildSelectFormComponent
           const board = untracked(() => this.boardSignal());
           const branch = untracked(() => this.branchSignal());
           const target = this.targets();
-          this.__onTargetChanged(board, branch, target);
+          if (board && branch && target.length > 1) {
+            this.__onTargetChanged(board, branch, target);
+          }
         },
         {allowSignalWrites: true}
       ),
@@ -222,6 +325,7 @@ export class AndroidBuildSelectFormComponent
     // An observable that updates the CTP timeout and TR timeout based on the testplan.
     toObservable(this.testPlanSignal)
       .pipe(
+        takeUntilDestroyed(this.destroyRef),
         debounceTime(300),
         distinctUntilChanged(),
         switchMap(testPlan => {
@@ -263,7 +367,7 @@ export class AndroidBuildSelectFormComponent
           this.buildOptions,
           this.suiteOptions,
           this.testOptions,
-          this.notAvailableMsg,
+          this.errMap,
         ]);
         break;
       case 'model':
@@ -279,7 +383,6 @@ export class AndroidBuildSelectFormComponent
           this.buildOptions,
           this.suiteOptions,
           this.testOptions,
-          this.notAvailableMsg,
         ]);
         this.modelSignal.set((value as string).trim());
         break;
@@ -294,7 +397,7 @@ export class AndroidBuildSelectFormComponent
           this.buildOptions,
           this.suiteOptions,
           this.testOptions,
-          this.notAvailableMsg,
+          this.errMap,
         ]);
 
         // Set the model value if users select the
@@ -320,7 +423,7 @@ export class AndroidBuildSelectFormComponent
           this.buildOptions,
           this.suiteOptions,
           this.testOptions,
-          this.notAvailableMsg,
+          this.errMap,
         ]);
         break;
       case 'suiteTarget':
@@ -336,7 +439,7 @@ export class AndroidBuildSelectFormComponent
           this.buildOptions,
           this.suiteOptions,
           this.testOptions,
-          this.notAvailableMsg,
+          this.errMap,
         ]);
         break;
       case 'build':
@@ -345,7 +448,6 @@ export class AndroidBuildSelectFormComponent
           this.validBuildSignal,
           this.suiteSignal,
           this.testModulesSignal,
-          this.notAvailableMsg,
         ]);
         break;
       case 'pool':
@@ -365,6 +467,29 @@ export class AndroidBuildSelectFormComponent
     this.isLoading.set(value);
   }
 
+  protected onCrossBranchTestingChanged(value: boolean) {
+    resetSignals([
+      this.testBranchSignal,
+      this.testTargetSignal,
+      this.testValidBuildSignal,
+      this.provisionBranchSignal,
+      this.provisionTargetSignal,
+      this.provisionValidBuildSignal,
+      this.branchSignal,
+      this.targetSignal,
+      this.buildSignal,
+      this.suiteSignal,
+      this.testModulesSignal,
+      this.branchOptions,
+      this.targetOptions,
+      this.buildOptions,
+      this.suiteOptions,
+      this.testOptions,
+      this.errMap,
+    ]);
+    this.isCrossBranchTestingSignal.set(value);
+  }
+
   protected onTabChanged(tab: 'suite' | 'test' | 'Testplan') {
     this.tabSignal.set(tab);
     this.settingsRef.resetShadringModeErrors();
@@ -375,7 +500,7 @@ export class AndroidBuildSelectFormComponent
     ]);
     this.autoQualSignal.set(false);
     if (tab === 'Testplan') {
-      // if selecting testplan, set the maxInShard to 10000 and make it immutable.
+      // If selecting testplan, set the maxInShard to 10000 and make it immutable.
       this.customSettings.set([
         getDefaultCTPTimeout(),
         getDefaultTrTimeout(),
@@ -394,6 +519,23 @@ export class AndroidBuildSelectFormComponent
     this.suiteValidSignal.set(value);
   }
 
+  protected onAndroidBranchTargetBuildChanged(value: {
+    type: 'provision' | 'test';
+    branch: string;
+    target: string;
+    validBuild: string;
+  }) {
+    if (value.type === 'test') {
+      this.testBranchSignal.set(value.branch);
+      this.testTargetSignal.set(value.target);
+      this.testValidBuildSignal.set(value.validBuild);
+    } else if (value.type === 'provision') {
+      this.provisionBranchSignal.set(value.branch);
+      this.provisionTargetSignal.set(value.target);
+      this.provisionValidBuildSignal.set(value.validBuild);
+    }
+  }
+
   protected _isRunnable = computed(() => {
     const extra =
       this.tabSignal() !== 'test' || this.testModulesSignal().length !== 0;
@@ -404,35 +546,52 @@ export class AndroidBuildSelectFormComponent
         : this.suiteValidSignal();
 
     const loading = this.isLoading();
+    const hasFormError = Object.values(this.errMap()).some(e => e !== '');
+    const errrorsFromSettings = this.settingsRef?.hasErrors() || false;
     const target = this.targetSignal();
-    const errorMsg = this.notAvailableMsg();
+    const isCrossBranch = this.isCrossBranchTestingSignal();
+    const board = this.boardSignal();
+    const pool = this.poolSignal();
+    const branch = this.branchSignal(),
+      build = this.validBuildSignal();
+    const provisionBranch = this.provisionBranchSignal(),
+      provisionTarget = this.provisionTargetSignal(),
+      provisionBuild = this.provisionValidBuildSignal();
+    const testBranch = this.testBranchSignal(),
+      testTarget = this.testTargetSignal(),
+      testBuild = this.testValidBuildSignal();
 
     console.log(
       `extra: ${extra}, loading: ${
         this.isLoading().show
-      }, board: ${this.boardSignal()}, branch: ${this.branchSignal()}, t1: ${
+      }, board: ${this.boardSignal()}, branch: ${this.branchSignal()}, provision branch: ${this.provisionBranchSignal()}, test branch: ${this.testBranchSignal()}, t1: ${
         this.targetSignal()[1]
       } t2: ${
         this.targetSignal()[2]
-      }, build: ${this.buildSignal()}, pool: ${this.poolSignal()}, taskValid: ${taskValid}, target: ${this.target()}`
+      }, provision build: ${this.provisionValidBuildSignal()}, test build: ${this.testValidBuildSignal()},
+      provision target: ${this.provisionTargetSignal()}, test target: ${this.testTargetSignal()}, build: ${this.buildSignal()}, provision build: ${this.provisionValidBuildSignal()}, test build: ${this.testValidBuildSignal()}, pool: ${this.poolSignal()}, taskValid: ${taskValid}`
     );
 
-    const hasErrors = this.settingsRef?.hasErrors() || false;
-
     return (
-      errorMsg === '' &&
+      board !== '' &&
+      pool !== '' &&
+      (isCrossBranch
+        ? provisionBranch !== '' &&
+          testBranch !== '' &&
+          provisionTarget !== '' &&
+          testTarget !== '' &&
+          provisionBuild !== '' &&
+          testBuild !== ''
+        : branch !== '' &&
+          target[1] !== '' &&
+          target[2] !== '' &&
+          build !== '' &&
+          this.isBuildValidSignal()) &&
+      !hasFormError &&
       loading.show === false &&
-      this.boardSignal() !== '' &&
-      this.modelSignal() !== '' &&
-      this.branchSignal() !== '' &&
-      target[1] !== '' &&
-      target[2] !== '' &&
-      this.buildSignal() !== '' &&
-      this.poolSignal() !== '' &&
       taskValid &&
-      this.target() &&
       extra &&
-      !hasErrors
+      !errrorsFromSettings
     );
   });
 
@@ -455,16 +614,26 @@ export class AndroidBuildSelectFormComponent
   protected onRunClicked() {
     const board = this.boardSignal();
     const model = this.modelSignal();
-    const build = this.validBuildSignal();
     const pool = this.poolSignal();
-    const test_target = this.targetSignal()[2];
     const suite =
       this.tabSignal() === 'suite' ? `suite:${this.suiteSignal()}` : '';
     const testModules = this.testModulesSignal();
     const autoQual = this.autoQualSignal();
     const tab = this.tabSignal();
     const testplan = this.testPlanSignal();
-    const target = this.target();
+    const isCrossBranch = this.isCrossBranchTestingSignal() ?? false;
+    const provisionTarget = isCrossBranch
+      ? this.provisionTargetSignal()
+      : this.targetSignal()[1];
+    const testTarget = isCrossBranch
+      ? this.testTargetSignal()
+      : this.targetSignal()[2];
+
+    const provisionBuild = isCrossBranch
+      ? this.provisionValidBuildSignal()
+      : this.buildForListingSuite();
+    const testBuild = isCrossBranch ? this.testValidBuildSignal() : '';
+    const testBranch = this.testBranchSignal();
 
     let testIncludes = [];
     let textExcludes = [];
@@ -513,9 +682,11 @@ export class AndroidBuildSelectFormComponent
       board: board,
       model: model,
       pool: pool,
-      target: target,
-      test_target: test_target,
-      build: build,
+      target: provisionTarget,
+      test_target: testTarget,
+      build: provisionBuild,
+      test_build: testBuild,
+      test_branch: testBranch,
       tags: {
         testNamesExclude: textExcludes,
         testNamesInclude: testIncludes,
@@ -582,39 +753,50 @@ export class AndroidBuildSelectFormComponent
     targets: string[],
     build: string
   ) {
-    if (
-      board !== '' &&
-      branch !== '' &&
-      targets.length !== 0 &&
-      /^\d{8}$/.test(build)
-    ) {
+    if (board !== '' && branch !== '' && targets.length !== 0 && build !== '') {
       this.__isBuildValid(board, branch, targets, build);
+    } else {
+      this.validBuildSignal.set('');
     }
   }
   private __listBranches(targets: string[]) {
+    console.log('calling list branches');
     wrapperLoading(
       this.androidService.listBranches(targets),
       this.isLoading,
       'Loading branches...'
-    ).subscribe({
-      next: e => {
-        this.notAvailableMsg.set(e.length === 0 ? 'No branches available' : '');
-        this.branchOptions.set(e.map(toSelectedItem));
-      },
-      error: e => {
-        this.notification.error(`List branches failed: ${e}`, {dismiss: false});
-      },
-    });
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: e => {
+          const {keys, msgs} = untracked(() => this.config());
+          this.errMap.update(current => ({
+            ...current,
+            [keys.branch]: e.length === 0 ? msgs.branch : '',
+          }));
+          this.branchOptions.set(e.map(toSelectedItem));
+        },
+        error: e => {
+          this.notification.error(`List branches failed: ${e}`, {
+            dismiss: false,
+          });
+        },
+      });
   }
 
   private __listTargets(branch: string) {
+    console.log('Listing targets');
     wrapperLoading(
       this.androidService.listTargets(branch),
       this.isLoading,
       'Loading targets...'
     ).subscribe({
       next: e => {
-        this.notAvailableMsg.set(e.length === 0 ? 'No targets available' : '');
+        const {keys, msgs} = untracked(() => this.config());
+        this.errMap.update(current => ({
+          ...current,
+          [keys.target]: e.length === 0 ? msgs.target : '',
+        }));
         this.targetOptions.set(e.map(toSelectedItem));
       },
       error: e => {
@@ -624,13 +806,18 @@ export class AndroidBuildSelectFormComponent
   }
 
   private __listBuilds(board: string, branch: string, targets: string[]) {
+    console.log('list builds');
     wrapperLoading(
       this.androidService.listBuilds(board, branch, targets),
       this.isLoading,
       'Loading builds...'
     ).subscribe({
       next: e => {
-        this.notAvailableMsg.set(e.length === 0 ? 'No builds available' : '');
+        const {keys, msgs} = untracked(() => this.config());
+        this.errMap.update(current => ({
+          ...current,
+          [keys.build]: e.length === 0 ? msgs.build : '',
+        }));
         this.buildOptions.set(e.map(toSelectedItem));
       },
       error: e => {
@@ -646,6 +833,11 @@ export class AndroidBuildSelectFormComponent
       'Loading DUTs...'
     ).subscribe({
       next: e => {
+        const {keys, msgs} = untracked(() => this.config());
+        this.errMap.update(current => ({
+          ...current,
+          [keys.listDut]: e.length === 0 ? msgs.listDut : '',
+        }));
         this.duts.set(e);
       },
       error: e => {
@@ -666,10 +858,22 @@ export class AndroidBuildSelectFormComponent
       'Validating build...'
     ).subscribe({
       next: isValid => {
+        const {keys, msgs} = untracked(() => this.config());
         if (isValid) {
           this.validBuildSignal.set(build);
+          this.errMap.update(current => ({
+            ...current,
+            [keys.validate]: '',
+          }));
+          this.errMap.update(current => ({
+            ...current,
+            [keys.build]: '',
+          }));
         } else {
-          this.notAvailableMsg.set('The build is not valid.');
+          this.errMap.update(current => ({
+            ...current,
+            [keys.validate]: msgs.validate,
+          }));
         }
       },
       error: e => {
@@ -680,7 +884,7 @@ export class AndroidBuildSelectFormComponent
     });
   }
 
-  // Updating configs if required
+  // Updating configs if required.
   private updateConfigs(ctpTimeout: number, trTimeout: number) {
     this.customSettings.update(settings =>
       settings.map(s => {
@@ -692,62 +896,5 @@ export class AndroidBuildSelectFormComponent
         return s;
       })
     );
-  }
-}
-
-function toSelectedItem(value: string): SelectableItem {
-  return {
-    label: '',
-    value: value,
-    text: value,
-  };
-}
-
-function wrapperLoading<T>(
-  o: Observable<T>,
-  loading: WritableSignal<{show: boolean; message: string}>,
-  msg: string
-) {
-  return o.pipe(
-    startWithTap(() => {
-      loading.set({
-        show: true,
-        message: msg,
-      });
-    }),
-    finalize(() => {
-      loading.set({
-        show: false,
-        message: '',
-      });
-    })
-  );
-}
-
-function resetSignals(
-  signals: WritableSignal<unknown>[],
-  defaultValue?: unknown
-) {
-  if (signals.length > 0) {
-    if (defaultValue === undefined) {
-      signals.forEach(e => {
-        const value = untracked(() => {
-          if (defaultValue) {
-            return defaultValue;
-          }
-
-          if (typeof e() === 'string') {
-            return '';
-          } else if (Array.isArray(e())) {
-            return [];
-          } else if (typeof e() === 'object') {
-            return {};
-          }
-
-          throw Error(`Unknown type of signal: ${typeof e()}`);
-        });
-        e.set(value);
-      });
-    }
   }
 }

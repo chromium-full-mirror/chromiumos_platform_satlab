@@ -11,10 +11,24 @@ import {
 import {ICustomSettings} from 'app/models/run_suite_fields';
 import {BehaviorSubject, Subscription} from 'rxjs';
 
+import {CommonModule} from '@angular/common';
+import {MatExpansionModule} from '@angular/material/expansion';
+import {MatIconModule} from '@angular/material/icon';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {SafeNumberPipe} from 'app/pipes/safe-number.pipe';
+
 @Component({
   selector: 'app-advanced-settings',
   templateUrl: './advanced-settings.component.html',
   styleUrls: ['./advanced-settings.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    MatExpansionModule,
+    MatIconModule,
+    MatSlideToggleModule,
+    SafeNumberPipe,
+  ],
 })
 export class AdvancedSettingsComponent implements OnInit, OnChanges, OnDestroy {
   @Input() disabled = false;

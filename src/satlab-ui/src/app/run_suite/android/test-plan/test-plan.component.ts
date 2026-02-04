@@ -14,7 +14,7 @@ import {MatSlideToggleModule} from '@angular/material/slide-toggle';
   templateUrl: './test-plan.component.html',
   styleUrls: ['./test-plan.component.scss'],
   standalone: true,
-  imports: [CommonModule, MatSlideToggleModule, NgIf],
+  imports: [CommonModule, MatSlideToggleModule],
 })
 export class TestPlanComponent {
   protected inputValue = signal('');

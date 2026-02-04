@@ -1117,7 +1117,7 @@ message ValidateAndroidBuildResponse {
   bool is_valid = 1;
 }
 
-// NEXT_TAG = 20
+// NEXT_TAG = 22
 message RunRequest {
   // NEXT_TAG = 2
   message Suite {
@@ -1153,6 +1153,10 @@ message RunRequest {
   optional string target_type = 8 [deprecated = true];
   optional string target = 17;
   optional string test_target = 18;
+  // the branch for cross-branch testing.
+  optional string test_branch = 20;
+  // the build ID for cross-branch testing.
+  optional string test_build = 21;
   string build = 9;
   string pool = 10;
 

@@ -20,13 +20,17 @@
 >
   <app-loading [loading$]="loading$"></app-loading>
   <div class="min-h-[1.5rem]">
-    <p class="text-red-500 text-center">{{ notAvailableMsg() }}</p>
+    <p class="text-red-500 text-center" *ngIf="combinedErrorMsg() !== ''">
+      {{ combinedErrorMsg() }}
+    </p>
   </div>
   <div class="flex gap-4 w-full flex-col">
     <app-basic-selector
       (select)="onPropsChanged('board', $event)"
       [options]="boardOptions()"
-      [disabled]="isRunLoadingSignal()"
+      [disabled]="
+        isRunLoadingSignal() || duts().length === 0 || isLoading().show
+      "
       title="Select Board:"
     >
     </app-basic-selector>
@@ -35,32 +39,82 @@
       (select)="onPropsChanged('model', $event)"
       [options]="modelsOptions()"
       [value]="modelSignal()"
-      [disabled]="isRunLoadingSignal()"
+      [disabled]="
+        isRunLoadingSignal() || modelsOptions().length === 0 || isLoading().show
+      "
       title="Select Model (Optional):"
     >
     </app-basic-selector>
 
     <app-basic-selector
+      *ngIf="!isCrossBranchTestingSignal()"
       (select)="onPropsChanged('branch', $event)"
-      [options]="branchOptions()"
+      [options]="filteredBranchOptions()"
       [value]="branchSignal()"
-      [disabled]="isRunLoadingSignal()"
+      [disabled]="
+        isRunLoadingSignal() ||
+        filteredBranchOptions().length === 0 ||
+        isLoading().show
+      "
       title="Select Branch:"
     >
     </app-basic-selector>
 
     <app-basic-selector
+      *ngIf="!isCrossBranchTestingSignal()"
       (select)="onPropsChanged('boardTarget', $event)"
       [options]="boardTargetOptions()"
-      [disabled]="isRunLoadingSignal()"
+      [disabled]="
+        isRunLoadingSignal() ||
+        boardTargetOptions().length === 0 ||
+        isLoading().show
+      "
       title="Select Board Target:"
     >
     </app-basic-selector>
 
+    <app-android-build-picker
+      #provisionPicker
+      *ngIf="isCrossBranchTestingSignal()"
+      [board]="boardSignal()"
+      [model]="modelSignal()"
+      [type]="'provision'"
+      [duts]="duts()"
+      [parentLoading]="isRunLoadingSignal()"
+      [buildValidatorConfig]="buildValidatorConfig"
+      (loadingWithMsg)="onChildLoadingChanged($event)"
+      (dataChanged)="onAndroidBranchTargetBuildChanged($event)"
+    ></app-android-build-picker>
+
+    <mat-slide-toggle
+      (change)="onCrossBranchTestingChanged($event.checked)"
+      [disabled]="isRunLoadingSignal() || isLoading().show"
+    >
+      Cross-branch testing
+    </mat-slide-toggle>
+
+    <app-android-build-picker
+      #testPicker
+      *ngIf="isCrossBranchTestingSignal()"
+      [board]="boardSignal()"
+      [model]="modelSignal()"
+      [type]="'test'"
+      [duts]="duts()"
+      [parentLoading]="isRunLoadingSignal()"
+      [buildValidatorConfig]="buildValidatorConfig"
+      (loadingWithMsg)="onChildLoadingChanged($event)"
+      (dataChanged)="onAndroidBranchTargetBuildChanged($event)"
+    ></app-android-build-picker>
+
     <app-basic-selector
+      *ngIf="!isCrossBranchTestingSignal()"
       (select)="onPropsChanged('suiteTarget', $event)"
       [options]="suiteTargetOptions()"
-      [disabled]="isRunLoadingSignal()"
+      [disabled]="
+        isRunLoadingSignal() ||
+        suiteTargetOptions().length === 0 ||
+        isLoading().show
+      "
       title="Select Suite Target:"
     >
     </app-basic-selector>
@@ -68,15 +122,22 @@
     <app-basic-selector
       (select)="onPropsChanged('hostname', $event)"
       [options]="hostnameOptions()"
-      [disabled]="isRunLoadingSignal()"
-      title="Select hostname:"
+      [disabled]="
+        isRunLoadingSignal() ||
+        duts().length === 0 ||
+        boardSignal() === '' ||
+        isLoading().show
+      "
+      title="Select Hostname:"
     >
     </app-basic-selector>
 
     <app-autocomplete-selector
+      *ngIf="!isCrossBranchTestingSignal()"
       [options]="buildOptions()"
       title="Select Build:"
       (selectChanged)="onPropsChanged('build', $event)"
+      [validatorConfig]="buildValidatorConfig"
       (inputValueChanged)="onBuildInputValueChanged($event)"
     ></app-autocomplete-selector>
 

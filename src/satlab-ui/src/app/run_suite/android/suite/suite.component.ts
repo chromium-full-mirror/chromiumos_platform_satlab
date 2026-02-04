@@ -25,12 +25,21 @@ import {toIterator} from 'app/utils/iterator';
 import {startWithTap} from 'app/utils/rxjs_operator';
 import {Observable, finalize} from 'rxjs';
 
+import {MatIconModule} from '@angular/material/icon';
+import {MatTooltipModule} from '@angular/material/tooltip';
+
 @Component({
   selector: 'app-suite',
   templateUrl: './suite.component.html',
   styleUrls: ['./suite.component.scss'],
   standalone: true,
-  imports: [AutocompleteSelectorComponent, CommonModule, MatButtonModule],
+  imports: [
+    AutocompleteSelectorComponent,
+    CommonModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+  ],
 })
 export class SuiteComponent implements OnChanges, OnDestroy {
   @ViewChild('testSelector') selector?: AutocompleteSelectorComponent;
@@ -60,13 +69,8 @@ export class SuiteComponent implements OnChanges, OnDestroy {
   protected testOptions = signal<SelectableItem[]>([]);
 
   protected buildSignal = signal<string>('');
-  protected targetSignal = signal<string[]>([]);
+  protected targetSignal = signal<string>('');
 
-  private suiteTarget = computed(() => {
-    return toIterator(this.targetSignal()).first_where(e =>
-      e.includes('test_suites')
-    );
-  });
   protected suiteSignal = signal<string>('');
   private suiteValid = computed(() => {
     const suite = this.suiteSignal();
@@ -92,7 +96,7 @@ export class SuiteComponent implements OnChanges, OnDestroy {
             this.selectedTestModulesSignal,
           ]);
           const build = this.buildSignal();
-          const t2 = this.suiteTarget();
+          const t2 = this.targetSignal();
 
           if (build && t2) {
             this.__listSuites(build, t2);
@@ -111,7 +115,7 @@ export class SuiteComponent implements OnChanges, OnDestroy {
             this.testSignal,
           ]);
           const build = untracked(() => this.buildSignal());
-          const target = untracked(() => this.suiteTarget());
+          const target = untracked(() => this.targetSignal());
           let suite = this.suiteValid();
 
           if (build && target && suite !== undefined) {

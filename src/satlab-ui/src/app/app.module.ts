@@ -26,6 +26,7 @@ import {TestPlanComponent} from './run_suite/android/test-plan/test-plan.compone
 import {RunComponent} from './run_suite/chromeos/run/run.component';
 import {AdvancedSettingsComponent} from './run_suite/common/advanced-settings/advanced-settings.component';
 import {AutocompleteSelectorComponent} from './run_suite/common/autocomplete-selector/autocomplete-selector.component';
+import {AutocompleteComponent} from './run_suite/common/autocomplete/autocomplete.component';
 import {BasicSelectorComponent} from './run_suite/common/basic-selector/basic-selector.component';
 import {BuildSelectFormComponent} from './run_suite/common/build-select-form/build-select-form.component';
 import {BuildSelectorComponent} from './run_suite/common/build-selector/build-selector.component';
@@ -106,14 +107,12 @@ import {SingleLineEllipsisDirective} from './single-line-ellipsis.directive';
     CircularProgressComponent,
     QualificationsComponent,
     PvsComponent,
-    AdvancedSettingsComponent,
     OpenCcdComponent,
     LabQualComponent,
     StableVersionComponent,
     StableVersionCardComponent,
     PasitComponent,
     WifiConfigComponent,
-    SafeNumberPipe,
     RunComponent,
     SingleLineEllipsisDirective,
   ],
@@ -160,6 +159,12 @@ import {SingleLineEllipsisDirective} from './single-line-ellipsis.directive';
     BasicSelectorComponent,
     AutocompleteSelectorComponent,
     LoadingComponent,
+    AutocompleteComponent,
+    AndroidBuildSelectFormComponent,
+    SuiteComponent,
+    TestPlanComponent,
+    AdvancedSettingsComponent,
+    SafeNumberPipe,
   ],
   exports: [
     AppRoutingModule,

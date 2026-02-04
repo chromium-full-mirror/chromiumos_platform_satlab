@@ -1,0 +1,40 @@
+<div
+  class="relative inline-block h-20 w-full [&.mat-mdc-tooltip-trigger]:mb-[-1.25rem]"
+  appClickDetector
+  (outside)="unfocusedCleanup()"
+>
+  <div class="selector-wrapper">
+    <mat-form-field
+      class="w-full [&_.mat-mdc-text-field-wrapper.mdc-text-field]:p-0"
+      [matTooltip]="disabledSignal() ? disabledMsgSignal() : ''"
+      matTooltipPosition="below"
+    >
+      <mat-label>{{ title }}</mat-label>
+      <input
+        #search
+        [formControl]="searchFormControl"
+        [placeholder]="placeholder"
+        (click)="toggleDropdown()"
+        (blur)="onBlur()"
+        (keydown.enter)="unfocusedCleanup(); $any($event.target).blur()"
+        matInput
+      />
+    </mat-form-field>
+  </div>
+  <ng-container *ngIf="isOptsOpened()">
+    <div
+      class="absolute w-full top-[60px] left-0 z-[2] bg-[#fafafa] shadow-[0_10px_20px_0_rgb(160,160,170)] rounded-[4px] max-h-[132px] min-h-[48px] overflow-y-scroll"
+    >
+      <mat-list>
+        <mat-list-item
+          *ngFor="let option of filteredOptions()"
+          (click)="onOptionClicked(option)"
+          [disabled]="option.label === 'Failed'"
+          class="cursor-pointer hover:bg-[#ebebeb]"
+        >
+          {{ option.text }}
+        </mat-list-item>
+      </mat-list>
+    </div>
+  </ng-container>
+</div>

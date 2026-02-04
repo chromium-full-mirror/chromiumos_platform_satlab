@@ -29,13 +29,15 @@
 >
   <app-loading [loading$]="loading$"></app-loading>
   <div class="min-h-[1.5rem]">
-    <p class="text-red-500 text-center">{{ notAvailableMsg() }}</p>
+    <p class="text-red-500 text-center" *ngIf="combinedErrorMsg() !== ''">
+      {{ combinedErrorMsg() }}
+    </p>
   </div>
   <div class="flex gap-2 w-full flex-col">
     <app-basic-selector
       (select)="onPropsChanged('board', $event)"
       [options]="boardOptions()"
-      [disabled]="isRunLoadingSignal()"
+      [disabled]="isRunLoadingSignal() || isLoading().show"
       title="Select Board:"
     >
     </app-basic-selector>
@@ -44,45 +46,98 @@
       (select)="onPropsChanged('model', $event)"
       [options]="modelsOptions()"
       [value]="modelSignal()"
-      [disabled]="isRunLoadingSignal()"
+      [disabled]="
+        isRunLoadingSignal() || modelsOptions().length === 0 || isLoading().show
+      "
       title="Select Model (Optional):"
     >
     </app-basic-selector>
 
-    <app-basic-selector
-      (select)="onPropsChanged('branch', $event)"
-      [options]="branchOptions()"
-      [value]="branchSignal()"
-      [disabled]="isRunLoadingSignal()"
-      title="Select Branch:"
-    >
-    </app-basic-selector>
+    <ng-container *ngIf="!isCrossBranchTestingSignal()">
+      <app-basic-selector
+        (select)="onPropsChanged('branch', $event)"
+        [options]="filteredBranchOptions()"
+        [value]="branchSignal()"
+        [disabled]="
+          isRunLoadingSignal() ||
+          filteredBranchOptions().length === 0 ||
+          isLoading().show
+        "
+        title="Select OS Branch:"
+      >
+      </app-basic-selector>
 
-    <app-basic-selector
-      (select)="onPropsChanged('boardTarget', $event)"
-      [options]="boardTargetOptions()"
-      [disabled]="isRunLoadingSignal()"
-      title="Select Board Target:"
-    >
-    </app-basic-selector>
+      <app-basic-selector
+        (select)="onPropsChanged('boardTarget', $event)"
+        [options]="boardTargetOptions()"
+        [disabled]="
+          isRunLoadingSignal() ||
+          isLoading().show ||
+          boardTargetOptions().length === 0
+        "
+        title="Select OS Target:"
+      >
+      </app-basic-selector>
+    </ng-container>
 
-    <app-basic-selector
-      (select)="onPropsChanged('suiteTarget', $event)"
-      [options]="suiteTargetOptions()"
-      [disabled]="isRunLoadingSignal()"
-      title="Select Suite Target:"
+    <app-android-build-picker
+      #provisionPicker
+      *ngIf="isCrossBranchTestingSignal()"
+      [board]="boardSignal()"
+      [model]="modelSignal()"
+      [type]="'provision'"
+      [duts]="duts()"
+      [parentLoading]="isRunLoadingSignal()"
+      (loadingWithMsg)="onChildLoadingChanged($event)"
+      (dataChanged)="onAndroidBranchTargetBuildChanged($event)"
+    ></app-android-build-picker>
+
+    <mat-slide-toggle
+      (change)="onCrossBranchTestingChanged($event.checked)"
+      [disabled]="isRunLoadingSignal() || isLoading().show"
     >
-    </app-basic-selector>
+      Cross-branch testing
+    </mat-slide-toggle>
+
+    <app-android-build-picker
+      #testPicker
+      *ngIf="isCrossBranchTestingSignal()"
+      [board]="boardSignal()"
+      [model]="modelSignal()"
+      [type]="'test'"
+      [duts]="duts()"
+      [buildValidatorConfig]="buildValidator"
+      [parentLoading]="isRunLoadingSignal()"
+      (loadingWithMsg)="onChildLoadingChanged($event)"
+      (dataChanged)="onAndroidBranchTargetBuildChanged($event)"
+    ></app-android-build-picker>
+
+    <div *ngIf="!isCrossBranchTestingSignal()">
+      <app-basic-selector
+        (select)="onPropsChanged('suiteTarget', $event)"
+        [options]="suiteTargetOptions()"
+        [disabled]="
+          isRunLoadingSignal() ||
+          suiteTargetOptions().length === 0 ||
+          isLoading().show
+        "
+        title="Select Test Target:"
+      >
+      </app-basic-selector>
+    </div>
 
     <app-basic-selector
       (select)="onPropsChanged('pool', $event)"
       [options]="poolsOptions()"
-      [disabled]="isRunLoadingSignal()"
+      [disabled]="
+        isRunLoadingSignal() || poolsOptions().length === 0 || isLoading().show
+      "
       title="Select Pool:"
     >
     </app-basic-selector>
 
     <app-autocomplete-selector
+      *ngIf="!isCrossBranchTestingSignal()"
       [options]="buildOptions()"
       title="Select Build:"
       (selectChanged)="onPropsChanged('build', $event)"
@@ -91,8 +146,8 @@
 
     <div *ngIf="tabSignal() !== 'Testplan'">
       <app-suite
-        [build]="validBuildSignal()"
-        [target]="targets()"
+        [build]="buildForListingSuite()"
+        [target]="testTarget()"
         [suite]="suiteSignal()"
         [testTitle]="tabSignal() === 'test' ? 'Test Include:' : 'Test Exclude:'"
         [selectedTestModules]="testModulesSignal()"
