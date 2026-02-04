@@ -63,6 +63,7 @@ export interface IJob {
   resultUrl: string;
   cpconUrl: string;
   completeJobPercentage?: number;
+  autoQual: boolean;
 }
 export interface IJobResponse {
   token: string;

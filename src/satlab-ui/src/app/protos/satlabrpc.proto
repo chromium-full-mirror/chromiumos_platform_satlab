@@ -633,7 +633,7 @@ message TasksStatusCount {
   repeated TaskCount task_count = 1;
 }
 
-// NEXT_TAG = 17
+// NEXT_TAG = 19
 message Job {
   // NEXT_TAG = 4
   enum JobType {
@@ -679,6 +679,7 @@ message Job {
   string model = 15;
   string build = 16;
   string cpcon_url = 17;
+  bool auto_qual = 18;
 }
 
 // NEXT_TAG = 3

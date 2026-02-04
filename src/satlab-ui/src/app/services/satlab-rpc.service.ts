@@ -1101,6 +1101,7 @@ function toJob(j: Job): IJob {
     resultUrl: j.getResultsUrl(),
     cpconUrl: j.getCpconUrl(),
     completeJobPercentage: complete,
+    autoQual: j.getAutoQual(),
   };
 }
 
