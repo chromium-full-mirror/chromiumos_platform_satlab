@@ -447,20 +447,13 @@ export class AndroidBuildSelectFormComponent
       )
       .subscribe({
         next: buildLink => {
-          if (autoQual && tab === 'Testplan') {
-            this.notification.info(
-              [`Triggering ${tab}: ${testplan} succeed!`],
-              {dismiss: false}
-            );
-          } else {
-            this.notification.info(
-              [
-                `Triggering ${tab} succeed! Link:`,
-                {type: 'url', url: buildLink},
-              ],
-              {dismiss: false}
-            );
-          }
+          this.notification.info(
+            [
+              `Triggering ${this.tabSignal()} succeed! Link:`,
+              {type: 'url', url: buildLink},
+            ],
+            {dismiss: false}
+          );
         },
         error: e => {
           this.notification.error(`Trigger job failed: ${e}`, {

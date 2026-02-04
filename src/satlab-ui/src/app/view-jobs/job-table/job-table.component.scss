@@ -1,5 +1,13 @@
 @import 'constants';
 
+.auto-qual-row {
+  background-color: #e4f7ffef;
+}
+
+.auto-qual-row:hover {
+  background-color: #d4f1ff;
+}
+
 .wrapper {
   display: block;
   position: relative;
