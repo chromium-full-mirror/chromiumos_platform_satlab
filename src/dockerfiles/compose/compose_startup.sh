@@ -94,7 +94,7 @@ function start_private_containers () {
   fi
 
   if [[ ${ATS_ENABLED:-false} == true ]]; then
-    docker-compose up -d omnilab-ats
+    docker-compose up -d ats
   fi
 
   # set permission for ssp volume to create lxc containers
