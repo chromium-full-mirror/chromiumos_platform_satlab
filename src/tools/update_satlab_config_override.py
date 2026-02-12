@@ -21,8 +21,12 @@ def update_satlab_config_override() -> None:
     if not is_satlab_enrolled():
         return
 
+    bucket_name = get_gcs_bucket()
+    if not bucket_name:
+        return
+
     storage_client = storage.Client.from_service_account_json(json_credentials_path = SATLAB_SA_FILENAME)
-    bucket = storage_client.bucket(bucket_name = get_gcs_bucket())
+    bucket = storage_client.bucket(bucket_name = bucket_name)
     blob = bucket.blob(blob_name = get_remote_satlab_override_config_name())
 
     if blob.exists():
@@ -42,9 +46,10 @@ def get_gcs_bucket() -> str:
     try:
         with open(file = SATLAB_CONFIG_FILENAME, mode = 'r') as file:
             config_data = json.load(fp = file)
-            return config_data.get("GCS_IMAGE_BUCKET")
+            bucket = config_data.get("GCS_IMAGE_BUCKET")
+            return bucket if bucket else "chromeos-satlab-internal-users"
     except:
-        return "chromeos-satlab-internal-users"
+        return ""
 
 def is_satlab_enrolled() -> bool:
     """

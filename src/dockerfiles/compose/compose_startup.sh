@@ -94,6 +94,11 @@ function start_private_containers () {
   fi
 
   if [[ ${ATS_ENABLED:-false} == true ]]; then
+    if [[ ${UFS_NAMESPACE:-os} == "os-partner" ]]; then
+      export ATS_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab-private
+    else
+      export ATS_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab-internal
+    fi
     docker-compose up -d ats
   fi
 

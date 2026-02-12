@@ -7,7 +7,7 @@ gcloud config set project ${GCP_PROJECT}
 gcloud config set core/account ${SERIVCE_ACCOUNT}
 gcloud compute config-ssh --quiet
 
-SSH_TARGET="ats-controller-instance.${GCP_ZONE}.${GCP_PROJECT}"
+SSH_TARGET="internal-testing-controller-1.${GCP_ZONE}.${GCP_PROJECT}"
 
 echo "Starting autossh for port forwarding to ${SSH_TARGET}..."
 autossh -4 -M${SSH_MONITOR_PORT} -v \
