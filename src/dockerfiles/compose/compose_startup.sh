@@ -105,6 +105,11 @@ function start_private_containers () {
   docker exec drone chmod 777 /var/servod/profile/
   # Ensure correct permissions for the service_accounts directory.
   docker exec drone chmod 777 /creds/service_accounts/
+  # Set apparmor profile to "unconfined".
+  # Needed for CFT containers cleanup Ubuntu-based instances.
+  docker exec drone sed -i \
+    '/^#\?\s*apparmor_profile/s/.*/apparmor_profile = "unconfined"/' \
+    /usr/share/containers/containers.conf /etc/containers/containers.conf || true
   # Remove old CFT docker test image.
   if jq -e '.prune_drone' "$USER_SETTINGS"; then
     docker exec drone docker system prune -a -f
