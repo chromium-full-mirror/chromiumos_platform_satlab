@@ -129,21 +129,6 @@ if [[ "${confirm,,}" == "y" || "${confirm,,}" == "yes" ]]; then
     set_config "EXTERNAL_PORT_TO_INTERNET" "$new_external_port"
     set_config "INTERNAL_PORT_TO_DUTS" "$new_internal_port"
 
-    # --- NetworkManager: unmanage the internal port ---
-    echo "Excluding $new_internal_port from NetworkManager management..."
-    mkdir -p /etc/NetworkManager/conf.d/
-    echo -e "[keyfile]\nunmanaged-devices=interface-name:$new_internal_port" > /etc/NetworkManager/conf.d/99-satlab-unmanaged.conf
-    # --- Verify if the new configuration has been accepted by NetworkManager ---
-    nmcli general reload
-    echo -e "${C_YELLOW}Verifying NetworkManager status for ${new_internal_port}...${C_NC}"
-    NM_STATUS=$(nmcli -t -f DEVICE,STATE device | grep "^${new_internal_port}:" | cut -d: -f2)
-    if [[ "$NM_STATUS" == "unmanaged" ]]; then
-        echo -e "${C_GREEN}Success: ${new_internal_port} is now unmanaged by NetworkManager. ${C_NC}"
-    else
-        echo -e "${C_YELLOW}Warning: ${new_internal_port} is reported as '$NM_STATUS'.${C_NC}"
-        echo -e "This may lead to bridge instability after reboot."
-    fi
-
     # --- Verification Step ---
     # Read the newly saved values back from the config file
     saved_external_port=$(grep "^EXTERNAL_PORT_TO_INTERNET=" "$CONFIG" | cut -d'=' -f2)
