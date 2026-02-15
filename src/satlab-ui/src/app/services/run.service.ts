@@ -72,6 +72,15 @@ export class RunService {
     settings.setTrv2(params.advanceSettings.trv2 ?? false);
     settings.setUploadToCpcon(params.advanceSettings.uploadToCpcon ?? false);
     settings.setMaxInShard(params.advanceSettings.maxInShard ?? 0);
+    settings.setTestRunnerTimeout(params.advanceSettings.trTimeout ?? 0);
+    settings.setStaticShard(params.advanceSettings.nShards ?? 0);
+    // UI shows CTP timeout in hours, but RPC expects minutes.
+    settings.setCtpTimeout(
+      params.advanceSettings.ctpTimeout
+        ? params.advanceSettings.ctpTimeout * 60
+        : 0
+    );
+
     const servoRequired =
       (params.advanceSettings?.servoRequired as boolean) ?? false;
 

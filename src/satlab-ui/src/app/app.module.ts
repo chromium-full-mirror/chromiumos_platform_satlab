@@ -113,11 +113,8 @@ import {SingleLineEllipsisDirective} from './single-line-ellipsis.directive';
     StableVersionCardComponent,
     PasitComponent,
     WifiConfigComponent,
-    SuiteComponent,
-    AndroidBuildSelectFormComponent,
     SafeNumberPipe,
     RunComponent,
-    TestPlanComponent,
     SingleLineEllipsisDirective,
   ],
   imports: [

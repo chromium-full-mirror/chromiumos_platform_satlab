@@ -860,12 +860,19 @@ message SendMessageToCCDSessionRequest {
 // NEXT_TAG = 1
 message SendMessageToCCDSessionResponse {}
 
-// NEXT_TAG = 5
+// NEXT_TAG = 8
 message AdvancedSettings {
   bool cft = 1;
   bool trv2 = 2;
   bool upload_to_cpcon = 3;
+  // maximum number of test modules in one shard
   int64 max_in_shard = 4;
+  // test runner timeout (hours)
+  int64 test_runner_timeout = 5;
+  // number of shards
+  int32 static_shard = 6;
+  // CTP timeout
+  int32 ctp_timeout = 7;
 }
 
 // NEXT_TAG = 9

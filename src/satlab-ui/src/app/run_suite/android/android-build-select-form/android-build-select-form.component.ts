@@ -1,3 +1,4 @@
+import {SettingsComponent} from 'app/run_suite/common/settings/settings.component';
 import {toIterator} from '../../../../app/utils/iterator';
 import {IDut} from '../../../models/dut';
 import {SelectableItem} from '../../../models/selectable_item';
@@ -16,6 +17,7 @@ import {
   Component,
   EffectRef,
   OnDestroy,
+  ViewChild,
   WritableSignal,
   computed,
   effect,
@@ -23,15 +25,49 @@ import {
   untracked,
 } from '@angular/core';
 import {toObservable} from '@angular/core/rxjs-interop';
-import {MAX_IN_SHARD_DEFAULT} from 'app/constants';
-import {ICustomSettings} from 'app/models/run_suite_fields';
+import {
+  CustomSetting,
+  getDefaultCTPTimeout,
+  getDefaultTrTimeout,
+  getShardingGroup,
+  getTestplanShardingGroup,
+  InputBoxSetting,
+  SingleChoiceSetting,
+} from 'app/models/run_suite_fields';
 import {NotificationService} from 'app/services/notification.service';
-import {Observable, finalize, from} from 'rxjs';
+import {
+  Observable,
+  debounceTime,
+  distinctUntilChanged,
+  finalize,
+  from,
+  of,
+  switchMap,
+} from 'rxjs';
+import {CommonModule, NgIf} from '@angular/common';
+import {LoadingComponent} from 'app/run_suite/common/loading/loading.component';
+import {BasicSelectorComponent} from 'app/run_suite/common/basic-selector/basic-selector.component';
+import {AutocompleteSelectorComponent} from 'app/run_suite/common/autocomplete-selector/autocomplete-selector.component';
+import {SuiteComponent} from '../suite/suite.component';
+import {TestPlanComponent} from '../test-plan/test-plan.component';
+import {LoadingButtonComponent} from 'app/common/loading-button/loading-button.component';
 
 @Component({
   selector: 'app-android-build-select-form',
   templateUrl: './android-build-select-form.component.html',
   styleUrls: ['./android-build-select-form.component.scss'],
+  standalone: true,
+  imports: [
+    AutocompleteSelectorComponent,
+    BasicSelectorComponent,
+    CommonModule,
+    LoadingButtonComponent,
+    LoadingComponent,
+    NgIf,
+    SettingsComponent,
+    SuiteComponent,
+    TestPlanComponent,
+  ],
 })
 export class AndroidBuildSelectFormComponent
   implements AfterViewInit, OnDestroy
@@ -94,7 +130,22 @@ export class AndroidBuildSelectFormComponent
   protected suiteOptions = signal<SelectableItem[]>([]);
   protected testOptions = signal<SelectableItem[]>([]);
 
-  protected customSettings = signal({maxInShard: MAX_IN_SHARD_DEFAULT});
+  // The default settings for the run suite/test.
+  protected settings = [
+    getDefaultCTPTimeout(),
+    getDefaultTrTimeout(),
+    getShardingGroup(),
+  ];
+
+  protected testplanSettings = [
+    getDefaultCTPTimeout(),
+    getDefaultTrTimeout(),
+    getTestplanShardingGroup(),
+  ];
+
+  @ViewChild('settingsRef') settingsRef!: SettingsComponent;
+
+  protected customSettings = signal<CustomSetting[]>([...this.settings]);
 
   protected duts = signal<IDut[]>([]);
   protected boardOptions = computed(() => {
@@ -168,6 +219,21 @@ export class AndroidBuildSelectFormComponent
         {allowSignalWrites: true}
       ),
     ];
+    // An observable that updates the CTP timeout and TR timeout based on the testplan.
+    toObservable(this.testPlanSignal)
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap(testPlan => {
+          if (testPlan === 'avs/component/storage') {
+            return of([72, 48]);
+          }
+          return of([16, 16]);
+        })
+      )
+      .subscribe(([timeout, trTimeout]) => {
+        this.updateConfigs(timeout, trTimeout);
+      });
   }
 
   ngAfterViewInit() {
@@ -295,24 +361,33 @@ export class AndroidBuildSelectFormComponent
     }
   }
 
-  protected onCustomSettingsChanged(value: ICustomSettings) {
-    this.customSettings.set({
-      maxInShard: value.maxInShard,
-    });
-  }
-
   protected onChildLoadingChanged(value: {show: boolean; message: string}) {
     this.isLoading.set(value);
   }
 
   protected onTabChanged(tab: 'suite' | 'test' | 'Testplan') {
     this.tabSignal.set(tab);
+    this.settingsRef.resetShadringModeErrors();
     resetSignals([
       this.suiteSignal,
       this.testModulesSignal,
       this.testPlanSignal,
-      this.autoQualSignal,
     ]);
+    this.autoQualSignal.set(false);
+    if (tab === 'Testplan') {
+      // if selecting testplan, set the maxInShard to 10000 and make it immutable.
+      this.customSettings.set([
+        getDefaultCTPTimeout(),
+        getDefaultTrTimeout(),
+        getTestplanShardingGroup(),
+      ]);
+    } else {
+      this.customSettings.set([
+        getDefaultCTPTimeout(),
+        getDefaultTrTimeout(),
+        getShardingGroup(),
+      ]);
+    }
   }
 
   protected onChildSuiteValidChanged(value: boolean) {
@@ -322,7 +397,7 @@ export class AndroidBuildSelectFormComponent
   protected _isRunnable = computed(() => {
     const extra =
       this.tabSignal() !== 'test' || this.testModulesSignal().length !== 0;
-    const shard = this.customSettings().maxInShard;
+
     const taskValid =
       this.tabSignal() === 'Testplan'
         ? this.testPlanSignal() !== ''
@@ -333,7 +408,7 @@ export class AndroidBuildSelectFormComponent
     const errorMsg = this.notAvailableMsg();
 
     console.log(
-      `extra: ${extra}, shard: ${shard}, loading: ${
+      `extra: ${extra}, loading: ${
         this.isLoading().show
       }, board: ${this.boardSignal()}, branch: ${this.branchSignal()}, t1: ${
         this.targetSignal()[1]
@@ -341,6 +416,8 @@ export class AndroidBuildSelectFormComponent
         this.targetSignal()[2]
       }, build: ${this.buildSignal()}, pool: ${this.poolSignal()}, taskValid: ${taskValid}, target: ${this.target()}`
     );
+
+    const hasErrors = this.settingsRef?.hasErrors() || false;
 
     return (
       errorMsg === '' &&
@@ -354,16 +431,17 @@ export class AndroidBuildSelectFormComponent
       this.poolSignal() !== '' &&
       taskValid &&
       this.target() &&
-      !Number.isNaN(shard) &&
-      Number.isInteger(shard) &&
-      shard >= 0 &&
-      shard <= 65536 &&
-      extra
+      extra &&
+      !hasErrors
     );
   });
 
   protected onBuildInputValueChanged(value: string) {
     this.onPropsChanged('build', value);
+  }
+
+  protected onCustomSettingsChanged(value: CustomSetting[]) {
+    this.customSettings.set([...value]);
   }
 
   protected onPlanChanged(value: string) {
@@ -397,7 +475,21 @@ export class AndroidBuildSelectFormComponent
       textExcludes = [...testModules];
     }
 
-    const shard = this.customSettings().maxInShard;
+    const settings = this.customSettings();
+    const ctpTimeout = (
+      settings.find(s => s.key === 'ctpTimeout') as InputBoxSetting
+    )?.state.value;
+    const trTimeout = (
+      settings.find(s => s.key === 'trTimeout') as InputBoxSetting
+    )?.state.value;
+    const shardingMode = settings.find(
+      s => s.key === 'shardingMode'
+    ) as SingleChoiceSetting;
+
+    const nShards = shardingMode.options.find(s => s.key === 'nShards')?.state
+      .value;
+    const maxInShard = shardingMode.options.find(s => s.key === 'maxInShard')
+      ?.state.value;
 
     let task: Suite | Test | Testplan;
     if (tab === 'suite' || tab === 'test') {
@@ -432,7 +524,10 @@ export class AndroidBuildSelectFormComponent
       run: task,
       advanceSettings: {
         cft: true,
-        maxInShard: shard,
+        maxInShard: maxInShard,
+        ctpTimeout: ctpTimeout,
+        trTimeout: trTimeout,
+        nShards: nShards,
       },
     };
 
@@ -583,6 +678,20 @@ export class AndroidBuildSelectFormComponent
         });
       },
     });
+  }
+
+  // Updating configs if required
+  private updateConfigs(ctpTimeout: number, trTimeout: number) {
+    this.customSettings.update(settings =>
+      settings.map(s => {
+        if (s.key === 'ctpTimeout') {
+          return {...s, state: {...s.state, value: ctpTimeout}};
+        } else if (s.key === 'trTimeout') {
+          return {...s, state: {...s.state, value: trTimeout}};
+        }
+        return s;
+      })
+    );
   }
 }
 

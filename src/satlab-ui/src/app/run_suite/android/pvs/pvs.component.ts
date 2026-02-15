@@ -4,10 +4,11 @@ import {BasicSelectorComponent} from '../../common/basic-selector/basic-selector
 import {LoadingComponent} from '../../common/loading/loading.component';
 import {NgIf} from '@angular/common';
 import {
-  AfterViewInit,
   Component,
   EffectRef,
   OnDestroy,
+  OnInit,
+  ViewChild,
   computed,
   effect,
   signal,
@@ -29,6 +30,15 @@ import {
 } from 'app/utils/operators';
 import {startWithTap} from 'app/utils/rxjs_operator';
 import {finalize, from} from 'rxjs';
+import {SettingsComponent} from 'app/run_suite/common/settings/settings.component';
+import {
+  CustomSetting,
+  getDefaultCTPTimeout,
+  getDefaultTrTimeout,
+  InputBoxSetting,
+  SingleChoiceSetting,
+  getTestplanShardingGroup,
+} from 'app/models/run_suite_fields';
 
 @Component({
   selector: 'app-pvs',
@@ -41,9 +51,10 @@ import {finalize, from} from 'rxjs';
     AutocompleteSelectorComponent,
     LoadingButtonComponent,
     NgIf,
+    SettingsComponent,
   ],
 })
-export class PvsComponent implements AfterViewInit, OnDestroy {
+export class PvsComponent implements OnInit, OnDestroy {
   protected boardSignal = signal<string>('');
   protected allModels = computed(() => {
     const board = this.boardSignal();
@@ -148,6 +159,16 @@ export class PvsComponent implements AfterViewInit, OnDestroy {
 
   private refs: EffectRef[] = [];
 
+  protected defaultSettings = [
+    getDefaultCTPTimeout(),
+    getDefaultTrTimeout(),
+    getTestplanShardingGroup(),
+  ];
+
+  protected settings = signal<CustomSetting[]>([...this.defaultSettings]);
+
+  @ViewChild('settingsRef') settingsRef!: SettingsComponent;
+
   constructor(
     private androidService: AndroidService,
     private runService: RunService,
@@ -157,7 +178,7 @@ export class PvsComponent implements AfterViewInit, OnDestroy {
     this.refs = [
       effect(
         () => {
-          this.__onTabChanged(this.tabSignal());
+          this.__onSingleChoiceChanged(this.tabSignal());
         },
         {allowSignalWrites: true}
       ),
@@ -197,7 +218,8 @@ export class PvsComponent implements AfterViewInit, OnDestroy {
     ];
   }
 
-  ngAfterViewInit() {
+  ngOnInit() {
+    this.updateConfigs(72, 48);
     this.__listDuts();
   }
 
@@ -205,7 +227,10 @@ export class PvsComponent implements AfterViewInit, OnDestroy {
     this.refs.forEach(e => e.destroy());
   }
 
-  protected onPropsChanged(key: string, value: string | string[]) {
+  protected onPropsChanged(
+    key: string,
+    value: string | string[] | CustomSetting[]
+  ) {
     switch (key) {
       case 'tab':
         this.tabSignal.set(value as 'storage' | 'memory');
@@ -252,7 +277,10 @@ export class PvsComponent implements AfterViewInit, OnDestroy {
         // Set the model value if users select the
         // model branch and didn't set the model value.
         for (const model of this.allModels()) {
-          if (value.includes(model) && this.modelSignal() !== model) {
+          if (
+            (value as string[]).includes(model) &&
+            this.modelSignal() !== model
+          ) {
             this.modelSignal.set(model);
           }
         }
@@ -314,7 +342,12 @@ export class PvsComponent implements AfterViewInit, OnDestroy {
     this.testNameSignal.set(value);
   }
 
+  protected onCustomSettingsChanged(value: CustomSetting[]) {
+    this.settings.set([...value]);
+  }
+
   protected _isRunnable = computed(() => {
+    const settingsHaveErrors = this.settingsRef?.hasErrors();
     return (
       this.isLoading().show === false &&
       this.boardSignal() &&
@@ -326,7 +359,8 @@ export class PvsComponent implements AfterViewInit, OnDestroy {
       this.validBuildSignal() !== '' &&
       this.hostnameSignal() !== '' &&
       this.notAvailableMsg() === '' &&
-      (this.testTypeSignal() !== 'test' || this.testNameSignal() !== '')
+      (this.testTypeSignal() !== 'test' || this.testNameSignal() !== '') &&
+      !settingsHaveErrors
     );
   });
 
@@ -358,6 +392,26 @@ export class PvsComponent implements AfterViewInit, OnDestroy {
             name: test,
           };
 
+    const settings = this.settings();
+    const ctpTimeout = (
+      settings.find(
+        s => s.key === 'ctpTimeout' && s.format === 'inputBox'
+      ) as InputBoxSetting
+    ).state.value;
+    const trTimeout = (
+      settings.find(
+        s => s.key === 'trTimeout' && s.format === 'inputBox'
+      ) as InputBoxSetting
+    ).state.value;
+    const shardingMode = settings.find(
+      s => s.key === 'shardingMode'
+    ) as SingleChoiceSetting;
+
+    const nShards = shardingMode.options.find(s => s.key === 'nShards')?.state
+      .value;
+    const maxInShard = shardingMode.options.find(s => s.key === 'maxInShard')
+      ?.state.value;
+
     const req: RunAndroidOSRequest = {
       os: 'android',
       board: board,
@@ -378,6 +432,10 @@ export class PvsComponent implements AfterViewInit, OnDestroy {
         cft: true,
         trv2: true,
         uploadToCpcon: true,
+        ctpTimeout: ctpTimeout,
+        trTimeout: trTimeout,
+        nShards: nShards,
+        maxInShard: maxInShard,
       },
     };
 
@@ -406,7 +464,7 @@ export class PvsComponent implements AfterViewInit, OnDestroy {
       });
   }
 
-  private __onTabChanged(tab: 'storage' | 'memory') {
+  private __onSingleChoiceChanged(tab: 'storage' | 'memory') {
     if (tab === 'memory') {
       this.testTypeSignal.set('testplan');
     }
@@ -545,5 +603,17 @@ export class PvsComponent implements AfterViewInit, OnDestroy {
         });
       },
     });
+  }
+  private updateConfigs(ctpTimeout: number, trTimeout: number) {
+    this.settings.update(settings =>
+      settings.map(s => {
+        if (s.key === 'ctpTimeout') {
+          return {...s, state: {...s.state, value: ctpTimeout}};
+        } else if (s.key === 'trTimeout') {
+          return {...s, state: {...s.state, value: trTimeout}};
+        }
+        return s;
+      })
+    );
   }
 }

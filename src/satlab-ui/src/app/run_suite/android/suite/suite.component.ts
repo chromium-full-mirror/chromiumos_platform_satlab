@@ -1,3 +1,4 @@
+import {CommonModule} from '@angular/common';
 import {
   Component,
   EffectRef,
@@ -14,6 +15,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import {MatButtonModule} from '@angular/material/button';
 import {ANDROID_TEST_PREFIX} from 'app/constants';
 import {SelectableItem} from 'app/models/selectable_item';
 import {AutocompleteSelectorComponent} from 'app/run_suite/common/autocomplete-selector/autocomplete-selector.component';
@@ -27,6 +29,8 @@ import {Observable, finalize} from 'rxjs';
   selector: 'app-suite',
   templateUrl: './suite.component.html',
   styleUrls: ['./suite.component.scss'],
+  standalone: true,
+  imports: [AutocompleteSelectorComponent, CommonModule, MatButtonModule],
 })
 export class SuiteComponent implements OnChanges, OnDestroy {
   @ViewChild('testSelector') selector?: AutocompleteSelectorComponent;

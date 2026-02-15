@@ -1,3 +1,4 @@
+import {CommonModule, NgIf} from '@angular/common';
 import {
   Component,
   EventEmitter,
@@ -6,11 +7,14 @@ import {
   effect,
   signal,
 } from '@angular/core';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 
 @Component({
   selector: 'app-test-plan',
   templateUrl: './test-plan.component.html',
   styleUrls: ['./test-plan.component.scss'],
+  standalone: true,
+  imports: [CommonModule, MatSlideToggleModule, NgIf],
 })
 export class TestPlanComponent {
   protected inputValue = signal('');

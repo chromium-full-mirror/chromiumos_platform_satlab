@@ -109,6 +109,13 @@
       ></app-basic-selector>
     </ng-container>
 
+    <app-settings
+      #settingsRef
+      [customSettings]="settings()"
+      [defaultSettings]="this.defaultSettings"
+      (settingsChanged)="onCustomSettingsChanged($event)"
+    ></app-settings>
+
     <app-loading-button
       class="mx-auto"
       (onClick)="onRunClicked()"

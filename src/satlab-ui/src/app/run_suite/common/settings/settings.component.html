@@ -1,0 +1,115 @@
+<div class="settings-wrapper">
+  <mat-accordion>
+    <mat-expansion-panel #settings [hideToggle]="true">
+      <mat-expansion-panel-header class="px-0">
+        <div class="flex items-center justify-between w-full">
+          <div class="flex items-center gap-1">
+            <mat-icon class="text-gray-700">
+              {{ settings.expanded ? 'arrow_drop_up' : 'arrow_drop_down' }}
+            </mat-icon>
+            <span class="text-[14px] text-slate-700 font-medium"
+              >Advanced settings</span
+            >
+          </div>
+        </div>
+      </mat-expansion-panel-header>
+      <div class="flex flex-col gap-4">
+        <ng-container
+          *ngFor="let setting of customSettings; trackBy: trackByKey"
+        >
+          <div
+            class="flex flex-col gap-2"
+            *ngIf="setting.format === 'inputBox'"
+          >
+            <ng-container>
+              <label for="{{ setting.key }}" class="text-blue-500 text-md">{{
+                setting.label
+              }}</label>
+              <input
+                id="{{ setting.key }}"
+                type="number"
+                placeholder="N/A"
+                [value]="setting.state.value"
+                class="w-full outline-none h-12 border-b border-b-gray-600 focus:border-b-blue-500 bg-transparent disabled:text-gray-300"
+                [class.text-gray-300]="setting.state.disabled"
+                [class.border-b-red-500]="!!errors().get(setting.key)"
+                [disabled]="setting.state.disabled"
+                (input)="
+                  onInputBoxSettingsChanged(
+                    setting.key,
+                    $any($event.target).valueAsNumber
+                  )
+                "
+              />
+              <span
+                *ngIf="errors().get(setting.key) as errMsg"
+                class="text-red-500 text-[12px] mt-1"
+                >{{ errMsg }}</span
+              >
+            </ng-container>
+          </div>
+          <div *ngIf="setting.format === 'singleChoice'">
+            <label
+              for="{{ setting.key }}"
+              class="text-blue-500 text-md block mt-[10px]"
+              >{{ setting.label }}</label
+            >
+            <div class="flex w-full border-b border-gray-200 mt-[15px]">
+              <button
+                *ngFor="let opt of setting.options; let i = index"
+                type="button"
+                (click)="onShardingModeChanged(setting, i)"
+                class="flex-1 py-2 text-[14px] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                [class]="
+                  setting.index === i
+                    ? 'text-blue-600 bg-gray-100'
+                    : 'text-gray-400 bg-transparent'
+                "
+              >
+                {{ opt.label }}
+              </button>
+            </div>
+
+            <div
+              *ngIf="setting.options[setting.index] as subSetting"
+              [class.hidden]="subSetting.format === 'none'"
+              class="flex flex-col gap-2 mt-[15px]"
+            >
+              <label
+                for="{{ setting.key }}-{{ subSetting.key }}"
+                class="text-blue-500 text-[13px] font-medium bg-transparent"
+              >
+                {{ subSetting.description }}
+              </label>
+              <input
+                id="{{ setting.key }}-{{ subSetting.key }}"
+                type="number"
+                placeholder="N/A"
+                [value]="subSetting.state.value"
+                [disabled]="subSetting.state.disabled"
+                (input)="
+                  onSingleChoiceSubSettingChanged(
+                    setting,
+                    $any($event.target).valueAsNumber
+                  )
+                "
+                class="w-full outline-none h-10 border-b border-gray-400 focus:border-blue-500 bg-transparent"
+                [class.text-gray-300]="subSetting.state.disabled"
+                [class.border-red-500]="
+                  !!errors().get(setting.key + '-' + subSetting.key)
+                "
+              />
+              <span
+                *ngIf="
+                  errors().get(setting.key + '-' + subSetting.key) as errMsg
+                "
+                class="text-red-500 text-[12px] mt-1"
+                >{{ errMsg }}</span
+              >
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+</div>

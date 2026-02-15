@@ -101,13 +101,6 @@
         (onLoadingChanged)="onChildLoadingChanged($event)"
         (onSuiteValidChanged)="onChildSuiteValidChanged($event)"
       >
-        <div class="advancedSettings">
-          <app-advanced-settings
-            [customSettings]="customSettings()"
-            (settingsChanged)="onCustomSettingsChanged($event)"
-          >
-          </app-advanced-settings>
-        </div>
       </app-suite>
     </div>
 
@@ -116,14 +109,18 @@
         (changed)="onPlanChanged($event)"
         (autoQual)="onAutoQualChanged($event)"
       >
-        <div class="advancedSettings">
-          <app-advanced-settings
-            [disabled]="true"
-            [customSettings]="{maxInShard: 10000}"
-          >
-          </app-advanced-settings>
-        </div>
       </app-test-plan>
+    </div>
+
+    <div class="advancedSettings">
+      <app-settings
+        #settingsRef
+        [defaultSettings]="
+          tabSignal() === 'Testplan' ? this.testplanSettings : this.settings
+        "
+        [customSettings]="customSettings()"
+        (settingsChanged)="onCustomSettingsChanged($event)"
+      ></app-settings>
     </div>
 
     <app-loading-button
