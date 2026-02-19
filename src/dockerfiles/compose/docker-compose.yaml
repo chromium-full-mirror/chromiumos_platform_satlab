@@ -342,9 +342,7 @@ services:
     image: ${ATS_REGISTRY_URI}/ats:${ATS:-release}
     hostname: ${DRONE_HOSTNAME}
     volumes:
-      - satlab_keys:/home/satlab/keys
-      - mtt_data:/data
-      - mtt_temp:/tmp
+      - satlab_keys:/creds/service_accounts:rw
     devices:
       - /dev/fuse:/dev/fuse
     networks:
@@ -355,28 +353,10 @@ services:
     dns:
       - 192.168.100.51
     environment:
-      - OPERATION_MODE=on_premise
-      - OMNI_MODE_USAGE=private_usage
-      - MTT_CONTROL_SERVER_URL=http://ats-controller-bridge:8900
-      - MTT_CONTROL_FILE_SERVER_URL=http://ats-controller-bridge:8906
-      - TZ=Etc/UTC
-      - MTT_SERVER_LOG_LEVEL=debug
-      - IS_OMNILAB_BASED=true
-      - LAB_SERVER_OPTS=
-        >
-        --grpc_port=${WORKER_GRPC_PORT}
-        --file_transfer_cloud_bucket=${CLOUD_FILE_TRANSFER_BUCKET}
-        --enable_cloud_file_transfer=true
-        --file_transfer_cred_file=/tmp/keyfile/key.json
-        --ats_file_server_uploader_file_cleanup=false
-        --external_res_jar=/mtt/libexternal_resources.jar
-        --tradefed_binary_dir=/tradefed
+      - WORKER_GRPC_PORT=${WORKER_GRPC_PORT}
+      - CLOUD_FILE_TRANSFER_BUCKET=${CLOUD_FILE_TRANSFER_BUCKET}
       - GCP_PROJECT=${GCP_PROJECT}
-    command: [
-      "/bin/sh",
-      "-c",
-      "mkdir -p /tmp/keyfile/ && ln -fs /home/satlab/keys/pubsub-key-do-not-delete.json /tmp/keyfile/key.json && /mtt/scripts/init.sh"
-    ]
+      - ATS_MODE=${ATS_MODE:-satlab}
     depends_on:
       - ats-controller-bridge
       - dns
@@ -398,8 +378,6 @@ volumes:
   docker_tls:
     external: True
   bridge_ssh: {}
-  mtt_data: {}
-  mtt_temp: {}
 ##############################################################################networks
 networks:
   satlab:
