@@ -356,6 +356,7 @@ services:
       - WORKER_GRPC_PORT=${WORKER_GRPC_PORT}
       - CLOUD_FILE_TRANSFER_BUCKET=${CLOUD_FILE_TRANSFER_BUCKET}
       - GCP_PROJECT=${GCP_PROJECT}
+      - UFS_NAMESPACE=${UFS_NAMESPACE:-os}
       - ATS_MODE=${ATS_MODE:-satlab}
     depends_on:
       - ats-controller-bridge
@@ -364,7 +365,7 @@ services:
  ###########################################################################labservice
   labservice:
     container_name: labservice
-    image: ${SFP_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab}/labservice:${LABSERVICE:-release}
+    image: ${REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab}/labservice:${LABSERVICE:-release}
     command:
       - -addr
       - 0.0.0.0:1485
