@@ -16,7 +16,7 @@ export class TestPlanComponent {
   protected inputValue = signal('');
   protected autoQualValue = signal(false);
   protected autoQualActive = computed(() => {
-    const supportList = ['avs/firmware'];
+    const supportList = ['avs/firmware', 'avs/release/initial'];
     const testplan = this.inputValue();
     return supportList.includes(testplan);
   });
