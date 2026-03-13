@@ -12,7 +12,7 @@ FROM ${BASE_REGISTRY_URI}/alpine/git as adb
 ARG PLATFORM_TOOLS_VER=36.0.2
 ARG PLATFORM_TOOLS_ZIP=platform-tools_r${PLATFORM_TOOLS_VER}-linux.zip
 RUN wget -q https://dl.google.com/android/repository/${PLATFORM_TOOLS_ZIP} \
-    && unzip -q -j ${PLATFORM_TOOLS_ZIP} "platform-tools/adb" -d /adb \
+    && unzip -q -j ${PLATFORM_TOOLS_ZIP} "platform-tools/adb" "platform-tools/fastboot" -d /adb \
     && rm ${PLATFORM_TOOLS_ZIP}
 RUN git clone --depth 1 --no-checkout --filter=blob:none https://chromium.googlesource.com/chromiumos/third_party/autotest.git
 RUN git -C autotest checkout main -- server/cros/tradefed/tradefed_constants.py
@@ -61,6 +61,7 @@ RUN apk add --no-cache --upgrade \
     py-pip \
     python3 \
     python3-dev \
+    usbutils \
     zlib-dev && \
     pip3 install --no-cache-dir --require-hashes -r pip_upgrade_requirements.txt && \
     pip3 install --no-cache-dir --require-hashes -r requirements.txt && \
@@ -169,10 +170,14 @@ COPY --chmod=777 dockerfiles/satlab_remote_access/tools/tls.sh /etc/profile.d/
 
 COPY --chmod=777 dockerfiles/satlab_remote_access/tools/check_for_update.sh /etc/profile.d/
 
+# link lsusb to usbutils
+RUN ln -sf /usr/bin/lsusb.py /usr/bin/lsusb
+
 # Add adb
 RUN apk add --no-cache gcompat
 ENV ADB_VENDOR_KEYS=/root/.android/arc_adbkey
 COPY --from=adb /adb/adb /bin
+COPY --from=adb /adb/fastboot /bin
 COPY --from=adb /adb/arc_adbkey ${ADB_VENDOR_KEYS}
 
 COPY --chmod=444 dockerfiles/satlab_remote_access/satlab-default-settings.json /
