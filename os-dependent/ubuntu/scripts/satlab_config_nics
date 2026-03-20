@@ -18,67 +18,100 @@ C_NC='\033[0m' # No Color
 echo "Welcome to the Satlab network configuration utility."
 echo "---------------------------------------------------"
 
-# Gather Physical Ethernet interfaces (Excluding Virtual and Wireless)
-mapfile -t network_interfaces < <(
-    for iface_path in /sys/class/net/*; do
-        iface=$(basename "$iface_path")
-        # Skip loopback
-        [ "$iface" = "lo" ] && continue
-        # Skip Virtual: check if the symlink target contains 'virtual'
-        if readlink "$iface_path/device" | grep -q "virtual"; then
-            continue
-        fi
-        # Skip Wireless: check for wireless or phy80211 directories
-        if [ -d "$iface_path/wireless" ] || [ -d "$iface_path/phy80211" ]; then
-            continue
-        fi
-        # Double check it is actually a physical device link
-        if [ -L "$iface_path/device" ]; then
-            echo "$iface"
-        fi
-    done
-)
-
-if [[ ${#network_interfaces[@]} -eq 0 ]]; then
-    echo -e "${C_RED}Error: No physical Ethernet interfaces found. Exiting.${C_NC}"
-    exit 1
-fi
-
-# Configure EXTERNAL_PORT_TO_INTERNET
+# Loop to ensure we have at least two physical interfaces
 while true; do
-    echo
-    echo -e "${C_YELLOW}Please specify the port connected to the Internet (EXTERNAL_PORT_TO_INTERNET).${C_NC}"
-
-    # Suggestion logic
-    suggested_iface=$(ip route | grep default | awk '{print $5}' | head -n 1)
-    options=("${network_interfaces[@]}")
-
-    if [[ -n "$suggested_iface" && " ${network_interfaces[*]} " =~ " ${suggested_iface} " ]]; then
-        echo "Suggested interface (based on the default route): $suggested_iface"
-        options=("$suggested_iface")
-        for iface in "${network_interfaces[@]}"; do
-            [[ "$iface" != "$suggested_iface" ]] && options+=("$iface")
+    # Gather Physical Ethernet interfaces (Excluding Virtual and Wireless)
+    mapfile -t network_interfaces < <(
+        for iface_path in /sys/class/net/*; do
+            iface=$(basename "$iface_path")
+            # Skip loopback
+            [ "$iface" = "lo" ] && continue
+            # Skip Virtual: check if the symlink target contains 'virtual'
+            if readlink "$iface_path/device" | grep -q "virtual"; then
+                continue
+            fi
+            # Skip Wireless: check for wireless or phy80211 directories
+            if [ -d "$iface_path/wireless" ] || [ -d "$iface_path/phy80211" ]; then
+                continue
+            fi
+            # Double check it is actually a physical device link
+            if [ -L "$iface_path/device" ]; then
+                echo "$iface"
+            fi
         done
+    )
+
+    # Check if we have enough interfaces
+    if [[ ${#network_interfaces[@]} -ge 2 ]]; then
+        break # Success! Exit the loop and proceed.
     fi
 
-    PS3="Please enter your choice (1-${#options[@]}): "
-    select opt in "${options[@]}"; do
-        if [[ -n "$opt" ]]; then
-            echo -e "Testing connectivity on ${C_YELLOW}$opt${C_NC}..."
-            if ping -I "$opt" -c 2 -W 2 8.8.8.8 > /dev/null 2>&1; then
-                echo -e "${C_GREEN}Connectivity verified!${C_NC}"
-                new_external_port=$opt
-                break 2
-            else
-                echo -e "${C_RED}Assertion Failed: No Internet access detected on $opt.${C_NC}"
-                echo "Please check the cable connection and try again."
-                break # Exit 'select' to re-prompt the 'while' loop
-            fi
-        else
-            echo "Invalid selection. Please try again."
-        fi
-    done
+    # Not enough interfaces found, prompt the user
+    echo -e "${C_RED}At least two physical Ethernet interfaces are required for Satlab. Found ${#network_interfaces[@]}.${C_NC}"
+    read -rp "Would you like to connect a USB network card right now and rescan? (y/N): " rescan_ans
+
+    if [[ "${rescan_ans,,}" == "y" || "${rescan_ans,,}" == "yes" ]]; then
+        echo "Waiting 5 seconds for the system to initialize the new hardware..."
+        sleep 5
+        echo "Rescanning interfaces..."
+        echo "---------------------------------------------------"
+    else
+        echo -e "${C_RED}Insufficient interfaces. Exiting setup.${C_NC}"
+        exit 1
+    fi
 done
+
+# Configure EXTERNAL_PORT_TO_INTERNET
+new_external_port=""
+suggested_iface=$(ip route | grep default | awk '{print $5}' | head -n 1)
+
+# Attempt to automatically select the external port
+if [[ -n "$suggested_iface" && " ${network_interfaces[*]} " =~ " ${suggested_iface} " ]]; then
+    echo -e "Testing connectivity on default route interface ${C_YELLOW}$suggested_iface${C_NC}..."
+    if ping -I "$suggested_iface" -c 2 -W 2 8.8.8.8 > /dev/null 2>&1; then
+        echo -e "${C_GREEN}Connectivity verified! Auto-selecting $suggested_iface as the external port.${C_NC}"
+        new_external_port="$suggested_iface"
+    else
+        echo -e "${C_YELLOW}No internet detected on $suggested_iface. Falling back to manual selection.${C_NC}"
+    fi
+fi
+
+# Fallback to manual selection if auto-detect failed
+if [[ -z "$new_external_port" ]]; then
+    while true; do
+        echo
+        echo -e "${C_YELLOW}Please specify the port connected to the Internet (EXTERNAL_PORT_TO_INTERNET).${C_NC}"
+
+        options=("${network_interfaces[@]}")
+
+        # Move the suggested interface to the top of the list if it exists
+        if [[ -n "$suggested_iface" && " ${network_interfaces[*]} " =~ " ${suggested_iface} " ]]; then
+            echo "Suggested interface (based on the default route): $suggested_iface"
+            options=("$suggested_iface")
+            for iface in "${network_interfaces[@]}"; do
+                [[ "$iface" != "$suggested_iface" ]] && options+=("$iface")
+            done
+        fi
+
+        PS3="Please enter your choice (1-${#options[@]}): "
+        select opt in "${options[@]}"; do
+            if [[ -n "$opt" ]]; then
+                echo -e "Testing connectivity on ${C_YELLOW}$opt${C_NC}..."
+                if ping -I "$opt" -c 2 -W 2 8.8.8.8 > /dev/null 2>&1; then
+                    echo -e "${C_GREEN}Connectivity verified!${C_NC}"
+                    new_external_port=$opt
+                    break 2
+                else
+                    echo -e "${C_RED}Assertion Failed: No Internet access detected on $opt.${C_NC}"
+                    echo "Please check the cable connection and try again."
+                    break # Exit 'select' to re-prompt the 'while' loop
+                fi
+            else
+                echo "Invalid selection. Please try again."
+            fi
+        done
+    done
+fi
 
 # Configure INTERNAL_PORT_TO_DUTS
 
@@ -126,8 +159,16 @@ echo
 read -rp "Apply these changes? (y/N): " confirm
 if [[ "${confirm,,}" == "y" || "${confirm,,}" == "yes" ]]; then
     echo "Applying configuration..."
-    set_config "EXTERNAL_PORT_TO_INTERNET" "$new_external_port"
-    set_config "INTERNAL_PORT_TO_DUTS" "$new_internal_port"
+
+    # Check if set_config exists (mocking it for safety if missing in current context)
+    if declare -f set_config > /dev/null; then
+        set_config "EXTERNAL_PORT_TO_INTERNET" "$new_external_port"
+        set_config "INTERNAL_PORT_TO_DUTS" "$new_internal_port"
+    else
+        # Fallback if set_config isn't sourced properly, basic sed replacement
+        sed -i "s/^EXTERNAL_PORT_TO_INTERNET=.*/EXTERNAL_PORT_TO_INTERNET=$new_external_port/" "$CONFIG"
+        sed -i "s/^INTERNAL_PORT_TO_DUTS=.*/INTERNAL_PORT_TO_DUTS=$new_internal_port/" "$CONFIG"
+    fi
 
     # --- Verification Step ---
     # Read the newly saved values back from the config file
