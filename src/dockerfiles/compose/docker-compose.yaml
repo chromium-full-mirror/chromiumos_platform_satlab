@@ -47,6 +47,7 @@ services:
       - DOCKER_DRONE_CERT_PATH=${DOCKER_DRONE_CERT_PATH:-}
       - DOCKER_HOST=${DOCKER_HOST:-}
       - DOCKER_TLS_VERIFY=${DOCKER_TLS_VERIFY:-}
+      - ATS_ENABLED=${ATS_ENABLED:-false}
     privileged: true
     hostname: ${DRONE_HOSTNAME:-satlab-drone}
     restart: always
