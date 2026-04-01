@@ -114,6 +114,36 @@ else
     echo -e "${C_GREEN}Kernel version $KERNEL_FULL is compatible.${C_NC}"
 fi
 
+# --- Install Docker ---
+
+TARGET_DOCKER_VERSION="28.3.3"
+echo -e "\n${C_YELLOW}Checking Docker installation...${C_NC}"
+
+INSTALL_DOCKER=false
+# Safely check if docker exists and is executable
+DOCKER_BIN=$(command -v docker 2>/dev/null || true)
+if [[ -n "$DOCKER_BIN" && -x "$DOCKER_BIN" ]]; then
+    CURRENT_DOCKER_VERSION=$("$DOCKER_BIN" --version 2>/dev/null | awk '{print $3}' | tr -d ',' || true)
+    # Check if the current version matches the target version
+    if [[ -n "$CURRENT_DOCKER_VERSION" && "$CURRENT_DOCKER_VERSION" == "$TARGET_DOCKER_VERSION"* ]]; then
+        echo -e "${C_GREEN}Docker version $TARGET_DOCKER_VERSION is already installed. Skipping installation.${C_NC}"
+    else
+        echo -e "${C_RED}Error: Found Docker version ${CURRENT_DOCKER_VERSION:-Unknown}, but target version is $TARGET_DOCKER_VERSION.${C_NC}"
+        echo -e "${C_YELLOW}Please uninstall the current Docker version manually before continuing with this installation.${C_NC}"
+        exit 1
+    fi
+else
+    echo -e "${C_YELLOW}Docker is not installed. Installing version $TARGET_DOCKER_VERSION...${C_NC}"
+    INSTALL_DOCKER=true
+fi
+
+if [[ "$INSTALL_DOCKER" == true ]]; then
+    curl -fsSL https://get.docker.com -o install-docker.sh
+    sh install-docker.sh --version "$TARGET_DOCKER_VERSION"
+    rm -f install-docker.sh
+    echo -e "${C_GREEN}Docker $TARGET_DOCKER_VERSION installed successfully.${C_NC}"
+fi
+
 # --- Configure swap memory ---
 
 SWAP_FILE="/swap.img"
