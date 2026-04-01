@@ -7,7 +7,7 @@ Type=simple
 Restart=always
 RestartSec=1
 User=root
-ExecStart=/etc/satlab/host_server/host_server
+ExecStart=/bin/bash -c "source /etc/satlab/satlab.conf && export HOST_IDENTIFIER && exec /etc/satlab/host_server/host_server"
 
 [Install]
 WantedBy=multi-user.target

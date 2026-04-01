@@ -248,9 +248,9 @@ if [[ ! -f /etc/machine-id ]]; then
     echo -e "${C_RED}Error: /etc/machine-id not found. Cannot generate hostname.${C_NC}"
     exit 1
 fi
-satlab_hostname="satlab-$(cat /etc/machine-id | sha256sum | head -c 10)"
-echo "Setting drone hostname: ${satlab_hostname}"
-set_config "DRONE_HOSTNAME" "$satlab_hostname"
+host_identifier="5w$(cat /etc/machine-id | sha256sum | head -c 10)"
+echo "Setting Satlab hostname: ${host_identifier}"
+set_config "HOST_IDENTIFIER" "$host_identifier"
 
 # --- Download images ---
 

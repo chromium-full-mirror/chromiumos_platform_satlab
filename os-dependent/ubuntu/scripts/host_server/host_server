@@ -50,23 +50,14 @@ class HostServerDebian(host_server_base.HostServerBase):
         in the remote console.
 
         Returns:
-            string: hashed value from /etc/machine-id or "NoSerialNumber".
+            string: HOST_IDENTIFIER from the environment or "NoSerialNumber".
         """
         response = hostservice_pb2.HostIdentifierResponse()
-        response.identifier = "NoSerialNumber"
-        # This can change on OS re-install.
-        # Take the first 8 characters of a sha256sum of machine-id as machine-id is very long.
-        # Please keep it consistent with the satlab_install script.
-        cmd = ["cat /etc/machine-id | sha256sum | head -c 10"]
-        try:
-            cmd_result = subprocess.run(
-                cmd, stdout=subprocess.PIPE, shell=True
-            )
 
-            if cmd_result and cmd_result.returncode == 0 and cmd_result.stdout:
-                response.identifier = cmd_result.stdout.decode("utf-8").strip()
-        except subprocess.SubprocessError:
-            _LOGGER.exception("Error retrieving machine id")
+        # Read from environment variables
+        identifier = os.environ.get("HOST_IDENTIFIER", "").strip()
+
+        response.identifier = identifier if identifier else "NoSerialNumber"
         return response
 
     def get_disk_info(self, unused_request, unused_context):
