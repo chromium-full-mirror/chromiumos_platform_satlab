@@ -21,6 +21,7 @@ import {StableVersionComponent} from './manage-duts/stable-version/stable-versio
 import {ViewDutsComponent} from './manage-duts/view-duts/view-duts.component';
 import {SafeNumberPipe} from './pipes/safe-number.pipe';
 import {AndroidBuildSelectFormComponent} from './run_suite/android/android-build-select-form/android-build-select-form.component';
+import {AutoQualComponent} from './run_suite/android/auto-qual/auto-qual.component';
 import {SuiteComponent} from './run_suite/android/suite/suite.component';
 import {TestPlanComponent} from './run_suite/android/test-plan/test-plan.component';
 import {RunComponent} from './run_suite/chromeos/run/run.component';
@@ -31,6 +32,7 @@ import {BasicSelectorComponent} from './run_suite/common/basic-selector/basic-se
 import {BuildSelectFormComponent} from './run_suite/common/build-select-form/build-select-form.component';
 import {BuildSelectorComponent} from './run_suite/common/build-selector/build-selector.component';
 import {LoadingComponent} from './run_suite/common/loading/loading.component';
+import {TableCellComponent} from './run_suite/common/table-cell/table-cell.component';
 import {LabQualComponent} from './run_suite/lab-qual/lab-qual.component';
 import {OtherComponent} from './run_suite/other/other.component';
 import {PasitComponent} from './run_suite/pasit/pasit.component';
@@ -40,6 +42,7 @@ import {StorageQualComponent} from './run_suite/pvs/storage-qual/storage-qual.co
 import {RunSuiteComponent} from './run_suite/run_suite.component';
 import {SingleTestComponent} from './run_suite/single-test/single-test.component';
 import {TestplanComponent} from './run_suite/testplan/testplan.component';
+import {SingleLineEllipsisDirective} from './single-line-ellipsis.directive';
 import {JobTableComponent} from './view-jobs/job-table/job-table.component';
 import {ViewJobsComponent} from './view-jobs/view-jobs.component';
 import {WifiConfigComponent} from './wifi-config/wifi-config.component';
@@ -78,7 +81,6 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterModule} from '@angular/router';
-import {SingleLineEllipsisDirective} from './single-line-ellipsis.directive';
 
 @NgModule({
   declarations: [
@@ -165,6 +167,8 @@ import {SingleLineEllipsisDirective} from './single-line-ellipsis.directive';
     TestPlanComponent,
     AdvancedSettingsComponent,
     SafeNumberPipe,
+    AutoQualComponent,
+    TableCellComponent,
   ],
   exports: [
     AppRoutingModule,

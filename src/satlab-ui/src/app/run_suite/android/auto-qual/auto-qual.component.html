@@ -1,0 +1,88 @@
+<p class="text-xl font-bold mx-4 my-4 text-gray-800">Test Effort History</p>
+
+<div
+  class="max-w-full mx-4 my-8 bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden"
+>
+  <div
+    class="relative max-h-[640px] min-h-[640px] overflow-y-auto overflow-x-auto"
+    (scroll)="onScroll($event)"
+  >
+    <div
+      *ngIf="isLoading().show"
+      class="sticky top-0 left-0 w-full h-[640px] z-50 flex items-center justify-center pointer-events-none bg-white/50 mb-[-640px]"
+    >
+      <mat-spinner diameter="96"></mat-spinner>
+    </div>
+    <table class="w-full text-left border-separate border-spacing-0">
+      <thead>
+        <tr
+          class="bg-gray-100 text-sm font-bold text-gray-700 uppercase tracking-wider"
+        >
+          <th
+            class="sticky top-0 z-20 bg-gray-100 bg-clip-padding p-3 rounded-tl-lg border-l border-t border-b border-gray-200 w-12 text-center"
+          >
+            <button
+              class="material-icon material-icon-base hover:bg-gray-200 p-1 rounded transition-colors"
+              (click)="toggleMenu()"
+            >
+              <span class="material-icons text-gray-600">list</span>
+            </button>
+            <div
+              *ngIf="isMenuOpen()"
+              class="absolute top-full left-0 mt-2 z-50 w-56 p-3 bg-white border border-gray-200 rounded-lg shadow-2xl normal-case font-normal text-left"
+            >
+              <div class="flex flex-col gap-1">
+                <label
+                  *ngFor="let field of ALL_COLUMNS"
+                  class="flex items-center hover:bg-gray-50 p-2 rounded cursor-pointer transition-colors"
+                >
+                  <input
+                    type="checkbox"
+                    class="rounded text-blue-600 mr-3"
+                    [checked]="
+                      selectedColumns().includes(field) &&
+                      selectedColumns().length > 0
+                    "
+                    (change)="toggleColumn(field)"
+                  />
+                  <span class="text-sm text-gray-700 font-medium">{{
+                    columnNameMapping(field)
+                  }}</span>
+                </label>
+              </div>
+            </div>
+          </th>
+
+          <th
+            *ngFor="
+              let column of displayedColumns();
+              let last = last;
+              trackBy: trackByCol
+            "
+            [class.border-r]="last"
+            class="sticky top-0 z-20 bg-gray-100 bg-clip-padding p-2 text-sm border-t border-b border-gray-200 font-bold text-gray-700 uppercase tracking-wider"
+          >
+            {{ columnNameMapping(column) }}
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white">
+        <tr
+          *ngFor="let record of testRecords(); trackBy: trackById"
+          class="hover:bg-blue-50/30 transition-colors group"
+        >
+          <td class="p-3 w-12 border-gray-200"></td>
+
+          <td
+            *ngFor="let col of displayedColumns(); trackBy: trackByCol"
+            class="p-2 border-gray-200 min-w-[100px] max-w-[200px]"
+            [attr.title]="record[col]()"
+            [app-table-cell]
+            [cellValue]="record[col]"
+            [isLink]="isLinkColumn(col)"
+          ></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

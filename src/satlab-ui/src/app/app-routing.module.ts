@@ -2,6 +2,7 @@ import {AboutComponent} from './about/about.component';
 import {ConfigurationComponent} from './configuration/configuration.component';
 import {ManageDutsComponent} from './manage-duts/manage-duts.component';
 import {AndroidBuildSelectFormComponent} from './run_suite/android/android-build-select-form/android-build-select-form.component';
+import {AutoQualComponent} from './run_suite/android/auto-qual/auto-qual.component';
 import {LabqualComponent as AndroidLabqualComponent} from './run_suite/android/labqual/labqual.component';
 import {PvsComponent as AndroidPvsComponent} from './run_suite/android/pvs/pvs.component';
 import {RunComponent} from './run_suite/chromeos/run/run.component';
@@ -41,6 +42,7 @@ const routes: Routes = [
         path: 'android',
         children: [
           {path: '', component: AndroidBuildSelectFormComponent},
+          {path: 'autoqual', component: AutoQualComponent},
           {path: 'labqual', component: AndroidLabqualComponent},
           {path: 'pvs', component: AndroidPvsComponent},
         ],

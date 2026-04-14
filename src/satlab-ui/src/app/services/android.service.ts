@@ -6,6 +6,7 @@ import {
   ListAndroidSuitesRequest,
   ListAndroidTargetsRequest,
   ListAndroidTestModulesRequest,
+  ListTestEffortsRequest,
   ListTestPlansRequest,
   RunAndroidLabqualRequest,
   RunSuiteRequest,
@@ -197,5 +198,12 @@ export class AndroidService {
     return from(
       this.client.runAndroidLabqual(req, {}).then(resp => resp.getLink())
     );
+  }
+
+  public listTestEfforts(pageSize: number, pageToken: string) {
+    const req = new ListTestEffortsRequest()
+      .setPageSize(pageSize)
+      .setPageToken(pageToken);
+    return from(this.client.listTestEfforts(req, {}));
   }
 }

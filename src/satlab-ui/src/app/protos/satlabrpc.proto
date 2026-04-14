@@ -39,6 +39,11 @@ service SatlabRpcService {
   rpc ValidateAndroidBuild(ValidateAndroidBuildRequest) returns (ValidateAndroidBuildResponse);
   rpc RunAndroidLabqual (RunAndroidLabqualRequest) returns (RunAndroidLabqualResponse);
 
+  // Autoqual
+  rpc ListTestEfforts(ListTestEffortsRequest) returns (ListTestEffortsResponse);
+  rpc CancelTestEffort(CancelTestEffortRequest) returns (CancelTestEffortResponse);
+  rpc CreateTestEffort(CreateTestEffortRequest) returns (CreateTestEffortResponse);
+
   // services to run different types of test suites
   rpc RunSuite (RunSuiteRequest) returns (RunSuiteResponse);
   rpc RunTest (RunTestRequest) returns (RunTestResponse);
@@ -1188,4 +1193,137 @@ message RunAndroidLabqualRequest {
 // NEXT_TAG = 2
 message RunAndroidLabqualResponse {
   string link = 1;
+}
+
+// NEXT_TAG = 3
+// Request message for listing test efforts.
+// Test efforts are queried in reverse chronological order.
+message ListTestEffortsRequest {
+  // Optional. The maximum number of test efforts to return. The service may
+  // return fewer than this value.
+  // If unspecified, at most 50 test efforts will be returned.
+  // The maximum value is 1000; values above 1000 will be coerced to 1000.
+  int32 page_size = 1;
+
+  // Optional. A page token, received from a previous `ListTestEfforts` call.
+  // Provide this to retrieve the subsequent page.
+  string page_token = 2;
+}
+
+// NEXT_TAG = 3
+message ListTestEffortsResponse {
+  // Token to retrieve the next page of test efforts. If this field
+  // is omitted, there are no subsequent pages.
+  string next_page_token = 1;
+ 
+  repeated TestEffort efforts = 2;
+}
+
+// NEXT_TAG = 2
+// Request message for cancelling a test effort.
+message CancelTestEffortRequest {
+  // Required. The resource ID of the test effort to cancel.
+  string id = 1;
+}
+
+// NEXT_TAG = 1
+message CancelTestEffortResponse {}
+
+// NEXT_TAG = 2
+message CreateTestEffortRequest {
+  TestEffort effort = 1;
+}
+
+// NEXT_TAG = 3
+message CreateTestEffortResponse {
+  string id = 1;
+  string testhaus_url = 2;
+}
+
+// NEXT_TAG = 11
+message TestEffort {
+
+  // NEXT_TAG = 10
+  // The possible states of a test effort.
+  enum State {
+    // No test effort state is specified.
+    STATE_UNSPECIFIED = 0;
+
+    // The test effort is created.
+    CREATED = 1;
+
+    // The test effort has incomplete results.
+    INCOMPLETE = 2;
+
+    // The test effort has failed.
+    FAILED = 3;
+
+    // The test effort has unreported results.
+    UNREPORTED = 4;
+
+    // The test effort is not applicable.
+    NOT_APPLICABLE = 5;
+
+    // The test effort has passed.
+    SUCCEEDED = 6;
+
+    // The test effort is requested to be cancelled.
+    CANCEL_REQUESTED = 7;
+
+    // The test effort is cancelled.
+    CANCELLED = 8;
+
+    // The cancelling the test effort failed.
+    CANCEL_FAILED = 9;
+  }
+
+  // NEXT_TAG = 5
+  // Represents the Android build target.
+  message AndroidBuildTarget {
+    // Required. Represents the name of a configured branch in the Android Build
+    // system
+    string branch = 1;
+
+    // Required. The board target. (e.g. brya-trunk_staging-userdebug)
+    string target = 2;
+
+    // Required. The build ID of the test effort.
+    string build_id = 3;
+
+    // Optional. Product name of the build target.
+    string product = 4;
+  }
+
+  // Output only. The ID of the test effort.
+  string id = 1;
+
+  // Optional. The satlab ID that the test effort comes from.
+  string satlab_id = 2;
+
+  // Required. The board of the test effort.
+  string board = 3;
+
+  // Required. The model of the test effort.
+  string model = 4;
+
+  // Required. The pools of the test effort.
+  repeated string pools = 5;
+
+  // Test plan reference.
+  string testplan = 6;
+
+  // Testhaus link.
+  string testhaus_url = 7;
+
+  // Overall result of the test effort.
+  State state = 8;
+
+  // The time when the test effort was created.
+  google.protobuf.Timestamp created_at = 9;
+
+  // Specifies the Operating System build targets to test against.
+  oneof os {
+    // Test against an Android build.
+    AndroidBuildTarget android = 10;
+  }
 }

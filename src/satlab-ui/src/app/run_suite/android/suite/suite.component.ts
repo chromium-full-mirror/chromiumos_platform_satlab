@@ -167,6 +167,7 @@ export class SuiteComponent implements OnChanges, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.onLoadingChanged.emit({show: false, message: ''});
     this.effectRefs.forEach(e => e.destroy());
   }
 
