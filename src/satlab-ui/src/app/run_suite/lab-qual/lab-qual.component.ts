@@ -38,9 +38,7 @@ export class LabQualComponent implements OnInit, OnDestroy {
     });
   // a subscription that subscripts the `fields` changes.
   private disposers: Subscription[];
-  protected customSettings: ICustomSettings = {
-    servoRequired: false,
-  };
+  protected customSettings: ICustomSettings = {};
 
   constructor(
     private service: SatlabRpcService,
@@ -108,7 +106,7 @@ export class LabQualComponent implements OnInit, OnDestroy {
               cft: true,
               trv2: false,
               uploadToCpcon: false,
-              servoRequired: this.customSettings.servoRequired,
+              servoRequired: false,
             },
             path: path,
           };

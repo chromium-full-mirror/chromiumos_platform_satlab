@@ -42,7 +42,6 @@ export class PasitComponent implements AfterViewInit {
     trv2: false,
     uploadToCpcon: false,
     editTopology: true,
-    servoRequired: false,
   };
   protected topologyContent: string = '';
   protected disabled = true;
@@ -203,7 +202,7 @@ export class PasitComponent implements AfterViewInit {
           cft: cft,
           trv2: trv2,
           uploadToCpcon: uploadToCpcon,
-          servoRequired: this.customSettings.servoRequired,
+          servoRequired: false,
         },
         tagIncludes: this.tagsToInclude,
         tagExcludes: [],

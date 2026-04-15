@@ -39,7 +39,6 @@ export class OtherComponent implements OnInit {
     cft: true,
     trv2: false,
     uploadToCpcon: false,
-    servoRequired: false,
   };
   protected tagIncludes = new FormControl('');
   protected tagExcludes = new FormControl('');
@@ -129,7 +128,7 @@ export class OtherComponent implements OnInit {
           cft: cft,
           trv2: trv2,
           uploadToCpcon: uploadToCpcon,
-          servoRequired: this.customSettings.servoRequired,
+          servoRequired: false,
         },
         tagIncludes: tagIncludes,
         tagExcludes: tagExcludes,

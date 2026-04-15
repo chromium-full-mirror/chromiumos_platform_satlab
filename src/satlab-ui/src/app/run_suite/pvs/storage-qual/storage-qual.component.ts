@@ -44,9 +44,7 @@ export class StorageQualComponent {
   ];
   private selectedSuite = '';
   private selectedTest = '';
-  protected customSettings: ICustomSettings = {
-    servoRequired: false,
-  };
+  protected customSettings: ICustomSettings = {};
 
   constructor(
     private service: SatlabRpcService,

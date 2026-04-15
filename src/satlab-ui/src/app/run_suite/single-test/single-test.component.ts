@@ -32,7 +32,6 @@ export class SingleTestComponent {
     cft: true,
     trv2: false,
     uploadToCpcon: false,
-    servoRequired: false,
   };
 
   private fields: IBuildSelectFields = defaultBuildSelectFields;
@@ -73,7 +72,7 @@ export class SingleTestComponent {
             cft: cft,
             trv2: trv2,
             uploadToCpcon: uploadToCpcon,
-            servoRequired: this.customSettings.servoRequired,
+            servoRequired: false,
           },
           tests: [test.name],
         })
