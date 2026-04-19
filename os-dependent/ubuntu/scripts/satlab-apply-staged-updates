@@ -1,0 +1,43 @@
+#!/bin/bash
+STAGING_DIR="/etc/satlab.staged"
+TARGET_DIR="/etc/satlab"
+LIVE_CONF="${TARGET_DIR}/satlab.conf"
+STAGED_CONF="${STAGING_DIR}/satlab.conf"
+
+if [ -d "$STAGING_DIR" ] && [ "$(ls -A "$STAGING_DIR")" ]; then
+    echo "Applying staged Satlab scripts..."
+    # Define paths (adjust STAGED_CONF based on how you download updates)
+    if [ -f "$LIVE_CONF" ] && [ -f "$STAGED_CONF" ]; then
+        echo "Migrating variables from existing satlab.conf..."
+
+        # 1. Extract existing values (removing any quotes just in case)
+        CURR_HOST_ID=$(grep '^HOST_IDENTIFIER=' "$LIVE_CONF" | cut -d'=' -f2 | tr -d '"'\''')
+        CURR_DRONE=$(grep '^DRONE_HOSTNAME=' "$LIVE_CONF" | cut -d'=' -f2 | tr -d '"'\''')
+        CURR_EXT_PORT=$(grep '^EXTERNAL_PORT_TO_INTERNET=' "$LIVE_CONF" | cut -d'=' -f2 | tr -d '"'\''')
+        CURR_INT_PORT=$(grep '^INTERNAL_PORT_TO_DUTS=' "$LIVE_CONF" | cut -d'=' -f2 | tr -d '"'\''')
+
+        # 2. Backwards compatibility check
+        # If HOST_IDENTIFIER is empty but DRONE_HOSTNAME has a value
+        if [ -z "$CURR_HOST_ID" ] && [ -n "$CURR_DRONE" ]; then
+            echo "HOST_IDENTIFIER missing. Retreiving from DRONE_HOSTNAME..."
+            # Bash parameter expansion to strip 'satlab-' from the beginning of the string
+            CURR_HOST_ID="${CURR_DRONE#satlab-}"
+        fi
+
+        # 3. Inject preserved values into the staged conf file
+        # We use '|' as the sed delimiter to avoid conflicts
+        sed -i "s|^HOST_IDENTIFIER=.*|HOST_IDENTIFIER=${CURR_HOST_ID}|" "$STAGED_CONF"
+        # Enforce the dynamic drone hostname format
+        sed -i "s|^DRONE_HOSTNAME=.*|DRONE_HOSTNAME=satlab-\${HOST_IDENTIFIER}|" "$STAGED_CONF"
+        sed -i "s|^EXTERNAL_PORT_TO_INTERNET=.*|EXTERNAL_PORT_TO_INTERNET=${CURR_EXT_PORT}|" "$STAGED_CONF"
+        sed -i "s|^INTERNAL_PORT_TO_DUTS=.*|INTERNAL_PORT_TO_DUTS=${CURR_INT_PORT}|" "$STAGED_CONF"
+
+        echo "Migration complete. Ready to apply updates."
+    else
+        echo "Warning: Live or Staged satlab.conf not found. Skipping variable migration."
+    fi
+
+    rsync -a "$STAGING_DIR/" "$TARGET_DIR/"
+    rm -rf "$STAGING_DIR"
+    echo "Staged scripts applied successfully."
+fi

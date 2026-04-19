@@ -260,10 +260,16 @@ sed -i -E 's/^#?Port\s+22\b/Port 2233/' /etc/ssh/sshd_config
 
 echo -e "\n${C_YELLOW}Configuring Satlab services...${C_NC}"
 ln -sf /etc/satlab/satlab-upstart.service /etc/systemd/system/satlab-upstart.service
-systemctl enable satlab-upstart
-
 ln -sf /etc/satlab/host_server/satlab-host-server.service /etc/systemd/system/satlab-host-server.service
+ln -sf /etc/satlab/satlab-apply-staged-updates.service /etc/systemd/system/
+ln -sf /etc/satlab/satlab-stage-updates.service /etc/systemd/system/
+ln -sf /etc/satlab/satlab-stage-updates.timer /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable satlab-upstart
 systemctl enable satlab-host-server
+systemctl enable satlab-apply-staged-updates.service
+systemctl enable satlab-stage-updates.service
+systemctl enable satlab-stage-updates.timer
 
 echo -e "\n${C_YELLOW}Configuring the Docker socket...${C_NC}"
 mkdir -p /etc/systemd/system/docker.service.d/

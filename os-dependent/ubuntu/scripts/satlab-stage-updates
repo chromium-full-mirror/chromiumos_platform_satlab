@@ -1,0 +1,103 @@
+#!/bin/bash
+set -e
+
+# Configuration
+REPO_URL="https://chromium.googlesource.com/chromiumos/platform/satlab"
+CLONE_DIR="/tmp/satlab_source"
+SOURCE_DIR="$CLONE_DIR/os-dependent/ubuntu/scripts"
+TARGET_DIR="/etc/satlab"
+STAGING_DIR="/etc/satlab.staged"
+CONF_FILE="$TARGET_DIR/satlab.conf"
+SA_FILE="/home/satlab/keys/pubsub-key-do-not-delete.json"
+
+# Default to release if not set in conf
+LABEL="release"
+if [ -f "$CONF_FILE" ]; then
+    source "$CONF_FILE"
+fi
+
+echo "--- Satlab Host Script Updater ---"
+
+# Step 1: Determine local running version
+CURRENT_VERSION=$(docker inspect --format='{{range .Config.Env}}{{println .}}{{end}}' compose 2>/dev/null | grep '^BUILD_VERSION=' | cut -d'=' -f2 | tr -d '\r' || true)
+
+if [ -z "$CURRENT_VERSION" ]; then
+    echo "Warning: Could not determine CURRENT_VERSION from running 'compose' container. Will force check."
+else
+    echo "Current local version: $CURRENT_VERSION"
+fi
+
+# Step 2: Authenticate with Artifact Registry using the Service Account from the Docker volume
+echo "Retrieving Service Account key from satlab_keys volume..."
+SA_JSON=$(docker exec compose cat /home/satlab/keys/pubsub-key-do-not-delete.json 2>/dev/null || true)
+
+if [ -z "$SA_JSON" ]; then
+    echo "Error: Could not read service account JSON from the 'compose' container."
+    exit 1
+fi
+
+# Exchange the JSON key for an Artifact Registry token
+TOKEN=$(curl -s -u "_json_key:$SA_JSON" "https://us-docker.pkg.dev/v2/token?service=us-docker.pkg.dev&scope=repository:chromeos-partner-moblab/satlab/satlab-compose:pull" | jq -r '.token')
+
+if [ -z "$TOKEN" ] || [ "$TOKEN" == "null" ]; then
+    echo "Error: Failed to retrieve authentication token from Artifact Registry."
+    exit 1
+fi
+
+# Step 3: Fetch remote manifest and extract BUILD_VERSION
+CONFIG_DIGEST=$(curl -s -H "Authorization: Bearer $TOKEN" \
+    -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+    -H "Accept: application/vnd.oci.image.manifest.v1+json" \
+    "https://us-docker.pkg.dev/v2/chromeos-partner-moblab/satlab/satlab-compose/manifests/$LABEL" | jq -r '.config.digest')
+
+REMOTE_VERSION=$(curl -s -L -H "Authorization: Bearer $TOKEN" \
+    "https://us-docker.pkg.dev/v2/chromeos-partner-moblab/satlab/satlab-compose/blobs/$CONFIG_DIGEST" | \
+    jq -r '.config.Env[] | select(startswith("BUILD_VERSION=")) | split("=")[1]')
+
+if [ -z "$REMOTE_VERSION" ]; then
+    echo "Error: Could not extract BUILD_VERSION from remote image config."
+    exit 1
+fi
+
+echo "Remote '$LABEL' version: $REMOTE_VERSION"
+
+# Step 4: Compare versions
+if [ "$CURRENT_VERSION" == "$REMOTE_VERSION" ]; then
+    echo "Local version matches remote. No host script updates required."
+    exit 0
+fi
+
+echo "Version mismatch detected. Checking for script updates..."
+
+# Step 5: Clone and Checkout
+rm -rf "$CLONE_DIR"
+git clone --quiet "$REPO_URL" "$CLONE_DIR"
+cd "$CLONE_DIR"
+
+BRANCH_REF=$(echo "$REMOTE_VERSION" | cut -d. -f1,2)
+if git show-ref --verify --quiet "refs/remotes/origin/$BRANCH_REF"; then
+    git checkout --quiet "origin/$BRANCH_REF"
+else
+    echo "Warning: Could not find branch for $BRANCH_REF. Exiting."
+    rm -rf "$CLONE_DIR"
+    exit 1
+fi
+
+# Step 6: Detect changes using rsync (skip the config file)
+CHANGES=$(rsync -anvc --out-format="%n" --exclude="satlab.conf" "$SOURCE_DIR/" "$TARGET_DIR/" | grep -v 'sending incremental file list' | grep -v 'sent .* bytes' | grep -v 'total size' | sed '/^\s*$/d' || true)
+
+if [ -n "$CHANGES" ]; then
+    echo "Differences detected in host scripts:"
+    echo "$CHANGES"
+    echo "Staging updates for the next reboot..."
+
+    mkdir -p "$STAGING_DIR"
+    rsync -a "$SOURCE_DIR/" "$STAGING_DIR/"
+
+    echo "Updates successfully staged in $STAGING_DIR."
+else
+    echo "No differences found in host scripts for version $REMOTE_VERSION."
+fi
+
+# Cleanup
+rm -rf "$CLONE_DIR"
