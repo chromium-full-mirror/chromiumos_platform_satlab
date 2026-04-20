@@ -1,6 +1,11 @@
 import {CommonModule} from '@angular/common';
-import {Component, Input, WritableSignal, signal} from '@angular/core';
-import {AppModule} from 'app/app.module';
+import {Component, Input} from '@angular/core';
+import {
+  ButtonCell,
+  DateCell,
+  LinkCell,
+  StringCell,
+} from 'app/run_suite/android/auto-qual/auto-qual.component';
 
 @Component({
   selector: 'td[app-table-cell]',
@@ -10,8 +15,7 @@ import {AppModule} from 'app/app.module';
   styleUrls: ['./table-cell.component.scss'],
 })
 export class TableCellComponent {
-  @Input() cellValue: WritableSignal<any> = signal(undefined);
-  @Input() isLink: boolean = false;
+  @Input() cell: StringCell | DateCell | LinkCell | ButtonCell[];
 
   constructor() {}
 }

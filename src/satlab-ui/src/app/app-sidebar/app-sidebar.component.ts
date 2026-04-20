@@ -78,7 +78,7 @@ export class AppSidebarComponent {
         {
           route: '/run_tests/android/autoqual',
           label: 'Auto Qual',
-          icon: 'hub',
+          icon: 'factory',
           outlined: false,
         },
         {

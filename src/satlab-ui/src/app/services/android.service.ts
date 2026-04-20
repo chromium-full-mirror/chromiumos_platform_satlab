@@ -1,5 +1,7 @@
 import {SatlabRpcServiceClient} from './SatlabrpcServiceClientPb';
 import {
+  CancelTestEffortRequest,
+  CreateTestEffortRequest,
   Dim,
   ListAndroidBranchesRequest,
   ListAndroidBuildsRequest,
@@ -10,6 +12,7 @@ import {
   ListTestPlansRequest,
   RunAndroidLabqualRequest,
   RunSuiteRequest,
+  TestEffort,
   ValidateAndroidBuildRequest,
 } from './satlabrpc_pb';
 import {Injectable} from '@angular/core';
@@ -205,5 +208,46 @@ export class AndroidService {
       .setPageSize(pageSize)
       .setPageToken(pageToken);
     return from(this.client.listTestEfforts(req, {}));
+  }
+
+  public createTestEffort(params: {
+    board: string,
+    model: string,
+    branch: string,
+    target: string,
+    build: string,
+    testplan: string,
+    pools: {
+      label: string,
+      type: number,
+    }[],
+    satlabID?: string,
+    product?: string
+  }
+  ) {
+    const poolLists = params.pools.map(p => {
+      return new TestEffort.Pool().setLabel(p.label).setType(p.type);
+    });
+    const androidBuildTarget = new TestEffort.AndroidBuildTarget()
+      .setBranch(params.branch)
+      .setTarget(params.target)
+      .setBuildId(params.build)
+      .setProduct(params.product || '');
+
+    const testEffort = new TestEffort()
+      .setAndroid(androidBuildTarget)
+      .setBoard(params.board)
+      .setModel(params.model)
+      .setSatlabId(params.satlabID || '')
+      .setPoolsList(poolLists)
+      .setTestplan(params.testplan);
+
+    const req = new CreateTestEffortRequest().setEffort(testEffort);
+    return from(this.client.createTestEffort(req, {}));
+  }
+
+  public cancelTestEffort(testEffortID: string) {
+    const req = new CancelTestEffortRequest().setId(testEffortID);
+    return from(this.client.cancelTestEffort(req, {}));
   }
 }

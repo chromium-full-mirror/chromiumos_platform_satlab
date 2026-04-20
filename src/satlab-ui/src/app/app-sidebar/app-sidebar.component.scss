@@ -96,6 +96,8 @@
       z-index: $notification-layout;
       width: 100%;
       top: 1rem;
+
+      pointer-events: none;
     }
 
     .content {

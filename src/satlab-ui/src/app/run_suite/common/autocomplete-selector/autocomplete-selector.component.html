@@ -13,7 +13,7 @@
         [formControl]="searchFormControl"
         [placeholder]="placeholder"
         (click)="onInputClicked()"
-        (change)="onInputChanged()"
+        (change)="onInputChanged($event)"
         matInput
       />
     </mat-form-field>

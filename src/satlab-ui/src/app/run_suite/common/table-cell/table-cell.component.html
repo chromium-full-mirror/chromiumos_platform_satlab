@@ -1,14 +1,41 @@
-<div class="truncate max-w-full" [attr.title]="cellValue()">
-  <ng-container *ngIf="isLink && cellValue(); else textOnly">
-    <a
-      [href]="cellValue()"
-      target="_blank"
-      class="text-blue-600 hover:underline"
+<div
+  *ngIf="cell && cell.hasOwnProperty('str')"
+  class="truncate max-w-full"
+  [attr.title]="cell.str"
+>
+  <span>{{ cell.str }}</span>
+</div>
+<div
+  *ngIf="cell && cell.hasOwnProperty('date')"
+  class="truncate max-w-full"
+  [attr.title]="cell.date"
+>
+  <span>{{ cell.date | date: 'yyyy-MM-dd HH:mm:ss (z)' }}</span>
+</div>
+<div
+  *ngIf="cell && cell.hasOwnProperty('link')"
+  class="truncate max-w-full"
+  [attr.title]="cell.link"
+>
+  <a [href]="cell.link" target="_blank" class="text-blue-600 hover:underline">
+    <span *ngIf="cell.link !== ''" class="material-icons">link</span>
+  </a>
+</div>
+<div
+  *ngIf="
+    cell && cell.hasOwnProperty('length') && cell[0]?.hasOwnProperty('btn')
+  "
+  class="flex flex-row max-w-full gap-1"
+  [attr.title]="cell.btn"
+>
+  <ng-container *ngFor="let button of cell; let last = last">
+    <button
+      class="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 disabled:bg-gray-300 text-white text-base px-2 rounded transition-colors cursor-pointer disabled:cursor-not-allowed"
+      (click)="button.fn()"
+      [disabled]="button.isDisabled"
     >
-      <span class="material-icons">link</span>
-    </a>
+      {{ button.btn }}
+    </button>
+    <span *ngIf="!last" class="text-black text-xl">/</span>
   </ng-container>
-  <ng-template #textOnly>
-    <span>{{ cellValue() }}</span>
-  </ng-template>
 </div>

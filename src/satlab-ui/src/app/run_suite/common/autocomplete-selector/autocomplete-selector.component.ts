@@ -18,7 +18,7 @@ import {MatInputModule} from '@angular/material/input';
 import {MatListModule} from '@angular/material/list';
 import {MatSelectModule} from '@angular/material/select';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {Subscription, debounceTime, distinctUntilChanged} from 'rxjs';
+import {BehaviorSubject, Subscription, debounceTime, distinctUntilChanged} from 'rxjs';
 
 @Component({
   selector: 'app-autocomplete-selector',
@@ -35,10 +35,10 @@ import {Subscription, debounceTime, distinctUntilChanged} from 'rxjs';
     MatListModule,
     MatInputModule,
   ],
+
 })
 export class AutocompleteSelectorComponent
-  implements OnChanges, OnInit, OnDestroy
-{
+  implements OnChanges, OnInit, OnDestroy {
   // the flag to control the selector can be selected
   @Input() disabled = false;
   // the reason of why the component is disabled
@@ -63,7 +63,8 @@ export class AutocompleteSelectorComponent
 
   protected filteredOptions: SelectableItem[] = [];
   protected searchFormControl = new FormControl('');
-  private disposer?: Subscription;
+  private disposer: Subscription[] = [];
+  private _build$ = new BehaviorSubject('');
 
   protected isOpened = signal(false);
 
@@ -71,21 +72,28 @@ export class AutocompleteSelectorComponent
     if (this.disabled) {
       this.searchFormControl.disable();
     }
-    this.disposer = this.searchFormControl.valueChanges
-      .pipe(debounceTime(200), distinctUntilChanged())
-      .subscribe(v => {
-        this.inputChanged.emit(v);
-        if (!v) {
-          this.filteredOptions = this.options;
-          return;
-        }
+    this.disposer = [
+      this.searchFormControl.valueChanges
+        .pipe(debounceTime(200), distinctUntilChanged())
+        .subscribe(v => {
+          this.inputChanged.emit(v);
+          if (!v) {
+            this.filteredOptions = this.options;
+            return;
+          }
 
-        this.filteredOptions = toIterator(this.options)
-          .filter(item => {
-            return item.text.includes(v);
-          })
-          .collect();
-      });
+          this.filteredOptions = toIterator(this.options)
+            .filter(item => {
+              return item.text.includes(v);
+            })
+            .collect();
+        }),
+      this._build$
+        .pipe(debounceTime(200), distinctUntilChanged())
+        .subscribe(v => {
+          this.inputValueChanged.emit(v);
+        })
+    ];
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -101,7 +109,7 @@ export class AutocompleteSelectorComponent
   }
 
   ngOnDestroy() {
-    this.disposer?.unsubscribe();
+    this.disposer.forEach(e => e.unsubscribe());
   }
 
   public clear() {
@@ -112,10 +120,8 @@ export class AutocompleteSelectorComponent
     this.isOpened.update(cur => !cur);
   }
 
-  protected onInputChanged() {
-    this.inputValueChanged.emit(
-      this.searchFormControl.valid ? this.searchFormControl.value : ''
-    );
+  protected onInputChanged(e: Event & {currentTarget: HTMLInputElement}) {
+    this._build$.next(e.currentTarget.value);
   }
 
   protected onOptionClicked(option?: SelectableItem) {
@@ -127,10 +133,8 @@ export class AutocompleteSelectorComponent
     const newValue =
       typeof option.value === 'string' ? option.value : option.text;
 
-    if (this.searchFormControl.value !== newValue) {
-      this.searchFormControl.setValue(newValue);
-      this.selectChanged.emit(this.searchFormControl.valid ? newValue : '');
-    }
+    this._build$.next(newValue);
+    this.searchFormControl.setValue(newValue);
   }
 
   protected onOutsideClicked() {

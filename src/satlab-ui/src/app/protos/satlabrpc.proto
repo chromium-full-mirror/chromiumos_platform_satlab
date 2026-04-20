@@ -1210,13 +1210,15 @@ message ListTestEffortsRequest {
   string page_token = 2;
 }
 
-// NEXT_TAG = 3
+// NEXT_TAG = 4
 message ListTestEffortsResponse {
   // Token to retrieve the next page of test efforts. If this field
   // is omitted, there are no subsequent pages.
   string next_page_token = 1;
  
   repeated TestEffort efforts = 2;
+
+  uint32 total_size = 3;
 }
 
 // NEXT_TAG = 2
@@ -1234,10 +1236,9 @@ message CreateTestEffortRequest {
   TestEffort effort = 1;
 }
 
-// NEXT_TAG = 3
+// NEXT_TAG = 2
 message CreateTestEffortResponse {
   string id = 1;
-  string testhaus_url = 2;
 }
 
 // NEXT_TAG = 11
@@ -1281,10 +1282,10 @@ message TestEffort {
   // Represents the Android build target.
   message AndroidBuildTarget {
     // Required. Represents the name of a configured branch in the Android Build
-    // system
+    // system.
     string branch = 1;
 
-    // Required. The board target. (e.g. brya-trunk_staging-userdebug)
+    // Required. The board target. (e.g. product_name-release_config-build_variant).
     string target = 2;
 
     // Required. The build ID of the test effort.
@@ -1292,6 +1293,32 @@ message TestEffort {
 
     // Optional. Product name of the build target.
     string product = 4;
+  }
+
+  // NEXT_TAG = 3
+  // The pool of the test effort.
+  message Pool {
+    // NEXT_TAG = 4
+    // The category of pool to schedule tests against.
+    enum PoolType {
+      // Not used. Exists to distinguish between an unset value and DEFAULT.
+      POOL_TYPE_UNSPECIFIED = 0;
+
+      // Pools used when scheduling tests without any special exceptions
+      DEFAULT_POOL = 1;
+
+      // Pools to use when scheduling FAFT PD tests.
+      FAFT_PD = 2;
+
+      // Pools to schedule tests with extremely long runtimes (3+ hours)
+      EXTENDED_DURATION = 3;
+    }
+
+    // Required. The label of the pool.
+    string label = 1;
+
+    // Required. The category of pool to schedule tests against.
+    PoolType type = 2;
   }
 
   // Output only. The ID of the test effort.
@@ -1307,7 +1334,7 @@ message TestEffort {
   string model = 4;
 
   // Required. The pools of the test effort.
-  repeated string pools = 5;
+  repeated Pool pools = 5;
 
   // Test plan reference.
   string testplan = 6;
