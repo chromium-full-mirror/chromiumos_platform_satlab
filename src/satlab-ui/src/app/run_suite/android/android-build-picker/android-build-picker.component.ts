@@ -366,6 +366,7 @@ export class AndroidBuildPickerComponent implements OnDestroy {
   }
 
   protected onBuildInputValueChanged(value: string) {
+    if (value === this.buildSignal()) return;
     resetSignals([this.validBuild]);
     this.buildSignal.set(value);
   }
