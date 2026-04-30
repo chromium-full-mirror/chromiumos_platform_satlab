@@ -240,6 +240,10 @@ export class PvsComponent implements OnInit, OnDestroy {
       : this.validBuildSignal();
   });
 
+  protected isLoadingSignal = computed(() => {
+    return this.isLoading().show || this.isRunLoadingSignal();
+  });
+
   @ViewChild('settingsRef') settingsRef!: SettingsComponent;
   private _provisionPicker = signal<AndroidBuildPickerComponent | undefined>(
     undefined
