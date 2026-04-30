@@ -241,7 +241,9 @@ export class AndroidBuildSelectFormComponent
   }
 
   protected customSettings = signal<CustomSetting[]>([...this.settings]);
-
+  protected isLoadingSignal = computed(() => {
+    return this.isLoading().show || this.isRunLoadingSignal();
+  });
   protected duts = signal<IDut[]>([]);
   protected boardOptions = computed(() => {
     return toIterator(this.duts())

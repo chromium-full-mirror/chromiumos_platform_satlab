@@ -28,9 +28,7 @@
     <app-basic-selector
       (select)="onPropsChanged('board', $event)"
       [options]="boardOptions()"
-      [disabled]="
-        isRunLoadingSignal() || duts().length === 0 || isLoading().show
-      "
+      [disabled]="isLoadingSignal() || duts().length === 0"
       title="Select Board:"
     >
     </app-basic-selector>
@@ -39,9 +37,7 @@
       (select)="onPropsChanged('model', $event)"
       [options]="modelsOptions()"
       [value]="modelSignal()"
-      [disabled]="
-        isRunLoadingSignal() || modelsOptions().length === 0 || isLoading().show
-      "
+      [disabled]="isLoadingSignal() || modelsOptions().length === 0"
       title="Select Model (Optional):"
     >
     </app-basic-selector>
@@ -51,11 +47,7 @@
       (select)="onPropsChanged('branch', $event)"
       [options]="filteredBranchOptions()"
       [value]="branchSignal()"
-      [disabled]="
-        isRunLoadingSignal() ||
-        filteredBranchOptions().length === 0 ||
-        isLoading().show
-      "
+      [disabled]="isLoadingSignal() || filteredBranchOptions().length === 0"
       title="Select Branch:"
     >
     </app-basic-selector>
@@ -64,11 +56,7 @@
       *ngIf="!isCrossBranchTestingSignal()"
       (select)="onPropsChanged('boardTarget', $event)"
       [options]="boardTargetOptions()"
-      [disabled]="
-        isRunLoadingSignal() ||
-        boardTargetOptions().length === 0 ||
-        isLoading().show
-      "
+      [disabled]="isLoadingSignal() || boardTargetOptions().length === 0"
       title="Select Board Target:"
     >
     </app-basic-selector>
@@ -88,7 +76,7 @@
 
     <mat-slide-toggle
       (change)="onCrossBranchTestingChanged($event.checked)"
-      [disabled]="isRunLoadingSignal() || isLoading().show"
+      [disabled]="isLoadingSignal()"
     >
       Cross-branch testing
     </mat-slide-toggle>
@@ -110,11 +98,7 @@
       *ngIf="!isCrossBranchTestingSignal()"
       (select)="onPropsChanged('suiteTarget', $event)"
       [options]="suiteTargetOptions()"
-      [disabled]="
-        isRunLoadingSignal() ||
-        suiteTargetOptions().length === 0 ||
-        isLoading().show
-      "
+      [disabled]="isLoadingSignal() || suiteTargetOptions().length === 0"
       title="Select Suite Target:"
     >
     </app-basic-selector>
@@ -123,10 +107,7 @@
       (select)="onPropsChanged('hostname', $event)"
       [options]="hostnameOptions()"
       [disabled]="
-        isRunLoadingSignal() ||
-        duts().length === 0 ||
-        boardSignal() === '' ||
-        isLoading().show
+        isLoadingSignal() || duts().length === 0 || boardSignal() === ''
       "
       title="Select Hostname:"
     >

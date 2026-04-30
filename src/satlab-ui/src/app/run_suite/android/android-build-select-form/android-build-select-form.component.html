@@ -37,7 +37,7 @@
     <app-basic-selector
       (select)="onPropsChanged('board', $event)"
       [options]="boardOptions()"
-      [disabled]="isRunLoadingSignal() || isLoading().show"
+      [disabled]="isLoadingSignal() || duts().length === 0"
       title="Select Board:"
     >
     </app-basic-selector>
@@ -46,9 +46,7 @@
       (select)="onPropsChanged('model', $event)"
       [options]="modelsOptions()"
       [value]="modelSignal()"
-      [disabled]="
-        isRunLoadingSignal() || modelsOptions().length === 0 || isLoading().show
-      "
+      [disabled]="isLoadingSignal() || modelsOptions().length === 0"
       title="Select Model (Optional):"
     >
     </app-basic-selector>
@@ -58,11 +56,7 @@
         (select)="onPropsChanged('branch', $event)"
         [options]="filteredBranchOptions()"
         [value]="branchSignal()"
-        [disabled]="
-          isRunLoadingSignal() ||
-          filteredBranchOptions().length === 0 ||
-          isLoading().show
-        "
+        [disabled]="isLoadingSignal() || filteredBranchOptions().length === 0"
         title="Select OS Branch:"
       >
       </app-basic-selector>
@@ -70,11 +64,7 @@
       <app-basic-selector
         (select)="onPropsChanged('boardTarget', $event)"
         [options]="boardTargetOptions()"
-        [disabled]="
-          isRunLoadingSignal() ||
-          isLoading().show ||
-          boardTargetOptions().length === 0
-        "
+        [disabled]="isLoadingSignal() || boardTargetOptions().length === 0"
         title="Select OS Target:"
       >
       </app-basic-selector>
@@ -94,7 +84,7 @@
 
     <mat-slide-toggle
       (change)="onCrossBranchTestingChanged($event.checked)"
-      [disabled]="isRunLoadingSignal() || isLoading().show"
+      [disabled]="isLoadingSignal()"
     >
       Cross-branch testing
     </mat-slide-toggle>
@@ -116,11 +106,7 @@
       <app-basic-selector
         (select)="onPropsChanged('suiteTarget', $event)"
         [options]="suiteTargetOptions()"
-        [disabled]="
-          isRunLoadingSignal() ||
-          suiteTargetOptions().length === 0 ||
-          isLoading().show
-        "
+        [disabled]="isLoadingSignal() || suiteTargetOptions().length === 0"
         title="Select Test Target:"
       >
       </app-basic-selector>
@@ -129,9 +115,7 @@
     <app-basic-selector
       (select)="onPropsChanged('pool', $event)"
       [options]="poolsOptions()"
-      [disabled]="
-        isRunLoadingSignal() || poolsOptions().length === 0 || isLoading().show
-      "
+      [disabled]="isLoadingSignal() || poolsOptions().length === 0"
       title="Select Pool:"
     >
     </app-basic-selector>
