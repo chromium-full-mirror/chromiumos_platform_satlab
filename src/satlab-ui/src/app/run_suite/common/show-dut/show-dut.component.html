@@ -1,0 +1,25 @@
+<div
+  class="w-full pl-6 pr-6 pb-6 border rounded-lg shadow-sm font-sans border-gray-500"
+>
+  <app-loading [loading$]="loading$"></app-loading>
+  <div class="min-h-[0.8rem]">
+    <p class="text-red-500 text-center" *ngIf="errSignal() !== ''">
+      {{ errSignal() }}
+    </p>
+  </div>
+  <div class="flex gap-2 w-full flex-col">
+    <ng-container *ngFor="let selector of selectorListSignal()">
+      <app-basic-selector
+        (select)="onSelectorChanged(selector, $event)"
+        [options]="selectorOptionsMap()[selector] || []"
+        [value]="selectedValuesMap()[selector]"
+        [disabled]="
+          disabledSignal() ||
+          (selectorOptionsMap()[selector] || []).length === 0
+        "
+        [title]="selectorTitles[selector]"
+      >
+      </app-basic-selector>
+    </ng-container>
+  </div>
+</div>

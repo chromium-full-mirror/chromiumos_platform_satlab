@@ -1,7 +1,7 @@
-import { ClickDetectorDirective } from '../../../click-detector.directive';
-import { SelectableItem } from '../../../models/selectable_item';
-import { toIterator } from '../../../utils/iterator';
-import { NgForOf, NgIf } from '@angular/common';
+import {ClickDetectorDirective} from '../../../click-detector.directive';
+import {SelectableItem} from '../../../models/selectable_item';
+import {toIterator} from '../../../utils/iterator';
+import {NgForOf, NgIf} from '@angular/common';
 import {
   Component,
   EventEmitter,
@@ -13,12 +13,17 @@ import {
   Output,
   signal,
 } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MatInputModule } from '@angular/material/input';
-import { MatListModule } from '@angular/material/list';
-import { MatSelectModule } from '@angular/material/select';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { BehaviorSubject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
+import {MatInputModule} from '@angular/material/input';
+import {MatListModule} from '@angular/material/list';
+import {MatSelectModule} from '@angular/material/select';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {
+  BehaviorSubject,
+  Subscription,
+  debounceTime,
+  distinctUntilChanged,
+} from 'rxjs';
 
 @Component({
   selector: 'app-autocomplete-selector',
@@ -35,10 +40,10 @@ import { BehaviorSubject, Subscription, debounceTime, distinctUntilChanged } fro
     MatListModule,
     MatInputModule,
   ],
-
 })
 export class AutocompleteSelectorComponent
-  implements OnChanges, OnInit, OnDestroy {
+  implements OnChanges, OnInit, OnDestroy
+{
   // the flag to control the selector can be selected
   @Input() disabled = false;
   // the reason of why the component is disabled
@@ -92,7 +97,7 @@ export class AutocompleteSelectorComponent
         .pipe(debounceTime(200), distinctUntilChanged())
         .subscribe(v => {
           this.inputValueChanged.emit(v);
-        })
+        }),
     ];
   }
 
@@ -120,7 +125,7 @@ export class AutocompleteSelectorComponent
     this.isOpened.update(cur => !cur);
   }
 
-  protected onInputChanged(e: Event & { currentTarget: HTMLInputElement }) {
+  protected onInputChanged(e: Event & {currentTarget: HTMLInputElement}) {
     this._build$.next(e.currentTarget.value);
   }
 

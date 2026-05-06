@@ -1,3 +1,5 @@
+import {Test, Testplan} from './run';
+
 export interface IBuildSelectFields {
   model: string;
   board: string;
@@ -121,7 +123,7 @@ export interface DefaultSetting extends BaseSetting {
   key: 'default';
   format: 'none';
   state: {
-    value: null;
+    value: number | null;
     disabled: boolean;
   };
 }
@@ -201,6 +203,16 @@ export const getDefaultNone = (): DefaultSetting => ({
   },
 });
 
+export const getTestplanDefault = (): DefaultSetting => ({
+  key: 'default',
+  label: 'Default',
+  format: 'none',
+  state: {
+    value: 10000,
+    disabled: false,
+  },
+});
+
 export const getShardingGroup = (): SingleChoiceSetting => ({
   key: 'shardingMode',
   format: 'singleChoice',
@@ -225,7 +237,11 @@ export const getTestplanShardingGroup = (): SingleChoiceSetting => ({
   format: 'singleChoice',
   label: 'Sharding',
   index: 0,
-  options: [getDefaultNone(), getTestplanMaxInShards(), getDefaultNShards()],
+  options: [
+    getTestplanDefault(),
+    getTestplanMaxInShards(),
+    getDefaultNShards(),
+  ],
 });
 
 export const minMaxValidator = (min: number, max: number) => {
@@ -243,3 +259,66 @@ export const positiveIntegerValidator = (value: number | null): string => {
   }
   return '';
 };
+
+export interface ALBuildBasic {
+  branch: string;
+  target: string;
+  build: string;
+}
+
+export interface DefaultALProvisionFields {
+  mode: 'DEFAULT';
+  value: ALBuildBasic;
+}
+
+export interface SkipALProvisionFields {
+  mode: 'SKIP';
+}
+
+export type ALProvisionOptions =
+  | DefaultALProvisionFields
+  | SkipALProvisionFields;
+
+export type AndroidBuildBasicFields = {
+  mode: 'ANDROID_BUILD';
+  buildValues: ALBuildBasic;
+};
+
+export type GoogleDriveBasicFields = {
+  mode: 'GOOGLE_DRIVE';
+  zipFileId: string;
+};
+
+export type ALTestingOptions = AndroidBuildBasicFields | GoogleDriveBasicFields;
+
+export type ALTestingBasicFields =
+  | AndroidBuildBasicFields
+  | GoogleDriveBasicFields;
+
+export type ALTestingOptionsSuiteTest = {
+  suite?: string;
+  testModules?: string[];
+};
+
+export type ALTestingOptionsTestplan = {
+  planName: string;
+};
+
+export type TestSelection =
+  | ALTestingOptionsSuiteTest
+  | ALTestingOptionsTestplan
+  | null;
+
+export type GoogleDriveFile = {
+  id: string;
+  name: string;
+};
+
+export const MEMORY_TESTPLAN_NAME = 'avs/component/memory' as const;
+export const STORAGE_TESTPLAN_NAME = 'avs/component/storage' as const;
+
+export type MemoryTest = Testplan & {name: typeof MEMORY_TESTPLAN_NAME};
+export type StorageTest =
+  | (Testplan & {name: typeof STORAGE_TESTPLAN_NAME})
+  | Test;
+export type AVLTestplan = MemoryTest | StorageTest;

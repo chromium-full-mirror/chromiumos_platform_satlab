@@ -1,35 +1,22 @@
 import {SettingsComponent} from 'app/run_suite/common/settings/settings.component';
-import {toIterator} from '../../../../app/utils/iterator';
 import {IDut} from '../../../models/dut';
-import {SelectableItem} from '../../../models/selectable_item';
-import {AndroidService} from '../../../services/android.service';
 import {
   RunAndroidOSRequest,
   RunService,
   Suite,
   Test,
-  Testplan,
 } from '../../../services/run.service';
-import {SatlabRpcService} from '../../../services/satlab-rpc.service';
 import {
-  AfterViewInit,
   Component,
   DestroyRef,
   EffectRef,
   OnDestroy,
   ViewChild,
   computed,
-  effect,
   inject,
   signal,
-  untracked,
 } from '@angular/core';
 import {toObservable, takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {
-  toSelectedItem,
-  wrapperLoading,
-  resetSignals,
-} from '../../../../app/utils/operators';
 import {
   CustomSetting,
   getDefaultCTPTimeout,
@@ -38,27 +25,45 @@ import {
   getTestplanShardingGroup,
   InputBoxSetting,
   SingleChoiceSetting,
+  ALTestingBasicFields,
+  AndroidBuildBasicFields,
+  GoogleDriveBasicFields,
+  TestSelection,
+  ALTestingOptionsSuiteTest,
+  ALTestingOptionsTestplan,
+  STORAGE_TESTPLAN_NAME,
 } from 'app/models/run_suite_fields';
 import {NotificationService} from 'app/services/notification.service';
 import {
   debounceTime,
   distinctUntilChanged,
   finalize,
-  from,
   of,
   switchMap,
 } from 'rxjs';
-import {CommonModule, NgIf} from '@angular/common';
+import {CommonModule} from '@angular/common';
 import {LoadingComponent} from 'app/run_suite/common/loading/loading.component';
-import {BasicSelectorComponent} from 'app/run_suite/common/basic-selector/basic-selector.component';
-import {AutocompleteSelectorComponent} from 'app/run_suite/common/autocomplete-selector/autocomplete-selector.component';
-import {SuiteComponent} from '../suite/suite.component';
-import {TestPlanComponent} from '../test-plan/test-plan.component';
 import {LoadingButtonComponent} from 'app/common/loading-button/loading-button.component';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
-import {AndroidBuildPickerComponent} from '../android-build-picker/android-build-picker.component';
+import {AndroidBuildPickerComponent} from '../common/android-build-picker/android-build-picker.component';
+import {ProvisionFormComponent} from '../common/provision-form/provision-form.component';
+import {ShowDutComponent} from 'app/run_suite/common/show-dut/show-dut.component';
+import {TestOptionsCardComponent} from 'app/run_suite/common/test-options-card/test-options-card.component';
+import {
+  TestSourcePickerComponent,
+  SourceValues,
+} from '../common/test-source-picker/test-source-picker.component';
+import {SuiteComponent} from '../suite/suite.component';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {MatButtonModule} from '@angular/material/button';
+import {MatIconModule} from '@angular/material/icon';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {ALProvisionOptions} from 'app/models/run_suite_fields';
+import {Testplan} from 'app/models/run';
+import {wrapperLoading, resetSignals} from 'app/utils/operators';
 import {startWithTap} from 'app/utils/rxjs_operator';
-import {ERROR_KEY_MSG_CONFIGS} from 'app/models/error';
+import {toIterator} from 'app/utils/iterator';
 
 @Component({
   selector: 'app-android-build-select-form',
@@ -66,164 +71,25 @@ import {ERROR_KEY_MSG_CONFIGS} from 'app/models/error';
   styleUrls: ['./android-build-select-form.component.scss'],
   standalone: true,
   imports: [
-    AutocompleteSelectorComponent,
-    BasicSelectorComponent,
+    AndroidBuildPickerComponent,
     CommonModule,
     LoadingButtonComponent,
     LoadingComponent,
-    NgIf,
-    SettingsComponent,
-    SuiteComponent,
-    TestPlanComponent,
     MatSlideToggleModule,
-    AndroidBuildPickerComponent,
+    ProvisionFormComponent,
+    SettingsComponent,
+    ShowDutComponent,
+    TestOptionsCardComponent,
+    TestSourcePickerComponent,
+    SuiteComponent,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
   ],
 })
-export class AndroidBuildSelectFormComponent
-  implements AfterViewInit, OnDestroy
-{
-  protected tabSignal = signal<'suite' | 'test' | 'Testplan'>('suite');
-
-  protected boardSignal = signal<string>('');
-  protected allModels = computed(() => {
-    const board = this.boardSignal();
-    return toIterator(this.duts())
-      .filter(e => e.board === board)
-      .map(e => e.model)
-      .collect();
-  });
-  protected modelSignal = signal<string>('');
-  protected branchSignal = signal<string>('');
-  protected targetSignal = signal<{[key: number]: string}>({1: '', 2: ''});
-  protected buildSignal = signal<string>('');
-  protected validBuildSignal = signal<string>('');
-  protected poolSignal = signal<string>('');
-  protected suiteSignal = signal<string>('');
-
-  protected isBuildValidSignal = signal<boolean>(true);
-  protected testModulesSignal = signal<string[]>([]);
-  protected testPlanSignal = signal<string>('');
-
-  protected isRunLoadingSignal = signal<boolean>(false);
-  protected targets = computed(() => Object.values(this.targetSignal()));
-
-  protected isLoading = signal<{show: boolean; message: string}>({
-    show: false,
-    message: '',
-  });
-
-  protected loading$ = toObservable(this.isLoading);
-  protected config = computed(() => ERROR_KEY_MSG_CONFIGS['common']);
-  protected errMap = signal<{[key: string]: string}>({});
-  protected combinedErrorMsg = computed(() => {
-    const parentErrors = Object.values(this.errMap());
-    const provision = this._provisionPicker();
-    const test = this._testPicker();
-
-    const provisionErrors = provision ? Object.values(provision.errMap()) : [];
-    const testErrors = test ? Object.values(test.errMap()) : [];
-
-    return [...parentErrors, ...provisionErrors, ...testErrors]
-      .filter(msg => msg !== '')
-      .join(' | ');
-  });
-
-  protected branchOptions = signal<SelectableItem[]>([]);
-  protected targetOptions = signal<SelectableItem[]>([]);
-  // Filter branch options based on model.
-  // If model is present, include branches that include the model or exclude all other models with the same board.
-  // If model is not present, include branches that include any model with the same board.
-  protected filteredBranchOptions = computed(() => {
-    const model = this.modelSignal();
-    const branchOptions = this.branchOptions();
-    const notSelectedModels = this.sameBoardModels().filter(e => e !== model);
-    if (branchOptions.length === 0) return [];
-    return branchOptions.filter(
-      e =>
-        e.text.includes(model) ||
-        notSelectedModels.every(m => !e.text.includes(m))
-    );
-  });
-  protected boardTargetOptions = computed(() => {
-    const board = this.boardSignal();
-    const model = this.modelSignal();
-    const sameBoardModels = this.sameBoardModels();
-
-    const targetOptions = this.targetOptions();
-    if (targetOptions.length === 0) return [];
-    // If not test, model is present, show targets that include board or model and not test_suites.
-    if (model) {
-      return targetOptions.filter(
-        e =>
-          (e.text.includes(board) || e.text.includes(model)) &&
-          !e.text.includes('test_suites')
-      );
-    }
-    // If not test, model is not present, show targets that include board or any connected model and not test_suites.
-    return targetOptions.filter(
-      e =>
-        (e.text.includes(board) ||
-          sameBoardModels.some(m => e.text.includes(m))) &&
-        !e.text.includes('test_suites')
-    );
-  });
-
-  protected sameBoardModels = computed(() => {
-    const board = this.boardSignal();
-    return this.duts()
-      .filter(e => e.board === board)
-      .map(e => e.model);
-  });
-
-  protected suiteTargetOptions = computed(() => {
-    return toIterator(this.targetOptions())
-      .filter(e => e.text.includes('test_suites'))
-      .collect();
-  });
-  protected buildOptions = signal<SelectableItem[]>([]);
-  protected suiteOptions = signal<SelectableItem[]>([]);
-  protected testOptions = signal<SelectableItem[]>([]);
-
-  protected isCrossBranchTestingSignal = signal<boolean>(false);
-
-  protected testBranchSignal = signal<string>('');
-  protected testTargetSignal = signal<string>('');
-  protected testValidBuildSignal = signal<string>('');
-  protected provisionBranchSignal = signal<string>('');
-  protected provisionTargetSignal = signal<string>('');
-  protected provisionValidBuildSignal = signal<string>('');
-
-  protected provisionTarget = computed(() => {
-    return this.isCrossBranchTestingSignal()
-      ? this.provisionTargetSignal()
-      : this.targetSignal()[1];
-  });
-
-  protected testTarget = computed(() => {
-    return this.isCrossBranchTestingSignal()
-      ? this.testTargetSignal()
-      : this.targetSignal()[2];
-  });
-
-  protected buildForListingSuite = computed(() => {
-    return this.isCrossBranchTestingSignal()
-      ? this.testValidBuildSignal()
-      : this.validBuildSignal();
-  });
-
-  // The default settings for the run suite/test.
-  protected settings = [
-    getDefaultCTPTimeout(),
-    getDefaultTrTimeout(),
-    getShardingGroup(),
-  ];
-
-  protected testplanSettings = [
-    getDefaultCTPTimeout(),
-    getDefaultTrTimeout(),
-    getTestplanShardingGroup(),
-  ];
-
+export class AndroidBuildSelectFormComponent implements OnDestroy {
   @ViewChild('settingsRef') settingsRef!: SettingsComponent;
   private _provisionPicker = signal<AndroidBuildPickerComponent | undefined>(
     undefined
@@ -240,98 +106,230 @@ export class AndroidBuildSelectFormComponent
     this._testPicker.set(val);
   }
 
-  protected customSettings = signal<CustomSetting[]>([...this.settings]);
-  protected isLoadingSignal = computed(() => {
-    return this.isLoading().show || this.isRunLoadingSignal();
-  });
   protected duts = signal<IDut[]>([]);
-  protected boardOptions = computed(() => {
-    return toIterator(this.duts())
-      .unique_by_where((a, b) => a.board === b.board)
-      .map(e => toSelectedItem(e.board))
+  protected boardSignal = signal<string>('');
+  protected modelSignal = signal<string>('');
+  protected poolSignal = signal<string>('');
+  protected testplanSignal = signal<string>('');
+  protected provisionSignal = signal<ALProvisionOptions>({
+    mode: 'DEFAULT',
+    value: {
+      branch: '',
+      target: '',
+      build: '',
+    },
+  });
+  protected basicFieldsSignal = signal<ALTestingBasicFields>({
+    mode: 'ANDROID_BUILD',
+    buildValues: {
+      branch: '',
+      target: '',
+      build: '',
+    },
+  });
+
+  protected testSelectionSignal = signal<TestSelection>(null);
+
+  protected tabSignal = signal<'suite' | 'test' | 'testplan'>('suite');
+  protected isTestPlanTab = computed(() => this.tabSignal() === 'testplan');
+  protected isSuiteTab = computed(() => this.tabSignal() === 'suite');
+  protected isTestTab = computed(() => this.tabSignal() === 'test');
+  protected sameBoardModels = computed(() => {
+    const board = this.boardSignal();
+    const duts = this.duts();
+    return toIterator(duts)
+      .filter(e => e.board === board)
+      .map(e => e.model)
       .collect();
   });
-  protected modelsOptions = computed(() => {
-    return toIterator(this.duts())
-      .filter(e => e.board === this.boardSignal())
-      .unique_by_where((a, b) => {
-        return a.model === b.model;
-      })
-      .map(e => toSelectedItem(e.model))
-      .collect();
+  // Loading variables.
+  protected isRunLoadingSignal = signal<{show: boolean; message: string}>({
+    show: false,
+    message: '',
   });
-  protected poolsOptions = computed(() => {
-    return toIterator(this.duts())
-      .filter(
-        e =>
-          e.board === this.boardSignal() &&
-          (this.modelSignal() === '' || e.model === this.modelSignal())
-      )
-      .map(e => e.pools)
-      .flatten()
-      .unique_by()
-      .map(e => toSelectedItem(e))
-      .collect();
+  protected isRunLoading$ = toObservable(this.isRunLoadingSignal);
+  protected isProvisionLoadingSignal = signal<boolean>(false);
+  protected isTestFormLoadingSignal = computed(() => {
+    return (
+      this.sourcePickerLoadingSignal().show || this.suiteLoadingSignal().show
+    );
   });
-  private suiteValidSignal = signal<boolean>(false);
+
+  protected sourcePickerLoadingSignal = signal<{
+    show: boolean;
+    message: string;
+  }>({show: false, message: ''});
+  protected suiteLoadingSignal = signal<{show: boolean; message: string}>({
+    show: false,
+    message: '',
+  });
+
+  protected testOptionsLoadingSignal = computed(() => {
+    if (this.sourcePickerLoadingSignal().show)
+      return this.sourcePickerLoadingSignal();
+    if (this.suiteLoadingSignal().show) return this.suiteLoadingSignal();
+    return {show: false, message: ''};
+  });
+
+  protected testOptionsLoading$ = toObservable(this.testOptionsLoadingSignal);
+
+  protected isLoading = signal<{show: boolean; message: string}>({
+    show: false,
+    message: '',
+  });
+  protected loading$ = toObservable(this.isLoading);
+  protected forceShowDutLoading = computed(() => {
+    const isProvisionLoading = this.isProvisionLoadingSignal();
+    const isTestFormLoading = this.isTestFormLoadingSignal();
+    const isRunLoading = this.isRunLoadingSignal().show;
+    return isProvisionLoading || isTestFormLoading || isRunLoading;
+  });
+
+  protected testOptionsErrorMsg = signal<string>('');
+
+  protected onTestOptionsErrorsChanged(value: string) {
+    this.testOptionsErrorMsg.set(value);
+  }
+
+  protected driveTestModuleSignal = signal<string>('');
+  protected selectedDriveTestModulesSignal = signal<string[]>([]);
+
+  protected onDriveTestModuleInputChanged(e: string) {
+    this.driveTestModuleSignal.set(e);
+  }
+
+  protected onAddTestClicked() {
+    const newValue = [
+      ...this.selectedDriveTestModulesSignal(),
+      this.driveTestModuleSignal(),
+    ];
+    resetSignals([this.driveTestModuleSignal]);
+    this.selectedDriveTestModulesSignal.set(newValue);
+    this.testSelectionSignal.update(prev => {
+      return {
+        ...prev,
+        testModules: newValue,
+      };
+    });
+  }
+
+  protected onRemoveTestClicked(index: number) {
+    const newValue = [...this.selectedDriveTestModulesSignal()];
+    newValue.splice(index, 1);
+    this.selectedDriveTestModulesSignal.set(newValue);
+    this.testSelectionSignal.update(prev => {
+      return {
+        ...prev,
+        testModules: newValue,
+      };
+    });
+  }
+
+  // The default settings for the run suite/test.
+  protected settings = [
+    getDefaultCTPTimeout(),
+    getDefaultTrTimeout(),
+    getShardingGroup(),
+  ];
+  protected testplanSettings = [
+    getDefaultCTPTimeout(),
+    getDefaultTrTimeout(),
+    getTestplanShardingGroup(),
+  ];
+  protected customSettings = signal<CustomSetting[]>([...this.settings]);
 
   private refs: EffectRef[] = [];
   private destroyRef = inject(DestroyRef);
 
+  protected testplan = computed(() => {
+    const selection = this.testSelectionSignal();
+    if (selection && 'planName' in selection) {
+      return selection.planName;
+    }
+    return '';
+  });
+
+  protected provisionFormValid = computed(() => {
+    const provision = this.provisionSignal();
+    if (provision.mode === 'DEFAULT') {
+      return (
+        provision.value.branch !== '' &&
+        provision.value.target !== '' &&
+        provision.value.build !== ''
+      );
+    }
+    return true;
+  });
+
+  protected testFormValid = computed(() => {
+    const testSelectionValid = this.testSelectionValid();
+    const isSelectAndroidBuild = this.selectAndroidBuild();
+    const baseValid = isSelectAndroidBuild
+      ? this.androidBuildValid()
+      : this.googleDriveValid();
+    return baseValid && testSelectionValid;
+  });
+
+  protected selectAndroidBuild = computed(() => {
+    const basic = this.basicFieldsSignal();
+    return basic.mode === 'ANDROID_BUILD';
+  });
+
+  protected androidBuildValid = computed(() => {
+    const basic = this.basicFieldsSignal();
+    if (basic.mode !== 'ANDROID_BUILD') {
+      return false;
+    }
+    const buildValues = (basic as AndroidBuildBasicFields).buildValues;
+    return (
+      buildValues.branch !== '' &&
+      buildValues.target !== '' &&
+      buildValues.build !== ''
+    );
+  });
+
+  protected googleDriveValid = computed(() => {
+    const basic = this.basicFieldsSignal();
+    if (basic.mode !== 'GOOGLE_DRIVE') {
+      return false;
+    }
+    return (basic as GoogleDriveBasicFields).zipFileId !== '';
+  });
+
+  protected testSelectionValid = computed(() => {
+    const selection = this.testSelectionSignal();
+    if (!selection) {
+      return false;
+    }
+    const tab = this.tabSignal();
+
+    if (tab === 'suite') {
+      const suiteTest = selection as ALTestingOptionsSuiteTest;
+      return !!suiteTest.suite;
+    } else if (tab === 'test') {
+      const suiteTest = selection as ALTestingOptionsSuiteTest;
+      return (
+        !!suiteTest.suite &&
+        !!suiteTest.testModules &&
+        suiteTest.testModules.length > 0
+      );
+    }
+    const testplan = selection as ALTestingOptionsTestplan;
+    return !!testplan.planName;
+  });
+
   constructor(
-    private androidService: AndroidService,
-    private service: SatlabRpcService,
     private runService: RunService,
     private notification: NotificationService
   ) {
-    this.refs = [
-      effect(
-        () => {
-          const board = this.boardSignal();
-          const isCrossBranch = this.isCrossBranchTestingSignal();
-
-          if (board !== '' && !isCrossBranch) {
-            this.__onBoardChanged(board);
-          }
-        },
-        {allowSignalWrites: true}
-      ),
-      effect(
-        () => {
-          this.__onBranchChanged(this.branchSignal());
-        },
-        {allowSignalWrites: true}
-      ),
-      effect(
-        () => {
-          const board = untracked(() => this.boardSignal());
-          const branch = untracked(() => this.branchSignal());
-          const target = this.targets();
-          if (board && branch && target.length > 1) {
-            this.__onTargetChanged(board, branch, target);
-          }
-        },
-        {allowSignalWrites: true}
-      ),
-      effect(
-        () => {
-          const board = untracked(() => this.boardSignal());
-          const branch = untracked(() => this.branchSignal());
-          const target = untracked(() => this.targets());
-          const build = this.buildSignal();
-          this.__onBuildChanged(board, branch, target, build);
-        },
-        {allowSignalWrites: true}
-      ),
-    ];
     // An observable that updates the CTP timeout and TR timeout based on the testplan.
-    toObservable(this.testPlanSignal)
+    toObservable(this.testplan)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         debounceTime(300),
         distinctUntilChanged(),
         switchMap(testPlan => {
-          if (testPlan === 'avs/component/storage') {
+          if (testPlan === STORAGE_TESTPLAN_NAME) {
             return of([72, 48]);
           }
           return of([16, 16]);
@@ -342,306 +340,195 @@ export class AndroidBuildSelectFormComponent
       });
   }
 
-  ngAfterViewInit() {
-    this.__listDuts();
-  }
-
   ngOnDestroy() {
     this.refs.forEach(e => e.destroy());
   }
 
-  protected onPropsChanged(key: string, value: string | string[]) {
-    console.log(`${key}: ${value}`);
-    switch (key) {
-      case 'board':
-        this.boardSignal.set((value as string).trim());
-        resetSignals([
-          this.modelSignal,
-          this.branchSignal,
-          this.buildSignal,
-          this.validBuildSignal,
-          this.poolSignal,
-          this.suiteSignal,
-          this.targetSignal,
-          this.testModulesSignal,
-          this.branchOptions,
-          this.targetOptions,
-          this.buildOptions,
-          this.suiteOptions,
-          this.testOptions,
-          this.errMap,
-        ]);
-        break;
-      case 'model':
-        resetSignals([
-          this.branchSignal,
-          this.buildSignal,
-          this.validBuildSignal,
-          this.poolSignal,
-          this.suiteSignal,
-          this.targetSignal,
-          this.testModulesSignal,
-          this.targetOptions,
-          this.buildOptions,
-          this.suiteOptions,
-          this.testOptions,
-        ]);
-        this.modelSignal.set((value as string).trim());
-        break;
-      case 'branch':
-        resetSignals([
-          this.buildSignal,
-          this.validBuildSignal,
-          this.suiteSignal,
-          this.targetSignal,
-          this.testModulesSignal,
-          this.targetOptions,
-          this.buildOptions,
-          this.suiteOptions,
-          this.testOptions,
-          this.errMap,
-        ]);
+  protected onDutChanged(duts: IDut[]) {
+    this.duts.set(duts);
+  }
 
-        // Set the model value if users select the
-        // model branch and didn't set the model value.
-        for (const model of this.allModels()) {
-          if (value.includes(model) && this.modelSignal() !== model) {
-            this.modelSignal.set(model);
-          }
-        }
-
-        this.branchSignal.set((value as string).trim());
-        break;
-      case 'boardTarget':
-        this.targetSignal.set({
-          ...this.targetSignal(),
-          1: (value as string).trim(),
-        });
-        resetSignals([
-          this.buildSignal,
-          this.validBuildSignal,
-          this.suiteSignal,
-          this.testModulesSignal,
-          this.buildOptions,
-          this.suiteOptions,
-          this.testOptions,
-          this.errMap,
-        ]);
-        break;
-      case 'suiteTarget':
-        this.targetSignal.set({
-          ...this.targetSignal(),
-          2: (value as string).trim(),
-        });
-        resetSignals([
-          this.buildSignal,
-          this.validBuildSignal,
-          this.suiteSignal,
-          this.testModulesSignal,
-          this.buildOptions,
-          this.suiteOptions,
-          this.testOptions,
-          this.errMap,
-        ]);
-        break;
-      case 'build':
-        this.buildSignal.set((value as string).trim());
-        resetSignals([
-          this.validBuildSignal,
-          this.suiteSignal,
-          this.testModulesSignal,
-        ]);
-        break;
-      case 'pool':
-        this.poolSignal.set((value as string).trim());
-        break;
-      case 'suite':
-        this.suiteSignal.set((value as string).trim());
-        resetSignals([this.testModulesSignal]);
-        break;
-      case 'testModules':
-        this.testModulesSignal.set(value as string[]);
-        break;
+  protected onProvisionFormChanged(provisionForm: ALProvisionOptions) {
+    this.provisionSignal.set(provisionForm);
+    // Set the model value if users select the
+    // model branch and didn't set the model value.
+    for (const model of this.sameBoardModels()) {
+      if (
+        provisionForm.mode === 'DEFAULT' &&
+        provisionForm.value.branch.includes(model)
+      ) {
+        this.modelSignal.set(model);
+      }
     }
   }
 
-  protected onChildLoadingChanged(value: {show: boolean; message: string}) {
-    this.isLoading.set(value);
+  protected onSourceValuesChanged(source: SourceValues) {
+    if (source.mode === 'ANDROID_BUILD') {
+      this.basicFieldsSignal.set({
+        mode: source.mode,
+        buildValues: source.buildValues,
+      } as ALTestingBasicFields);
+    } else {
+      this.basicFieldsSignal.set({
+        mode: source.mode,
+        zipFileId: source.zipFileId,
+      } as ALTestingBasicFields);
+      this.testSelectionSignal.set({
+        suite: source.suite,
+        testModules: this.selectedDriveTestModulesSignal(),
+      });
+    }
   }
 
-  protected onCrossBranchTestingChanged(value: boolean) {
-    resetSignals([
-      this.testBranchSignal,
-      this.testTargetSignal,
-      this.testValidBuildSignal,
-      this.provisionBranchSignal,
-      this.provisionTargetSignal,
-      this.provisionValidBuildSignal,
-      this.branchSignal,
-      this.targetSignal,
-      this.buildSignal,
-      this.suiteSignal,
-      this.testModulesSignal,
-      this.branchOptions,
-      this.targetOptions,
-      this.buildOptions,
-      this.suiteOptions,
-      this.testOptions,
-      this.errMap,
-    ]);
-    this.isCrossBranchTestingSignal.set(value);
+  protected onSuiteValuesChanged(val: {suite: string; testModules: string[]}) {
+    this.testSelectionSignal.update(prev => ({
+      ...prev,
+      suite: val.suite,
+      testModules: val.testModules,
+    }));
   }
 
-  protected onTabChanged(tab: 'suite' | 'test' | 'Testplan') {
-    this.tabSignal.set(tab);
-    this.settingsRef.resetShadringModeErrors();
-    resetSignals([
-      this.suiteSignal,
-      this.testModulesSignal,
-      this.testPlanSignal,
-    ]);
+  protected onTestplanInputChanged(planName: string) {
+    this.testplanSignal.set(planName);
+    this.testSelectionSignal.set({
+      planName,
+    });
+  }
 
-    if (tab === 'Testplan') {
-      // If selecting testplan, set the maxInShard to 10000 and make it immutable.
-      this.customSettings.set([
-        getDefaultCTPTimeout(),
-        getDefaultTrTimeout(),
-        getTestplanShardingGroup(),
+  protected onProvisionLoadingChanged(value: boolean) {
+    this.isProvisionLoadingSignal.set(value);
+  }
+
+  protected onAndroidBuildPickerLoadingChanged(value: {
+    show: boolean;
+    message: string;
+  }) {
+    this.sourcePickerLoadingSignal.set(value);
+  }
+
+  protected onSuiteLoadingChanged(value: {show: boolean; message: string}) {
+    this.suiteLoadingSignal.set(value);
+  }
+
+  protected onTabChanged(tab: 'suite' | 'test' | 'testplan') {
+    const curTab = this.tabSignal();
+    if (curTab === tab) return;
+
+    // If switching to or from testplan tab, perform a full reset of test options.
+    if (curTab === 'testplan' || tab === 'testplan') {
+      this.testSelectionSignal.set(null);
+      this.sourcePickerLoadingSignal.set({show: false, message: ''});
+      this.suiteLoadingSignal.set({show: false, message: ''});
+      resetSignals([
+        this.testplanSignal,
+        this.testOptionsErrorMsg,
+        this.selectedDriveTestModulesSignal,
       ]);
     } else {
-      this.customSettings.set([
-        getDefaultCTPTimeout(),
-        getDefaultTrTimeout(),
-        getShardingGroup(),
-      ]);
+      // Switching between suite and test: only clear the selected test modules.
+      resetSignals([this.selectedDriveTestModulesSignal]);
+      this.testSelectionSignal.update(prev =>
+        prev ? {...prev, testModules: []} : null
+      );
     }
+
+    this.tabSignal.set(tab);
+    this.customSettings.set([
+      ...(tab === 'testplan' ? this.testplanSettings : this.settings),
+    ]);
   }
 
-  protected onChildSuiteValidChanged(value: boolean) {
-    this.suiteValidSignal.set(value);
-  }
-
-  protected onAndroidBranchTargetBuildChanged(value: {
-    type: 'provision' | 'test';
-    branch: string;
-    target: string;
-    validBuild: string;
-  }) {
-    if (value.type === 'test') {
-      this.testBranchSignal.set(value.branch);
-      this.testTargetSignal.set(value.target);
-      this.testValidBuildSignal.set(value.validBuild);
-    } else if (value.type === 'provision') {
-      this.provisionBranchSignal.set(value.branch);
-      this.provisionTargetSignal.set(value.target);
-      this.provisionValidBuildSignal.set(value.validBuild);
-    }
+  protected onDutRelatedValueChanged(value: {[key: string]: string}) {
+    this.poolSignal.set(value['pool']);
+    this.boardSignal.set(value['board']);
+    this.modelSignal.set(value['model']);
   }
 
   protected _isRunnable = computed(() => {
-    const extra =
-      this.tabSignal() !== 'test' || this.testModulesSignal().length !== 0;
-
-    const taskValid =
-      this.tabSignal() === 'Testplan'
-        ? this.testPlanSignal() !== ''
-        : this.suiteValidSignal();
-
-    const loading = this.isLoading();
-    const hasFormError = Object.values(this.errMap()).some(e => e !== '');
-    const errrorsFromSettings = this.settingsRef?.hasErrors() || false;
-    const target = this.targetSignal();
-    const isCrossBranch = this.isCrossBranchTestingSignal();
     const board = this.boardSignal();
     const pool = this.poolSignal();
-    const branch = this.branchSignal(),
-      build = this.validBuildSignal();
-    const provisionBranch = this.provisionBranchSignal(),
-      provisionTarget = this.provisionTargetSignal(),
-      provisionBuild = this.provisionValidBuildSignal();
-    const testBranch = this.testBranchSignal(),
-      testTarget = this.testTargetSignal(),
-      testBuild = this.testValidBuildSignal();
-
+    const provisionFormValid = this.provisionFormValid();
+    const testFormValid = this.testFormValid();
+    const errrorsFromSettings = this.settingsRef?.hasErrors() || false;
+    const forceShowDutLoading = this.forceShowDutLoading();
     console.log(
-      `extra: ${extra}, loading: ${
-        this.isLoading().show
-      }, board: ${this.boardSignal()}, branch: ${this.branchSignal()}, provision branch: ${this.provisionBranchSignal()}, test branch: ${this.testBranchSignal()}, t1: ${
-        this.targetSignal()[1]
-      } t2: ${
-        this.targetSignal()[2]
-      }, provision build: ${this.provisionValidBuildSignal()}, test build: ${this.testValidBuildSignal()},
-      provision target: ${this.provisionTargetSignal()}, test target: ${this.testTargetSignal()}, build: ${this.buildSignal()}, provision build: ${this.provisionValidBuildSignal()}, test build: ${this.testValidBuildSignal()}, pool: ${this.poolSignal()}, taskValid: ${taskValid}`
+      'board',
+      board,
+      'pool',
+      pool,
+      'errrorsFromSettings',
+      errrorsFromSettings,
+      'forceShowDutLoading',
+      forceShowDutLoading,
+      'provisionFormValid',
+      provisionFormValid,
+      'testFormValid',
+      testFormValid
     );
-
     return (
-      board !== '' &&
-      pool !== '' &&
-      (isCrossBranch
-        ? provisionBranch !== '' &&
-          testBranch !== '' &&
-          provisionTarget !== '' &&
-          testTarget !== '' &&
-          provisionBuild !== '' &&
-          testBuild !== ''
-        : branch !== '' &&
-          target[1] !== '' &&
-          target[2] !== '' &&
-          build !== '' &&
-          this.isBuildValidSignal()) &&
-      !hasFormError &&
-      loading.show === false &&
-      taskValid &&
-      extra &&
-      !errrorsFromSettings
+      board &&
+      pool &&
+      provisionFormValid &&
+      !errrorsFromSettings &&
+      !forceShowDutLoading &&
+      provisionFormValid &&
+      testFormValid
     );
   });
-
-  protected onBuildInputValueChanged(value: string) {
-    this.onPropsChanged('build', value);
-  }
 
   protected onCustomSettingsChanged(value: CustomSetting[]) {
     this.customSettings.set([...value]);
   }
 
-  protected onPlanChanged(value: string) {
-    this.testPlanSignal.set(value);
-  }
-
-
-
   protected onRunClicked() {
     const board = this.boardSignal();
     const model = this.modelSignal();
     const pool = this.poolSignal();
-    const suite =
-      this.tabSignal() === 'suite' ? `suite:${this.suiteSignal()}` : '';
-    const testModules = this.testModulesSignal();
-
     const tab = this.tabSignal();
-    const testplan = this.testPlanSignal();
-    const isCrossBranch = this.isCrossBranchTestingSignal() ?? false;
-    const provisionTarget = isCrossBranch
-      ? this.provisionTargetSignal()
-      : this.targetSignal()[1];
-    const testTarget = isCrossBranch
-      ? this.testTargetSignal()
-      : this.targetSignal()[2];
 
-    const provisionBuild = isCrossBranch
-      ? this.provisionValidBuildSignal()
-      : this.buildForListingSuite();
-    const testBuild = isCrossBranch ? this.testValidBuildSignal() : '';
-    const testBranch = this.testBranchSignal();
+    const provision = this.provisionSignal();
+    const isSkipProvisioning = provision.mode === 'SKIP';
 
-    let testIncludes = [];
-    let textExcludes = [];
-    let tagIncludes = [];
+    const basic = this.basicFieldsSignal();
+
+    const isSelectAndroidBuild = this.selectAndroidBuild();
+
+    const androidTestValues = isSelectAndroidBuild
+      ? (basic as AndroidBuildBasicFields)
+      : undefined;
+    const googleDriveTestValues = !isSelectAndroidBuild
+      ? (basic as GoogleDriveBasicFields)
+      : undefined;
+    const testSelectionValues = this.testSelectionSignal();
+
+    let testBranch = '',
+      testTarget = '',
+      testBuild = '',
+      suite = '',
+      testplan = '';
+    let testModules = [];
+    let tagIncludes = [],
+      testIncludes = [],
+      testExcludes = [];
+
+    if (isSelectAndroidBuild) {
+      testBranch = androidTestValues.buildValues.branch;
+      testTarget = androidTestValues.buildValues.target;
+      testBuild = androidTestValues.buildValues.build;
+    } else {
+      testBuild = googleDriveTestValues.zipFileId;
+    }
+    const s = (testSelectionValues as ALTestingOptionsSuiteTest)?.suite;
+    suite = s !== '' ? `suite:${s}` : '';
+    testModules =
+      (testSelectionValues as ALTestingOptionsSuiteTest)?.testModules ?? [];
+    testplan =
+      (testSelectionValues as ALTestingOptionsTestplan)?.planName ?? '';
+
     if (tab === 'test') {
       testIncludes = [...testModules];
     } else {
-      textExcludes = [...testModules];
+      testExcludes = [...testModules];
     }
 
     const settings = this.customSettings();
@@ -655,11 +542,16 @@ export class AndroidBuildSelectFormComponent
       s => s.key === 'shardingMode'
     ) as SingleChoiceSetting;
 
-    const nShards = shardingMode.options.find(s => s.key === 'nShards')?.state
-      .value;
-    const maxInShard = shardingMode.options.find(s => s.key === 'maxInShard')
-      ?.state.value;
-
+    const selectedShardingOption = shardingMode.options[shardingMode.index];
+    const nShards =
+      selectedShardingOption.key === 'nShards'
+        ? selectedShardingOption.state.value ?? undefined
+        : undefined;
+    const maxInShard =
+      selectedShardingOption.key === 'maxInShard' ||
+      selectedShardingOption.key === 'default'
+        ? selectedShardingOption.state.value ?? undefined
+        : undefined;
     let task: Suite | Test | Testplan;
     if (tab === 'suite' || tab === 'test') {
       task = {
@@ -669,7 +561,7 @@ export class AndroidBuildSelectFormComponent
       if (suite !== '') {
         tagIncludes = [...tagIncludes, suite];
       }
-    } else if (tab === 'Testplan') {
+    } else if (tab === 'testplan') {
       task = {
         kind: 'testplan',
         name: testplan,
@@ -681,13 +573,24 @@ export class AndroidBuildSelectFormComponent
       board: board,
       model: model,
       pool: pool,
-      target: provisionTarget,
-      test_target: testTarget,
-      build: provisionBuild,
-      test_build: testBuild,
-      test_branch: testBranch,
+      skipProvisioning: isSkipProvisioning,
+      target: isSkipProvisioning ? '' : provision.value.target,
+      build: isSkipProvisioning ? '' : provision.value.build,
+      testOptions: isSelectAndroidBuild
+        ? {
+            mode: 'ANDROID_BUILD',
+            buildValues: {
+              branch: testBranch,
+              target: testTarget,
+              build: testBuild,
+            },
+          }
+        : {
+            mode: 'GOOGLE_DRIVE',
+            zipFileId: testBuild,
+          },
       tags: {
-        testNamesExclude: textExcludes,
+        testNamesExclude: testExcludes,
         testNamesInclude: testIncludes,
         tagsToInclude: tagIncludes,
       },
@@ -707,8 +610,13 @@ export class AndroidBuildSelectFormComponent
       `Running ${tab}...`
     )
       .pipe(
-        startWithTap(() => this.isRunLoadingSignal.set(true)),
-        finalize(() => this.isRunLoadingSignal.set(false))
+        startWithTap(() =>
+          this.isRunLoadingSignal.set({
+            show: true,
+            message: `Running ${tab}...`,
+          })
+        ),
+        finalize(() => this.isRunLoadingSignal.set({show: false, message: ''}))
       )
       .subscribe({
         next: buildLink => {
@@ -726,161 +634,6 @@ export class AndroidBuildSelectFormComponent
           });
         },
       });
-  }
-
-  private __onBoardChanged(board: string) {
-    if (board) {
-      this.__listBranches([...this.allModels(), board]);
-    }
-  }
-
-  private __onBranchChanged(branch: string) {
-    if (branch) {
-      this.__listTargets(branch);
-    }
-  }
-
-  private __onTargetChanged(board: string, branch: string, targets: string[]) {
-    if (board !== '' && branch !== '' && targets.length > 0) {
-      this.__listBuilds(board, branch, targets);
-    }
-  }
-
-  private __onBuildChanged(
-    board: string,
-    branch: string,
-    targets: string[],
-    build: string
-  ) {
-    if (board !== '' && branch !== '' && targets.length !== 0 && build !== '') {
-      this.__isBuildValid(board, branch, targets, build);
-    } else {
-      this.validBuildSignal.set('');
-    }
-  }
-  private __listBranches(targets: string[]) {
-    console.log('calling list branches');
-    wrapperLoading(
-      this.androidService.listBranches(targets),
-      this.isLoading,
-      'Loading branches...'
-    )
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: e => {
-          const {keys, msgs} = untracked(() => this.config());
-          this.errMap.update(current => ({
-            ...current,
-            [keys.branch]: e.length === 0 ? msgs.branch : '',
-          }));
-          this.branchOptions.set(e.map(toSelectedItem));
-        },
-        error: e => {
-          this.notification.error(`List branches failed: ${e}`, {
-            dismiss: false,
-          });
-        },
-      });
-  }
-
-  private __listTargets(branch: string) {
-    console.log('Listing targets');
-    wrapperLoading(
-      this.androidService.listTargets(branch),
-      this.isLoading,
-      'Loading targets...'
-    ).subscribe({
-      next: e => {
-        const {keys, msgs} = untracked(() => this.config());
-        this.errMap.update(current => ({
-          ...current,
-          [keys.target]: e.length === 0 ? msgs.target : '',
-        }));
-        this.targetOptions.set(e.map(toSelectedItem));
-      },
-      error: e => {
-        this.notification.error(`List targets failed: ${e}`, {dismiss: false});
-      },
-    });
-  }
-
-  private __listBuilds(board: string, branch: string, targets: string[]) {
-    console.log('list builds');
-    wrapperLoading(
-      this.androidService.listBuilds(board, branch, targets),
-      this.isLoading,
-      'Loading builds...'
-    ).subscribe({
-      next: e => {
-        const {keys, msgs} = untracked(() => this.config());
-        this.errMap.update(current => ({
-          ...current,
-          [keys.build]: e.length === 0 ? msgs.build : '',
-        }));
-        this.buildOptions.set(e.map(toSelectedItem));
-      },
-      error: e => {
-        this.notification.error(`List builds failed: ${e}`, {dismiss: false});
-      },
-    });
-  }
-
-  private __listDuts() {
-    wrapperLoading(
-      from(this.service.listEnrolledDUTs()),
-      this.isLoading,
-      'Loading DUTs...'
-    ).subscribe({
-      next: e => {
-        const {keys, msgs} = untracked(() => this.config());
-        this.errMap.update(current => ({
-          ...current,
-          [keys.listDut]: e.length === 0 ? msgs.listDut : '',
-        }));
-        this.duts.set(e);
-      },
-      error: e => {
-        this.notification.error(`List DUTs failed: ${e}`, {dismiss: false});
-      },
-    });
-  }
-
-  private __isBuildValid(
-    board: string,
-    branch: string,
-    targets: string[],
-    build: string
-  ) {
-    wrapperLoading(
-      this.androidService.validateBuild(board, branch, targets, build),
-      this.isLoading,
-      'Validating build...'
-    ).subscribe({
-      next: isValid => {
-        const {keys, msgs} = untracked(() => this.config());
-        if (isValid) {
-          this.validBuildSignal.set(build);
-          this.errMap.update(current => ({
-            ...current,
-            [keys.validate]: '',
-          }));
-          this.errMap.update(current => ({
-            ...current,
-            [keys.build]: '',
-          }));
-        } else {
-          this.errMap.update(current => ({
-            ...current,
-            [keys.validate]: msgs.validate,
-          }));
-        }
-      },
-      error: e => {
-        this.notification.error(`Validate build failed: ${e}`, {
-          dismiss: false,
-        });
-      },
-    });
   }
 
   // Updating configs if required.

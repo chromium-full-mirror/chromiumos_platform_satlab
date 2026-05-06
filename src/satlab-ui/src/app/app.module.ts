@@ -23,7 +23,6 @@ import {SafeNumberPipe} from './pipes/safe-number.pipe';
 import {AndroidBuildSelectFormComponent} from './run_suite/android/android-build-select-form/android-build-select-form.component';
 import {AutoQualComponent} from './run_suite/android/auto-qual/auto-qual.component';
 import {SuiteComponent} from './run_suite/android/suite/suite.component';
-import {TestPlanComponent} from './run_suite/android/test-plan/test-plan.component';
 import {RunComponent} from './run_suite/chromeos/run/run.component';
 import {AdvancedSettingsComponent} from './run_suite/common/advanced-settings/advanced-settings.component';
 import {AutocompleteSelectorComponent} from './run_suite/common/autocomplete-selector/autocomplete-selector.component';
@@ -164,7 +163,6 @@ import {RouterModule} from '@angular/router';
     AutocompleteComponent,
     AndroidBuildSelectFormComponent,
     SuiteComponent,
-    TestPlanComponent,
     AdvancedSettingsComponent,
     SafeNumberPipe,
     AutoQualComponent,

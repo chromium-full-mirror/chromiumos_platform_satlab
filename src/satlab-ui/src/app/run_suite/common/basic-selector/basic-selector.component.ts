@@ -70,7 +70,9 @@ export class BasicSelectorComponent implements OnInit, OnChanges {
         e => e.value === this.value
       )?.value;
     } else if (this.autoSelect && this.options.length === 1) {
-      this.selectOption(0);
+      queueMicrotask(() => {
+        this.selectOption(0);
+      });
     }
   }
 

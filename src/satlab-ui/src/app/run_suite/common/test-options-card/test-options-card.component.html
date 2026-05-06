@@ -1,0 +1,20 @@
+<div
+  class="w-full p-6 border rounded-lg shadow-sm font-sans"
+  [class.border-gray-500]="errorMsg === ''"
+  [class.border-red-500]="errorMsg !== ''"
+>
+  <div class="flex flex-wrap items-center justify-between gap-4 w-full">
+    <h3 class="text-xl font-bold text-gray-800 m-0">Test options</h3>
+    <p
+      class="text-red-500 text-sm font-medium m-0 max-w-full break-words"
+      *ngIf="errorMsg !== ''"
+    >
+      {{ errorMsg }}
+    </p>
+  </div>
+
+  <div class="mt-4 relative">
+    <app-loading *ngIf="loading$" [loading$]="loading$"></app-loading>
+    <ng-content></ng-content>
+  </div>
+</div>

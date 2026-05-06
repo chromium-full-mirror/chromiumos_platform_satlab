@@ -1,5 +1,8 @@
 import {IDims} from '../models/dims';
-import {ICustomSettings} from '../models/run_suite_fields';
+import {
+  ICustomSettings,
+  ALTestingBasicFields,
+} from '../models/run_suite_fields';
 import {getRPCHost} from '../utils/misc';
 import {SatlabRpcServiceClient} from './SatlabrpcServiceClientPb';
 import {AdvancedSettings, Dim, RunRequest} from './satlabrpc_pb';
@@ -47,9 +50,8 @@ export type RunAndroidOSRequest = {
   os: 'android';
   model?: string;
   target: string;
-  test_target: string;
-  test_branch?: string;
-  test_build?: string;
+  skipProvisioning?: boolean;
+  testOptions: ALTestingBasicFields;
 } & CommonFields;
 
 @Injectable({
@@ -89,7 +91,6 @@ export class RunService {
       .setOs(params.os)
       .setModel(params.model)
       .setBoard(params.board)
-      .setBuild(params.build)
       .setPool(params.pool)
       .setDimsList(toDims(servoRequired, params.dims))
       .setTagIncludesList(params.tags.tagsToInclude)
@@ -101,10 +102,27 @@ export class RunService {
     if (params.os === 'chromeos') {
       req.setModel(params.model).setMilestone(params.milestone);
     } else {
-      req.setModel(params.model ?? '').setTarget(params.target);
-      req.setTestTarget(params.test_target);
-      req.setTestBranch(params.test_branch ?? '');
-      req.setTestBuild(params.test_build ?? '');
+      req.setTarget(params.target ?? '');
+      const testOption = params.testOptions;
+      const drive = new RunRequest.Drive();
+      const testBuild = new RunRequest.Build();
+      if (testOption.mode === 'ANDROID_BUILD') {
+        testBuild.setBranch(testOption.buildValues.branch ?? '');
+        testBuild.setTarget(testOption.buildValues.target ?? '');
+        testBuild.setId(testOption.buildValues.build ?? '');
+        req.setAndroidTestBuild(testBuild);
+      } else {
+        drive.setId(testOption.zipFileId ?? '');
+        req.setDrive(drive);
+      }
+      if (!params.skipProvisioning) {
+        req.setBuild(params.build);
+      } else {
+        req.setSkipProvisioning(true);
+        req.setBuild(
+          testBuild.getId() === '' ? drive.getId() : testBuild.getId()
+        );
+      }
     }
 
     switch (params.run.kind) {

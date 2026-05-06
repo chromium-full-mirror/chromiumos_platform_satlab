@@ -7,7 +7,7 @@
         [options]="suiteOptions()"
         title="Select Suite:"
         (selectChanged)="onSelectedChanged('suite', $event)"
-        (inputChanged)="onSelectedChanged('suite', $event)"
+        (inputChanged)="onSuiteInputChanged($event)"
       ></app-autocomplete-selector>
     </div>
 

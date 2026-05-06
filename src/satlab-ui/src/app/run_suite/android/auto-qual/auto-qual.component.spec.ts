@@ -1,6 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { AutoQualComponent } from './auto-qual.component';
+import {AutoQualComponent} from './auto-qual.component';
 
 describe('AutoQualComponent', () => {
   let component: AutoQualComponent;
@@ -8,7 +8,7 @@ describe('AutoQualComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [AutoQualComponent]
+      imports: [AutoQualComponent],
     });
     fixture = TestBed.createComponent(AutoQualComponent);
     component = fixture.componentInstance;

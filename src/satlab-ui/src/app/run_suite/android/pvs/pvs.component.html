@@ -16,152 +16,104 @@
 </div>
 
 <div
-  class="relative w-5/12 lg:max-w-3xl mx-auto my-[4rem] px-6 pt-0 pb-6 border box-shadow rounded"
+  class="relative w-full lg:max-w-3xl mx-auto my-[4rem] px-6 pt-0 pb-6 border box-shadow rounded"
 >
   <app-loading [loading$]="loading$"></app-loading>
-  <div class="min-h-[1.5rem]">
-    <p class="text-red-500 text-center" *ngIf="combinedErrorMsg() !== ''">
-      {{ combinedErrorMsg() }}
-    </p>
-  </div>
+  <div class="min-h-[1.5rem]"></div>
   <div class="flex gap-4 w-full flex-col">
-    <app-basic-selector
-      (select)="onPropsChanged('board', $event)"
-      [options]="boardOptions()"
-      [disabled]="isLoadingSignal() || duts().length === 0"
-      title="Select Board:"
+    <app-show-dut
+      [isParentLoading]="forceShowDutLoading()"
+      [selectorList]="['hostname', 'board', 'model']"
+      (valuesChanged)="onDutRelatedValueChanged($event)"
+      (dutsChanged)="onDutChanged($event)"
     >
-    </app-basic-selector>
+    </app-show-dut>
 
-    <app-basic-selector
-      (select)="onPropsChanged('model', $event)"
-      [options]="modelsOptions()"
-      [value]="modelSignal()"
-      [disabled]="isLoadingSignal() || modelsOptions().length === 0"
-      title="Select Model (Optional):"
-    >
-    </app-basic-selector>
-
-    <app-basic-selector
-      *ngIf="!isCrossBranchTestingSignal()"
-      (select)="onPropsChanged('branch', $event)"
-      [options]="filteredBranchOptions()"
-      [value]="branchSignal()"
-      [disabled]="isLoadingSignal() || filteredBranchOptions().length === 0"
-      title="Select Branch:"
-    >
-    </app-basic-selector>
-
-    <app-basic-selector
-      *ngIf="!isCrossBranchTestingSignal()"
-      (select)="onPropsChanged('boardTarget', $event)"
-      [options]="boardTargetOptions()"
-      [disabled]="isLoadingSignal() || boardTargetOptions().length === 0"
-      title="Select Board Target:"
-    >
-    </app-basic-selector>
-
-    <app-android-build-picker
-      #provisionPicker
-      *ngIf="isCrossBranchTestingSignal()"
+    <app-provision-form
+      [duts]="duts()"
       [board]="boardSignal()"
       [model]="modelSignal()"
-      [type]="'provision'"
-      [duts]="duts()"
       [parentLoading]="isRunLoadingSignal()"
-      [buildValidatorConfig]="buildValidatorConfig"
-      (loadingWithMsg)="onChildLoadingChanged($event)"
-      (dataChanged)="onAndroidBranchTargetBuildChanged($event)"
-    ></app-android-build-picker>
+      (provisionFormDataChange)="onPropsChanged('provisionForm', $event)"
+      (isLoadingChanged)="onProvisionLoadingChanged($event)"
+    ></app-provision-form>
 
-    <mat-slide-toggle
-      (change)="onCrossBranchTestingChanged($event.checked)"
-      [disabled]="isLoadingSignal()"
+    <app-test-options-card
+      [errorMsg]="testOptionsErrorMsg()"
+      [loading$]="testOptionsLoading$"
     >
-      Use a separate test build
-    </mat-slide-toggle>
+      <app-test-source-picker
+        [duts]="duts()"
+        [board]="boardSignal()"
+        [model]="modelSignal()"
+        [parentLoading]="isRunLoadingSignal()"
+        (sourceValuesChanged)="onSourceValuesChanged($event)"
+        (isLoadingChanged)="onTestFormLoadingChanged($event)"
+        (errorsChanged)="onTestOptionsErrorsChanged($event)"
+      ></app-test-source-picker>
 
-    <app-android-build-picker
-      #testPicker
-      *ngIf="isCrossBranchTestingSignal()"
-      [board]="boardSignal()"
-      [model]="modelSignal()"
-      [type]="'test'"
-      [duts]="duts()"
-      [parentLoading]="isRunLoadingSignal()"
-      [buildValidatorConfig]="buildValidatorConfig"
-      (loadingWithMsg)="onChildLoadingChanged($event)"
-      (dataChanged)="onAndroidBranchTargetBuildChanged($event)"
-    ></app-android-build-picker>
+      <div class="mt-4">
+        <div
+          *ngIf="tabSignal() === 'storage'"
+          class="flex w-full mb-8 border border-gray-300 rounded-md overflow-hidden"
+        >
+          <button
+            type="button"
+            (click)="onStorageAVLTestTypeChanged('runTestplan')"
+            [class]="
+              storageAVLTestType() === 'runTestplan'
+                ? 'flex-1 py-3 px-4 bg-blue-500 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                : 'flex-1 py-3 px-4 bg-white text-gray-600 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+            "
+          >
+            Test Plan
+          </button>
+          <div class="w-[1px] bg-gray-300"></div>
+          <button
+            type="button"
+            (click)="onStorageAVLTestTypeChanged('runSingleTest')"
+            [class]="
+              storageAVLTestType() === 'runSingleTest'
+                ? 'flex-1 py-3 px-4 bg-blue-500 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                : 'flex-1 py-3 px-4 bg-white text-gray-600 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+            "
+          >
+            Individual Test
+          </button>
+        </div>
+        <div
+          *ngIf="
+            storageAVLTestType() === 'runSingleTest' &&
+            tabSignal() === 'storage'
+          "
+          class="flex flex-row justify-center w-full"
+        >
+          <mat-form-field class="w-full">
+            <mat-label>Single Test</mat-label>
+            <input
+              matInput
+              (input)="onStorageAVLTestInputValueChanged($event)"
+              [value]="storageTestNameSignal()"
+              [disabled]="storageAVLTestType() === 'runTestplan'"
+            />
+          </mat-form-field>
+        </div>
+      </div>
+    </app-test-options-card>
 
-    <app-basic-selector
-      *ngIf="!isCrossBranchTestingSignal()"
-      (select)="onPropsChanged('suiteTarget', $event)"
-      [options]="suiteTargetOptions()"
-      [disabled]="isLoadingSignal() || suiteTargetOptions().length === 0"
-      title="Select Suite Target:"
-    >
-    </app-basic-selector>
-
-    <app-basic-selector
-      (select)="onPropsChanged('hostname', $event)"
-      [options]="hostnameOptions()"
-      [disabled]="
-        isLoadingSignal() || duts().length === 0 || boardSignal() === ''
-      "
-      title="Select Hostname:"
-    >
-    </app-basic-selector>
-
-    <app-autocomplete-selector
-      *ngIf="!isCrossBranchTestingSignal()"
-      [options]="buildOptions()"
-      title="Select Build:"
-      (selectChanged)="onPropsChanged('build', $event)"
-      [validatorConfig]="buildValidatorConfig"
-      (inputValueChanged)="onBuildInputValueChanged($event)"
-    ></app-autocomplete-selector>
-
-    <div
-      class="w-11/12 flex flex-row mx-auto p-2"
-      *ngIf="tabSignal() === 'storage'"
-    >
-      <button
-        class="w-full hover:bg-blue-50 text-gray-500 h-12 border border-gray-100 bg-gray-50 rounded-md [&.active]:bg-blue-500 [&.active]:text-white [&.active]:border [&.active]:border-blue-500 text-md"
-        [class.active]="testTypeSignal() === 'testplan'"
-        (click)="onPropsChanged('testType', 'testplan')"
-      >
-        Test Plan
-      </button>
-      <button
-        class="w-full hover:bg-blue-50 text-gray-500 h-12 border border-gray-100 bg-gray-50 rounded-md [&.active]:bg-blue-500 [&.active]:text-white [&.active]:border [&.active]:border-blue-500 text-md"
-        [class.active]="testTypeSignal() === 'test'"
-        (click)="onPropsChanged('testType', 'test')"
-      >
-        Individual Test
-      </button>
+    <div class="advancedSettings">
+      <app-settings
+        #settingsRef
+        [defaultSettings]="this.defaultSettings"
+        [customSettings]="settings()"
+        (settingsChanged)="onCustomSettingsChanged($event)"
+      ></app-settings>
     </div>
-
-    <ng-container *ngIf="testTypeSignal() === 'test'">
-      <app-basic-selector
-        (select)="onPropsChanged('test', $event)"
-        [options]="testOptions()"
-        [disabled]="isRunLoadingSignal()"
-        title="Select test:"
-      ></app-basic-selector>
-    </ng-container>
-
-    <app-settings
-      #settingsRef
-      [customSettings]="settings()"
-      [defaultSettings]="this.defaultSettings"
-      (settingsChanged)="onCustomSettingsChanged($event)"
-    ></app-settings>
 
     <app-loading-button
       class="mx-auto"
       (onClick)="onRunClicked()"
-      [disabled]="!_isRunnable()"
+      [disabled]="!isRunnable()"
       [loading]="isRunLoadingSignal()"
       [text]="'Run'"
     ></app-loading-button>

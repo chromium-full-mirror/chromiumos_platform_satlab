@@ -38,6 +38,7 @@ service SatlabRpcService {
   rpc ListAndroidSuites(ListAndroidSuitesRequest) returns (ListAndroidSuitesResponse);
   rpc ValidateAndroidBuild(ValidateAndroidBuildRequest) returns (ValidateAndroidBuildResponse);
   rpc RunAndroidLabqual (RunAndroidLabqualRequest) returns (RunAndroidLabqualResponse);
+  rpc ListDrive (ListDriveRequest) returns (ListDriveResponse);
 
   // Autoqual
   rpc ListTestEfforts(ListTestEffortsRequest) returns (ListTestEffortsResponse);
@@ -1123,7 +1124,7 @@ message ValidateAndroidBuildResponse {
   bool is_valid = 1;
 }
 
-// NEXT_TAG = 22
+// NEXT_TAG = 25
 message RunRequest {
   // NEXT_TAG = 2
   message Suite {
@@ -1148,6 +1149,25 @@ message RunRequest {
     Testplan plan = 3;
   }
 
+    // NEXT_TAG = 4
+  message Build {
+    string branch = 1;
+    string target = 2;
+    string id = 3;
+  }
+
+  // NEXT_TAG = 2
+  message Drive {
+    // The ID of the file
+    string id = 1;
+  }
+
+  oneof test_option {
+    // This build is used for cross-branch testing
+    Build android_test_build = 22;
+    Drive drive = 23;
+  }
+
   // set the DUT OS.
   // it only supports "android" / "chromeos" now.
   string os = 4;
@@ -1156,13 +1176,8 @@ message RunRequest {
   string board = 5;
   optional string model = 6;
   optional string milestone = 7;
-  optional string target_type = 8 [deprecated = true];
   optional string target = 17;
-  optional string test_target = 18;
-  // the branch for cross-branch testing.
-  optional string test_branch = 20;
-  // the build ID for cross-branch testing.
-  optional string test_build = 21;
+
   string build = 9;
   string pool = 10;
 
@@ -1173,7 +1188,16 @@ message RunRequest {
   repeated string test_name_excludes = 15;
   repeated string user_defined_filter = 19;
 
+  bool skip_provisioning = 24;
   AdvancedSettings settings = 16;
+
+  // deprecated fields
+  optional string target_type = 8 [deprecated = true];
+  optional string test_target = 18 [deprecated = true];
+  // the branch for cross-branch testing.
+  optional string test_branch = 20 [deprecated = true];
+  // the build ID for cross-branch testing.
+  optional string test_build = 21 [deprecated = true];
 }
 
 // NEXT_TAG = 2
@@ -1363,4 +1387,21 @@ message TestEffort {
 
   // Option to make boot tests optional.
   bool skip_boot_prerequisite = 12;
+}
+
+// NEXT_TAG = 2
+message ListDriveRequest {
+  // use as filter (e.g. sts, gts)
+  optional string type = 1;
+}
+
+// NEXT_TAG = 2
+message ListDriveResponse {
+  // NEXT_TAG = 3
+  message File {
+    string id = 1;
+    string name = 2;
+  }
+
+  repeated File files = 1;
 }

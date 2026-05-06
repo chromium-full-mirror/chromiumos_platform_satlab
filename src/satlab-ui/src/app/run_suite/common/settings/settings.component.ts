@@ -10,6 +10,7 @@ import {
 import {CommonModule} from '@angular/common';
 import {
   CustomSetting,
+  InputBoxSetting,
   NumberKeys,
   SingleChoiceSetting,
 } from '../../../models/run_suite_fields';
@@ -24,36 +25,58 @@ import {MatIconModule} from '@angular/material/icon';
   styleUrls: ['./settings.component.scss'],
 })
 // TODO: replace the old advance settings component with this.
-export class SettingsComponent implements AfterViewInit {
-  // input custom settings (currently active states)
-  @Input() customSettings: CustomSetting[] = [];
-  // input default settings to revert inactive tabs to their initial state
-  @Input() defaultSettings: CustomSetting[] = [];
-  // emit when custom settings are changed
-  @Output() settingsChanged = new EventEmitter<CustomSetting[]>();
-  // TODO: this errors only works for sharding mode so far since there's no
-  // clear validation for each one for now.
-  protected errors = signal<Map<string, string>>(new Map());
-
-  ngAfterViewInit() {
-    this.settingsChanged.emit(this.customSettings);
+export class SettingsComponent {
+  // Input custom settings saves the user configured states.
+  @Input() set customSettings(val: CustomSetting[]) {
+    this.customSettingsSignal.set(val);
   }
+  // Input default settings to revert inactive tabs to their initial state.
+  @Input() defaultSettings: CustomSetting[] = [];
+  // Emit when custom settings are changed.
+  @Output() settingsChanged = new EventEmitter<CustomSetting[]>();
+
+  protected customSettingsSignal = signal<CustomSetting[]>([]);
+
+  // errors computes the error from validator then store the error messages in an errorMap.
+  protected errors = computed(() => {
+    const errorMap: Record<string, string> = {};
+    const settings = this.customSettingsSignal();
+
+    for (const s of settings) {
+      if (s.format === 'inputBox') {
+        const validator = (s as InputBoxSetting).validator;
+        if (validator) {
+          const err = validator(s.state.value);
+          if (err) {
+            errorMap[s.key] = err;
+          }
+        }
+      } else if (s.format === 'singleChoice') {
+        const group = s as SingleChoiceSetting;
+        const currentOption = group.options[group.index];
+        if (currentOption && currentOption.format !== 'none') {
+          const validator = (currentOption as InputBoxSetting).validator;
+          if (validator) {
+            const err = validator(currentOption.state.value);
+            if (err) {
+              errorMap[`${group.key}-${currentOption.key}`] = err;
+            }
+          }
+        }
+      }
+    }
+    return errorMap;
+  });
+
   // hasErrors is used to check if there are any errors in the settings.
-  // Currently only works for sharding mode. Especially for the maxInShards.
   public hasErrors = computed(() => {
-    const err = this.errors();
-    return err ? err.size > 0 : false;
+    return Object.keys(this.errors()).length > 0;
   });
 
   protected onInputBoxSettingsChanged(key: NumberKeys, val: number) {
     const safeValue = Number.isNaN(val) ? null : val;
-    const newSettings = this.customSettings.map(s => {
+    const newSettings = this.customSettingsSignal().map(s => {
       if (s.format === 'inputBox' && s.key === key) {
-        const error = (s as any).validator
-          ? (s as any).validator(safeValue)
-          : '';
-        this.errors.update(map => this.getUpdatedErrorMap(map, key, error));
-
         return {...s, state: {...s.state, value: safeValue}};
       }
       return s;
@@ -64,11 +87,9 @@ export class SettingsComponent implements AfterViewInit {
   protected trackByKey(_index: number, item: CustomSetting) {
     return item.key;
   }
-  // Remove sharding mode errors when the sharding mode is changed.
-  // Also, reset the sub settings to their default values when sharding mode is changed.
+
   protected onShardingModeChanged(group: SingleChoiceSetting, index: number) {
-    this.resetShadringModeErrors();
-    const targetGroup = this.customSettings.find(
+    const targetGroup = this.customSettingsSignal().find(
       s => s.key === group.key
     ) as SingleChoiceSetting;
 
@@ -78,7 +99,7 @@ export class SettingsComponent implements AfterViewInit {
 
     if (!targetGroup) return;
 
-    const newSettings = this.customSettings.map(s => {
+    const newSettings = this.customSettingsSignal().map(s => {
       if (s.key === group.key) {
         return {
           ...s,
@@ -109,7 +130,7 @@ export class SettingsComponent implements AfterViewInit {
     setting: SingleChoiceSetting,
     newVal: number
   ) {
-    const newSettings = this.customSettings.map(s => {
+    const newSettings = this.customSettingsSignal().map(s => {
       if (s.key === setting.key && s.format === 'singleChoice') {
         const groupSetting = s as SingleChoiceSetting;
         const updatedOptions = [...groupSetting.options];
@@ -118,18 +139,6 @@ export class SettingsComponent implements AfterViewInit {
           return s;
         }
         const safeValue = Number.isNaN(newVal) ? null : newVal;
-        let error = '';
-        if (
-          'validator' in currentOption &&
-          typeof currentOption.validator === 'function'
-        ) {
-          error = (currentOption as any).validator(safeValue) || '';
-        }
-        // Update error map
-        const errorKey = `${setting.key}-${currentOption.key}`;
-        this.errors.update(map =>
-          this.getUpdatedErrorMap(map, errorKey, error)
-        );
 
         updatedOptions[groupSetting.index] = {
           ...currentOption,
@@ -143,42 +152,5 @@ export class SettingsComponent implements AfterViewInit {
       return s;
     }) as CustomSetting[];
     this.settingsChanged.emit(newSettings);
-  }
-
-  private getUpdatedErrorMap<K, V>(
-    map: Map<K, V>,
-    key: K,
-    value: V | null | undefined
-  ): Map<K, V> {
-    const hasKey = map.has(key);
-    const currentValue = map.get(key);
-
-    if (!value && !hasKey) return map;
-
-    if (currentValue === value) return map;
-
-    const newMap = new Map(map);
-    if (value) {
-      newMap.set(key, value);
-    } else {
-      newMap.delete(key);
-    }
-    return newMap;
-  }
-
-  public resetShadringModeErrors() {
-    this.errors.update(map => {
-      const newMap = new Map(map);
-      for (const key of newMap.keys()) {
-        if (key.startsWith('shardingMode-')) {
-          newMap.delete(key);
-        }
-      }
-      return newMap;
-    });
-  }
-
-  public resetToDefault() {
-    this.settingsChanged.emit(this.defaultSettings);
   }
 }

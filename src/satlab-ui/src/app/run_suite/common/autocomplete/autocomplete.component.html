@@ -1,9 +1,9 @@
 <div
-  class="relative inline-block h-20 w-full [&.mat-mdc-tooltip-trigger]:mb-[-1.25rem]"
+  class="relative inline-block h-20 w-full mb-[-1.25rem]"
   appClickDetector
   (outside)="unfocusedCleanup()"
 >
-  <div class="selector-wrapper">
+  <div class="selector-wrapper" (outside)="unfocusedCleanup()">
     <mat-form-field
       class="w-full [&_.mat-mdc-text-field-wrapper.mdc-text-field]:p-0"
       [matTooltip]="disabledSignal() ? disabledMsgSignal() : ''"
@@ -28,7 +28,7 @@
       <mat-list>
         <mat-list-item
           *ngFor="let option of filteredOptions()"
-          (click)="onOptionClicked(option)"
+          (mousedown)="onOptionClicked(option); $event.preventDefault()"
           [disabled]="option.label === 'Failed'"
           class="cursor-pointer hover:bg-[#ebebeb]"
         >

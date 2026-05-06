@@ -16,157 +16,140 @@
   </button>
 
   <button
-    (click)="onTabChanged('Testplan')"
+    (click)="onTabChanged('testplan')"
     class="w-full hover:bg-blue-50 text-gray-500 h-12 [&.active]:text-blue-400 [&.active]:border-b [&.active]:border-b-blue-400 text-md"
-    [class.active]="tabSignal() === 'Testplan'"
+    [class.active]="tabSignal() === 'testplan'"
   >
     Testplan
   </button>
 </div>
 
 <div
-  class="relative w-full lg:max-w-3xl mx-auto my-[4rem] px-6 pt-0 pb-6 border box-shadow rounded"
+  class="relative w-full lg:max-w-3xl mx-auto my-[4em] px-6 pt-0 pb-6 border box-shadow rounded gap-4 flex flex-col"
 >
-  <app-loading [loading$]="loading$"></app-loading>
-  <div class="min-h-[1.5rem]">
-    <p class="text-red-500 text-center" *ngIf="combinedErrorMsg() !== ''">
-      {{ combinedErrorMsg() }}
-    </p>
-  </div>
-  <div class="flex gap-2 w-full flex-col">
-    <app-basic-selector
-      (select)="onPropsChanged('board', $event)"
-      [options]="boardOptions()"
-      [disabled]="isLoadingSignal() || duts().length === 0"
-      title="Select Board:"
-    >
-    </app-basic-selector>
+  <app-loading #runLoading [loading$]="isRunLoading$"></app-loading>
+  <app-show-dut
+    [model]="modelSignal()"
+    [isParentLoading]="forceShowDutLoading()"
+    [selectorList]="['pool', 'board', 'model']"
+    (valuesChanged)="onDutRelatedValueChanged($event)"
+    (dutsChanged)="onDutChanged($event)"
+  >
+  </app-show-dut>
+  <app-provision-form
+    [duts]="duts()"
+    [board]="boardSignal()"
+    [model]="modelSignal()"
+    [parentLoading]="isRunLoadingSignal().show"
+    (provisionFormDataChange)="onProvisionFormChanged($event)"
+    (isLoadingChanged)="onProvisionLoadingChanged($event)"
+  ></app-provision-form>
 
-    <app-basic-selector
-      (select)="onPropsChanged('model', $event)"
-      [options]="modelsOptions()"
-      [value]="modelSignal()"
-      [disabled]="isLoadingSignal() || modelsOptions().length === 0"
-      title="Select Model (Optional):"
-    >
-    </app-basic-selector>
-
-    <ng-container *ngIf="!isCrossBranchTestingSignal()">
-      <app-basic-selector
-        (select)="onPropsChanged('branch', $event)"
-        [options]="filteredBranchOptions()"
-        [value]="branchSignal()"
-        [disabled]="isLoadingSignal() || filteredBranchOptions().length === 0"
-        title="Select OS Branch:"
-      >
-      </app-basic-selector>
-
-      <app-basic-selector
-        (select)="onPropsChanged('boardTarget', $event)"
-        [options]="boardTargetOptions()"
-        [disabled]="isLoadingSignal() || boardTargetOptions().length === 0"
-        title="Select OS Target:"
-      >
-      </app-basic-selector>
-    </ng-container>
-
-    <app-android-build-picker
-      #provisionPicker
-      *ngIf="isCrossBranchTestingSignal()"
+  <app-test-options-card
+    [errorMsg]="testOptionsErrorMsg()"
+    [loading$]="testOptionsLoading$"
+  >
+    <app-test-source-picker
+      [isTestplan]="isTestPlanTab()"
+      [duts]="duts()"
       [board]="boardSignal()"
       [model]="modelSignal()"
-      [type]="'provision'"
-      [duts]="duts()"
-      [parentLoading]="isRunLoadingSignal()"
-      (loadingWithMsg)="onChildLoadingChanged($event)"
-      (dataChanged)="onAndroidBranchTargetBuildChanged($event)"
-    ></app-android-build-picker>
+      [parentLoading]="isRunLoadingSignal().show"
+      (sourceValuesChanged)="onSourceValuesChanged($event)"
+      (isLoadingChanged)="onAndroidBuildPickerLoadingChanged($event)"
+      (errorsChanged)="onTestOptionsErrorsChanged($event)"
+    ></app-test-source-picker>
 
-    <mat-slide-toggle
-      (change)="onCrossBranchTestingChanged($event.checked)"
-      [disabled]="isLoadingSignal()"
-    >
-      Use a separate test build
-    </mat-slide-toggle>
-
-    <app-android-build-picker
-      #testPicker
-      *ngIf="isCrossBranchTestingSignal()"
-      [board]="boardSignal()"
-      [model]="modelSignal()"
-      [type]="'test'"
-      [duts]="duts()"
-      [buildValidatorConfig]="buildValidator"
-      [parentLoading]="isRunLoadingSignal()"
-      (loadingWithMsg)="onChildLoadingChanged($event)"
-      (dataChanged)="onAndroidBranchTargetBuildChanged($event)"
-    ></app-android-build-picker>
-
-    <div *ngIf="!isCrossBranchTestingSignal()">
-      <app-basic-selector
-        (select)="onPropsChanged('suiteTarget', $event)"
-        [options]="suiteTargetOptions()"
-        [disabled]="isLoadingSignal() || suiteTargetOptions().length === 0"
-        title="Select Test Target:"
-      >
-      </app-basic-selector>
-    </div>
-
-    <app-basic-selector
-      (select)="onPropsChanged('pool', $event)"
-      [options]="poolsOptions()"
-      [disabled]="isLoadingSignal() || poolsOptions().length === 0"
-      title="Select Pool:"
-    >
-    </app-basic-selector>
-
-    <app-autocomplete-selector
-      *ngIf="!isCrossBranchTestingSignal()"
-      [options]="buildOptions()"
-      title="Select Build:"
-      (selectChanged)="onPropsChanged('build', $event)"
-      (inputValueChanged)="onBuildInputValueChanged($event)"
-    ></app-autocomplete-selector>
-
-    <div *ngIf="tabSignal() !== 'Testplan'">
+    <div class="mt-4">
+      <!-- Android Build Suite/Test Picker -->
       <app-suite
-        [build]="buildForListingSuite()"
-        [target]="testTarget()"
-        [suite]="suiteSignal()"
-        [testTitle]="tabSignal() === 'test' ? 'include' : 'exclude'"
-        [selectedTestModules]="testModulesSignal()"
-        (onSuiteChanged)="onPropsChanged('suite', $event)"
-        (onTestModulesChanged)="onPropsChanged('testModules', $event)"
-        (onLoadingChanged)="onChildLoadingChanged($event)"
-        (onSuiteValidChanged)="onChildSuiteValidChanged($event)"
-      >
-      </app-suite>
-    </div>
+        *ngIf="selectAndroidBuild() && (isTestTab() || isSuiteTab())"
+        [branch]="basicFieldsSignal().buildValues.branch"
+        [build]="basicFieldsSignal().buildValues.build"
+        [target]="basicFieldsSignal().buildValues.target"
+        [duts]="duts()"
+        [board]="boardSignal()"
+        [model]="modelSignal()"
+        [isTest]="isTestTab()"
+        (onLoadingChanged)="onSuiteLoadingChanged($event)"
+        (valuesChanged)="onSuiteValuesChanged($event)"
+      ></app-suite>
 
-    <div *ngIf="tabSignal() === 'Testplan'">
-      <app-test-plan
-        (changed)="onPlanChanged($event)"
-      >
-      </app-test-plan>
-    </div>
+      <div class="relative w-full my-2 mt-4" *ngIf="isTestPlanTab()">
+        <input
+          #testplanInput
+          type="text"
+          class="w-full peer block border-b border-gray-400 pb-2 pt-6 focus:border-blue-500 bg-transparent outline-none text-sm font-light font-sans cursor-text"
+          (input)="onTestplanInputChanged(testplanInput.value)"
+          [value]="testplanSignal()"
+        />
+        <label
+          class="pointer-events-none absolute top-4 origin-[0] -translate-y-3 scale-75 duration-150 text-gray-400 font-sans font-light peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 peer-focus:scale-75 peer-focus:text-blue-500"
+          >Test Plan</label
+        >
+      </div>
 
-    <div class="advancedSettings">
-      <app-settings
-        #settingsRef
-        [defaultSettings]="
-          tabSignal() === 'Testplan' ? this.testplanSettings : this.settings
-        "
-        [customSettings]="customSettings()"
-        (settingsChanged)="onCustomSettingsChanged($event)"
-      ></app-settings>
-    </div>
+      <!-- Google Drive Test Module Inputs -->
+      <ng-container *ngIf="!selectAndroidBuild() && !isTestPlanTab()">
+        <div class="flex flex-row items-center justify-between">
+          <mat-form-field
+            class="w-full [&_.mat-mdc-text-field-wrapper.mdc-text-field]:p-0"
+            matTooltipPosition="below"
+          >
+            <mat-label>{{
+              isTestTab() ? 'Test Include:' : 'Test Exclude:'
+            }}</mat-label>
+            <input
+              matInput
+              (input)="onDriveTestModuleInputChanged($event.target.value)"
+              [value]="driveTestModuleSignal()"
+            />
+          </mat-form-field>
+          <button
+            matSuffix
+            mat-icon-button
+            type="button"
+            [disabled]="driveTestModuleSignal() === ''"
+            (click)="onAddTestClicked()"
+          >
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
 
-    <app-loading-button
-      class="mx-auto"
-      (onClick)="onRunClicked()"
-      [disabled]="!_isRunnable()"
-      [loading]="isRunLoadingSignal()"
-      [text]="'Run'"
-    ></app-loading-button>
+        <div class="flex flex-col gap-2 mt-2">
+          <div
+            class="flex flex-row items-center gap-2 justify-between"
+            *ngFor="
+              let item of selectedDriveTestModulesSignal();
+              let index = index
+            "
+          >
+            <span class="text-sm">{{ item }}</span>
+            <mat-icon
+              class="cursor-pointer"
+              (click)="onRemoveTestClicked(index)"
+              >delete</mat-icon
+            >
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </app-test-options-card>
+
+  <div class="advancedSettings">
+    <app-settings
+      #settingsRef
+      [defaultSettings]="isTestPlanTab() ? testplanSettings : settings"
+      [customSettings]="customSettings()"
+      (settingsChanged)="onCustomSettingsChanged($event)"
+    ></app-settings>
   </div>
+
+  <app-loading-button
+    class="mx-auto"
+    (onClick)="onRunClicked()"
+    [disabled]="!_isRunnable()"
+    [loading]="isRunLoadingSignal().show"
+    [text]="'Run'"
+  ></app-loading-button>
 </div>

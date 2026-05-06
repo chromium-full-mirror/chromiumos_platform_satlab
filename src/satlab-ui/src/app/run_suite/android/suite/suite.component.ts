@@ -7,9 +7,9 @@ import {
   OnChanges,
   OnDestroy,
   Output,
+  Signal,
   SimpleChanges,
   ViewChild,
-  WritableSignal,
   computed,
   effect,
   signal,
@@ -22,11 +22,13 @@ import {AutocompleteSelectorComponent} from 'app/run_suite/common/autocomplete-s
 import {AndroidService} from 'app/services/android.service';
 import {NotificationService} from 'app/services/notification.service';
 import {toIterator} from 'app/utils/iterator';
-import {startWithTap} from 'app/utils/rxjs_operator';
-import {Observable, finalize} from 'rxjs';
-
 import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {
+  resetSignals,
+  toSelectedItem,
+  wrapperLoading,
+} from 'app/utils/operators';
 
 @Component({
   selector: 'app-suite',
@@ -45,25 +47,27 @@ export class SuiteComponent implements OnChanges, OnDestroy {
   @ViewChild('testSelector') selector?: AutocompleteSelectorComponent;
   @ViewChild('suiteSelector') suiteSelector?: AutocompleteSelectorComponent;
 
-  @Input({required: true}) build;
-  @Input({required: true}) target;
-  @Input({required: true}) suite;
-  @Input({required: true}) selectedTestModules;
-  @Input({required: true}) testTitle;
+  // branch is used to clear suite.
+  @Input({required: true}) branch: string;
+  @Input({required: true}) build: string;
+  @Input({required: true}) target: string;
+  @Input({required: true}) isTest: boolean;
 
-  @Output() onSuiteChanged = new EventEmitter<string>();
-  @Output() onTestModulesChanged = new EventEmitter<string[]>();
+  protected testTitle = '';
+  @Output() valuesChanged = new EventEmitter<{
+    suite: string;
+    testModules: string[];
+  }>();
   @Output() onLoadingChanged = new EventEmitter<{
     show: boolean;
     message: string;
   }>();
-  @Output() onSuiteValidChanged = new EventEmitter<boolean>();
+  @Output() errorsChanged = new EventEmitter<Record<string, string>>();
 
   protected isLoading = signal<{show: boolean; message: string}>({
     show: false,
     message: '',
   });
-  protected loadingMessage = signal<string>('');
 
   protected suiteOptions = signal<SelectableItem[]>([]);
   protected testOptions = signal<SelectableItem[]>([]);
@@ -74,8 +78,12 @@ export class SuiteComponent implements OnChanges, OnDestroy {
   protected suiteSignal = signal<string>('');
   private suiteValid = computed(() => {
     const suite = this.suiteSignal();
-    return toIterator(this.suiteOptions()).first_where(e => e.value === suite)
-      ?.value as string;
+    if (suite === '') {
+      return '';
+    }
+    const options = this.suiteOptions();
+    const found = toIterator(options).first_where(e => e.value === suite);
+    return found?.value;
   });
   protected testSignal = signal<string>('');
   protected testValid = computed(() => {
@@ -88,6 +96,8 @@ export class SuiteComponent implements OnChanges, OnDestroy {
 
   protected testInputTabSignal = signal<'single' | 'multiple'>('single');
   protected multipleTestInputSignal = signal<string>('');
+  private _errMap = signal<{[key: string]: string}>({});
+  public errMap: Signal<{[key: string]: string}> = this._errMap.asReadonly();
 
   private effectRefs: EffectRef[] = [];
 
@@ -114,19 +124,19 @@ export class SuiteComponent implements OnChanges, OnDestroy {
         () => {
           const build = untracked(() => this.buildSignal());
           const target = untracked(() => this.targetSignal());
-          let suite = this.suiteValid();
+          const suite = this.suiteValid();
 
-          if (build && target && suite !== undefined) {
-            this.__listTests(build, target, suite);
+          queueMicrotask(() => {
+            this._errMap.update(prev => ({
+              ...prev,
+              suiteValid: suite !== undefined ? '' : 'Suite is not valid.',
+            }));
+            this.errorsChanged.emit(this._errMap());
+          });
+
+          if (build && target && suite) {
+            this.__listTests(build, target, suite as string);
           }
-        },
-        {
-          allowSignalWrites: true,
-        }
-      ),
-      effect(
-        () => {
-          this.onSuiteChanged.emit(this.suiteSignal());
         },
         {
           allowSignalWrites: true,
@@ -140,41 +150,39 @@ export class SuiteComponent implements OnChanges, OnDestroy {
         },
         {allowSignalWrites: true}
       ),
-      effect(
-        () => {
-          this.onTestModulesChanged.emit(this.selectedTestModulesSignal());
-        },
-        {
-          allowSignalWrites: true,
-        }
-      ),
-      effect(
-        () => {
-          this.onLoadingChanged.emit(this.isLoading());
-        },
-        {allowSignalWrites: true}
-      ),
-
-      effect(
-        () => {
-          this.onSuiteValidChanged.emit(this.suiteValid() !== undefined);
-        },
-        {allowSignalWrites: true}
-      ),
+      effect(() => {
+        const loading = this.isLoading();
+        queueMicrotask(() => {
+          this.onLoadingChanged.emit(loading);
+        });
+      }),
     ];
   }
 
   ngOnDestroy(): void {
-    this.onLoadingChanged.emit({show: false, message: ''});
+    this.errorsChanged.emit({});
     this.effectRefs.forEach(e => e.destroy());
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if ('branch' in changes && changes['branch']) {
+      resetSignals([
+        this.suiteOptions,
+        this.testOptions,
+        this.selectedTestModulesSignal,
+        this.suiteSignal,
+        this.testSignal,
+        this.targetSignal,
+        this.buildSignal,
+      ]);
+    }
     if ('build' in changes && changes['build']) {
       resetSignals([
         this.suiteOptions,
         this.testOptions,
         this.selectedTestModulesSignal,
+        this.suiteSignal,
+        this.testSignal,
       ]);
       this.buildSignal.set(changes['build'].currentValue);
     }
@@ -183,36 +191,51 @@ export class SuiteComponent implements OnChanges, OnDestroy {
         this.suiteOptions,
         this.testOptions,
         this.selectedTestModulesSignal,
+        this.suiteSignal,
+        this.testSignal,
       ]);
       this.targetSignal.set(changes['target'].currentValue);
     }
-    if ('suite' in changes && changes['suite']) {
+    if ('isTest' in changes && changes['isTest']) {
       resetSignals([
-        this.testOptions,
         this.selectedTestModulesSignal,
+        this.suiteSignal,
         this.testSignal,
       ]);
-      this.suiteSignal.set(changes['suite'].currentValue);
-    }
-    if ('test' in changes && changes['test']) {
-      this.testSignal.set(changes['test'].currentValue);
-    }
-    if ('selectedTestModules' in changes && changes['selectedTestModules']) {
-      this.selectedTestModulesSignal.set(
-        changes['selectedTestModules'].currentValue
-      );
+      this.testTitle = this.isTest ? 'Test Include:' : 'Test Exclude:';
     }
   }
 
   protected onSelectedChanged(key: 'suite' | 'test', value: string | null) {
     switch (key) {
       case 'suite':
+        if (value === this.suiteSignal()) {
+          break;
+        }
+        resetSignals([
+          this.testOptions,
+          this.selectedTestModulesSignal,
+          this.testSignal,
+        ]);
         this.suiteSignal.set(value ?? '');
         break;
       case 'test':
         this.testSignal.set(value ?? '');
         break;
     }
+    this.emitCurrentData();
+  }
+
+  protected onSuiteInputChanged(value: string) {
+    resetSignals([
+      this.testOptions,
+      this.selectedTestModulesSignal,
+      this.testSignal,
+    ]);
+
+    const isValidSuite = this.suiteOptions().some(e => e.value === value);
+    this.suiteSignal.set(isValidSuite ? value : '');
+    this.emitCurrentData();
   }
 
   protected onInputTabChanged(tab: 'single' | 'multiple') {
@@ -229,12 +252,14 @@ export class SuiteComponent implements OnChanges, OnDestroy {
     this.selectedTestModulesSignal.set(newValue);
     resetSignals([this.testSignal]);
     this.selector?.clear();
+    this.emitCurrentData();
   }
 
   protected onRemoveTestClicked(index: number) {
     const newValue = [...this.selectedTestModulesSignal()];
     newValue.splice(index, 1);
     this.selectedTestModulesSignal.set(newValue);
+    this.emitCurrentData();
   }
 
   protected onMultiLineTestInputChanged(event: Event) {
@@ -247,9 +272,8 @@ export class SuiteComponent implements OnChanges, OnDestroy {
     const tests = toIterator(testsInput.split(','))
       .map(e => e.trim())
       .filter(e => e !== '')
-      .map(
-        e => `${ANDROID_TEST_PREFIX}.${this.suiteSignal()}.${e}`
-      ).collect();
+      .map(e => `${ANDROID_TEST_PREFIX}.${this.suiteSignal()}.${e}`)
+      .collect();
     this.selectedTestModulesSignal.set([
       ...this.selectedTestModulesSignal(),
       ...tests,
@@ -265,7 +289,11 @@ export class SuiteComponent implements OnChanges, OnDestroy {
       'Loading suites...'
     ).subscribe({
       next: e => {
-        this.suiteOptions.set(e.map(toSelectedItem));
+        const uniqueSuites = toIterator(e)
+          .unique_by()
+          .collect()
+          .sort((a, b) => a.localeCompare(b));
+        this.suiteOptions.set(uniqueSuites.map(toSelectedItem));
       },
       error: e => {
         this.notification.error(`List suites failed: ${e}`, {dismiss: false});
@@ -281,68 +309,23 @@ export class SuiteComponent implements OnChanges, OnDestroy {
       'Loading tests...'
     ).subscribe({
       next: e => {
-        this.testOptions.set(e.map(toSelectedItem));
+        const uniqueTests = toIterator(e)
+          .unique_by()
+          .collect()
+          .sort((a, b) => a.localeCompare(b));
+        this.testOptions.set(uniqueTests.map(toSelectedItem));
       },
       error: e => {
         this.notification.error(`List tests failed: ${e}`, {dismiss: false});
       },
     });
   }
-}
 
-function wrapperLoading<T>(
-  o: Observable<T>,
-  loading: WritableSignal<{show: boolean; message: string}>,
-  msg: string
-) {
-  return o.pipe(
-    startWithTap(() => {
-      loading.set({
-        show: true,
-        message: msg,
-      });
-    }),
-    finalize(() => {
-      loading.set({
-        show: false,
-        message: '',
-      });
-    })
-  );
-}
-
-function resetSignals(
-  signals: WritableSignal<unknown>[],
-  defaultValue?: unknown
-) {
-  if (signals.length > 0) {
-    if (defaultValue === undefined) {
-      signals.forEach(e => {
-        const value = untracked(() => {
-          if (defaultValue) {
-            return defaultValue;
-          }
-
-          if (typeof e() === 'string') {
-            return '';
-          } else if (Array.isArray(e())) {
-            return [];
-          } else if (typeof e() === 'object') {
-            return {};
-          }
-
-          throw Error(`Unknown type of signal: ${typeof e()}`);
-        });
-        e.set(value);
-      });
-    }
+  private emitCurrentData() {
+    const data = {
+      suite: this.suiteSignal(),
+      testModules: this.selectedTestModulesSignal(),
+    };
+    this.valuesChanged.emit(data);
   }
-}
-
-export function toSelectedItem(value: string): SelectableItem {
-  return {
-    label: '',
-    value: value,
-    text: value,
-  };
 }

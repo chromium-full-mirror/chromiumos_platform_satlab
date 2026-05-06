@@ -41,38 +41,48 @@ import {MatListModule} from '@angular/material/list';
 // TODO: Replace AutoCompleteSelectorComponent with this component in the future.
 export class AutocompleteComponent implements OnDestroy {
   @Input() placeholder = '';
-
   @Input() title = '';
+  @Input() strict = false;
+
+  private lastEmittedValue = '';
 
   @Input() set value(val: string | null) {
-    this.searchFormControl.setValue(val ?? '', {emitEvent: false});
-    this.searchQuery.set(val ?? '');
+    const newVal = val ?? '';
+    this.lastEmittedValue = newVal;
+    this.syncDisplayValue(newVal);
+  }
+
+  protected disabledInputSignal = signal<boolean>(false);
+  @Input() set disabled(val: boolean) {
+    this.disabledInputSignal.set(val);
+    this.toggleFormDisable(this.disabledSignal());
   }
 
   protected disabledMsgSignal = signal<string>('');
   @Input() set disabledMsg(val: string) {
     this.disabledMsgSignal.set(val);
+    this.toggleFormDisable(this.disabledSignal());
   }
 
-  protected disabledSignal = computed(() => {
-    return this.disabledMsgSignal() !== '';
-  });
+  protected disabledSignal = computed(
+    () => this.disabledInputSignal() || this.disabledMsgSignal() !== ''
+  );
 
-  protected errorMsgSignal = signal<string>('');
   @Input() set errorMsg(val: string) {
     this.errorMsgSignal.set(val);
   }
+  protected errorMsgSignal = signal<string>('');
 
-  protected optionsSignal = signal<SelectableItem[]>([]);
   @Input() set options(val: SelectableItem[]) {
     this.optionsSignal.set(val || []);
-    this.searchFormControl.reset();
+    this.syncDisplayValue(this.lastEmittedValue);
   }
+  protected optionsSignal = signal<SelectableItem[]>([]);
 
   protected isOptsOpened = signal(false);
   protected searchQuery = signal('');
 
-  @Output() valueChanged = new EventEmitter<string>();
+  @Output() inputChanged = new EventEmitter<string>();
   @Output() selectChanged = new EventEmitter<string>();
 
   protected filteredOptions = computed(() => {
@@ -83,35 +93,49 @@ export class AutocompleteComponent implements OnDestroy {
   });
 
   protected searchFormControl = new FormControl('', {nonNullable: true});
-
-  private refs: EffectRef[] = [];
   private sub: Subscription;
 
   constructor() {
     this.sub = this.searchFormControl.valueChanges.subscribe(val => {
       this.searchQuery.set(val || '');
     });
-    this.refs = [
-      effect(
-        () => {
-          const disabled = this.disabledSignal();
-          if (disabled) {
-            this.searchFormControl.disable({emitEvent: false});
-          } else {
-            this.searchFormControl.enable({emitEvent: false});
-          }
-        },
-        {
-          allowSignalWrites: true,
-        }
-      ),
-    ];
   }
 
+  private syncDisplayValue(value: string) {
+    const option = this.optionsSignal().find(opt => opt.value === value);
+    const displayVal = option ? option.text : value;
+    this.searchFormControl.setValue(displayVal, {emitEvent: false});
+    this.searchQuery.set(displayVal);
+  }
+
+  private toggleFormDisable(disabled: boolean) {
+    if (disabled) {
+      this.searchFormControl.disable({emitEvent: false});
+    } else {
+      this.searchFormControl.enable({emitEvent: false});
+    }
+  }
   protected onBlur() {
-    this.valueChanged.emit(
-      this.searchFormControl.valid ? this.searchFormControl.value : ''
-    );
+    const text = this.searchFormControl.value;
+    const option = this.optionsSignal().find(opt => opt.text === text);
+    let emitVal = '';
+    if (option) {
+      emitVal = typeof option.value === 'string' ? option.value : option.text;
+    } else if (text === '') {
+      emitVal = '';
+    } else {
+      if (this.strict) {
+        this.syncDisplayValue(this.lastEmittedValue);
+        return;
+      } else {
+        emitVal = text;
+      }
+    }
+
+    if (this.lastEmittedValue !== emitVal) {
+      this.lastEmittedValue = emitVal;
+      this.inputChanged.emit(emitVal);
+    }
   }
 
   protected toggleDropdown() {
@@ -125,19 +149,20 @@ export class AutocompleteComponent implements OnDestroy {
   }
 
   protected onOptionClicked(option?: SelectableItem) {
+    if (!option || option.label === 'Failed') return;
+    const emitVal =
+      typeof option.value === 'string' ? option.value : option.text;
+
+    this.syncDisplayValue(emitVal);
     this.isOptsOpened.set(false);
-    if (!option) {
-      return;
+
+    if (this.lastEmittedValue !== emitVal) {
+      this.lastEmittedValue = emitVal;
+      this.selectChanged.emit(emitVal);
     }
-    if (option.label === 'Failed') return;
-    const val = typeof option.value === 'string' ? option.value : option.text;
-    this.searchFormControl.setValue(val, {emitEvent: false});
-    this.searchQuery.set(val);
-    this.selectChanged.emit(val);
   }
 
   ngOnDestroy(): void {
-    this.refs.forEach(e => e.destroy());
     if (this.sub) {
       this.sub.unsubscribe();
     }

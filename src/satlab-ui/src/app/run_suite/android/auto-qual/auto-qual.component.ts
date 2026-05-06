@@ -1,5 +1,5 @@
 import {TableCellComponent} from '../../common/table-cell/table-cell.component';
-import {toSelectedItem} from '../suite/suite.component';
+import {toSelectedItem} from 'app/utils/operators';
 import {CommonModule} from '@angular/common';
 import {
   Component,
@@ -26,9 +26,9 @@ import {resetSignals, wrapperLoading} from 'app/utils/operators';
 import {from} from 'rxjs';
 import {ActivatedRoute, Router, RouterModule} from '@angular/router';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
-import {AndroidBuildPickerComponent} from '../android-build-picker/android-build-picker.component';
 import {ICustomSettings} from 'app/models/run_suite_fields';
 import {AdvancedSettingsComponent} from 'app/run_suite/common/advanced-settings/advanced-settings.component';
+import {AndroidBuildPickerComponent} from '../../android/common/android-build-picker/android-build-picker.component';
 
 @Component({
   selector: 'app-auto-qual',

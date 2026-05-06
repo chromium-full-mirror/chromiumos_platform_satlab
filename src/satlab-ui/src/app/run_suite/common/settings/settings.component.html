@@ -15,7 +15,7 @@
       </mat-expansion-panel-header>
       <div class="flex flex-col gap-4">
         <ng-container
-          *ngFor="let setting of customSettings; trackBy: trackByKey"
+          *ngFor="let setting of customSettingsSignal(); trackBy: trackByKey"
         >
           <div
             class="flex flex-col gap-2"
@@ -32,7 +32,7 @@
                 [value]="setting.state.value"
                 class="w-full outline-none h-12 border-b border-b-gray-600 focus:border-b-blue-500 bg-transparent disabled:text-gray-300"
                 [class.text-gray-300]="setting.state.disabled"
-                [class.border-b-red-500]="!!errors().get(setting.key)"
+                [class.border-b-red-500]="!!errors()[setting.key]"
                 [disabled]="setting.state.disabled"
                 (input)="
                   onInputBoxSettingsChanged(
@@ -42,7 +42,7 @@
                 "
               />
               <span
-                *ngIf="errors().get(setting.key) as errMsg"
+                *ngIf="errors()[setting.key] as errMsg"
                 class="text-red-500 text-[12px] mt-1"
                 >{{ errMsg }}</span
               >
@@ -96,13 +96,11 @@
                 class="w-full outline-none h-10 border-b border-gray-400 focus:border-blue-500 bg-transparent"
                 [class.text-gray-300]="subSetting.state.disabled"
                 [class.border-red-500]="
-                  !!errors().get(setting.key + '-' + subSetting.key)
+                  !!errors()[setting.key + '-' + subSetting.key]
                 "
               />
               <span
-                *ngIf="
-                  errors().get(setting.key + '-' + subSetting.key) as errMsg
-                "
+                *ngIf="errors()[setting.key + '-' + subSetting.key] as errMsg"
                 class="text-red-500 text-[12px] mt-1"
                 >{{ errMsg }}</span
               >

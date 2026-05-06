@@ -1,0 +1,63 @@
+<div
+  class="w-full p-6 border rounded-lg shadow-sm font-sans"
+  [class.border-gray-500]="combinedErrorMsg() === ''"
+  [class.border-red-500]="combinedErrorMsg() !== ''"
+>
+  <div class="flex flex-wrap items-center justify-between gap-4 w-full">
+    <h3 class="text-xl font-bold text-gray-800 m-0">OS options</h3>
+    <p
+      class="text-red-500 text-sm font-medium m-0 max-w-full break-words"
+      *ngIf="combinedErrorMsg() !== ''"
+    >
+      {{ combinedErrorMsg() }}
+    </p>
+  </div>
+  <div class="min-h-[2.0rem]">
+    <app-loading
+      [loading$]="loading$"
+      [hidden]="modeSignal() === 'SKIP'"
+    ></app-loading>
+  </div>
+  <div
+    class="flex w-full mb-8 border border-gray-300 rounded-md overflow-hidden"
+  >
+    <button
+      type="button"
+      (click)="onModeChanged('DEFAULT')"
+      [class]="
+        modeSignal() === 'DEFAULT'
+          ? 'flex-1 py-3 px-4 bg-blue-500 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+          : 'flex-1 py-3 px-4 bg-white text-gray-600 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+      "
+      [disabled]="isFormLoading()"
+    >
+      Default
+    </button>
+    <div class="w-[1px] bg-gray-300"></div>
+    <button
+      type="button"
+      (click)="onModeChanged('SKIP')"
+      [class]="
+        modeSignal() === 'SKIP'
+          ? 'flex-1 py-3 px-4 bg-blue-500 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+          : 'flex-1 py-3 px-4 bg-white text-gray-600 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+      "
+      [disabled]="isFormLoading()"
+    >
+      Skip provisioning
+    </button>
+  </div>
+  <app-android-build-picker
+    [hidden]="skipProvisioning()"
+    [active]="!skipProvisioning()"
+    [duts]="duts"
+    [board]="board"
+    [model]="model"
+    [type]="'provision'"
+    [parentLoading]="parentLoadingSignal()"
+    (errorsChanged)="provisionError.set($event)"
+    (isLoadingChanged)="onLoadingWithMsg($event)"
+    (valuesChanged)="onAndroidBuildValuesChanged($event)"
+  >
+  </app-android-build-picker>
+</div>

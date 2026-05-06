@@ -1,0 +1,34 @@
+<div class="flex gap-2 w-full flex-col">
+  <app-autocomplete
+    title="Select {{ label }} Branch:"
+    [options]="filteredBranchOptions()"
+    [value]="branchSignal()"
+    [disabled]="
+      isFormLoading() || boardSignal() === '' || branchOptions().length === 0
+    "
+    (selectChanged)="onPropsChanged('branch', $event)"
+    (inputChanged)="onBranchInputValueChanged($event)"
+  ></app-autocomplete>
+
+  <app-autocomplete
+    title="Select {{ label }} Target:"
+    [options]="targetOptions()"
+    [value]="targetSignal()"
+    [disabled]="
+      isFormLoading() || branchSignal() === '' || targetOptions().length === 0
+    "
+    (selectChanged)="onPropsChanged('target', $event)"
+    (inputChanged)="onTargetInputValueChanged($event)"
+  ></app-autocomplete>
+
+  <app-autocomplete
+    title="Select {{ label }} Build:"
+    [options]="buildOptions()"
+    [value]="buildSignal()"
+    [disabled]="
+      isFormLoading() || targetSignal() === '' || buildOptions().length === 0
+    "
+    (selectChanged)="onPropsChanged('build', $event)"
+    (inputChanged)="onBuildInputValueChanged($event)"
+  ></app-autocomplete>
+</div>

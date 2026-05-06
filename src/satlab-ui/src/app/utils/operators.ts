@@ -1,6 +1,6 @@
 import {finalize, Observable} from 'rxjs';
 import {SelectableItem} from '../models/selectable_item';
-import {untracked, WritableSignal} from '@angular/core';
+import {EventEmitter, untracked, WritableSignal} from '@angular/core';
 import {startWithTap} from './rxjs_operator';
 
 export function toSelectedItem(value: string): SelectableItem {
@@ -18,15 +18,19 @@ export function wrapperLoading<T>(
 ) {
   return o.pipe(
     startWithTap(() => {
-      loading.set({
-        show: true,
-        message: msg,
+      queueMicrotask(() => {
+        loading.set({
+          show: true,
+          message: msg,
+        });
       });
     }),
     finalize(() => {
-      loading.set({
-        show: false,
-        message: '',
+      queueMicrotask(() => {
+        loading.set({
+          show: false,
+          message: '',
+        });
       });
     })
   );
@@ -58,4 +62,13 @@ export function resetSignals(
       });
     }
   }
+}
+
+export function setSignalAndEmit<T>(
+  signal: WritableSignal<T>,
+  value: T,
+  output: EventEmitter<T>
+) {
+  signal.set(value);
+  output.emit(value);
 }

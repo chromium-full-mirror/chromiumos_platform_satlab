@@ -35,24 +35,24 @@
           <div class="material-icon">delete</div>
         </button>
       </div>
-    </div>
 
-    <app-advanced-settings
-      (settingsChanged)="onAdvancedSettingsChanged($event)"
-      [disabled]="settingsDisabled"
-      [customSettings]="customSettings"
-    ></app-advanced-settings>
+      <app-advanced-settings
+        (settingsChanged)="onAdvancedSettingsChanged($event)"
+        [disabled]="settingsDisabled"
+        [customSettings]="customSettings"
+      ></app-advanced-settings>
 
-    <div class="flex justify-center py-4">
-      <app-loading-button
-        (onClick)="onRunTestPlanClick()"
-        [disabled]="disabled"
-        [loading]="isRunning"
-        [text]="'Run'"
-      ></app-loading-button>
-    </div>
-    <div *ngIf="selectedTestPlan" class="px-6">
-      <pre class="whitespace-pre-wrap">{{ selectedTestPlan.content }}</pre>
+      <div class="flex justify-center py-4">
+        <app-loading-button
+          (onClick)="onRunTestPlanClick()"
+          [disabled]="disabled"
+          [loading]="isRunning"
+          [text]="'Run'"
+        ></app-loading-button>
+      </div>
+      <div *ngIf="selectedTestPlan" class="px-6">
+        <pre class="whitespace-pre-wrap">{{ selectedTestPlan.content }}</pre>
+      </div>
     </div>
   </div>
 </div>

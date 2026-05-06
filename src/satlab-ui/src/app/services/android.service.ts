@@ -9,6 +9,7 @@ import {
   ListAndroidTargetsRequest,
   ListAndroidTestModulesRequest,
   ListTestEffortsRequest,
+  ListDriveRequest,
   ListTestPlansRequest,
   RunAndroidLabqualRequest,
   RunSuiteRequest,
@@ -94,6 +95,15 @@ export class AndroidService {
     return from(
       this.client.listTestPlans(req, {}).then(resp => {
         return resp.getNamesList();
+      })
+    );
+  }
+
+  public listDriveXtsPaths(type: 'gts' | 'sts' = 'sts') {
+    const req = new ListDriveRequest().setType(type);
+    return from(
+      this.client.listDrive(req, {}).then(resp => {
+        return resp.getFilesList();
       })
     );
   }
