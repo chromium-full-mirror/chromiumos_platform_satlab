@@ -5,8 +5,8 @@
   "angular-cli": {},
   "scripts": {
     "ng": "ng",
-    "ng serve": "ng serve",
-    "start": "ng serve",
+    "serve": "ng serve",
+    "start": "(npm run envoy:local:stop || true) && npm run envoy:local:start && npm run serve",
     "lint": "gts lint",
     "test": "ng test",
     "pree2e": "webdriver-manager update --standalone false --gecko false",
@@ -17,7 +17,9 @@
     "fix": "gts fix",
     "prepare": "npm run compile",
     "pretest": "npm run compile",
-    "posttest": "npm run lint"
+    "posttest": "npm run lint",
+    "envoy:local:start": "docker run --rm -d --name satlab-envoy-local --net=host -v $(pwd)/envoy.local.yaml:/etc/envoy/envoy.yaml envoyproxy/envoy:v1.15.2 -c /etc/envoy/envoy.yaml",
+    "envoy:local:stop": "docker stop satlab-envoy-local"
   },
   "private": true,
   "dependencies": {
