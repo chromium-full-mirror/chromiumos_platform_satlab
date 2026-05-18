@@ -1,6 +1,6 @@
-import {TableCellComponent} from '../../common/table-cell/table-cell.component';
-import {toSelectedItem} from '../suite/suite.component';
-import {CommonModule} from '@angular/common';
+import { TableCellComponent } from '../../common/table-cell/table-cell.component';
+import { toSelectedItem } from '../suite/suite.component';
+import { CommonModule } from '@angular/common';
 import {
   Component,
   EffectRef,
@@ -11,20 +11,22 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import {toObservable} from '@angular/core/rxjs-interop';
-import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
-import {IDut} from 'app/models/dut';
-import {SelectableItem} from 'app/models/selectable_item';
-import {AutocompleteSelectorComponent} from 'app/run_suite/common/autocomplete-selector/autocomplete-selector.component';
-import {BasicSelectorComponent} from 'app/run_suite/common/basic-selector/basic-selector.component';
-import {LoadingComponent} from 'app/run_suite/common/loading/loading.component';
-import {AndroidService} from 'app/services/android.service';
-import {NotificationService} from 'app/services/notification.service';
-import {SatlabRpcService} from 'app/services/satlab-rpc.service';
-import {toIterator} from 'app/utils/iterator';
-import {resetSignals, wrapperLoading} from 'app/utils/operators';
-import {from} from 'rxjs';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { IDut } from 'app/models/dut';
+import { SelectableItem } from 'app/models/selectable_item';
+import { AutocompleteSelectorComponent } from 'app/run_suite/common/autocomplete-selector/autocomplete-selector.component';
+import { BasicSelectorComponent } from 'app/run_suite/common/basic-selector/basic-selector.component';
+import { LoadingComponent } from 'app/run_suite/common/loading/loading.component';
+import { AndroidService } from 'app/services/android.service';
+import { NotificationService } from 'app/services/notification.service';
+import { SatlabRpcService } from 'app/services/satlab-rpc.service';
+import { toIterator } from 'app/utils/iterator';
+import { resetSignals, wrapperLoading } from 'app/utils/operators';
+import { from } from 'rxjs';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { AndroidBuildPickerComponent } from '../android-build-picker/android-build-picker.component';
 
 @Component({
   selector: 'app-auto-qual',
@@ -37,6 +39,8 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
     BasicSelectorComponent,
     AutocompleteSelectorComponent,
     RouterModule,
+    MatSlideToggleModule,
+    AndroidBuildPickerComponent,
   ],
   templateUrl: './auto-qual.component.html',
   styleUrls: ['./auto-qual.component.scss'],
@@ -67,12 +71,12 @@ export class AutoQualComponent implements OnInit, OnDestroy {
     actions: 'Actions',
   };
 
-  protected isViewTestEffotLoading = signal<{show: boolean; message: string}>({
+  protected isViewTestEffotLoading = signal<{ show: boolean; message: string }>({
     show: false,
     message: '',
   });
 
-  protected isScheduleRunLoading = signal<{show: boolean; message: string}>({
+  protected isScheduleRunLoading = signal<{ show: boolean; message: string }>({
     show: false,
     message: '',
   });
@@ -124,10 +128,10 @@ export class AutoQualComponent implements OnInit, OnDestroy {
     return model === ''
       ? branches
       : toIterator(branches)
-          .filter(b => {
-            return allModels.every(m => m === model || !b.text.includes(m));
-          })
-          .collect();
+        .filter(b => {
+          return allModels.every(m => m === model || !b.text.includes(m));
+        })
+        .collect();
   });
   protected targetOptions = signal<SelectableItem[]>([]);
   protected boardTargetSignal = signal<string>('');
@@ -165,6 +169,11 @@ export class AutoQualComponent implements OnInit, OnDestroy {
   protected validBuildSignal = signal<string>('');
   protected testplanSignal = signal<string>('');
 
+  protected isCrossBranchSignal = signal<boolean>(false);
+  protected testBranchSignal = signal<string>('');
+  protected testTargetSignal = signal<string>('');
+  protected testValidBuildSignal = signal<string>('');
+
   protected notAvailableMsg = signal<string>('');
 
   protected isRunnable = computed(() => {
@@ -178,6 +187,15 @@ export class AutoQualComponent implements OnInit, OnDestroy {
     const testplan = this.testplanSignal();
     const errMsg = this.notAvailableMsg();
 
+    const isCrossBranch = this.isCrossBranchSignal();
+    const testBranch = this.testBranchSignal();
+    const testTarget = this.testTargetSignal();
+    const testValidBuild = this.testValidBuildSignal();
+
+    const crossBranchValid =
+      !isCrossBranch ||
+      (testBranch !== '' && testTarget !== '' && testValidBuild !== '');
+
     return (
       board !== '' &&
       model !== '' &&
@@ -187,6 +205,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
       build !== '' &&
       validBuild !== '' &&
       testplan !== '' &&
+      crossBranchValid &&
       !errMsg
     );
   });
@@ -228,13 +247,13 @@ export class AutoQualComponent implements OnInit, OnDestroy {
         () => {
           this.__onBoardChanged(this.boardSignal());
         },
-        {allowSignalWrites: true}
+        { allowSignalWrites: true }
       ),
       effect(
         () => {
           this.__onBranchChanged(this.branchSignal());
         },
-        {allowSignalWrites: true}
+        { allowSignalWrites: true }
       ),
       effect(
         () => {
@@ -243,7 +262,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
           const boardTarget = this.boardTargetSignal();
           this.__onBoardTargetChanged(board, branch, boardTarget);
         },
-        {allowSignalWrites: true}
+        { allowSignalWrites: true }
       ),
       effect(
         () => {
@@ -253,7 +272,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
           const build = this.buildSignal();
           this.__onBuildChanged(board, branch, [boardTarget], build);
         },
-        {allowSignalWrites: true}
+        { allowSignalWrites: true }
       ),
     ];
   }
@@ -385,7 +404,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
     target: string;
     build: string;
     testplan: string;
-    pools: {label: string; type: number}[];
+    pools: { label: string; type: number }[];
   }) {
     const confirmed = window.confirm(
       'Are you sure you want to retry test effort?'
@@ -414,8 +433,32 @@ export class AutoQualComponent implements OnInit, OnDestroy {
     this.router.navigate(['/run_tests/android/autoqual/schedule']);
   }
 
+  protected onCrossBranchTestingChanged(value: boolean) {
+    resetSignals([
+      this.testBranchSignal,
+      this.testTargetSignal,
+      this.testValidBuildSignal,
+    ]);
+    this.isCrossBranchSignal.set(value);
+  }
+
+  protected onAndroidBranchTargetBuildChanged(value: {
+    type: 'provision' | 'test';
+    branch: string;
+    target: string;
+    validBuild: string;
+  }) {
+    if (value.type === 'test') {
+      this.testBranchSignal.set(value.branch);
+      this.testTargetSignal.set(value.target);
+      this.testValidBuildSignal.set(value.validBuild);
+    }
+  }
+
   protected onScheduleClicked() {
     const testplan = 'dts/' + this.testplanSignal();
+    const isCrossBranch = this.isCrossBranchSignal();
+
     this.__createTestEffort({
       board: this.boardSignal(),
       model: this.modelSignal(),
@@ -423,7 +466,10 @@ export class AutoQualComponent implements OnInit, OnDestroy {
       target: this.boardTargetSignal(),
       build: this.buildSignal(),
       testplan: testplan,
-      pools: [{label: this.poolSignal(), type: 1}],
+      pools: [{ label: this.poolSignal(), type: 1 }],
+      testBranch: isCrossBranch ? this.testBranchSignal() : undefined,
+      testTarget: isCrossBranch ? this.testTargetSignal() : undefined,
+      testBuild: isCrossBranch ? this.testValidBuildSignal() : undefined,
     });
   }
 
@@ -463,18 +509,18 @@ export class AutoQualComponent implements OnInit, OnDestroy {
             const resultLink = eff.getTesthausUrl();
 
             return {
-              id: {str: effortId},
+              id: { str: effortId },
               target: {
                 str: board && model ? `${board}/${model}` : '',
               },
-              buildID: {str: build},
+              buildID: { str: build },
               pool: {
                 str: pools.map(p => p.getLabel()).join(','),
               },
-              testplan: {str: testplan},
-              createdAt: {date: date},
-              status: {str: status},
-              resultsLink: {link: resultLink},
+              testplan: { str: testplan },
+              createdAt: { date: date },
+              status: { str: status },
+              resultsLink: { link: resultLink },
               actions: [
                 {
                   btn: 'Cancel',
@@ -509,6 +555,9 @@ export class AutoQualComponent implements OnInit, OnDestroy {
     }[];
     satlabID?: string;
     product?: string;
+    testBranch?: string;
+    testTarget?: string;
+    testBuild?: string;
   }) {
     wrapperLoading(
       from(
@@ -522,6 +571,9 @@ export class AutoQualComponent implements OnInit, OnDestroy {
           pools: p.pools,
           satlabID: p.satlabID,
           product: p.product,
+          testBranch: p.testBranch,
+          testTarget: p.testTarget,
+          testBuild: p.testBuild,
         })
       ),
       this.isScheduleRunLoading,
@@ -530,7 +582,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
       next: e => {
         const id = e.getId();
         this.notification.info(
-          `Test effort ${id} created successfully. Please refresh the page.`,
+          `Test effort ${id} created successfully.`,
           {
             dismiss: true,
           }
@@ -554,7 +606,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
       next: () => {
         this.notification.info(
           `Test effort ${testEffortID} cancelled successfully. Please refresh the page.`,
-          {dismiss: true}
+          { dismiss: true }
         );
       },
       error: err => {
@@ -702,7 +754,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
         this.buildOptions.set(builds.map(toSelectedItem));
       },
       error: err => {
-        this.notification.error(`List builds failed: ${err}`, {dismiss: false});
+        this.notification.error(`List builds failed: ${err}`, { dismiss: false });
       },
     });
   }

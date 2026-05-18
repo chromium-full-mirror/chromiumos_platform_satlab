@@ -222,7 +222,10 @@ export class AndroidService {
       type: number,
     }[],
     satlabID?: string,
-    product?: string
+    product?: string,
+    testBranch?: string,
+    testTarget?: string,
+    testBuild?: string
   }
   ) {
     const poolLists = params.pools.map(p => {
@@ -241,6 +244,15 @@ export class AndroidService {
       .setSatlabId(params.satlabID || '')
       .setPoolsList(poolLists)
       .setTestplan(params.testplan);
+
+    if (params.testBranch && params.testTarget && params.testBuild) {
+      const androidTestTarget = new TestEffort.AndroidBuildTarget()
+        .setBranch(params.testBranch)
+        .setTarget(params.testTarget)
+        .setBuildId(params.testBuild);
+
+      testEffort.setAndroidTestTarget(androidTestTarget);
+    }
 
     const req = new CreateTestEffortRequest().setEffort(testEffort);
     return from(this.client.createTestEffort(req, {}));

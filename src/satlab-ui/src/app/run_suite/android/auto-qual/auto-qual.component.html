@@ -168,6 +168,23 @@
         >
         </app-basic-selector>
 
+        <app-autocomplete-selector
+          (selectChanged)="onPropsChanged('build', $event)"
+          (inputValueChanged)="onPropsChanged('build', $event)"
+          [options]="buildOptions()"
+          title="Select Build:"
+        ></app-autocomplete-selector>
+
+        <div class="my-2">
+          <mat-slide-toggle (change)="onCrossBranchTestingChanged($event.checked)" [disabled]="isScheduleRunLoading().show">
+            Use a separate test build
+          </mat-slide-toggle>
+        </div>
+
+        <app-android-build-picker *ngIf="isCrossBranchSignal()" [board]="boardSignal()" [model]="modelSignal()" [type]="'test'"
+          [duts]="dutsSignal()" [parentLoading]="isScheduleRunLoading().show"
+          (dataChanged)="onAndroidBranchTargetBuildChanged($event)"></app-android-build-picker>
+
         <app-basic-selector
           (select)="onPropsChanged('pool', $event)"
           [options]="poolOptions()"
@@ -176,13 +193,6 @@
           title="Select Pool:"
         >
         </app-basic-selector>
-
-        <app-autocomplete-selector
-          (selectChanged)="onPropsChanged('build', $event)"
-          (inputValueChanged)="onPropsChanged('build', $event)"
-          [options]="buildOptions()"
-          title="Select Build:"
-        ></app-autocomplete-selector>
       </div>
       <div class="relative w-full my-2">
         <input
