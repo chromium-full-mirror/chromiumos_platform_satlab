@@ -24,6 +24,7 @@ import {SatlabRpcService} from 'app/services/satlab-rpc.service';
 import {toIterator} from 'app/utils/iterator';
 import {resetSignals, wrapperLoading} from 'app/utils/operators';
 import {from} from 'rxjs';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-auto-qual',
@@ -35,6 +36,7 @@ import {from} from 'rxjs';
     LoadingComponent,
     BasicSelectorComponent,
     AutocompleteSelectorComponent,
+    RouterModule,
   ],
   templateUrl: './auto-qual.component.html',
   styleUrls: ['./auto-qual.component.scss'],
@@ -217,7 +219,9 @@ export class AutoQualComponent implements OnInit, OnDestroy {
   constructor(
     private androidService: AndroidService,
     private rpcService: SatlabRpcService,
-    private notification: NotificationService
+    private notification: NotificationService,
+    private route: ActivatedRoute,
+    private router: Router
   ) {
     this.refs = [
       effect(
@@ -257,6 +261,11 @@ export class AutoQualComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.__listTestEfforts(this.PAGE_SIZE, this.pageToken());
     this.__listDuts();
+
+    this.route.url.subscribe(url => {
+      const isSchedule = url.some(segment => segment.path === 'schedule');
+      this.isScheduleRun.set(isSchedule);
+    });
   }
 
   ngOnDestroy(): void {
@@ -396,7 +405,13 @@ export class AutoQualComponent implements OnInit, OnDestroy {
   }
 
   protected onSwitchScheduleRunClicked() {
-    this.isScheduleRun.set(!this.isScheduleRun());
+    if (this.isScheduleRun()) {
+      // We're already on the schedule page, go back
+      this.router.navigate(['/run_tests/android/autoqual']);
+      return;
+    }
+
+    this.router.navigate(['/run_tests/android/autoqual/schedule']);
   }
 
   protected onScheduleClicked() {
@@ -520,6 +535,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
             dismiss: true,
           }
         );
+        this.router.navigate(['/run_tests/android/autoqual']);
       },
       error: err => {
         this.notification.error(`Create Test Effort failed: ${err}`, {

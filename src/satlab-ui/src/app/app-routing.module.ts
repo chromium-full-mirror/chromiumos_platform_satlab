@@ -42,7 +42,13 @@ const routes: Routes = [
         path: 'android',
         children: [
           {path: '', component: AndroidBuildSelectFormComponent},
-          {path: 'autoqual', component: AutoQualComponent},
+          {
+            path: 'autoqual',
+            children: [
+              { path: '', component: AutoQualComponent },
+              { path: 'schedule', component: AutoQualComponent },
+            ],
+          },
           {path: 'labqual', component: AndroidLabqualComponent},
           {path: 'pvs', component: AndroidPvsComponent},
         ],
