@@ -78,6 +78,11 @@ export class SuiteComponent implements OnChanges, OnDestroy {
       ?.value as string;
   });
   protected testSignal = signal<string>('');
+  protected testValid = computed(() => {
+    const test = this.testSignal();
+    return toIterator(this.testOptions()).first_where(e => e.value === test)
+      ?.value as string;
+  });
 
   protected selectedTestModulesSignal = signal<string[]>([]);
 

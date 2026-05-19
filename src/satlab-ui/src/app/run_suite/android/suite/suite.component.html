@@ -20,13 +20,14 @@
           [options]="testOptions()"
           [title]="testTitle"
           (selectChanged)="onSelectedChanged('test', $event)"
+          (inputChanged)="onSelectedChanged('test', $event)"
           id="testSelector"
         ></app-autocomplete-selector>
       </div>
       <button
         mat-button
         (click)="onAddTestClicked()"
-        [disabled]="testSignal() === ''"
+        [disabled]="!testValid()"
         class="add-btn"
         color="primary"
         matTooltip="Add test to exclude"
