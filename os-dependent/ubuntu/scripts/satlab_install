@@ -258,6 +258,23 @@ fi
 echo -e "\n${C_YELLOW}Configuring SSH server...${C_NC}"
 sed -i -E 's/^#?Port\s+22\b/Port 2233/' /etc/ssh/sshd_config
 
+echo -e "\n${C_YELLOW}Configuring udev rules for persistent peripheral access...${C_NC}"
+cat > /etc/udev/rules.d/99-satlab-peripherals.rules <<'EOF'
+# Persistent access for serial devices
+KERNEL=="ttyACM*", MODE="0666"
+KERNEL=="ttyUSB*", MODE="0666"
+
+# Persistent access for video peripheral devices
+KERNEL=="video*", MODE="0666"
+EOF
+
+if command -v udevadm >/dev/null 2>&1; then
+    udevadm control --reload-rules || echo "Warning: Failed to reload udev rules"
+    udevadm trigger || echo "Warning: Failed to trigger udev events"
+else
+    echo "Warning: udevadm not found, skipping rule reloading"
+fi
+
 echo -e "\n${C_YELLOW}Configuring Satlab services...${C_NC}"
 ln -sf /etc/satlab/satlab-upstart.service /etc/systemd/system/satlab-upstart.service
 ln -sf /etc/satlab/host_server/satlab-host-server.service /etc/systemd/system/satlab-host-server.service
