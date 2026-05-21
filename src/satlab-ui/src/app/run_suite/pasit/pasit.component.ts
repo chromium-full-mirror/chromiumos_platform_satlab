@@ -31,7 +31,7 @@ export class PasitComponent implements AfterViewInit {
     'pasit_full',
     'pasit_storage',
     'pasit_camera',
-    'pasit_hit',
+    'pasit_hid',
     'pasit_display',
     'pasit_pd',
   ];

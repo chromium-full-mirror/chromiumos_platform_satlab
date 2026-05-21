@@ -1,4 +1,4 @@
-import {CommonModule, NgIf} from '@angular/common';
+import {CommonModule} from '@angular/common';
 import {
   Component,
   EventEmitter,
@@ -31,7 +31,12 @@ export class TestPlanComponent {
   constructor() {
     effect(
       () => {
-        this.changed.emit(this.inputValue());
+        // If auto-qual is not active, reset the auto-qual value and emit it.
+        const active = this.autoQualActive();
+        if (!active) {
+          this.autoQualValue.set(false);
+          this.autoQual.emit(false);
+        }
       },
       {
         allowSignalWrites: true,
@@ -49,10 +54,13 @@ export class TestPlanComponent {
   }
 
   protected onValueChanged(e: Event) {
-    this.inputValue.set((e.target as HTMLInputElement).value);
+    const val = (e.target as HTMLInputElement).value;
+    this.inputValue.set(val);
+    this.changed.emit(val);
   }
 
   protected onAutoQualChanged(value: boolean) {
     this.autoQualValue.set(value);
+    this.autoQual.emit(value);
   }
 }
