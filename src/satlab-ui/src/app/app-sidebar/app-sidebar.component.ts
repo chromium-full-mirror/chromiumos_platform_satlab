@@ -27,7 +27,7 @@ export class AppSidebarComponent {
     {
       route: '',
       label: 'ChromeOS',
-      icon: 'chevron_right',
+      icon: 'laptop_chromebook',
       outlined: false,
       children: [
         {
@@ -66,7 +66,7 @@ export class AppSidebarComponent {
     {
       route: '',
       label: 'Android',
-      icon: 'chevron_right',
+      icon: 'android',
       outlined: false,
       children: [
         {
