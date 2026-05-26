@@ -103,7 +103,7 @@ export class AndroidBuildSelectFormComponent
   protected isBuildValidSignal = signal<boolean>(true);
   protected testModulesSignal = signal<string[]>([]);
   protected testPlanSignal = signal<string>('');
-  protected autoQualSignal = signal<boolean>(false);
+
   protected isRunLoadingSignal = signal<boolean>(false);
   protected targets = computed(() => Object.values(this.targetSignal()));
 
@@ -500,7 +500,7 @@ export class AndroidBuildSelectFormComponent
       this.testModulesSignal,
       this.testPlanSignal,
     ]);
-    this.autoQualSignal.set(false);
+
     if (tab === 'Testplan') {
       // If selecting testplan, set the maxInShard to 10000 and make it immutable.
       this.customSettings.set([
@@ -609,9 +609,7 @@ export class AndroidBuildSelectFormComponent
     this.testPlanSignal.set(value);
   }
 
-  protected onAutoQualChanged(value: boolean) {
-    this.autoQualSignal.set(value);
-  }
+
 
   protected onRunClicked() {
     const board = this.boardSignal();
@@ -620,7 +618,7 @@ export class AndroidBuildSelectFormComponent
     const suite =
       this.tabSignal() === 'suite' ? `suite:${this.suiteSignal()}` : '';
     const testModules = this.testModulesSignal();
-    const autoQual = this.autoQualSignal();
+
     const tab = this.tabSignal();
     const testplan = this.testPlanSignal();
     const isCrossBranch = this.isCrossBranchTestingSignal() ?? false;
@@ -675,7 +673,6 @@ export class AndroidBuildSelectFormComponent
       task = {
         kind: 'testplan',
         name: testplan,
-        autoQual: autoQual,
       };
     }
 

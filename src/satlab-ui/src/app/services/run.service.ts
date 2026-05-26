@@ -20,7 +20,6 @@ export type Test = {
 export type Testplan = {
   kind: 'testplan';
   name: string;
-  autoQual?: boolean;
 };
 
 export type Tags =
@@ -125,7 +124,6 @@ export class RunService {
       case 'testplan': {
         const testplan = new RunRequest.Testplan();
         testplan.setName(params.run.name);
-        testplan.setAutoQual(params.run.autoQual);
         req.setPlan(testplan);
         break;
       }

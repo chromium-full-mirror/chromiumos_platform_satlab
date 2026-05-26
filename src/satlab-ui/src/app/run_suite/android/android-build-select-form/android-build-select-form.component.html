@@ -146,7 +146,6 @@
     <div *ngIf="tabSignal() === 'Testplan'">
       <app-test-plan
         (changed)="onPlanChanged($event)"
-        (autoQual)="onAutoQualChanged($event)"
       >
       </app-test-plan>
     </div>
