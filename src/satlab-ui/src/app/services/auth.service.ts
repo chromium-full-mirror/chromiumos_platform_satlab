@@ -40,7 +40,7 @@ export class AuthService {
     try {
       const v = await this.service.isAuth();
       this.__loaded = true;
-      this.logSub.next(v.isAuth == true);
+      this.logSub.next(v);
     } catch (e) {
       console.error(e);
     }

@@ -1,5 +1,4 @@
 import {RunAndroidOSRequest, RunChromeOSRequest, Test} from 'app/models/run';
-import {IAuth} from '../models/auth';
 import {IBoto} from '../models/boto';
 import {IDims} from '../models/dims';
 import {
@@ -649,14 +648,12 @@ export class SatlabRpcService {
   /**
    * Check if service account is existed
    */
-  public async isAuth(): Promise<IAuth> {
+  public async isAuth(): Promise<boolean> {
     const req = new IsAuthRequest();
 
     const resp = await this.client.isAuth(req, {});
 
-    return {
-      isAuth: resp.getIsAuth(),
-    };
+    return resp.getIsAuth();
   }
 
   /**
