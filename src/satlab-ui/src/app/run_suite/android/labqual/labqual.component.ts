@@ -80,16 +80,33 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
   protected branchSignal = signal<string>('');
   protected targetSignal = signal<string>('');
   protected buildSignal = signal<string>('');
-  protected notAvailableMsg = signal<string>('');
-  protected branchError = signal<string>('');
+  protected validBuildSignal = signal<string>('');
   readonly buildAccessRequestLink = BUILD_ACCESS_REQUEST_URL;
   protected isRunLoadingSignal = signal<boolean>(false);
   protected _isRunnable = computed(() => {
     const isHostnameValid = this.hostnameSignal() !== '';
     const infoValid = this.dutInfo() !== null;
-    const notAvailableMsg = this.notAvailableMsg() === '';
+    const hasBranch = this.branchOptions().length !== 0;
+    const OSformValid = this.__checkAllOrNone([
+      !!this.branchSignal(),
+      !!this.targetSignal(),
+      !!this.buildSignal(),
+      !!this.validBuildSignal(),
+    ]);
+    const firmwareFormValid = this.__checkAllOrNone([
+      !!this.firmware().milestone,
+      !!this.firmware().build,
+    ]);
+    const loading = this.isLoading().show || this.isRunLoadingSignal();
 
-    return isHostnameValid && infoValid && notAvailableMsg;
+    return (
+      isHostnameValid &&
+      infoValid &&
+      hasBranch &&
+      OSformValid &&
+      firmwareFormValid &&
+      !loading
+    );
   });
   protected dutInfo = computed(() => {
     const hostname = this.hostnameSignal();
@@ -109,6 +126,27 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
   protected firmware = signal<{milestone: string; build: string}>({
     milestone: '',
     build: '',
+  });
+  protected noValidBranchError = signal<string>('');
+  protected noValidTargetError = signal<string>('');
+  protected noValidBuildError = signal<string>('');
+  protected noValidFormError = signal<string>('');
+  protected branchErrorLink = computed(() => {
+    return this.noValidBranchError() === '' ? '' : 'this link.';
+  });
+  protected displayedError = computed(() => {
+    switch (true) {
+      case this.noValidBranchError() !== '':
+        return this.noValidBranchError();
+      case this.noValidTargetError() !== '':
+        return this.noValidTargetError();
+      case this.noValidBuildError() !== '':
+        return this.noValidBuildError();
+      case this.noValidFormError() !== '':
+        return this.noValidFormError();
+      default:
+        return '';
+    }
   });
 
   private duts = signal<IDut[]>([]);
@@ -158,6 +196,20 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
           allowSignalWrites: true,
         }
       ),
+      effect(
+        () => {
+          const branch = this.branchSignal();
+          const target = this.targetSignal();
+          const build = this.buildSignal();
+
+          this.noValidFormError.set(
+            build && (!branch || !target)
+              ? 'Please select branch and target before entering builds.'
+              : ''
+          );
+        },
+        {allowSignalWrites: true}
+      ),
     ];
 
     this.disposers = [
@@ -184,47 +236,63 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
           this.branchOptions,
           this.targetOptions,
           this.buildOptions,
-          this.notAvailableMsg,
-          this.branchError,
+          this.noValidBranchError,
+          this.noValidTargetError,
+          this.noValidBuildError,
         ]);
         this.hostnameSignal.set((value as string).trim());
         break;
       case 'branch':
         resetSignals([
           this.targetSignal,
-          this.buildSignal,
           this.targetOptions,
+          this.buildSignal,
           this.buildOptions,
+          this.noValidBranchError,
+          this.noValidTargetError,
+          this.noValidBuildError,
         ]);
         this.branchSignal.set((value as string).trim());
         break;
       case 'target':
-        resetSignals([this.buildSignal, this.buildOptions]);
+        resetSignals([
+          this.buildSignal,
+          this.buildOptions,
+          this.noValidTargetError,
+          this.noValidBuildError,
+        ]);
         this.targetSignal.set((value as string).trim());
         break;
       case 'build':
-        resetSignals([this.notAvailableMsg]);
+        resetSignals([this.noValidBuildError]);
         this.buildSignal.set((value as string).trim());
+        this.validBuildSignal.set((value as string).trim());
         break;
     }
   }
 
   protected async onBuildInputValueChanged(value: string) {
-    if (value.length !== 8) {
-      this.notAvailableMsg.set('invalid build.');
-      return;
-    }
     const board = this.dutInfo()?.board ?? '';
     const branch = this.branchSignal();
     const target = this.targetSignal();
     const build = value.trim();
+    this.validBuildSignal.set('');
+    this.noValidBuildError.set('');
+    this.buildSignal.set(build);
+
+    // If the form is not fully filled, don't validate the build.
+    if (!board || !branch || !target || !build) {
+      return;
+    }
+
     const resp = await lastValueFrom(
       this.__isBuildValid(board, branch, [target], build)
     );
     if (resp) {
-      this.buildSignal.set(build);
+      this.validBuildSignal.set(build);
     } else {
-      this.notAvailableMsg.set('invalid build.');
+      this.validBuildSignal.set('');
+      this.noValidBuildError.set('invalid build.');
     }
   }
 
@@ -324,12 +392,11 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
       'Loading branches...'
     ).subscribe({
       next: e => {
-        this.notAvailableMsg.set(
+        this.noValidBranchError.set(
           e.length === 0
             ? 'No branches available - please request the permission by '
             : ''
         );
-        this.branchError.set(e.length === 0 ? 'this link.' : '');
         this.branchOptions.set(e.map(toSelectedItem));
       },
       error: e => {
@@ -347,7 +414,6 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
       next: e => {
         const board = this.dutInfo()?.board;
         const model = this.dutInfo()?.model;
-        this.notAvailableMsg.set(e.length === 0 ? 'No targets available' : '');
         this.targetOptions.set(
           toIterator(e)
             .filter(e => {
@@ -358,6 +424,10 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
             })
             .map(toSelectedItem)
             .collect()
+        );
+        const optionLength = this.targetOptions().length;
+        this.noValidTargetError.set(
+          optionLength === 0 ? 'No targets available' : ''
         );
       },
       error: e => {
@@ -373,7 +443,7 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
       'Loading builds...'
     ).subscribe({
       next: e => {
-        this.notAvailableMsg.set(e.length === 0 ? 'No builds available' : '');
+        this.noValidBuildError.set(e.length === 0 ? 'No builds available' : '');
         this.buildOptions.set(e.map(toSelectedItem));
       },
       error: e => {
@@ -400,5 +470,9 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
         return of(false);
       })
     );
+  }
+
+  private __checkAllOrNone(values: boolean[]) {
+    return new Set(values).size <= 1;
   }
 }
