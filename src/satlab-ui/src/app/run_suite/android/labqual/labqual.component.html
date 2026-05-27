@@ -4,12 +4,12 @@
   <app-loading [loading$]="loading$"></app-loading>
   <div class="min-h-[1.5rem]">
     <p class="text-red-500 text-center">
-      {{ notAvailableMsg()
+      {{ displayedError()
       }}<a
         class="text-blue font-bold"
         href="{{ buildAccessRequestLink }}"
         target="_blank"
-        >{{ branchError() }}</a
+        >{{ branchErrorLink() }}</a
       >
     </p>
   </div>
