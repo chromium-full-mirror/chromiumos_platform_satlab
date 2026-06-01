@@ -204,6 +204,8 @@ services:
       - DOCKER_CERT_PATH=${DOCKER_CERT_PATH:-}
       - DOCKER_HOST=${DOCKER_HOST:-}
       - DOCKER_TLS_VERIFY=${DOCKER_TLS_VERIFY:-}
+      - ACCOUNT_ID=${ACCOUNT_ID:-}
+      - ATS_ENABLED=${ATS_ENABLED:-false}
     volumes:
       - logs:/var/log/satlab
       - /var/run/docker.sock:/var/run/docker.sock:rw
