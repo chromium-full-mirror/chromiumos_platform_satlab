@@ -82,6 +82,9 @@ RUN echo "chown \"\$USER_NAME\":\"\$USER_NAME\" /home/\"\$USER_NAME\"" >> /etc/c
 RUN echo "export HOME=/home/\"\$USER_NAME\"" >> /etc/cont-init.d/10-adduser
 RUN echo "addgroup --gid 412 docker" >> /etc/cont-init.d/10-adduser
 RUN echo "usermod -aG docker moblab" >> /etc/cont-init.d/10-adduser
+RUN echo "usermod -aG docker satlab" >> /etc/cont-init.d/10-adduser
+RUN echo "usermod -aG users satlab" >> /etc/cont-init.d/10-adduser
+RUN echo "satlab ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 COPY --chmod=744 dockerfiles/satlab_remote_access/fix_ping.sh /
 WORKDIR /etc/services.d/fix_ping
@@ -155,6 +158,10 @@ RUN  sed -i s/AllowTcpForwarding\ no/AllowTcpForwarding\ yes/ /etc/ssh/sshd_conf
 
 # Change welcoming message.
 COPY --chmod=666 dockerfiles/satlab_remote_access/tools/motd /etc/
+
+# Allow login as user "satlab"
+RUN echo "satlab:x:246:246::/config:/bin/bash" >> /etc/passwd && \
+    echo "satlab:x:246:" >> /etc/group
 
 # Add jq to get service account key id from json file.
 RUN apk add --no-cache --upgrade jq
