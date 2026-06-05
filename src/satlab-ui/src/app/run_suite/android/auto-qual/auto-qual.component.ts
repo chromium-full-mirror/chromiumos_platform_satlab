@@ -231,6 +231,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
     'CANCEL_REQUESTED',
     'CANCELLED',
     'CANCEL_FAILED',
+    'SUCCEEDED',
   ];
 
   private refs: EffectRef[] = [];
