@@ -234,26 +234,11 @@ fi
 
 echo -e "\n${C_YELLOW}Sourcing local configuration scripts...${C_NC}"
 nic_config_script="$(dirname "$0")/satlab_config_nics"
-get_keys_script="$(dirname "$0")/satlab_get_keys"
-if [[ ! -f "$nic_config_script" ]] || [[ ! -f "$get_keys_script" ]]; then
+if [[ ! -f "$nic_config_script" ]]; then
     echo -e "${C_RED}Error: Required scripts (satlab_config_nics, satlab_get_keys) not found in the same directory.${C_NC}"
     exit 1
 fi
 source "$nic_config_script"
-
-echo -e "\n${C_YELLOW}Download Service Account Key (if you are going to provide a BOTO key in the UI later (mostly partner accounts), please skip)${C_NC}"
-read -p "Do you want to download the service account key now? (y/N) " download_keys
-
-if [[ "${download_keys,,}" =~ ^(y|yes)$ ]]; then
-    if [[ -f "$get_keys_script" ]]; then
-        source "$get_keys_script"
-        echo -e "${C_GREEN}Service account key downloaded successfully.${C_NC}"
-    else
-        echo -e "${C_RED}Error: $get_keys_script not found.${C_NC}"
-    fi
-else
-    echo "Skipping service account key download."
-fi
 
 echo -e "\n${C_YELLOW}Configuring SSH server...${C_NC}"
 sed -i -E 's/^#?Port\s+22\b/Port 2233/' /etc/ssh/sshd_config
