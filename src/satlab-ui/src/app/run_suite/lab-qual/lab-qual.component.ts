@@ -84,7 +84,11 @@ export class LabQualComponent implements OnInit, OnDestroy {
 
     this.service
       .stageBuild(
-        {...this.fields$.value, build: this.firmware$.value.build},
+        {
+          ...this.fields$.value,
+          build: this.firmware$.value.build,
+          artifact: 'firmware_from_source.tar.bz2',
+        },
         'firmware'
       )
       .pipe(
