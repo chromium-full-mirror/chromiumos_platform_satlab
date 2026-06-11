@@ -160,7 +160,7 @@ message ListBuildVersionsResponse {
   repeated BuildItem build_versions = 1;
 }
 
-// NEXT_TAG = 5
+// NEXT_TAG = 6
 message StageBuildRequest {
   string board = 1;
   string model = 2;
@@ -168,6 +168,7 @@ message StageBuildRequest {
   // The type that we want to filter from the google bucket
   // e.g. firmware, release
   string filter_type = 4;
+  string artifact = 5;
 }
 
 // NEXT_TAG = 3

@@ -687,7 +687,7 @@ export class SatlabRpcService {
    * @param filterType
    */
   public stageBuild(
-    f: {board: string; model: string; build: string},
+    f: {board: string; model: string; build: string; artifact?: string},
     filterType?: 'firmware' | 'release'
   ) {
     const req = new StageBuildRequest()
@@ -697,6 +697,10 @@ export class SatlabRpcService {
 
     if (filterType) {
       req.setFilterType(filterType);
+    }
+
+    if (f.artifact) {
+      req.setArtifact(f.artifact);
     }
 
     return from(this.client.stageBuild(req, {})).pipe(
