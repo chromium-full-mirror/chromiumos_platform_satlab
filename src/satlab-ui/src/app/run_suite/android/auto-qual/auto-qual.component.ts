@@ -27,6 +27,8 @@ import { from } from 'rxjs';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { AndroidBuildPickerComponent } from '../android-build-picker/android-build-picker.component';
+import { ICustomSettings } from 'app/models/run_suite_fields';
+import { AdvancedSettingsComponent } from 'app/run_suite/common/advanced-settings/advanced-settings.component';
 
 @Component({
   selector: 'app-auto-qual',
@@ -41,6 +43,7 @@ import { AndroidBuildPickerComponent } from '../android-build-picker/android-bui
     RouterModule,
     MatSlideToggleModule,
     AndroidBuildPickerComponent,
+    AdvancedSettingsComponent,
   ],
   templateUrl: './auto-qual.component.html',
   styleUrls: ['./auto-qual.component.scss'],
@@ -170,6 +173,10 @@ export class AutoQualComponent implements OnInit, OnDestroy {
   protected testplanSignal = signal<string>('');
 
   protected isCrossBranchSignal = signal<boolean>(false);
+  protected skipBootPrerequisiteSignal = signal<boolean>(false);
+  protected customSettings: ICustomSettings = {
+    skipBootPrerequisite: false,
+  };
   protected testBranchSignal = signal<string>('');
   protected testTargetSignal = signal<string>('');
   protected testValidBuildSignal = signal<string>('');
@@ -377,7 +384,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const nextValue = isIncluded ? cur.filter(c => c != col) : [...cur, col];
+    const nextValue = isIncluded ? cur.filter(c => c !== col) : [...cur, col];
 
     this.selectedColumns.set(nextValue);
   }
@@ -443,6 +450,11 @@ export class AutoQualComponent implements OnInit, OnDestroy {
     this.isCrossBranchSignal.set(value);
   }
 
+  protected onAdvancedSettingsChanged(settings: ICustomSettings) {
+    this.customSettings = settings;
+    this.skipBootPrerequisiteSignal.set(!!settings.skipBootPrerequisite);
+  }
+
   protected onAndroidBranchTargetBuildChanged(value: {
     type: 'provision' | 'test';
     branch: string;
@@ -471,6 +483,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
       testBranch: isCrossBranch ? this.testBranchSignal() : undefined,
       testTarget: isCrossBranch ? this.testTargetSignal() : undefined,
       testBuild: isCrossBranch ? this.testValidBuildSignal() : undefined,
+      skipBootPrerequisite: this.skipBootPrerequisiteSignal(),
     });
   }
 
@@ -559,6 +572,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
     testBranch?: string;
     testTarget?: string;
     testBuild?: string;
+    skipBootPrerequisite?: boolean;
   }) {
     wrapperLoading(
       from(
@@ -575,6 +589,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
           testBranch: p.testBranch,
           testTarget: p.testTarget,
           testBuild: p.testBuild,
+          skipBootPrerequisite: p.skipBootPrerequisite,
         })
       ),
       this.isScheduleRunLoading,
@@ -582,12 +597,9 @@ export class AutoQualComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: e => {
         const id = e.getId();
-        this.notification.info(
-          `Test effort ${id} created successfully.`,
-          {
-            dismiss: true,
-          }
-        );
+        this.notification.info(`Test effort ${id} created successfully.`, {
+          dismiss: true,
+        });
         this.router.navigate(['/run_tests/android/autoqual']);
       },
       error: err => {

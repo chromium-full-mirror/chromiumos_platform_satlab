@@ -211,23 +211,23 @@ export class AndroidService {
   }
 
   public createTestEffort(params: {
-    board: string,
-    model: string,
-    branch: string,
-    target: string,
-    build: string,
-    testplan: string,
+    board: string;
+    model: string;
+    branch: string;
+    target: string;
+    build: string;
+    testplan: string;
     pools: {
-      label: string,
-      type: number,
-    }[],
-    satlabID?: string,
-    product?: string,
-    testBranch?: string,
-    testTarget?: string,
-    testBuild?: string
-  }
-  ) {
+      label: string;
+      type: number;
+    }[];
+    satlabID?: string;
+    product?: string;
+    testBranch?: string;
+    testTarget?: string;
+    testBuild?: string;
+    skipBootPrerequisite?: boolean;
+  }) {
     const poolLists = params.pools.map(p => {
       return new TestEffort.Pool().setLabel(p.label).setType(p.type);
     });
@@ -243,7 +243,8 @@ export class AndroidService {
       .setModel(params.model)
       .setSatlabId(params.satlabID || '')
       .setPoolsList(poolLists)
-      .setTestplan(params.testplan);
+      .setTestplan(params.testplan)
+      .setSkipBootPrerequisite(params.skipBootPrerequisite || false);
 
     if (params.testBranch && params.testTarget && params.testBuild) {
       const androidTestTarget = new TestEffort.AndroidBuildTarget()

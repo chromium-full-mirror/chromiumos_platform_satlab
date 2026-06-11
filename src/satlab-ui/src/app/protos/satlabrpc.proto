@@ -1241,7 +1241,7 @@ message CreateTestEffortResponse {
   string id = 1;
 }
 
-// NEXT_TAG = 12
+// NEXT_TAG = 13
 message TestEffort {
 
   // NEXT_TAG = 10
@@ -1359,4 +1359,7 @@ message TestEffort {
     // Test against an Android build target.
     AndroidBuildTarget android_test_target = 11;
   }
+
+  // Option to make boot tests optional.
+  bool skip_boot_prerequisite = 12;
 }

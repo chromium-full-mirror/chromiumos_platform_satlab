@@ -50,7 +50,8 @@ export type BooleanKeys =
   | 'extraTestFilter'
   | 'editTopology'
   | 'servoRequired'
-  | 'testArgs';
+  | 'testArgs'
+  | 'skipBootPrerequisite';
 
 export type ICustomSettings = {
   [K in NumberKeys]?: number;

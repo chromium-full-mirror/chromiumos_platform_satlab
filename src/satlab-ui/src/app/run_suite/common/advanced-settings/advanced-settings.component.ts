@@ -178,4 +178,11 @@ export class AdvancedSettingsComponent implements OnInit, OnChanges, OnDestroy {
       testArgs: value,
     });
   }
+
+  protected onSkipBootPrerequisiteChanged(newValue: boolean) {
+    this._settings.next({
+      ...this._settings.value,
+      skipBootPrerequisite: newValue,
+    });
+  }
 }
