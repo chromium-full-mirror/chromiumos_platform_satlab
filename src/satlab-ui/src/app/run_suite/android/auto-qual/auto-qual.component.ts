@@ -469,7 +469,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
   }
 
   protected onScheduleClicked() {
-    const testplan = 'dts/' + this.testplanSignal();
+    const testplan = this.testplanSignal();
     const isCrossBranch = this.isCrossBranchSignal();
 
     this.__createTestEffort({
