@@ -3,6 +3,7 @@ import {
   defaultBuildSelectFields,
   IBuildSelectFields,
   ICustomSettings,
+import {FIRMWARE_ARTIFACT} from 'app/constants';
 } from 'app/models/run_suite_fields';
 import {NotificationService} from 'app/services/notification.service';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
@@ -87,7 +88,7 @@ export class LabQualComponent implements OnInit, OnDestroy {
         {
           ...this.fields$.value,
           build: this.firmware$.value.build,
-          artifact: 'firmware_from_source.tar.bz2',
+          artifact: FIRMWARE_ARTIFACT,
         },
         'firmware'
       )
