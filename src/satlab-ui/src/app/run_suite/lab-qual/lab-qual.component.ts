@@ -1,4 +1,5 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
+import {FIRMWARE_ARTIFACT} from 'app/constants';
 import {
   defaultBuildSelectFields,
   IBuildSelectFields,
