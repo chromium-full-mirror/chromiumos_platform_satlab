@@ -8,6 +8,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import {FIRMWARE_ARTIFACT} from 'app/constants';
 import {IDut} from 'app/models/dut';
 import {
   resetSignals,
@@ -392,6 +393,7 @@ export class RunComponent implements AfterViewInit, OnDestroy {
                 board: this.boardSignal(),
                 model: this.modelSignal(),
                 build: this.firmwares()[key].build,
+                artifact: FIRMWARE_ARTIFACT,
               },
               'firmware'
             )
@@ -569,7 +571,10 @@ export class RunComponent implements AfterViewInit, OnDestroy {
 
         switchMap(version =>
           this.satlab_rpcservice
-            .stageBuild({board, model, build: version}, 'firmware')
+            .stageBuild(
+              {board, model, build: version, artifact: FIRMWARE_ARTIFACT},
+              'firmware'
+            )
             .pipe(
               map(res => {
                 const regex = /R(\d+)(?=-)/;

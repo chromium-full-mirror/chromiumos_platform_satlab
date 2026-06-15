@@ -1,4 +1,5 @@
 import {LoadingButtonComponent} from '../../../common/loading-button/loading-button.component';
+import {FIRMWARE_ARTIFACT} from '../../../constants';
 import {IDut} from '../../../models/dut';
 import {SelectableItem} from '../../../models/selectable_item';
 import {AndroidService} from '../../../services/android.service';
@@ -318,6 +319,7 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
               board: this.dutInfo()!.board,
               model: this.dutInfo()!.model,
               build: this.firmware().build,
+              artifact: FIRMWARE_ARTIFACT,
             },
             'firmware'
           )

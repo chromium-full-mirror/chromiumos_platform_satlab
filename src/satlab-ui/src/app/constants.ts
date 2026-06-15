@@ -22,6 +22,8 @@ export const DUT_STATUS_RUNNING = 'running';
 export const DUT_STATUS_REPAIRING = 'repairing';
 export const DUT_STATUS_DEPLOYING = 'deploying';
 
+export const FIRMWARE_ARTIFACT = 'firmware_from_source.tar.bz2';
+
 export const TESTLAB_STATUS_ENABLED = 'Enabled';
 export const TESTLAB_STATUS_DISABLED = 'Disabled';
 export const TESTLAB_STATUS_UNKNOWN = 'Unknown';
