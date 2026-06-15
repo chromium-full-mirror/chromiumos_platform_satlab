@@ -4,7 +4,6 @@ import {
   defaultBuildSelectFields,
   IBuildSelectFields,
   ICustomSettings,
-import {FIRMWARE_ARTIFACT} from 'app/constants';
 } from 'app/models/run_suite_fields';
 import {NotificationService} from 'app/services/notification.service';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
