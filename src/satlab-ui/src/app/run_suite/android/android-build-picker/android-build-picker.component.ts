@@ -26,6 +26,13 @@ import {AutocompleteComponent} from '../../common/autocomplete/autocomplete.comp
 import {NotificationService} from 'app/services/notification.service';
 import {ERROR_KEY_MSG_CONFIGS} from 'app/models/error';
 
+const TEST_PRODUCTS = [
+  'aosp_x86_64',
+  'aosp_arm64_plus_armv7',
+  'aosp_arm64_desktop',
+  'aosp_x86_64_desktop',
+];
+
 @Component({
   selector: 'app-android-build-picker',
   standalone: true,
@@ -252,7 +259,10 @@ export class AndroidBuildPickerComponent implements OnDestroy {
             .filter(e => e.board === board)
             .map(e => e.model);
 
-          const req = [...sameBoardModels, board];
+          const req =
+            this.typeSignal() === 'test'
+              ? TEST_PRODUCTS
+              : [...sameBoardModels, board];
           this.__listBranches(req);
         },
         {allowSignalWrites: true}
@@ -376,7 +386,7 @@ export class AndroidBuildPickerComponent implements OnDestroy {
   }
 
   private __listBranches(targets: string[]) {
-    console.log(`Listing branches`);
+    console.log('Listing branches');
     this.androidService
       .listBranches(targets)
       .pipe(
