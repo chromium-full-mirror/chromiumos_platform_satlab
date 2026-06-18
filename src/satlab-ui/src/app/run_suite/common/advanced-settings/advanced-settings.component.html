@@ -17,16 +17,7 @@
             </mat-slide-toggle>
           </div>
         </div>
-        <div *ngIf="customSettings.hasOwnProperty('editTopology')">
-          <div class="flex flex-row gap-4">
-            <mat-slide-toggle
-              (change)="onEditTopologyChanged($event.checked)"
-              [checked]="(settings$ | async).editTopology && !disabled"
-              [disabled]="disabled"
-              >Edit Topology
-            </mat-slide-toggle>
-          </div>
-        </div>
+
         <div *ngIf="customSettings.hasOwnProperty('testArgs')">
           <div class="flex flex-row gap-4">
             <mat-slide-toggle

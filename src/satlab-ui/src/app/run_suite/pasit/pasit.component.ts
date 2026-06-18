@@ -41,11 +41,12 @@ export class PasitComponent implements AfterViewInit {
     cft: true,
     trv2: false,
     uploadToCpcon: false,
-    editTopology: true,
   };
   protected topologyContent: string = '';
   protected disabled = true;
   protected isRunning = false;
+  protected isUpdatingTopology = false;
+  protected updateTopologyDisabled = true;
   protected tagsToInclude: string[] = [];
   protected disableInputOnTrigger = false;
 
@@ -106,6 +107,7 @@ export class PasitComponent implements AfterViewInit {
     };
     this.#getTopology(selectedHostname);
     this.canRun();
+    this.canUpdateTopology();
   }
 
   #getTopology(hostname: string) {
@@ -155,35 +157,44 @@ export class PasitComponent implements AfterViewInit {
     if (!this.validate()) {
       return;
     }
-    if (this.customSettings.editTopology) {
-      from(
-        this.service.addTopology({
-          hostname: this.fields.dims.dut_name,
-          content: this.topologyContent,
+    this.#triggerRunOnPasit();
+  }
+
+  protected onUpdateTopologyClick() {
+    if (!this.fields.dims?.dut_name) {
+      return;
+    }
+    from(
+      this.service.addTopology({
+        hostname: this.fields.dims.dut_name,
+        content: this.topologyContent,
+      })
+    )
+      .pipe(
+        startWithTap(() => {
+          this.isUpdatingTopology = true;
+          this.disableInputOnTrigger = true;
+          this.canRun();
+          this.canUpdateTopology();
+          this.showLoading('Updating Topology...');
+        }),
+        finalize(() => {
+          this.hideLoading();
+          this.#resetController();
         })
       )
-        .pipe(
-          startWithTap(() => {
-            this.disabled = true;
-            this.isRunning = true;
-            this.disableInputOnTrigger = true;
-            this.showLoading('Editting Topology...');
-          }),
-          finalize(() => {
-            this.hideLoading();
-          })
-        )
-        .subscribe({
-          next: () => this.#triggerRunOnPasit(),
-          error: e => {
-            this.notification.error(`Failed to update topology: ${e}`),
-              {dismiss: false};
-            this.#resetController();
-          },
-        });
-    } else {
-      this.#triggerRunOnPasit();
-    }
+      .subscribe({
+        next: () => {
+          this.notification.info('Topology updated successfully!', {
+            dismiss: false,
+          });
+        },
+        error: e => {
+          this.notification.error(`Failed to update topology: ${e}`, {
+            dismiss: false,
+          });
+        },
+      });
   }
 
   #triggerRunOnPasit() {
@@ -212,6 +223,10 @@ export class PasitComponent implements AfterViewInit {
     )
       .pipe(
         startWithTap(() => {
+          this.isRunning = true;
+          this.disableInputOnTrigger = true;
+          this.canRun();
+          this.canUpdateTopology();
           this.showLoading('Running a suite...');
           console.log(this.tagsToInclude);
         }),
@@ -240,9 +255,11 @@ export class PasitComponent implements AfterViewInit {
   }
 
   #resetController() {
-    this.disabled = false;
     this.isRunning = false;
+    this.isUpdatingTopology = false;
     this.disableInputOnTrigger = false;
+    this.canRun();
+    this.canUpdateTopology();
   }
 
   protected onAdvancedSettingsChanged(newValue: ICustomSettings) {
@@ -250,7 +267,11 @@ export class PasitComponent implements AfterViewInit {
   }
 
   private canRun() {
-    this.disabled = !this.validate();
+    this.disabled = !this.validate() || this.isRunning || this.isUpdatingTopology;
+  }
+
+  private canUpdateTopology() {
+    this.updateTopologyDisabled = !this.fields.dims?.dut_name || this.isRunning || this.isUpdatingTopology;
   }
 
   private validate() {

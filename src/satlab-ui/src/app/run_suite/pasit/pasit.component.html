@@ -35,18 +35,24 @@
       [customSettings]="customSettings"
     ></app-advanced-settings>
 
-    <div class="flex justify-center py-4">
+    <div class="flex justify-center gap-4 py-4">
       <app-loading-button
         (onClick)="onRunPasitClick()"
         [disabled]="disabled"
         [loading]="isRunning"
         [text]="'Run'"
       ></app-loading-button>
+      <app-loading-button
+        (onClick)="onUpdateTopologyClick()"
+        [disabled]="updateTopologyDisabled"
+        [loading]="isUpdatingTopology"
+        [text]="'Update Topology'"
+      ></app-loading-button>
     </div>
   </div>
   <div class="topology-wrapper">
     <textarea
-      [disabled]="disableInputOnTrigger || !customSettings.editTopology"
+      [disabled]="disableInputOnTrigger"
       [(ngModel)]="topologyContent"
     ></textarea>
   </div>
