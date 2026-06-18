@@ -185,6 +185,19 @@
           [duts]="dutsSignal()" [parentLoading]="isScheduleRunLoading().show"
           (dataChanged)="onAndroidBranchTargetBuildChanged($event)"></app-android-build-picker>
 
+        <div *ngIf="!isCrossBranchSignal()">
+          <app-basic-selector
+            (select)="onPropsChanged('testTarget', $event)"
+            [options]="testTargetOptions()"
+            [value]="testTargetSignal()"
+            [disabled]="
+              isScheduleRunLoading().show || testTargetOptions().length === 0
+            "
+            title="Select Test Target:"
+          >
+          </app-basic-selector>
+        </div>
+
         <app-basic-selector
           (select)="onPropsChanged('pool', $event)"
           [options]="poolOptions()"
