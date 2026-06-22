@@ -27,6 +27,18 @@
 # To run passport client commands, run:
 # ./pasit_test -p -- <command> <subcommand> <subcommand args>...
 
+
+UNENROLLED=0
+TOPOLOGY_FILE=""
+DUT_IP_ARG=""
+SERVO_SERIAL_ARG=""
+SERVO_BOARD_ARG=""
+SERVO_MODEL_ARG=""
+
+SERVO_SERIAL=""
+SERVO_BOARD=""
+SERVO_MODEL=""
+
 usage() {
   echo "Usage: $0 [-h|--help] [-q|--quick] [-p|--passport] [-u|--upload-logs] [--pause-on-fail <seconds>] [--] [args...]"
   echo
@@ -36,6 +48,13 @@ usage() {
   echo
   echo "Options:"
   echo "  -h, --help          Show this help message and exit."
+  echo "  --unenrolled        Enable unenrolled DUT mode."
+  echo "  --topology-file <file> [Optional with --unenrolled] Path to local topology JSON file"
+  echo "                      (if omitted, UFS topology is used. Download from go/pasit-drive and SCP)."
+  echo "  --dut-ip <ip>       [Optional with --unenrolled] Explicit DUT IP address (bypasses discovery)."
+  echo "  --servo-serial <serial> [Optional with --unenrolled] Override discovered servo serial."
+  echo "  --servo-board <board>   [Required with --unenrolled] Servo board name (e.g. brya)."
+  echo "  --servo-model <model>   [Optional with --unenrolled] Override discovered model name."
   echo "  -q, --quick         Quick mode. Bypasses re-running of the setup."
   echo "  -p, --passport      Run passport client commands."
   echo "  --pause-on-fail <seconds>  Pause for <seconds> on test failure."
@@ -143,6 +162,190 @@ summarize_test_output() {
   fi
 }
 
+discover_unenrolled_dut_ip() {
+  log_color INFO "Discovering unenrolled DUT IP from DHCP leases..."
+  local leases
+  leases=$(docker exec dhcp cat /var/lib/misc/dnsmasq.leases 2>/dev/null)
+  if [[ -z "${leases}" ]]; then
+    log_color ERROR "Failed to read DHCP leases from dhcp container."
+    return 1
+  fi
+
+  local candidates=()
+  while read -r line; do
+    [[ -z "${line}" ]] && continue
+    local ip
+    ip=$(echo "$line" | awk '{print $3}')
+    local name
+    name=$(echo "$line" | awk '{print $4}')
+    if [[ "${name}" != "IP_POWER" && "${ip}" != "192.168.231.110" ]]; then
+      candidates+=("${ip}")
+    fi
+  done <<< "${leases}"
+
+  if [[ ${#candidates[@]} -eq 0 ]]; then
+    log_color ERROR "No candidate IPs found in DHCP leases."
+    return 1
+  fi
+
+  log_color INFO "Testing candidate IPs: ${candidates[*]}"
+  for ip in "${candidates[@]}"; do
+    # Try ADB
+    if nc -z -w 1 "${ip}" 5555 &> /dev/null; then
+      DUT_IP="${ip}"
+      log_color GOOD "Discovered Android DUT IP: ${DUT_IP}"
+      return 0
+    fi
+    # Try SSH
+    if nc -z -w 1 "${ip}" 22 &> /dev/null; then
+      DUT_IP="${ip}"
+      log_color GOOD "Discovered ChromeOS DUT IP: ${DUT_IP}"
+      return 0
+    fi
+  done
+
+  log_color ERROR "None of the candidate IPs responded to ADB (5555) or SSH (22)."
+  return 1
+}
+
+discover_servo_serial() {
+  log_color INFO "Discovering Servo serial via lsusb..."
+  local servo_lines
+  servo_lines=$(lsusb | grep -i "Servo" || true)
+  if [[ -z "${servo_lines}" ]]; then
+    log_color ERROR "No Servo devices found in lsusb output."
+    return 1
+  fi
+
+  local count
+  count=$(echo "${servo_lines}" | wc -l)
+  if [[ "${count}" -gt 1 ]]; then
+    log_color WARN "Multiple Servo devices found:"
+    echo "${servo_lines}"
+    log_color ERROR "Please specify which one to use with --servo-serial."
+    return 1
+  fi
+
+  SERVO_SERIAL=$(echo "${servo_lines}" | awk '{print $NF}' | tr -d ')')
+  log_color GOOD "Discovered Servo Serial: ${SERVO_SERIAL}"
+  return 0
+}
+
+discover_model() {
+  log_color INFO "Discovering model from DUT via ADB..."
+
+  # Ensure we are connected
+  adb connect "${DUT_IP}:5555" > /dev/null 2>&1
+
+  if [[ -z "${SERVO_MODEL}" ]]; then
+    local dev_model
+    dev_model=$(adb -s "${DUT_IP}:5555" shell getprop ro.product.device 2>/dev/null | tr -d '\r')
+
+    if [[ -n "${dev_model}" ]]; then
+      SERVO_MODEL=$(echo "${dev_model}" | tr '[:upper:]' '[:lower:]')
+      log_color GOOD "Discovered Model: ${SERVO_MODEL}"
+    else
+      log_color WARN "Failed to discover model name via ADB."
+    fi
+  fi
+}
+
+confirm_unenrolled_params() {
+  log_color WARN "Parameters for Unenrolled DUT:"
+  log_color WARN "  DUT IP:       ${DUT_IP}"
+  log_color WARN "  Servo Serial: ${SERVO_SERIAL}"
+  log_color WARN "  Servo Board:  ${SERVO_BOARD}"
+  log_color WARN "  Servo Model:  ${SERVO_MODEL}"
+
+  if [[ -z "${SERVO_BOARD}" ]]; then
+    log_color ERROR "Board name is missing. Please provide it via --servo-board."
+    exit 1
+  fi
+  if [[ -z "${SERVO_MODEL}" ]]; then
+    log_color ERROR "Model name is missing. Please provide it via --servo-model."
+    exit 1
+  fi
+  if [[ -z "${SERVO_SERIAL}" ]]; then
+    log_color ERROR "Servo serial is missing. Please provide it via --servo-serial."
+    exit 1
+  fi
+
+  if [[ -t 0 ]]; then
+    read -p "Proceed with these values? (y/N) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      log_color ERROR "Aborted by user."
+      exit 1
+    fi
+  else
+    log_color INFO "Non-interactive shell, proceeding automatically in 3 seconds..."
+    sleep 3
+  fi
+}
+
+setup_unenrolled_dut() {
+  log_color INFO "Setting up unenrolled/swapped DUT environment..."
+
+  if [[ -n "${TOPOLOGY_FILE}" ]]; then
+    if [[ ! -f "${TOPOLOGY_FILE}" ]]; then
+      log_color ERROR "Topology file not found: ${TOPOLOGY_FILE}"
+      exit 1
+    fi
+    cp "${TOPOLOGY_FILE}" "${PASIT_JSON_FILE}"
+    DUT_ID=$(jq -r .hostname "${PASIT_JSON_FILE}" 2>/dev/null)
+    if [[ -z "${DUT_ID}" || "${DUT_ID}" == "null" ]]; then
+      DUT_ID=$(jq -r '.devices[] | select(.type == "DUT") | .id' "${PASIT_JSON_FILE}" 2>/dev/null)
+    fi
+    if [[ -z "${DUT_ID}" || "${DUT_ID}" == "null" ]]; then
+      log_color ERROR "Could not determine DUT ID from topology file."
+      exit 1
+    fi
+    log_color GOOD "DUT ID (from topology): ${DUT_ID}"
+  else
+    log_color INFO "No topology file provided, fetching from UFS..."
+    get_dut_info
+    log_color GOOD "DUT ID (from UFS): ${DUT_ID}"
+  fi
+
+  # IP Discovery
+  if [[ -n "${DUT_IP_ARG}" ]]; then
+    DUT_IP="${DUT_IP_ARG}"
+  else
+    if ! discover_unenrolled_dut_ip; then
+      exit 1
+    fi
+  fi
+
+  # Servo Serial Discovery
+  if [[ -n "${SERVO_SERIAL_ARG}" ]]; then
+    SERVO_SERIAL="${SERVO_SERIAL_ARG}"
+  else
+    if ! discover_servo_serial; then
+      exit 1
+    fi
+  fi
+
+  # Board/Model Handling
+  SERVO_BOARD="${SERVO_BOARD_ARG}"
+  if [[ -z "${SERVO_BOARD}" ]]; then
+    log_color ERROR "Board name is missing. --servo-board is required in unenrolled/swapped mode."
+    exit 1
+  fi
+
+  SERVO_MODEL="${SERVO_MODEL_ARG}"
+  if [[ -z "${SERVO_MODEL}" ]]; then
+    discover_model
+  fi
+
+  confirm_unenrolled_params
+
+  # Write dummy DUT_INFO_FILE
+  echo "{\"servoHostname\": \"${DUT_ID}-docker_servod\"}" > "${DUT_INFO_FILE}"
+
+  # Ensure ADB is connected for downstream scripts
+  adb connect "${DUT_IP}:5555" > /dev/null 2>&1
+}
+
 check_running_on_satlab() {
   if [[ ! -x /usr/local/bin/satlab ]]; then
     log_color ERROR "No satlab command found, this script must be run on a satlab host."
@@ -202,10 +405,38 @@ function start_servod() {
     SERVO_CONTAINER_NAME="${DUT_ID}-docker_servod"
   fi
 
-  satlab servod stop -service-account-json /home/satlab/keys/pubsub-key-do-not-delete.json -host "${DUT_ID}" > /dev/null 2>&1
-  if ! satlab servod start -service-account-json /home/satlab/keys/pubsub-key-do-not-delete.json -host "${DUT_ID}"; then
-    log_color ERROR "Failed to start servod for ${DUT_ID}"
-    exit 1
+  if [[ "${UNENROLLED}" -eq 1 ]]; then
+    # Stop existing container
+    docker rm -f "${SERVO_CONTAINER_NAME}" > /dev/null 2>&1
+
+    log_color INFO "Starting servod for unenrolled DUT with board: ${SERVO_BOARD}, model: ${SERVO_MODEL}, serial: ${SERVO_SERIAL}"
+    local start_output
+    start_output=$(satlab servod start \
+      -service-account-json /home/satlab/keys/pubsub-key-do-not-delete.json \
+      -board "${SERVO_BOARD}" \
+      -model "${SERVO_MODEL}" \
+      -servo-serial "${SERVO_SERIAL}" \
+      -servod-container-name "${SERVO_CONTAINER_NAME}" 2>&1)
+    if [[ $? -ne 0 ]]; then
+      log_color ERROR "Failed to start servod container."
+      log_color ERROR "Output: ${start_output}"
+      exit 1
+    fi
+
+    # Verify container is running
+    sleep 2
+    if ! docker ps --format '{{.Names}}' | grep -q "^${SERVO_CONTAINER_NAME}$"; then
+      log_color ERROR "Servod container ${SERVO_CONTAINER_NAME} is not running."
+      log_color ERROR "Container logs:"
+      docker logs "${SERVO_CONTAINER_NAME}" | tail -n 20
+      exit 1
+    fi
+  else
+    satlab servod stop -service-account-json /home/satlab/keys/pubsub-key-do-not-delete.json -host "${DUT_ID}" > /dev/null 2>&1
+    if ! satlab servod start -service-account-json /home/satlab/keys/pubsub-key-do-not-delete.json -host "${DUT_ID}"; then
+      log_color ERROR "Failed to start servod for ${DUT_ID}"
+      exit 1
+    fi
   fi
 
   SERVO_IP="$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${SERVO_CONTAINER_NAME}")"
@@ -511,6 +742,30 @@ while [[ $# -gt 0 ]]; do
       shift;
       break
       ;;
+    --unenrolled)
+      UNENROLLED=1
+      shift;
+      ;;
+    --topology-file)
+      TOPOLOGY_FILE="$2"
+      shift 2
+      ;;
+    --dut-ip)
+      DUT_IP_ARG="$2"
+      shift 2
+      ;;
+    --servo-serial)
+      SERVO_SERIAL_ARG="$2"
+      shift 2
+      ;;
+    --servo-board)
+      SERVO_BOARD_ARG="$2"
+      shift 2
+      ;;
+    --servo-model)
+      SERVO_MODEL_ARG="$2"
+      shift 2
+      ;;
     --quick|-q)
       QUICK_MODE=1
       shift;
@@ -564,7 +819,11 @@ if [[ "${QUICK_MODE}" -ne 1 ]]; then
   echo -n "${TEMP_DIR}" > /tmp/pasit_temp_dir.txt
   DUT_INFO_FILE="${TEMP_DIR}/dut_info.json"
   PASIT_JSON_FILE="${TEMP_DIR}/pasit_config.json"
-  get_dut_info
+  if [[ "${UNENROLLED}" -eq 1 ]]; then
+    setup_unenrolled_dut
+  else
+    get_dut_info
+  fi
   if [[ -z "$DUT_IP" ]]; then
     echo "No DUT found, please check the satlab config."
     exit 1
