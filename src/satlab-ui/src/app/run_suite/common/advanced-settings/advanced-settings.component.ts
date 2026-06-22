@@ -9,7 +9,7 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import {ICustomSettings} from 'app/models/run_suite_fields';
-import {BehaviorSubject, Subscription} from 'rxjs';
+import {BehaviorSubject, map, Subscription} from 'rxjs';
 
 import {CommonModule} from '@angular/common';
 import {MatExpansionModule} from '@angular/material/expansion';
@@ -38,6 +38,9 @@ export class AdvancedSettingsComponent implements OnInit, OnChanges, OnDestroy {
 
   private _settings: BehaviorSubject<ICustomSettings> = new BehaviorSubject({});
   protected settings$ = this._settings.asObservable();
+  protected isEmpty$ = this.settings$.pipe(
+    map(() => Object.keys(this._settings.value).length === 0)
+  );
   private disposer?: Subscription;
 
   constructor() {}
@@ -75,8 +78,6 @@ export class AdvancedSettingsComponent implements OnInit, OnChanges, OnDestroy {
       extraTestFilter: newValue,
     });
   }
-
-
 
   /**
    * onCftChanged handles the cft flag changed event.

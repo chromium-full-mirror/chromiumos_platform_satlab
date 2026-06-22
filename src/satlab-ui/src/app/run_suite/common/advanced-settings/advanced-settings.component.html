@@ -1,4 +1,4 @@
-<div class="settings-wrapper">
+<div class="settings-wrapper" *ngIf="!(isEmpty$ | async)">
   <mat-accordion>
     <mat-expansion-panel #settings [hideToggle]="true">
       <mat-expansion-panel-header>
