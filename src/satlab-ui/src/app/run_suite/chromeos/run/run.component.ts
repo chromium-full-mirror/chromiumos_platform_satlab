@@ -20,13 +20,10 @@ import {SatlabRpcService} from 'app/services/satlab-rpc.service';
 import {NotificationService} from 'app/services/notification.service';
 import {
   BehaviorSubject,
-  filter,
   finalize,
   from,
   lastValueFrom,
-  map,
   Subscription,
-  switchMap,
   tap,
 } from 'rxjs';
 import {SelectableItem} from 'app/models/selectable_item';
@@ -181,11 +178,12 @@ export class RunComponent implements AfterViewInit, OnDestroy {
     };
   });
   protected stableBuildNotFound = signal<boolean>(false);
+  private isFetchingStableVersion = signal<boolean>(false);
   protected isFirmwareSelectable = computed(() => {
     const isFetchedStableBuild =
       (this.stableBuild() !== '' && this.stableMilestone() !== '') ||
       this.stableBuildNotFound();
-    const loading = this.isLoading().show || this.isRunningSignal();
+    const loading = this.isFetchingStableVersion() || this.isRunningSignal();
     return !isFetchedStableBuild || loading;
   });
 
@@ -319,6 +317,7 @@ export class RunComponent implements AfterViewInit, OnDestroy {
     const runTask = buildRunTask(isSuiteTestPlan, jobName, testArgs);
 
     const firmwares = await this.stageFirmware();
+    if (!firmwares) return;
     const containerInfo = this.createContainerInfo(firmwares);
     const filter =
       containerInfo === null ? [] : [JSON.stringify(containerInfo)];
@@ -410,7 +409,7 @@ export class RunComponent implements AfterViewInit, OnDestroy {
     if (futures.length === 0) {
       this.isRunningSignal.set(false);
       this.isLoading.set({show: false, message: ''});
-      return {};
+      return null;
     }
 
     try {
@@ -426,7 +425,7 @@ export class RunComponent implements AfterViewInit, OnDestroy {
     } catch (e: unknown) {
       this.notification.error(`Stage firmware failed: ${e}`, {dismiss: false});
       this.isRunningSignal.set(false);
-      return {};
+      return null;
     } finally {
       this.isLoading.set({show: false, message: ''});
     }
@@ -553,44 +552,27 @@ export class RunComponent implements AfterViewInit, OnDestroy {
     this.satlab_rpcservice
       .getStableVersion({board: board, model: model, isDesktop: false})
       .pipe(
-        startWithTap(() => this.stableBuildNotFound.set(false)),
-
-        map(res => {
-          const match = res.fwVersion?.match(/(\d+(?:\.\d+){2,})/);
-          return match ? match[1] : null;
+        startWithTap(() => {
+          this.stableBuildNotFound.set(false);
+          this.isFetchingStableVersion.set(true);
         }),
 
-        tap(version => {
-          if (!version) this.stableBuildNotFound.set(true);
+        tap(res => {
+          const build = res.fwVersion?.match(/(\d+(?:\.\d+){2,})/);
+          const milestone = res.fwImage?.match(/R(\d+)(?=-)/);
+          if (milestone) {
+            this.stableMilestone.set(milestone[1]);
+          }
+          if (build) {
+            this.stableBuild.set(build[1]);
+          } else {
+            this.stableBuildNotFound.set(true);
+          }
         }),
 
-        // Only continue RPC pipeline if version exists
-        filter((version): version is string => !!version),
-
-        tap(version => this.stableBuild.set(version)),
-
-        switchMap(version =>
-          this.satlab_rpcservice
-            .stageBuild(
-              {board, model, build: version, artifact: FIRMWARE_ARTIFACT},
-              'firmware'
-            )
-            .pipe(
-              map(res => {
-                const regex = /R(\d+)(?=-)/;
-                const match = res.path.match(regex);
-                return match ? match[1] : null;
-              }),
-
-              tap(version => {
-                if (!version) this.stableBuildNotFound.set(true);
-              }),
-
-              filter((version): version is string => !!version),
-
-              tap(version => this.stableMilestone.set(version))
-            )
-        )
+        finalize(() => {
+          this.isFetchingStableVersion.set(false);
+        })
       )
       .subscribe({
         error: err => console.error(err),
