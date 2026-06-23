@@ -26,7 +26,10 @@ import {
   Subscription,
   tap,
 } from 'rxjs';
-import {SelectableItem} from 'app/models/selectable_item';
+import {
+  BUILD_STATUS_MAPPINGS,
+  SelectableItem,
+} from 'app/models/selectable_item';
 import {ICustomSettings, IDims} from 'app/models/run_suite_fields';
 import {
   RunChromeOSRequest,
@@ -533,12 +536,12 @@ export class RunComponent implements AfterViewInit, OnDestroy {
     ).subscribe({
       next: b => {
         const opts = toIterator(b)
-          .map(b => b.getValue())
           .map(b => {
+            const status = BUILD_STATUS_MAPPINGS[b.getStatus()];
             const s: SelectableItem = {
-              text: b,
-              value: b,
-              label: '',
+              text: b.getValue(),
+              value: b.getValue(),
+              label: status,
             };
             return s;
           })
