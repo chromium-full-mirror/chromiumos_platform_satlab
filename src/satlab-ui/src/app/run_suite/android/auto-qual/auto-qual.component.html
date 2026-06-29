@@ -168,23 +168,6 @@
         >
         </app-basic-selector>
 
-        <app-autocomplete-selector
-          (selectChanged)="onPropsChanged('build', $event)"
-          (inputValueChanged)="onPropsChanged('build', $event)"
-          [options]="buildOptions()"
-          title="Select Build:"
-        ></app-autocomplete-selector>
-
-        <div class="my-2">
-          <mat-slide-toggle (change)="onCrossBranchTestingChanged($event.checked)" [disabled]="isScheduleRunLoading().show">
-            Use a separate test build
-          </mat-slide-toggle>
-        </div>
-
-        <app-android-build-picker *ngIf="isCrossBranchSignal()" [board]="boardSignal()" [model]="modelSignal()" [type]="'test'"
-          [duts]="dutsSignal()" [parentLoading]="isScheduleRunLoading().show"
-          (dataChanged)="onAndroidBranchTargetBuildChanged($event)"></app-android-build-picker>
-
         <div *ngIf="!isCrossBranchSignal()">
           <app-basic-selector
             (select)="onPropsChanged('testTarget', $event)"
@@ -197,6 +180,34 @@
           >
           </app-basic-selector>
         </div>
+
+        <app-autocomplete
+          (selectChanged)="onPropsChanged('build', $event)"
+          (inputChanged)="onBuildInputChanged($event)"
+          [value]="buildSignal()"
+          [options]="buildOptions()"
+          title="Select Build:"
+        ></app-autocomplete>
+
+        <div class="my-2">
+          <mat-slide-toggle
+            (change)="onCrossBranchTestingChanged($event.checked)"
+            [disabled]="isScheduleRunLoading().show"
+          >
+            Use a separate test build
+          </mat-slide-toggle>
+        </div>
+
+        <app-android-build-picker
+          *ngIf="isCrossBranchSignal()"
+          [board]="boardSignal()"
+          [model]="modelSignal()"
+          [type]="'test'"
+          [duts]="dutsSignal()"
+          [parentLoading]="isScheduleRunLoading().show"
+          (valuesChanged)="onTestBranchTargetBuildChanged($event)"
+          (isLoadingChanged)="onLoadingChanged($event)"
+        ></app-android-build-picker>
 
         <app-basic-selector
           (select)="onPropsChanged('pool', $event)"
@@ -220,8 +231,11 @@
           >Test Plan/Suite:</label
         >
       </div>
-      <app-advanced-settings (settingsChanged)="onAdvancedSettingsChanged($event)" [disabled]="isScheduleRunLoading().show"
-        [customSettings]="customSettings"></app-advanced-settings>
+      <app-advanced-settings
+        (settingsChanged)="onAdvancedSettingsChanged($event)"
+        [disabled]="isScheduleRunLoading().show"
+        [customSettings]="customSettings"
+      ></app-advanced-settings>
       <div class="relative w-full py-4 flex flex-row gap-4 justify-center">
         <button
           class="w-32 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 disabled:bg-gray-200 shadow-md active:shadow-sm text-white disabled:text-gray-400 font-normal py-2 px-4 rounded transition-colors cursor-pointer disabled:cursor-not-allowed"

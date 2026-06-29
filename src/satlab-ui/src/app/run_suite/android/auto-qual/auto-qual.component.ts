@@ -15,7 +15,7 @@ import {toObservable} from '@angular/core/rxjs-interop';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {IDut} from 'app/models/dut';
 import {SelectableItem} from 'app/models/selectable_item';
-import {AutocompleteSelectorComponent} from 'app/run_suite/common/autocomplete-selector/autocomplete-selector.component';
+import {AutocompleteComponent} from 'app/run_suite/common/autocomplete/autocomplete.component';
 import {BasicSelectorComponent} from 'app/run_suite/common/basic-selector/basic-selector.component';
 import {LoadingComponent} from 'app/run_suite/common/loading/loading.component';
 import {AndroidService} from 'app/services/android.service';
@@ -27,7 +27,7 @@ import {resetSignals, wrapperLoading} from 'app/utils/operators';
 import {from} from 'rxjs';
 import {ActivatedRoute, Router, RouterModule} from '@angular/router';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
-import {ICustomSettings} from 'app/models/run_suite_fields';
+import {ALBuildBasic, ICustomSettings} from 'app/models/run_suite_fields';
 import {AdvancedSettingsComponent} from 'app/run_suite/common/advanced-settings/advanced-settings.component';
 import {AndroidBuildPickerComponent} from '../../android/common/android-build-picker/android-build-picker.component';
 
@@ -49,7 +49,7 @@ export enum Status {
     MatProgressSpinnerModule,
     LoadingComponent,
     BasicSelectorComponent,
-    AutocompleteSelectorComponent,
+    AutocompleteComponent,
     RouterModule,
     MatSlideToggleModule,
     AndroidBuildPickerComponent,
@@ -281,17 +281,14 @@ export class AutoQualComponent implements OnInit, OnDestroy {
           const board = untracked(() => this.boardSignal());
           const branch = untracked(() => this.branchSignal());
           const boardTarget = this.boardTargetSignal();
-          this.__onBoardTargetChanged(board, branch, boardTarget);
-        },
-        {allowSignalWrites: true}
-      ),
-      effect(
-        () => {
-          const board = untracked(() => this.boardSignal());
-          const branch = untracked(() => this.branchSignal());
-          const boardTarget = untracked(() => this.boardTargetSignal());
-          const build = this.buildSignal();
-          this.__onBuildChanged(board, branch, [boardTarget], build);
+          const testTarget = this.testTargetSignal();
+          const isCrossBranch = this.isCrossBranchSignal();
+          const targets = isCrossBranch
+            ? [boardTarget]
+            : [boardTarget, testTarget];
+          if (board !== '' && branch !== '' && !targets.includes('')) {
+            this.__listBuilds(board, branch, targets);
+          }
         },
         {allowSignalWrites: true}
       ),
@@ -379,6 +376,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
         ]);
         break;
       case 'testTarget':
+        resetSignals([this.buildSignal, this.validBuildSignal]);
         this.testTargetSignal.set((value as string).trim());
         break;
       case 'pool':
@@ -386,7 +384,8 @@ export class AutoQualComponent implements OnInit, OnDestroy {
         break;
       case 'build':
         this.buildSignal.set((value as string).trim());
-        resetSignals([this.validBuildSignal, this.notAvailableMsg]);
+        this.validBuildSignal.set((value as string).trim());
+        resetSignals([this.notAvailableMsg]);
         break;
     }
   }
@@ -462,6 +461,9 @@ export class AutoQualComponent implements OnInit, OnDestroy {
 
   protected onCrossBranchTestingChanged(value: boolean) {
     resetSignals([
+      this.buildSignal,
+      this.validBuildSignal,
+      this.buildOptions,
       this.testBranchSignal,
       this.testTargetSignal,
       this.testValidBuildSignal,
@@ -474,17 +476,14 @@ export class AutoQualComponent implements OnInit, OnDestroy {
     this.skipBootPrerequisiteSignal.set(!!settings.skipBootPrerequisite);
   }
 
-  protected onAndroidBranchTargetBuildChanged(value: {
-    type: 'provision' | 'test';
-    branch: string;
-    target: string;
-    validBuild: string;
-  }) {
-    if (value.type === 'test') {
-      this.testBranchSignal.set(value.branch);
-      this.testTargetSignal.set(value.target);
-      this.testValidBuildSignal.set(value.validBuild);
-    }
+  protected onTestBranchTargetBuildChanged(value: ALBuildBasic) {
+    this.testBranchSignal.set(value.branch);
+    this.testTargetSignal.set(value.target);
+    this.testValidBuildSignal.set(value.build);
+  }
+
+  protected onLoadingChanged(loadingWithMsg: {show: boolean; message: string}) {
+    this.isScheduleRunLoading.set(loadingWithMsg);
   }
 
   protected onScheduleClicked() {
@@ -496,7 +495,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
       model: this.modelSignal(),
       branch: this.branchSignal(),
       target: this.boardTargetSignal(),
-      build: this.buildSignal(),
+      build: this.validBuildSignal(),
       testplan: testplan,
       pools: [{label: this.poolSignal(), type: 1}],
       testBranch: isCrossBranch ? this.testBranchSignal() : this.branchSignal(),
@@ -680,22 +679,15 @@ export class AutoQualComponent implements OnInit, OnDestroy {
     }
   }
 
-  private __onBoardTargetChanged(
-    board: string,
-    branch: string,
-    boardTarget: string
-  ) {
-    if (board !== '' && branch !== '' && boardTarget !== '') {
-      this.__listBuilds(board, branch, [boardTarget]);
-    }
-  }
-
-  private __onBuildChanged(
-    board: string,
-    branch: string,
-    targets: string[],
-    build: string
-  ) {
+  protected onBuildInputChanged(value: string) {
+    this.buildSignal.set((value as string).trim());
+    resetSignals([this.validBuildSignal, this.notAvailableMsg]);
+    const board = this.boardSignal();
+    const branch = this.branchSignal();
+    const targets = this.isCrossBranchSignal()
+      ? [this.boardTargetSignal()]
+      : [this.boardTargetSignal(), this.testTargetSignal()];
+    const build = this.buildSignal();
     if (board !== '' && branch !== '' && targets.length > 0 && build !== '') {
       this.__isBuildValid(board, branch, targets, build);
     }
