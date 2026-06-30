@@ -6,6 +6,18 @@
   <span>{{ cell.str }}</span>
 </div>
 <div
+  *ngIf="cell && cell.hasOwnProperty('status')"
+  class="truncate max-w-full"
+  [attr.title]="$any(cell).status"
+>
+  <span
+    class="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium"
+    [ngClass]="getStatusClass($any(cell).status)"
+  >
+    {{ $any(cell).status }}
+  </span>
+</div>
+<div
   *ngIf="cell && cell.hasOwnProperty('date')"
   class="truncate max-w-full"
   [attr.title]="cell.date"
