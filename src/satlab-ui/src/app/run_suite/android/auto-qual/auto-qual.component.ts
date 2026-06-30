@@ -21,6 +21,7 @@ import {LoadingComponent} from 'app/run_suite/common/loading/loading.component';
 import {AndroidService} from 'app/services/android.service';
 import {NotificationService} from 'app/services/notification.service';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
+import { TestEffort } from 'app/services/satlabrpc_pb';
 import {toIterator} from 'app/utils/iterator';
 import {resetSignals, wrapperLoading} from 'app/utils/operators';
 import {from} from 'rxjs';
@@ -29,6 +30,15 @@ import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {ICustomSettings} from 'app/models/run_suite_fields';
 import {AdvancedSettingsComponent} from 'app/run_suite/common/advanced-settings/advanced-settings.component';
 import {AndroidBuildPickerComponent} from '../../android/common/android-build-picker/android-build-picker.component';
+
+export enum Status {
+  SCHEDULED = 'Scheduled',
+  IN_PROGRESS = 'In progress',
+  FAILED = 'Failed',
+  UNKNOWN = 'Unknown',
+  COMPLETED = 'Completed',
+  CANCELLED = 'Cancelled',
+}
 
 @Component({
   selector: 'app-auto-qual',
@@ -226,24 +236,22 @@ export class AutoQualComponent implements OnInit, OnDestroy {
   private readonly SCROLL_BOTTOM_DIFF = 5;
   private pageToken = signal<string>('');
   private isEndOfList = signal<boolean>(false);
-  private readonly STATE_MAPPING: Record<number, string> = {
-    0: 'STATE_UNSPECIFIED',
-    1: 'CREATED',
-    2: 'INCOMPLETE',
-    3: 'FAILED',
-    4: 'UNREPORTED',
-    5: 'NOT_APPLICABLE',
-    6: 'SUCCEEDED',
-    7: 'CANCEL_REQUESTED',
-    8: 'CANCELLED',
-    9: 'CANCEL_FAILED',
+  private readonly STATE_MAPPING: Partial<Record<TestEffort.State, Status>> = {
+    [TestEffort.State.STATE_UNSPECIFIED]: Status.SCHEDULED,
+    [TestEffort.State.CREATED]: Status.SCHEDULED,
+    [TestEffort.State.INCOMPLETE]: Status.IN_PROGRESS,
+    [TestEffort.State.FAILED]: Status.FAILED,
+    [TestEffort.State.UNREPORTED]: Status.IN_PROGRESS,
+    [TestEffort.State.SUCCEEDED]: Status.COMPLETED,
+    [TestEffort.State.CANCEL_REQUESTED]: Status.CANCELLED,
+    [TestEffort.State.CANCELLED]: Status.CANCELLED,
+    [TestEffort.State.CANCEL_FAILED]: Status.CANCELLED,
   };
 
-  private readonly notCancelableStatus: string[] = [
-    'CANCEL_REQUESTED',
-    'CANCELLED',
-    'CANCEL_FAILED',
-    'SUCCEEDED',
+  private readonly notCancelableStatus: Status[] = [
+    Status.FAILED,
+    Status.CANCELLED,
+    Status.COMPLETED,
   ];
 
   private refs: EffectRef[] = [];
@@ -532,7 +540,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
             const pools = eff.getPoolsList();
             const testplan = eff.getTestplan();
             const date = eff.getCreatedAt()?.toDate() || null;
-            const status = this.STATE_MAPPING[eff.getState()] || 'UNKNOWN';
+            const status = this.STATE_MAPPING[eff.getState()] || Status.UNKNOWN;
             const resultLink = eff.getTesthausUrl();
 
             return {
