@@ -32,10 +32,10 @@ RUN apk add --no-cache --upgrade \
   zlib-dev
 
 # If the args left empty the script will leave the values in .env as is.
-ARG ATS_CONTROLLER_BRIDGE_VER
 ARG CONF_CREATOR_VER
 ARG DNS_VER
 ARG DOWNLOADER_VER
+ARG DUALCONDUIT_VER
 ARG ENVOY_PROXY_VER
 ARG LOGROTATE_VER
 ARG NGINX_VER
@@ -91,10 +91,10 @@ RUN chmod u+x compose_startup.sh
 COPY dockerfiles/compose/override_service_version.sh .
 RUN chmod u+x override_service_version.sh
 
-RUN  ./override_service_version.sh ATS_CONTROLLER_BRIDGE ${ATS_CONTROLLER_BRIDGE_VER:-${BUILD_VERSION}} \
-  && ./override_service_version.sh CONF_CREATOR ${CONF_CREATOR_VER:-${BUILD_VERSION}} \
+RUN  ./override_service_version.sh CONF_CREATOR ${CONF_CREATOR_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh DNS ${DNS_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh DOWNLOADER ${DOWNLOADER_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh DUALCONDUIT ${DUALCONDUIT_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh ENVOY_PROXY ${ENVOY_PROXY_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh LOGROTATE ${LOGROTATE_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh NGINX ${NGINX_VER:-${BUILD_VERSION}} \

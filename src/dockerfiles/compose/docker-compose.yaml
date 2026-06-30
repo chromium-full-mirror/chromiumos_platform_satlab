@@ -324,27 +324,31 @@ services:
       - docker_tls:${DOCKER_COMPOSE_CERT_PATH}:ro
     ports:
       - "9100:9100"
-  ###########################################################################ats-controller-bridge
-  ats-controller-bridge:
-    container_name: ats-controller-bridge
-    image: us-docker.pkg.dev/chromeos-partner-moblab/satlab-private/ats-controller-bridge:${ATS_CONTROLLER_BRIDGE:-release}
+  ###########################################################################dualconduit
+  dualconduit:
+    container_name: dualconduit
+    image: ${SFP_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners}/dualconduit:${DUALCONDUIT:-release}
     networks:
       satlab:
         ipv4_address: 192.168.100.11
     dns:
       - 192.168.100.51
     volumes:
-      - satlab_keys:/home/satlab/keys
-      - bridge_ssh:/root/.ssh
-    ports:
-      - "8900:8900"
-      - "8906:8906"
-    environment:
-      - SERIVCE_ACCOUNT=${SERIVCE_ACCOUNT}
-      - GCP_PROJECT=${GCP_PROJECT}
-      - GCP_ZONE=${GCP_ZONE}
-      - WORKER_GRPC_PORT=${WORKER_GRPC_PORT}
-      - SSH_MONITOR_PORT=${SSH_MONITOR_PORT}
+      - satlab_keys:/creds/service_accounts:rw
+    command:
+      [
+        '--acceptor_target=wss://dcon-acceptor.testing-group.endpoints.${GCP_PROJECT}.cloud.goog',
+        '--debug',
+        '-sa_key_file=/creds/service_accounts/skylab-drone.json',
+        '--forward_address=0.0.0.0',
+        '--use_sa_token',
+        '--keep_alive_tick_period=20s',
+        '-L', '8000:mtt:8000',
+        '-L', '8006:mtt:8006',
+        '-L', '8008:mtt:8008',
+        '-L', '7031:mtt:7031',
+        '-L', '8081:mtt:8081'
+      ]
   ###########################################################################ats
   ats:
     container_name: ats
@@ -357,18 +361,14 @@ services:
     networks:
       satlab:
         ipv4_address: 192.168.100.12
-    ports:
-      - "50001-50100:50001-50100"
     dns:
       - 192.168.100.51
     environment:
-      - WORKER_GRPC_PORT=${WORKER_GRPC_PORT}
       - CLOUD_FILE_TRANSFER_BUCKET=${CLOUD_FILE_TRANSFER_BUCKET}
       - GCP_PROJECT=${GCP_PROJECT}
       - UFS_NAMESPACE=${UFS_NAMESPACE:-os}
-      - ATS_MODE=${ATS_MODE:-satlab}
     depends_on:
-      - ats-controller-bridge
+      - dualconduit
       - dns
       - labservice
  ###########################################################################labservice
