@@ -61,7 +61,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
     'actions',
   ];
   protected COLUMN_NAME_MAP: Record<string, string> = {
-    id: 'ID',
+    id: 'Request ID',
     target: 'Target',
     buildID: 'Build ID',
     pool: 'Pool',
