@@ -21,7 +21,7 @@ import {LoadingComponent} from 'app/run_suite/common/loading/loading.component';
 import {AndroidService} from 'app/services/android.service';
 import {NotificationService} from 'app/services/notification.service';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
-import { TestEffort } from 'app/services/satlabrpc_pb';
+import {TestEffort} from 'app/services/satlabrpc_pb';
 import {toIterator} from 'app/utils/iterator';
 import {resetSignals, wrapperLoading} from 'app/utils/operators';
 import {from} from 'rxjs';
@@ -554,7 +554,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
               },
               testplan: {str: testplan},
               createdAt: {date: date},
-              status: {str: status},
+              status: {status: status},
               resultsLink: {link: resultLink},
               actions: [
                 {
@@ -801,13 +801,17 @@ interface AutoQualTestRecord {
   pool: StringCell;
   testplan: StringCell;
   createdAt: DateCell;
-  status: StringCell;
+  status: StatusCell;
   resultsLink: LinkCell;
   actions: ButtonCell[];
 }
 
 export type StringCell = {
   str: string;
+};
+
+export type StatusCell = {
+  status: Status;
 };
 
 export type DateCell = {

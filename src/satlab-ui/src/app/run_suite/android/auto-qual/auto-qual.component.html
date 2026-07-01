@@ -94,7 +94,7 @@
 
             <td
               *ngFor="let col of displayedColumns(); trackBy: trackByCol"
-              class="p-2 border-gray-200 min-w-[100px] max-w-[200px] truncate"
+              class="p-2 border-gray-200 min-w-[100px] max-w-[200px] truncate font-mono"
               [app-table-cell]
               [cell]="record[col]"
             ></td>
