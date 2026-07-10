@@ -297,7 +297,7 @@ docker pull ${REMOTE_ACCESS_IMAGE}
 docker pull ${DHCP_DOCKER_IMAGE}
 docker pull ${COMPOSE_DOCKER_IMAGE}
 
-if [[ "${download_keys,,}" =~ ^(y|yes)$ ]]; then
+if [[ "${download_keys:-n}" =~ ^[yY]([eE][sS])?$ ]]; then
     echo -e "\n${C_YELLOW}Pulling images via docker-compose...${C_NC}"
     docker rm compose-pull 2> /dev/null || true
     docker run -it --rm --name compose-pull \
