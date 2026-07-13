@@ -3,6 +3,7 @@ substitutions:
   _COMMON_CORE_URI: gcr.io/chromeos-partner-moblab
   _REGISTRY_URI: us-docker.pkg.dev/chromeos-partner-moblab/satlab
   _SFP_REGISTRY_URI: us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners
+  _INTERNAL_REGISTRY_URI: us-docker.pkg.dev/chromeos-partner-moblab/satlab-internal
   _SSH_PORT: "22"
   _WATCHTOWER_CMD: --enable-lifecycle-hooks --interval 60 --include-restarting --label-enable
   _COMMON_CORE_LABEL: autopush
@@ -242,6 +243,25 @@ steps:
      - "ubuntu"
 
   ########################################################################### Shared images
+  - id: ats-pull
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "pull",
+        "${_INTERNAL_REGISTRY_URI}/ats:${__SHARED_IMAGES_TAG}",
+      ]
+    waitFor: ['-']
+  - id: ats
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "tag",
+        "${_INTERNAL_REGISTRY_URI}/ats:${__SHARED_IMAGES_TAG}",
+        "${_INTERNAL_REGISTRY_URI}/ats:${__BUILD_VERSION}"
+      ]
+    waitFor:
+      - "ats-pull"
+
   - id: downloader-pull
     name: "gcr.io/cloud-builders/docker"
     args:
@@ -279,6 +299,44 @@ steps:
       ]
     waitFor:
       - "drone-pull"
+
+  - id: dualconduit-pull
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "pull",
+        "${_SFP_REGISTRY_URI}/dualconduit:${__SHARED_IMAGES_TAG}",
+      ]
+    waitFor: ['-']
+  - id: dualconduit
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "tag",
+        "${_SFP_REGISTRY_URI}/dualconduit:${__SHARED_IMAGES_TAG}",
+        "${_SFP_REGISTRY_URI}/dualconduit:${__BUILD_VERSION}"
+      ]
+    waitFor:
+      - "dualconduit-pull"
+
+  - id: labservice-pull
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "pull",
+        "${_REGISTRY_URI}/labservice:${__SHARED_IMAGES_TAG}",
+      ]
+    waitFor: ['-']
+  - id: labservice
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "tag",
+        "${_REGISTRY_URI}/labservice:${__SHARED_IMAGES_TAG}",
+        "${_REGISTRY_URI}/labservice:${__BUILD_VERSION}"
+      ]
+    waitFor:
+      - "labservice-pull"
 
   - id: nginx-pull
     name: "gcr.io/cloud-builders/docker"
@@ -319,6 +377,7 @@ steps:
 
 images:
   [
+    # Satlab images
     "${_REGISTRY_URI}/satlab-compose:${__BUILD_VERSION}",
     "${_REGISTRY_URI}/satlab-compose:${__LABEL}",
     "${_REGISTRY_URI}/satlab-dns:${__BUILD_VERSION}",
@@ -337,9 +396,13 @@ images:
     "${_REGISTRY_URI}/satlab-ui:${__LABEL}",
     "${_REGISTRY_URI}/opentelemetry-collector:${__BUILD_VERSION}",
     "${_REGISTRY_URI}/opentelemetry-collector:${__LABEL}",
+    # Shared images
+    "${_INTERNAL_REGISTRY_URI}/ats:${__BUILD_VERSION}",
+    "${_REGISTRY_URI}/labservice:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/conf_creator:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/downloader:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/drone:${__BUILD_VERSION}",
+    "${_SFP_REGISTRY_URI}/dualconduit:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/nginx:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/openssh_server:${__BUILD_VERSION}",
   ]
