@@ -62,7 +62,7 @@ export class SuiteComponent implements OnChanges, OnDestroy {
     show: boolean;
     message: string;
   }>();
-  @Output() errorsChanged = new EventEmitter<Record<string, string>>();
+  @Output() errorsChanged = new EventEmitter<string>();
 
   protected isLoading = signal<{show: boolean; message: string}>({
     show: false,
@@ -78,12 +78,9 @@ export class SuiteComponent implements OnChanges, OnDestroy {
   protected suiteSignal = signal<string>('');
   private suiteValid = computed(() => {
     const suite = this.suiteSignal();
-    if (suite === '') {
-      return '';
-    }
-    const options = this.suiteOptions();
-    const found = toIterator(options).first_where(e => e.value === suite);
-    return found?.value;
+    const suiteOptions = this.suiteOptions();
+    return toIterator(suiteOptions).first_where(e => e.value === suite)
+      ?.value as string;
   });
   protected testSignal = signal<string>('');
   protected testValid = computed(() => {
@@ -96,8 +93,6 @@ export class SuiteComponent implements OnChanges, OnDestroy {
 
   protected testInputTabSignal = signal<'single' | 'multiple'>('single');
   protected multipleTestInputSignal = signal<string>('');
-  private _errMap = signal<{[key: string]: string}>({});
-  public errMap: Signal<{[key: string]: string}> = this._errMap.asReadonly();
 
   private effectRefs: EffectRef[] = [];
 
@@ -126,14 +121,6 @@ export class SuiteComponent implements OnChanges, OnDestroy {
           const target = untracked(() => this.targetSignal());
           const suite = this.suiteValid();
 
-          queueMicrotask(() => {
-            this._errMap.update(prev => ({
-              ...prev,
-              suiteValid: suite !== undefined ? '' : 'Suite is not valid.',
-            }));
-            this.errorsChanged.emit(this._errMap());
-          });
-
           if (build && target && suite) {
             this.__listTests(build, target, suite as string);
           }
@@ -160,7 +147,7 @@ export class SuiteComponent implements OnChanges, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.errorsChanged.emit({});
+    this.errorsChanged.emit('');
     this.effectRefs.forEach(e => e.destroy());
   }
 
@@ -279,6 +266,7 @@ export class SuiteComponent implements OnChanges, OnDestroy {
       ...tests,
     ]);
     resetSignals([this.multipleTestInputSignal]);
+    this.emitCurrentData();
   }
 
   private __listSuites(build: string, target: string) {
@@ -294,6 +282,7 @@ export class SuiteComponent implements OnChanges, OnDestroy {
           .collect()
           .sort((a, b) => a.localeCompare(b));
         this.suiteOptions.set(uniqueSuites.map(toSelectedItem));
+        this.errorsChanged.emit(e.length === 0 ? 'No suites found.' : '');
       },
       error: e => {
         this.notification.error(`List suites failed: ${e}`, {dismiss: false});
@@ -314,6 +303,7 @@ export class SuiteComponent implements OnChanges, OnDestroy {
           .collect()
           .sort((a, b) => a.localeCompare(b));
         this.testOptions.set(uniqueTests.map(toSelectedItem));
+        this.errorsChanged.emit(e.length === 0 ? 'No tests found.' : '');
       },
       error: e => {
         this.notification.error(`List tests failed: ${e}`, {dismiss: false});

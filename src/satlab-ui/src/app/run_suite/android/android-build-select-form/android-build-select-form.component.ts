@@ -185,10 +185,20 @@ export class AndroidBuildSelectFormComponent implements OnDestroy {
     return isProvisionLoading || isTestFormLoading || isRunLoading;
   });
 
-  protected testOptionsErrorMsg = signal<string>('');
+  protected testSourceErrorMsg = signal<string>('');
+  protected suiteErrorMsg = signal<string>('');
+  protected combineTestOptionsError = computed(() => {
+    const testSourceError = this.testSourceErrorMsg();
+    const suiteErrorMsg = this.suiteErrorMsg();
+    return [testSourceError, suiteErrorMsg].filter(e => !!e).join(', ');
+  });
 
-  protected onTestOptionsErrorsChanged(value: string) {
-    this.testOptionsErrorMsg.set(value);
+  protected onTestSourceErrorChanged(value: string) {
+    this.testSourceErrorMsg.set(value);
+  }
+
+  protected onSuiteErrorsChanged(value: string) {
+    this.suiteErrorMsg.set(value);
   }
 
   protected driveTestModuleSignal = signal<string>('');
@@ -410,6 +420,8 @@ export class AndroidBuildSelectFormComponent implements OnDestroy {
     this.suiteLoadingSignal.set(value);
   }
 
+  protected onSuiteErrorChanged(value: string) {}
+
   protected onTabChanged(tab: 'suite' | 'test' | 'testplan') {
     const curTab = this.tabSignal();
     if (curTab === tab) return;
@@ -421,7 +433,8 @@ export class AndroidBuildSelectFormComponent implements OnDestroy {
       this.suiteLoadingSignal.set({show: false, message: ''});
       resetSignals([
         this.testplanSignal,
-        this.testOptionsErrorMsg,
+        this.testSourceErrorMsg,
+        this.suiteErrorMsg,
         this.selectedDriveTestModulesSignal,
       ]);
     } else {

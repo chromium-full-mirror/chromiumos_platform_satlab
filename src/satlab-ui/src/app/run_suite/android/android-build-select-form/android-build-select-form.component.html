@@ -46,7 +46,7 @@
   ></app-provision-form>
 
   <app-test-options-card
-    [errorMsg]="testOptionsErrorMsg()"
+    [errorMsg]="combineTestOptionsError()"
     [loading$]="testOptionsLoading$"
   >
     <app-test-source-picker
@@ -57,7 +57,7 @@
       [parentLoading]="isRunLoadingSignal().show"
       (sourceValuesChanged)="onSourceValuesChanged($event)"
       (isLoadingChanged)="onAndroidBuildPickerLoadingChanged($event)"
-      (errorsChanged)="onTestOptionsErrorsChanged($event)"
+      (errorsChanged)="onTestSourceErrorChanged($event)"
     ></app-test-source-picker>
 
     <div class="mt-4">
@@ -73,21 +73,22 @@
         [isTest]="isTestTab()"
         (onLoadingChanged)="onSuiteLoadingChanged($event)"
         (valuesChanged)="onSuiteValuesChanged($event)"
+        (errorsChanged)="onSuiteErrorsChanged($event)"
       ></app-suite>
 
-      <div class="relative w-full my-2 mt-4" *ngIf="isTestPlanTab()">
+      <mat-form-field
+        class="w-full [&_.mat-mdc-text-field-wrapper.mdc-text-field]:p-0"
+        *ngIf="isTestPlanTab()"
+      >
+        <mat-label>Test Plan:</mat-label>
         <input
           #testplanInput
+          matInput
           type="text"
-          class="w-full peer block border-b border-gray-400 pb-2 pt-6 focus:border-blue-500 bg-transparent outline-none text-sm font-light font-sans cursor-text"
           (input)="onTestplanInputChanged(testplanInput.value)"
           [value]="testplanSignal()"
         />
-        <label
-          class="pointer-events-none absolute top-4 origin-[0] -translate-y-3 scale-75 duration-150 text-gray-400 font-sans font-light peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 peer-focus:scale-75 peer-focus:text-blue-500"
-          >Test Plan</label
-        >
-      </div>
+      </mat-form-field>
 
       <!-- Google Drive Test Module Inputs -->
       <ng-container *ngIf="!selectAndroidBuild() && !isTestPlanTab()">

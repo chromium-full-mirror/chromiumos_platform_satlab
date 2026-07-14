@@ -36,7 +36,7 @@
           class="w-full"
           #testSelector
           [options]="testOptions()"
-          [title]="'Test ' + testTitle + ':'"
+          [title]="testTitle"
           (selectChanged)="onSelectedChanged('test', $event)"
           (inputChanged)="onSelectedChanged('test', $event)"
           id="testSelector"
