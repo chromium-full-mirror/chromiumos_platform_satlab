@@ -337,7 +337,7 @@ services:
       - satlab_keys:/creds/service_accounts:rw
     command:
       [
-        '--acceptor_target=wss://dcon-acceptor.testing-group.endpoints.${GCP_PROJECT}.cloud.goog',
+        '--acceptor_target=wss://dcon-acceptor.testing.endpoints.${GCP_PROJECT}.cloud.goog',
         '--debug',
         '-sa_key_file=/creds/service_accounts/skylab-drone.json',
         '--forward_address=0.0.0.0',
