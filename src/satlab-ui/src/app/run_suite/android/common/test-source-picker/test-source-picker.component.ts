@@ -60,6 +60,12 @@ export class TestSourcePickerComponent implements OnDestroy {
     }
     this.emitValues();
   }
+  @Input() set showDriveOption(val: boolean) {
+    this._showDriveOption.set(val);
+    if (!val) {
+      this.modeSignal.set('ANDROID_BUILD');
+    }
+  }
 
   @Output() sourceValuesChanged = new EventEmitter<SourceValues>();
   @Output() isLoadingChanged = new EventEmitter<{
@@ -69,6 +75,7 @@ export class TestSourcePickerComponent implements OnDestroy {
   @Output() errorsChanged = new EventEmitter<string>();
 
   protected _isTestplan = signal<boolean>(false);
+  protected _showDriveOption = signal<boolean>(true);
   protected modeSignal = signal<'ANDROID_BUILD' | 'GOOGLE_DRIVE'>(
     'ANDROID_BUILD'
   );

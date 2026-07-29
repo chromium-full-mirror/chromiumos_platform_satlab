@@ -1,6 +1,6 @@
 <div
   class="flex w-full mb-8 border border-gray-300 rounded-md overflow-hidden"
-  *ngIf="!_isTestplan()"
+  *ngIf="!_isTestplan() && _showDriveOption()"
 >
   <div #sourceType class="flex w-full">
     <button
