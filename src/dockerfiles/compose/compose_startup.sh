@@ -93,11 +93,13 @@ function start_private_containers () {
     docker-compose up -d opentelemetry-collector
   fi
 
-  if [[ ${ATS_ENABLED:-false} == true ]]; then
+  if [[ ${ATS_ENABLED:-false} == true || ${UFS_NAMESPACE:-os} == "os" ]]; then
     if [[ ${UFS_NAMESPACE:-os} == "os-partner" ]]; then
       export ATS_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab-private
     else
       export ATS_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab-internal
+      export GCP_PROJECT=satlab-internal-users
+      export CLOUD_FILE_TRANSFER_BUCKET=omnilab_satlab-internal-users_file_transfer
     fi
     docker-compose up -d ats
   fi
