@@ -20,13 +20,11 @@ OVERRIDE_SERVICES := \
 	OPENTELEMETRY_COLLECTOR \
 	LOGROTATE \
 	SATLAB_RPCSERVER \
-	SATLAB_UI \
-	ATS_CONTROLLER_BRIDGE
+	SATLAB_UI
 ${foreach service, ${OVERRIDE_SERVICES}, \
 	${eval EXTRA_ARGS+= --build-arg ${service}_VER=${LABEL}}}
 
-all:	ats-controller-bridge \
-        compose \
+all:	compose \
 		conf_creator \
 		dhcp \
 		dns \
@@ -119,9 +117,3 @@ dhcp:
 	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/satlab-dhcp:${LABEL} \
 		-f dockerfiles/dhcp/Dockerfile .
 	docker push ${REGISTRY_URI}/satlab-dns:${LABEL}
-
-ats-controller-bridge: export DOCKER_BUILDKIT := 1
-ats-controller-bridge:
-	docker build ${EXTRA_ARGS} -t ${REGISTRY_PRIVATE}/ats-controller-bridge:${LABEL} \
-		-f dockerfiles/ats-controller-bridge/Dockerfile .
-	docker push ${REGISTRY_PRIVATE}/ats-controller-bridge:${LABEL}
