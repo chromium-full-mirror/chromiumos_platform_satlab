@@ -5,4 +5,4 @@ After=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/satlab-stage-updates
+ExecStart=/etc/satlab/satlab-stage-updates
