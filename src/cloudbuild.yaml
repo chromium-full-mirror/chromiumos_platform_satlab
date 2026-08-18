@@ -262,6 +262,25 @@ steps:
     waitFor:
       - "ats-pull"
 
+  - id: ats-partner-pull
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "pull",
+        "${_SFP_REGISTRY_URI}/ats:${__SHARED_IMAGES_TAG}",
+      ]
+    waitFor: ['-']
+  - id: ats-partner
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "tag",
+        "${_SFP_REGISTRY_URI}/ats:${__SHARED_IMAGES_TAG}",
+        "${_SFP_REGISTRY_URI}/ats:${__BUILD_VERSION}"
+      ]
+    waitFor:
+      - "ats-partner-pull"
+
   - id: downloader-pull
     name: "gcr.io/cloud-builders/docker"
     args:
@@ -398,6 +417,7 @@ images:
     "${_REGISTRY_URI}/opentelemetry-collector:${__LABEL}",
     # Shared images
     "${_INTERNAL_REGISTRY_URI}/ats:${__BUILD_VERSION}",
+    "${_SFP_REGISTRY_URI}/ats:${__BUILD_VERSION}",
     "${_REGISTRY_URI}/labservice:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/conf_creator:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/downloader:${__BUILD_VERSION}",
