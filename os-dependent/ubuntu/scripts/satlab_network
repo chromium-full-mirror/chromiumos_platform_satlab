@@ -17,30 +17,27 @@ while [ ! -d "/sys/class/net/$INTERNAL_PORT_TO_DUTS" ]; do
     sleep 1
     ((count++))
 done
-echo "Interface $INTERNAL_PORT_TO_DUTS is ready. Proceeding with bridge creation."
+echo "Interface $INTERNAL_PORT_TO_DUTS is ready."
 ##################################################################
-# Wait for the physical interface to be recognized by the kernel
-timeout=15
-count=0
-while [ ! -d "/sys/class/net/${INTERNAL_PORT_TO_DUTS}" ]; do
-    if [ $count -ge $timeout ]; then
-        echo "Error: Physical interface ${INTERNAL_PORT_TO_DUTS} not found."
-        exit 1
-    fi
-    sleep 1
-    ((count++))
-done
 
 # Create the bridge if it doesn't exist
 if ! ip link show "${DHCPD_IFACE}" >/dev/null 2>&1; then
     echo "Creating bridge ${DHCPD_IFACE}..."
     ip link add name "${DHCPD_IFACE}" type bridge
 fi
-
 ip link set dev "${DHCPD_IFACE}" type bridge forward_delay 0
 ip link set dev "${DHCPD_IFACE}" allmulticast on
 ip link set dev "${INTERNAL_PORT_TO_DUTS}" allmulticast on
 ip link set dev "${INTERNAL_PORT_TO_DUTS}" up
+
+echo "Verifying interface ${INTERNAL_PORT_TO_DUTS} is not connected to an external network..."
+if dhcpcd -4 -T -t 5 "${INTERNAL_PORT_TO_DUTS}" >/dev/null 2>&1; then
+    echo "Error: Active DHCP server detected on internal interface ${INTERNAL_PORT_TO_DUTS}."
+    echo "Interface ${INTERNAL_PORT_TO_DUTS} appears to be connected to the external network instead of DUTs."
+    echo "Aborting network configuration to prevent exposing Satlab's DHCP server."
+    exit 1
+fi
+echo "Interface ${INTERNAL_PORT_TO_DUTS} verified (no external DHCP server found)."
 
 # Add the physical port to the bridge (if not already a member)
 if [[ "$(cat /sys/class/net/${INTERNAL_PORT_TO_DUTS}/master/uevent 2>/dev/null)" != *"INTERFACE=${DHCPD_IFACE}"* ]]; then
