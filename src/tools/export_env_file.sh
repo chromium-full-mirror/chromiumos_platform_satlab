@@ -47,7 +47,29 @@ function export_env_from_config() {
   rm "${TMP_FILE}"
 }
 
+function export_ats_enabled() {
+  if [[ "${CTP_SWARMING_POOL}" == "ChromeOSSkylab" ]]; then
+    export ATS_ENABLED=true
+    export ATS_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab-internal
+    export GCP_PROJECT=satlab-internal-users
+    export CLOUD_FILE_TRANSFER_BUCKET=omnilab_satlab-internal-users_file_transfer
+    return
+  fi
+
+  case "${ACCOUNT_ID}" in
+    2|4|6|84) # Allowed partner accounts
+      export ATS_ENABLED=true
+      export ATS_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners
+      export GCP_PROJECT=distributed-fleet-s4p
+      export CLOUD_FILE_TRANSFER_BUCKET=omnilab_crostest_file_transfer
+      return
+      ;;
+  esac
+}
+
 if [[ -f "${SATLAB_CONFIG_FILENAME}" ]]; then
   # Convert JSON file content to environmental variables
   export_env_from_config  ${SATLAB_CONFIG_FILENAME}
 fi
+
+export_ats_enabled

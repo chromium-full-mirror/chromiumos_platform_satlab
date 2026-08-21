@@ -353,7 +353,7 @@ services:
   ###########################################################################ats
   ats:
     container_name: ats
-    image: ${ATS_REGISTRY_URI}/ats:${ATS:-release}
+    image: ${ATS_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners}/ats:${ATS:-release}
     hostname: ${DRONE_HOSTNAME}
     volumes:
       - satlab_keys:/creds/service_accounts:rw
