@@ -113,6 +113,7 @@ services:
   nginx:
     container_name: nginx
     image: ${SFP_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners}/nginx:${NGINX:-release}
+    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - nginx_logs:/var/log/nginx

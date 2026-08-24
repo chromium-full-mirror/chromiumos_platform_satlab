@@ -84,6 +84,7 @@ function start_private_containers () {
     source ${STABLE_VERSION_SETUP_FILE}
   fi
 
+  docker rm -f nginx
   docker-compose up -d drone openssh_server nginx logrotate
 
   if [[ ${UFS_NAMESPACE:-os} != "os-partner" ]]; then
