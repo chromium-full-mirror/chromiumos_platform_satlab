@@ -6,7 +6,7 @@ ARG BASE_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/base-containers
 ARG REGISTRY_URI=gcr.io/chromeos-partner-moblab
 ARG LABEL=autopush
 ######################################################################
-FROM ${BASE_REGISTRY_URI}/node:18 as build
+FROM ${BASE_REGISTRY_URI}/node:24 AS build
 
 # install chrome for protractor tests
 # RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
@@ -19,7 +19,7 @@ WORKDIR /app
 COPY ./satlab-ui/package.json /app
 COPY ./satlab-ui/package-lock.json /app
 
-RUN npm install --ignore-scripts
+RUN npm ci --ignore-scripts
 
 # add `/app/node_modules/.bin` to $PATH
 ENV PATH /app/node_modules/.bin:$PATH
