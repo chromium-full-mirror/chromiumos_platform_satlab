@@ -3,6 +3,7 @@ import {
   EventEmitter,
   Input,
   OnChanges,
+  OnInit,
   Output,
   SimpleChanges,
 } from '@angular/core';
@@ -16,6 +17,8 @@ import {OpenCcdComponent} from 'app/dialogs/open-ccd/open-ccd.component';
 import {delay} from 'rxjs';
 import {trigger, state, transition, style, animate} from '@angular/animations';
 import {BUILD_ACCESS_REQUEST_URL} from 'app/constants';
+import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
+import {SatlabRpcService} from '../../services/satlab-rpc.service';
 
 @Component({
   selector: 'app-view-duts',
@@ -32,7 +35,7 @@ import {BUILD_ACCESS_REQUEST_URL} from 'app/constants';
     ]),
   ],
 })
-export class ViewDutsComponent implements OnChanges {
+export class ViewDutsComponent implements OnChanges, OnInit {
   @Input() DUTs: IDut[] = [];
   @Input() loading = false;
   @Input() hostnamePrefix = '';
@@ -46,6 +49,11 @@ export class ViewDutsComponent implements OnChanges {
   protected duts: IDut[] = [];
 
   protected disabledServo: string[] = [];
+  protected boardsList: string[] = [];
+  protected modelsCache: Map<string, string[]> = new Map();
+  protected loadingBoards = false;
+  protected loadingModels: Set<string> = new Set();
+  protected boardsLoaded = false;
 
   protected displayedColumns = [
     'check',
@@ -64,7 +72,18 @@ export class ViewDutsComponent implements OnChanges {
 
   protected expandInfo: IDut | null = null;
 
-  constructor(protected dialog: MatDialog) {}
+  constructor(
+    protected dialog: MatDialog,
+    private service: SatlabRpcService
+  ) {}
+
+  ngOnInit() {
+    this.loadBoards();
+  }
+
+  protected trackByAddress(index: number, item: IDut): string {
+    return item.address;
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (
@@ -77,10 +96,36 @@ export class ViewDutsComponent implements OnChanges {
         this.duts = [...changes['DUTs'].currentValue];
       }
 
+      this.initInputFields();
+      this.validateAllDutsPermissions();
+
       if (this.selection && this.selection.selected.length > 0) {
         const s = find(this.selection, this.duts);
         this.selection.clear();
         s.forEach(e => this.#toggleDUT(e));
+      }
+    }
+  }
+
+  protected initInputFields() {
+    if (!this.duts) return;
+    for (const dut of this.duts) {
+      if (dut.hostname === '' && dut.isConnected) {
+        if (dut.inputBoard === undefined) {
+          dut.inputBoard = dut.board || '';
+        }
+        if (dut.inputModel === undefined) {
+          dut.inputModel = dut.model || '';
+        }
+      }
+    }
+  }
+
+  protected async validateAllDutsPermissions() {
+    await this.loadBoards();
+    for (const dut of [...this.duts]) {
+      if (dut.hostname === '' && dut.isConnected) {
+        await this.validatePermission(dut);
       }
     }
   }
@@ -104,6 +149,26 @@ export class ViewDutsComponent implements OnChanges {
     this.__selectionChanged();
   }
 
+  protected canSelectDUT(element: IDut): boolean {
+    if (!element.isAccessible || element.hasPermission !== true) {
+      return false;
+    }
+    if (element.hostname === '') {
+      const hostname = (element.inputHostname !== undefined ? element.inputHostname : element.hostname).trim();
+      if (!hostname || !this.__validateHostname(hostname)) {
+        return false;
+      }
+      if (this.isInvalidBoard(element) || this.isInvalidModel(element)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  protected hasSelectableDUTs(): boolean {
+    return (this.duts || []).some(e => this.canSelectDUT(e));
+  }
+
   /**
    * listen an event that all DUTs checkboxes have been changed
    * @param e this checkbox value, if checked is true, means all
@@ -114,7 +179,7 @@ export class ViewDutsComponent implements OnChanges {
     this.selection.clear();
     if (e.checked) {
       toIterator(this.duts)
-        .filter(e => e.isAccessible && e.hasPermission)
+        .filter(e => this.canSelectDUT(e))
         .forEach(e => {
           this.selection.toggle(e);
         });
@@ -134,6 +199,15 @@ export class ViewDutsComponent implements OnChanges {
       }
     }
     return false;
+  }
+
+  protected onHostnameInput(dut: IDut, e: Event) {
+    const v = (e.target as HTMLInputElement).value.trim();
+    dut.inputHostname = v;
+    if (!this.canSelectDUT(dut) && this.checkSelectionContains(dut)) {
+      this.selection.deselect(dut);
+      this.__emitSelectionChanged();
+    }
   }
 
   /**
@@ -214,11 +288,12 @@ export class ViewDutsComponent implements OnChanges {
   private __updateSelectionCount() {
     this.selectionCount = this.selection.selected.length;
 
+    const selectableCount = toIterator(this.duts)
+      .filter(e => this.canSelectDUT(e))
+      .collect().length;
+
     this.allSelected =
-      this.selectionCount > 0 &&
-      toIterator(this.duts)
-        .filter(e => e.isAccessible && e.hasPermission)
-        .collect().length === this.selectionCount;
+      selectableCount > 0 && this.selectionCount === selectableCount;
   }
 
   /**
@@ -227,6 +302,198 @@ export class ViewDutsComponent implements OnChanges {
    */
   private __emitSelectionChanged() {
     this.selectDUTs.emit(this.selection.selected);
+  }
+
+  protected isLoadingBoard(dut: IDut): boolean {
+    return this.loadingBoards || !this.boardsLoaded;
+  }
+
+  protected isLoadingModel(dut: IDut): boolean {
+    const b = (dut.inputBoard !== undefined ? dut.inputBoard : dut.board).trim();
+    if (!b) return this.isLoadingBoard(dut);
+    return this.isLoadingBoard(dut) || (this.loadingModels.has(b) && !this.modelsCache.has(b));
+  }
+
+  protected isInvalidBoard(dut: IDut): boolean {
+    if (this.isLoadingBoard(dut)) return false;
+    const b = (dut.inputBoard !== undefined ? dut.inputBoard : dut.board).trim();
+    if (!b) return true;
+    return this.boardsList.length > 0 && !this.boardsList.includes(b);
+  }
+
+  protected isInvalidModel(dut: IDut): boolean {
+    if (this.isLoadingModel(dut)) return false;
+    const b = (dut.inputBoard !== undefined ? dut.inputBoard : dut.board).trim();
+    const m = (dut.inputModel !== undefined ? dut.inputModel : dut.model).trim();
+    if (!b || !m) return true;
+    const models = this.modelsCache.get(b);
+    if (!models) return false;
+    return !models.includes(m);
+  }
+
+  protected onBoardInput(dut: IDut, e: Event) {
+    const v = (e.target as HTMLInputElement).value.trim();
+    dut.inputBoard = v;
+    if (v) {
+      this.loadModelsForBoard(v);
+    }
+    this.validatePermission(dut);
+  }
+
+  protected onModelInput(dut: IDut, e: Event) {
+    const v = (e.target as HTMLInputElement).value.trim();
+    dut.inputModel = v;
+    this.validatePermission(dut);
+  }
+
+  protected onBoardInputFocusout(dut: IDut, e: Event) {
+    const v = (e.target as HTMLInputElement).value.trim();
+    if (dut.inputBoard === v) {
+      return;
+    }
+    this.onBoardInput(dut, e);
+  }
+
+  protected onModelInputFocusout(dut: IDut, e: Event) {
+    const v = (e.target as HTMLInputElement).value.trim();
+    if (dut.inputModel === v) {
+      return;
+    }
+    this.onModelInput(dut, e);
+  }
+
+  protected async validatePermission(dut: IDut) {
+    const board = (dut.inputBoard !== undefined ? dut.inputBoard : dut.board).trim();
+    const model = (dut.inputModel !== undefined ? dut.inputModel : dut.model).trim();
+
+    if (!board || !model) {
+      if (dut.hasPermission !== false) {
+        dut.hasPermission = false;
+        if (this.checkSelectionContains(dut)) {
+          this.selection.deselect(dut);
+          this.__emitSelectionChanged();
+        }
+      }
+      return;
+    }
+
+    try {
+      await this.loadBoards();
+      const models = await this.loadModelsForBoard(board);
+
+      if (this.isLoadingBoard(dut) || this.isLoadingModel(dut)) {
+        return;
+      }
+
+      const currentBoard = (dut.inputBoard !== undefined ? dut.inputBoard : dut.board).trim();
+      const currentModel = (dut.inputModel !== undefined ? dut.inputModel : dut.model).trim();
+      if (currentBoard !== board || currentModel !== model) {
+        return;
+      }
+
+      const isBoardValid = this.boardsList.length === 0 || this.boardsList.includes(board);
+      const isModelValid = models.includes(model);
+
+      const hasPerm = isBoardValid && isModelValid;
+
+      if (dut.hasPermission !== hasPerm) {
+        dut.hasPermission = hasPerm;
+
+        if (this.checkSelectionContains(dut)) {
+          if (!hasPerm) {
+            this.selection.deselect(dut);
+          }
+          this.__emitSelectionChanged();
+        }
+      }
+    } catch (err) {
+      console.error('Failed to validate permission for board/model:', err);
+    }
+  }
+
+  protected async loadBoards() {
+    if (!this.boardsLoaded && !this.loadingBoards) {
+      this.loadingBoards = true;
+      try {
+        this.boardsList = await this.service.listBoards();
+        this.boardsLoaded = true;
+      } catch (err) {
+        console.error('Failed to load build targets:', err);
+      } finally {
+        this.loadingBoards = false;
+      }
+    }
+  }
+
+  protected async loadModelsForBoard(board: string): Promise<string[]> {
+    if (!board) {
+      return [];
+    }
+    if (this.modelsCache.has(board)) {
+      return this.modelsCache.get(board)!;
+    }
+    if (this.loadingModels.has(board)) {
+      return [];
+    }
+    this.loadingModels.add(board);
+    try {
+      const models = await this.service.listModels(board);
+      const res = models || [];
+      this.modelsCache.set(board, res);
+      this.revalidateDutsForBoard(board);
+      return res;
+    } catch (err) {
+      console.error(`Failed to load models for board ${board}:`, err);
+      this.modelsCache.set(board, []);
+      this.revalidateDutsForBoard(board);
+      return [];
+    } finally {
+      this.loadingModels.delete(board);
+    }
+  }
+
+  protected revalidateDutsForBoard(board: string) {
+    if (!this.duts) return;
+    for (const dut of this.duts) {
+      const b = (dut.inputBoard !== undefined ? dut.inputBoard : dut.board).trim();
+      if (b === board) {
+        this.validatePermission(dut);
+      }
+    }
+  }
+
+  protected getFilteredBoards(dut: IDut): string[] {
+    const query = (dut.inputBoard ?? '').toLowerCase().trim();
+    if (!query) {
+      return this.boardsList;
+    }
+    return this.boardsList.filter(b => b.toLowerCase().includes(query));
+  }
+
+  protected getFilteredModels(dut: IDut): string[] {
+    const board = (dut.inputBoard !== undefined ? dut.inputBoard : dut.board).trim();
+    if (!board) {
+      return [];
+    }
+    const models = this.modelsCache.get(board) || [];
+    const query = (dut.inputModel ?? '').toLowerCase().trim();
+    if (!query) {
+      return models;
+    }
+    return models.filter(m => m.toLowerCase().includes(query));
+  }
+
+  protected onBoardOptionSelected(dut: IDut, event: MatAutocompleteSelectedEvent) {
+    const v = event.option.value;
+    dut.inputBoard = v;
+    this.loadModelsForBoard(v);
+    this.validatePermission(dut);
+  }
+
+  protected onModelOptionSelected(dut: IDut, event: MatAutocompleteSelectedEvent) {
+    const v = event.option.value;
+    dut.inputModel = v;
+    this.validatePermission(dut);
   }
 
   /**
@@ -316,6 +583,8 @@ function updateState(from: IDut | undefined, to: IDut) {
   return {
     ...to,
     inputHostname: from?.inputHostname,
+    inputBoard: from?.inputBoard !== undefined ? from.inputBoard : (to.board || ''),
+    inputModel: from?.inputModel !== undefined ? from.inputModel : (to.model || ''),
   };
 }
 

@@ -30,8 +30,10 @@ export interface IDut {
   isAccessible: boolean;
 
   // this field for enroll dut
-  // user need to assign the hostname
+  // user need to assign the hostname, board, and model if needed
   inputHostname?: string;
+  inputBoard?: string;
+  inputModel?: string;
 
   // isServoWiredCorrectly: This boolean helps figure out any wrong wiring connections
   //

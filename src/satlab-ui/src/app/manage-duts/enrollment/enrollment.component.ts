@@ -74,7 +74,12 @@ export class EnrollmentComponent {
    * @protected
    */
   protected onEnrollClicked() {
-    const d = toIterator(this.selectedDUTs())
+    const selected = this.selectedDUTs();
+    if (selected.length === 0) {
+      return;
+    }
+
+    const d = toIterator(selected)
       .filter(this.__canBeEnrolled)
       .collect();
 
@@ -82,7 +87,12 @@ export class EnrollmentComponent {
     const emptyHostname = this.__checkEmptyHostname(d);
     const isServoWired = this.__checkServoWired(d);
 
-    if (d.length === 0 || duplicateHostname || emptyHostname || isServoWired) {
+    if (
+      d.length === 0 ||
+      duplicateHostname ||
+      emptyHostname ||
+      isServoWired
+    ) {
       console.log('no DUTs to enroll or one of the DUTs has an issue');
       return;
     }
@@ -439,9 +449,12 @@ export class EnrollmentComponent {
    * @private
    */
   private __canBeEnrolled(d: IDut) {
+    const board = (d.inputBoard ?? d.board ?? '').trim();
+    const model = (d.inputModel ?? d.model ?? '').trim();
     return (
-      d.model && // model isn't empty
-      d.board && // board isn't empty
+      board !== '' &&
+      model !== '' &&
+      d.hasPermission !== false && // board/model is permitted and valid
       d.isConnected && // DUT is connected
       d.hostname === ''
     ); // DUT has not been deployed/enrolled already
@@ -505,6 +518,8 @@ export class EnrollmentComponent {
 
     return e.length !== 0;
   }
+
+
 
   /**
    * check the DUTs' servo is wired

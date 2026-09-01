@@ -477,8 +477,8 @@ export class SatlabRpcService {
     const items = toIterator(d)
       .map(e => {
         const p = new AddDutsRequest.Param()
-          .setModel(e.model)
-          .setBoard(e.board)
+          .setModel(e.inputModel ?? e.model ?? '')
+          .setBoard(e.inputBoard ?? e.board ?? '')
           .setAddress(e.address)
           .setHostname(e.inputHostname)
           .setOs(e.hasAndroidDesktopImage ? 'android_desktop' : 'chromeos');
