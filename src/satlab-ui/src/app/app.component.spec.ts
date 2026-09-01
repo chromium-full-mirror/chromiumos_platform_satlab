@@ -1,6 +1,6 @@
 /* tslint:disable:no-unused-variable */
 
-import {async, TestBed} from '@angular/core/testing';
+import { waitForAsync, TestBed } from '@angular/core/testing';
 import {MatIconModule} from '@angular/material/icon';
 import {MatToolbarModule} from '@angular/material/toolbar';
 import {NO_ERRORS_SCHEMA} from '@angular/core';
@@ -17,7 +17,7 @@ describe('AppComponent', () => {
     TestBed.compileComponents();
   });
 
-  it('should create the app', async(() => {
+  it('should create the app', waitForAsync(() => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
     expect(app).toBeTruthy();

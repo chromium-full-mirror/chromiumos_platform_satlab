@@ -15,9 +15,10 @@ import {checkSelectFields, isCustomBuild} from 'app/utils/validators';
 import {finalize} from 'rxjs';
 
 @Component({
-  selector: 'app-single-test',
-  templateUrl: './single-test.component.html',
-  styleUrls: ['./single-test.component.scss'],
+    selector: 'app-single-test',
+    templateUrl: './single-test.component.html',
+    styleUrls: ['./single-test.component.scss'],
+    standalone: false
 })
 export class SingleTestComponent {
   @ViewChild(BuildSelectFormComponent) form!: BuildSelectFormComponent;

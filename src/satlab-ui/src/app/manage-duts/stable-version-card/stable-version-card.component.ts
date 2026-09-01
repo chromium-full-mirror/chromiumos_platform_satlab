@@ -38,10 +38,11 @@ const DEFAULT_DATA: {
 };
 
 @Component({
-  selector: 'app-stable-version-card',
-  templateUrl: './stable-version-card.component.html',
-  styleUrls: ['./stable-version-card.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-stable-version-card',
+    templateUrl: './stable-version-card.component.html',
+    styleUrls: ['./stable-version-card.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class StableVersionCardComponent
   implements OnChanges, OnInit, OnDestroy

@@ -69,9 +69,7 @@ import {toIterator} from 'app/utils/iterator';
   selector: 'app-android-build-select-form',
   templateUrl: './android-build-select-form.component.html',
   styleUrls: ['./android-build-select-form.component.scss'],
-  standalone: true,
   imports: [
-    AndroidBuildPickerComponent,
     CommonModule,
     LoadingButtonComponent,
     LoadingComponent,

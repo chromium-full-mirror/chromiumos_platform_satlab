@@ -13,9 +13,10 @@ import {checkSelectFields, isCustomBuild} from 'app/utils/validators';
 import {BehaviorSubject, finalize, from} from 'rxjs';
 
 @Component({
-  selector: 'app-pasit',
-  templateUrl: './pasit.component.html',
-  styleUrls: ['./pasit.component.scss'],
+    selector: 'app-pasit',
+    templateUrl: './pasit.component.html',
+    styleUrls: ['./pasit.component.scss'],
+    standalone: false
 })
 export class PasitComponent implements AfterViewInit {
   loading = new BehaviorSubject<{show: boolean; message: string}>({

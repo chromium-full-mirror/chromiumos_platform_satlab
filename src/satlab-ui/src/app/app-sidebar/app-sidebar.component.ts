@@ -6,9 +6,10 @@ import {UpdateService} from '../services/update.service';
 import {Component} from '@angular/core';
 
 @Component({
-  selector: 'app-sidebar',
-  templateUrl: './app-sidebar.component.html',
-  styleUrls: ['./app-sidebar.component.scss'],
+    selector: 'app-sidebar',
+    templateUrl: './app-sidebar.component.html',
+    styleUrls: ['./app-sidebar.component.scss'],
+    standalone: false
 })
 export class AppSidebarComponent {
   protected navTabs: SidebarEntry[] = [

@@ -25,9 +25,10 @@ import {
 import {labelDlmSkuID} from 'app/models/dims';
 
 @Component({
-  selector: 'app-build-select-form',
-  templateUrl: './build-select-form.component.html',
-  styleUrls: ['./build-select-form.component.scss'],
+    selector: 'app-build-select-form',
+    templateUrl: './build-select-form.component.html',
+    styleUrls: ['./build-select-form.component.scss'],
+    standalone: false
 })
 export class BuildSelectFormComponent
   implements AfterViewInit, OnDestroy, OnChanges, OnInit

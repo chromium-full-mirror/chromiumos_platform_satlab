@@ -12,9 +12,10 @@ const defaultBoto: IBoto = {
 };
 
 @Component({
-  selector: 'app-configuration',
-  templateUrl: './configuration.component.html',
-  styleUrls: ['./configuration.component.scss'],
+    selector: 'app-configuration',
+    templateUrl: './configuration.component.html',
+    styleUrls: ['./configuration.component.scss'],
+    standalone: false
 })
 export class ConfigurationComponent implements AfterViewInit {
   // boto contains the information of cloud configuration.

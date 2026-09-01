@@ -22,9 +22,10 @@ import {checkSelectFields} from 'app/utils/validators';
 import {finalize, from} from 'rxjs';
 
 @Component({
-  selector: 'app-qualifications',
-  templateUrl: './qualifications.component.html',
-  styleUrls: ['./qualifications.component.scss'],
+    selector: 'app-qualifications',
+    templateUrl: './qualifications.component.html',
+    styleUrls: ['./qualifications.component.scss'],
+    standalone: false
 })
 export class QualificationsComponent implements AfterViewInit {
   @ViewChild(BuildSelectFormComponent) form!: BuildSelectFormComponent;

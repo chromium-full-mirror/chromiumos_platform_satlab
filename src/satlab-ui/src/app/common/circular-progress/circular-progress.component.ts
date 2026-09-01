@@ -1,10 +1,11 @@
 import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
 
 @Component({
-  selector: 'app-circular-progress',
-  templateUrl: './circular-progress.component.html',
-  styleUrls: ['./circular-progress.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-circular-progress',
+    templateUrl: './circular-progress.component.html',
+    styleUrls: ['./circular-progress.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class CircularProgressComponent {
   /* The size of the progress bar, we use `px` as the unit */

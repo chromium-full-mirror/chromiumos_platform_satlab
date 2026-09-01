@@ -10,11 +10,10 @@ import {
 } from 'app/run_suite/android/auto-qual/auto-qual.component';
 
 @Component({
-  selector: 'td[app-table-cell]',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './table-cell.component.html',
-  styleUrls: ['./table-cell.component.scss'],
+    selector: 'td[app-table-cell]',
+    imports: [CommonModule],
+    templateUrl: './table-cell.component.html',
+    styleUrls: ['./table-cell.component.scss']
 })
 export class TableCellComponent {
   @Input() cell?: StringCell | DateCell | LinkCell | StatusCell | ButtonCell[];

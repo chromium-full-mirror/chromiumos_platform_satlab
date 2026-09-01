@@ -30,9 +30,10 @@ import {Observable, finalize, from} from 'rxjs';
 import {text} from 'stream/consumers';
 
 @Component({
-  selector: 'app-provision',
-  templateUrl: './provision.component.html',
-  styleUrls: ['./provision.component.scss'],
+    selector: 'app-provision',
+    templateUrl: './provision.component.html',
+    styleUrls: ['./provision.component.scss'],
+    standalone: false
 })
 export class ProvisionComponent implements OnDestroy {
   protected poolOptions: SelectableItem[] = [];

@@ -21,22 +21,21 @@ import {MatSelectModule} from '@angular/material/select';
 import {MatListModule} from '@angular/material/list';
 
 @Component({
-  selector: 'app-autocomplete',
-  standalone: true,
-  imports: [
-    ClickDetectorDirective,
-    CommonModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatListModule,
-    MatSelectModule,
-    MatInputModule,
-    MatTooltipModule,
-    NgForOf,
-    NgIf,
-  ],
-  templateUrl: './autocomplete.component.html',
-  styleUrls: ['./autocomplete.component.scss'],
+    selector: 'app-autocomplete',
+    imports: [
+        ClickDetectorDirective,
+        CommonModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatListModule,
+        MatSelectModule,
+        MatInputModule,
+        MatTooltipModule,
+        NgForOf,
+        NgIf,
+    ],
+    templateUrl: './autocomplete.component.html',
+    styleUrls: ['./autocomplete.component.scss']
 })
 // TODO: Replace AutoCompleteSelectorComponent with this component in the future.
 export class AutocompleteComponent implements OnDestroy {

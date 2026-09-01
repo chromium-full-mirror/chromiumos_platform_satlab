@@ -6,9 +6,10 @@ import {ClientReadableStream} from 'grpc-web';
 import {BehaviorSubject} from 'rxjs';
 
 @Component({
-  selector: 'app-open-ccd',
-  templateUrl: './open-ccd.component.html',
-  styleUrls: ['./open-ccd.component.scss'],
+    selector: 'app-open-ccd',
+    templateUrl: './open-ccd.component.html',
+    styleUrls: ['./open-ccd.component.scss'],
+    standalone: false
 })
 export class OpenCcdComponent {
   private readonly servoSerial: string = '';

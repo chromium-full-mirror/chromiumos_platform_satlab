@@ -21,9 +21,10 @@ import {AndroidService} from 'app/services/android.service';
 import {catchError, concatAll, finalize, from, of, tap} from 'rxjs';
 
 @Component({
-  selector: 'app-enrollment',
-  templateUrl: './enrollment.component.html',
-  styleUrls: ['./enrollment.component.scss'],
+    selector: 'app-enrollment',
+    templateUrl: './enrollment.component.html',
+    styleUrls: ['./enrollment.component.scss'],
+    standalone: false
 })
 export class EnrollmentComponent {
   @Input() DUTs: IDut[] = [];

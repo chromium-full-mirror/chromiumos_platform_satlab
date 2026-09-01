@@ -23,17 +23,17 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^18.2.14",
-    "@angular/cdk": "^18.2.14",
-    "@angular/common": "^18.2.14",
-    "@angular/compiler": "^18.2.14",
-    "@angular/core": "^18.2.14",
-    "@angular/forms": "^18.2.14",
-    "@angular/material": "^18.2.14",
-    "@angular/material-moment-adapter": "^18.2.14",
-    "@angular/platform-browser": "^18.2.14",
-    "@angular/platform-browser-dynamic": "^18.2.14",
-    "@angular/router": "^18.2.14",
+    "@angular/animations": "^19.2.25",
+    "@angular/cdk": "^19.2.19",
+    "@angular/common": "^19.2.25",
+    "@angular/compiler": "^19.2.25",
+    "@angular/core": "^19.2.25",
+    "@angular/forms": "^19.2.25",
+    "@angular/material": "^19.2.19",
+    "@angular/material-moment-adapter": "^19.2.19",
+    "@angular/platform-browser": "^19.2.25",
+    "@angular/platform-browser-dynamic": "^19.2.25",
+    "@angular/router": "^19.2.25",
     "@types/file-saver": "^2.0.7",
     "@types/google-protobuf": "^3.15.6",
     "core-js": "^3.32.2",
@@ -44,12 +44,12 @@
     "moment": "^2.30.1",
     "rxjs": "~7.8.1",
     "uuid": "^9.0.1",
-    "zone.js": "0.14.10"
+    "zone.js": "0.15.1"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^18.2.21",
-    "@angular/cli": "~18.2.21",
-    "@angular/compiler-cli": "^18.2.14",
+    "@angular-devkit/build-angular": "^19.2.27",
+    "@angular/cli": "~19.2.27",
+    "@angular/compiler-cli": "^19.2.25",
     "@types/jasmine": "^4.3.6",
     "@types/node": "^20.6.3",
     "autoprefixer": "^10.4.15",
@@ -66,7 +66,7 @@
     "postcss": "^8.4.30",
     "rxjs": "^7.8.1",
     "tailwindcss": "^3.3.3",
-    "typescript": ">=5.2 <5.5"
+    "typescript": "5.8.3"
   },
   "engines": {
     "node": "^24.20.0"

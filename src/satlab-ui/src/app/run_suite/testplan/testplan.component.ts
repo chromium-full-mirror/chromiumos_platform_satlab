@@ -14,9 +14,10 @@ import {
 } from '../../models/run_suite_fields';
 import {AutocompleteSelectorComponent} from '../common/autocomplete-selector/autocomplete-selector.component';
 @Component({
-  selector: 'app-testplan',
-  templateUrl: './testplan.component.html',
-  styleUrls: ['./testplan.component.scss'],
+    selector: 'app-testplan',
+    templateUrl: './testplan.component.html',
+    styleUrls: ['./testplan.component.scss'],
+    standalone: false
 })
 export class TestplanComponent {
   @ViewChild(BuildSelectFormComponent) form!: BuildSelectFormComponent;

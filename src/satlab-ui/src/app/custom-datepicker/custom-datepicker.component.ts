@@ -39,17 +39,18 @@ const MY_FORMATS = {
 };
 
 @Component({
-  selector: 'app-custom-datepicker',
-  templateUrl: './custom-datepicker.component.html',
-  styleUrls: ['./custom-datepicker.component.scss'],
-  providers: [
-    {
-      provide: DateAdapter,
-      useClass: MomentDateAdapter,
-      deps: [MAT_DATE_LOCALE],
-    },
-    {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
-  ],
+    selector: 'app-custom-datepicker',
+    templateUrl: './custom-datepicker.component.html',
+    styleUrls: ['./custom-datepicker.component.scss'],
+    providers: [
+        {
+            provide: DateAdapter,
+            useClass: MomentDateAdapter,
+            deps: [MAT_DATE_LOCALE],
+        },
+        { provide: MAT_DATE_FORMATS, useValue: MY_FORMATS },
+    ],
+    standalone: false
 })
 export class CustomDatepickerComponent implements OnInit, OnDestroy, OnChanges {
   @Input() value?: moment.Moment;

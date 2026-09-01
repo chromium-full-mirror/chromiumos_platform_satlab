@@ -1,4 +1,4 @@
-@import 'constants.scss';
+@use 'constants.scss' as *;
 
 .suite-content {
   display: flex;

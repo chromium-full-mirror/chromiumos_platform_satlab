@@ -9,9 +9,10 @@ import {startWithTap} from '../../utils/rxjs_operator';
 import {NotificationService} from '../../services/notification.service';
 
 @Component({
-  selector: 'app-firmware',
-  templateUrl: './firmware.component.html',
-  styleUrls: ['./firmware.component.scss'],
+    selector: 'app-firmware',
+    templateUrl: './firmware.component.html',
+    styleUrls: ['./firmware.component.scss'],
+    standalone: false
 })
 export class FirmwareComponent implements OnInit, AfterViewInit, OnDestroy {
   protected DUTs: IFirmwareDUT[] = [];

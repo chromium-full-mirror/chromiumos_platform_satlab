@@ -16,9 +16,10 @@ import {FormControl} from '@angular/forms';
 import {IWifiInfo} from 'app/models/wifi';
 
 @Component({
-  selector: 'app-other',
-  templateUrl: './other.component.html',
-  styleUrls: ['./other.component.scss'],
+    selector: 'app-other',
+    templateUrl: './other.component.html',
+    styleUrls: ['./other.component.scss'],
+    standalone: false
 })
 export class OtherComponent implements OnInit {
   @ViewChild(BuildSelectFormComponent) form!: BuildSelectFormComponent;

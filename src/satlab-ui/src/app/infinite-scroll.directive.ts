@@ -2,7 +2,8 @@ import {Directive, EventEmitter, HostListener, Output} from '@angular/core';
 import * as rxjs from 'rxjs';
 
 @Directive({
-  selector: '[appInfiniteScroll]',
+    selector: '[appInfiniteScroll]',
+    standalone: false
 })
 export class InfiniteScrollDirective {
   @Output()

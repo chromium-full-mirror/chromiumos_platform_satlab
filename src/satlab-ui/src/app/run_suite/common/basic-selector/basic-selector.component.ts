@@ -15,11 +15,10 @@ import {LowerCasePipe, NgForOf, NgIf} from '@angular/common';
 import {MatTooltipModule} from '@angular/material/tooltip';
 
 @Component({
-  selector: 'app-basic-selector',
-  templateUrl: './basic-selector.component.html',
-  styleUrls: ['./basic-selector.component.scss'],
-  standalone: true,
-  imports: [MatSelectModule, NgForOf, MatTooltipModule, LowerCasePipe, NgIf],
+    selector: 'app-basic-selector',
+    templateUrl: './basic-selector.component.html',
+    styleUrls: ['./basic-selector.component.scss'],
+    imports: [MatSelectModule, NgForOf, MatTooltipModule, LowerCasePipe, NgIf]
 })
 export class BasicSelectorComponent implements OnInit, OnChanges {
   @ViewChild('selector') selector!: MatSelect;

@@ -9,7 +9,8 @@ import {
 } from '@angular/core';
 
 @Directive({
-  selector: '[appSingleLineEllipsis]',
+    selector: '[appSingleLineEllipsis]',
+    standalone: false
 })
 export class SingleLineEllipsisDirective implements AfterViewInit, OnDestroy {
   @Output() isEllipsis = new EventEmitter<boolean>();

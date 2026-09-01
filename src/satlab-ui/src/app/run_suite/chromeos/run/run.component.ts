@@ -43,9 +43,10 @@ import {faftRunConfig, TestConfig} from 'app/models/config';
 import {startWithTap} from 'app/utils/rxjs_operator';
 
 @Component({
-  selector: 'app-run',
-  templateUrl: './run.component.html',
-  styleUrls: ['./run.component.scss'],
+    selector: 'app-run',
+    templateUrl: './run.component.html',
+    styleUrls: ['./run.component.scss'],
+    standalone: false
 })
 export class RunComponent implements AfterViewInit, OnDestroy {
   // dutsSignal records the qualified duts in this component.

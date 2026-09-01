@@ -1,4 +1,4 @@
-@import 'constants';
+@use 'constants' as *;
 
 .notification-wrapper {
   display: flex;

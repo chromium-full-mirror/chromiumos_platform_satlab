@@ -41,22 +41,21 @@ export enum Status {
 }
 
 @Component({
-  selector: 'app-auto-qual',
-  standalone: true,
-  imports: [
-    CommonModule,
-    TableCellComponent,
-    MatProgressSpinnerModule,
-    LoadingComponent,
-    BasicSelectorComponent,
-    AutocompleteComponent,
-    RouterModule,
-    MatSlideToggleModule,
-    AndroidBuildPickerComponent,
-    AdvancedSettingsComponent,
-  ],
-  templateUrl: './auto-qual.component.html',
-  styleUrls: ['./auto-qual.component.scss'],
+    selector: 'app-auto-qual',
+    imports: [
+        CommonModule,
+        TableCellComponent,
+        MatProgressSpinnerModule,
+        LoadingComponent,
+        BasicSelectorComponent,
+        AutocompleteComponent,
+        RouterModule,
+        MatSlideToggleModule,
+        AndroidBuildPickerComponent,
+        AdvancedSettingsComponent,
+    ],
+    templateUrl: './auto-qual.component.html',
+    styleUrls: ['./auto-qual.component.scss']
 })
 export class AutoQualComponent implements OnInit, OnDestroy {
   protected readonly ALL_COLUMNS = [

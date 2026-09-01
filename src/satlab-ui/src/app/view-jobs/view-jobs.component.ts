@@ -34,10 +34,11 @@ function createDefaultJobQuery(
 }
 
 @Component({
-  selector: 'app-view-jobs',
-  templateUrl: './view-jobs.component.html',
-  styleUrls: ['./view-jobs.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-view-jobs',
+    templateUrl: './view-jobs.component.html',
+    styleUrls: ['./view-jobs.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class ViewJobsComponent implements AfterViewInit {
   @ViewChild('startDatepicker')

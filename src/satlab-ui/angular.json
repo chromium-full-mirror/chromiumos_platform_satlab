@@ -17,9 +17,13 @@
             "main": "src/main.ts",
             "tsConfig": "src/tsconfig.json",
             "allowedCommonJsDependencies": [
+              "app/services/satlabrpc_pb",
               "core-js",
-              "moment",
+              "file-saver",
+              "google-protobuf",
+              "grpc-web",
               "html2canvas",
+              "moment",
               "zone.js"
             ],
             "assets": [

@@ -3,9 +3,10 @@ import {INotification, IStringNode, IURLNode} from '../../models/notification';
 import {toIterator} from '../../utils/iterator';
 
 @Component({
-  selector: 'app-notification',
-  templateUrl: './notification.component.html',
-  styleUrls: ['./notification.component.scss'],
+    selector: 'app-notification',
+    templateUrl: './notification.component.html',
+    styleUrls: ['./notification.component.scss'],
+    standalone: false
 })
 export class NotificationComponent implements OnInit {
   @Input() notification: INotification;

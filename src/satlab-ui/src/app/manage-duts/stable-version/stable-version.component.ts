@@ -6,9 +6,10 @@ import {finalize, from, tap} from 'rxjs';
 import {OSType} from '../../models/os';
 
 @Component({
-  selector: 'app-stable-version',
-  templateUrl: './stable-version.component.html',
-  styleUrls: ['./stable-version.component.scss'],
+    selector: 'app-stable-version',
+    templateUrl: './stable-version.component.html',
+    styleUrls: ['./stable-version.component.scss'],
+    standalone: false
 })
 export class StableVersionComponent implements AfterViewInit {
   protected loading = false;

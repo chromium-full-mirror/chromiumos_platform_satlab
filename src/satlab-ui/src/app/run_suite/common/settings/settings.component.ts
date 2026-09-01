@@ -18,11 +18,10 @@ import {MatExpansionModule} from '@angular/material/expansion';
 import {MatIconModule} from '@angular/material/icon';
 
 @Component({
-  selector: 'app-settings',
-  standalone: true,
-  imports: [CommonModule, MatExpansionModule, MatIconModule],
-  templateUrl: './settings.component.html',
-  styleUrls: ['./settings.component.scss'],
+    selector: 'app-settings',
+    imports: [CommonModule, MatExpansionModule, MatIconModule],
+    templateUrl: './settings.component.html',
+    styleUrls: ['./settings.component.scss']
 })
 // TODO: replace the old advance settings component with this.
 export class SettingsComponent {

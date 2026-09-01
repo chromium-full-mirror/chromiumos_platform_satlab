@@ -35,16 +35,15 @@ export type SourceValues =
     };
 
 @Component({
-  selector: 'app-test-source-picker',
-  standalone: true,
-  imports: [
-    CommonModule,
-    AndroidBuildPickerComponent,
-    AutocompleteComponent,
-    BasicSelectorComponent,
-  ],
-  templateUrl: './test-source-picker.component.html',
-  styleUrls: ['./test-source-picker.component.scss'],
+    selector: 'app-test-source-picker',
+    imports: [
+        CommonModule,
+        AndroidBuildPickerComponent,
+        AutocompleteComponent,
+        BasicSelectorComponent,
+    ],
+    templateUrl: './test-source-picker.component.html',
+    styleUrls: ['./test-source-picker.component.scss']
 })
 export class TestSourcePickerComponent implements OnDestroy {
   @Input() duts: IDut[] = [];

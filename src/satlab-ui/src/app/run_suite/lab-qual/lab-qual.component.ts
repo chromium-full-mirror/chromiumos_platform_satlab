@@ -12,9 +12,10 @@ import {BehaviorSubject, concatMap, map, Subscription, tap} from 'rxjs';
 import {startWithTap} from 'app/utils/rxjs_operator';
 
 @Component({
-  selector: 'app-lab-qual',
-  templateUrl: './lab-qual.component.html',
-  styleUrls: ['./lab-qual.component.scss'],
+    selector: 'app-lab-qual',
+    templateUrl: './lab-qual.component.html',
+    styleUrls: ['./lab-qual.component.scss'],
+    standalone: false
 })
 export class LabQualComponent implements OnInit, OnDestroy {
   // the parameters that we need to fill out.

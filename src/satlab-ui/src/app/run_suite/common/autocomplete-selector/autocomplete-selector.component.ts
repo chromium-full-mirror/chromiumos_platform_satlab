@@ -26,20 +26,19 @@ import {
 } from 'rxjs';
 
 @Component({
-  selector: 'app-autocomplete-selector',
-  templateUrl: './autocomplete-selector.component.html',
-  styleUrls: ['./autocomplete-selector.component.scss'],
-  standalone: true,
-  imports: [
-    MatTooltipModule,
-    ClickDetectorDirective,
-    MatSelectModule,
-    ReactiveFormsModule,
-    NgForOf,
-    NgIf,
-    MatListModule,
-    MatInputModule,
-  ],
+    selector: 'app-autocomplete-selector',
+    templateUrl: './autocomplete-selector.component.html',
+    styleUrls: ['./autocomplete-selector.component.scss'],
+    imports: [
+        MatTooltipModule,
+        ClickDetectorDirective,
+        MatSelectModule,
+        ReactiveFormsModule,
+        NgForOf,
+        NgIf,
+        MatListModule,
+        MatInputModule,
+    ]
 })
 export class AutocompleteSelectorComponent
   implements OnChanges, OnInit, OnDestroy

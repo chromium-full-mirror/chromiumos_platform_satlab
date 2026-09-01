@@ -31,17 +31,16 @@ import {
 } from 'app/utils/operators';
 
 @Component({
-  selector: 'app-suite',
-  templateUrl: './suite.component.html',
-  styleUrls: ['./suite.component.scss'],
-  standalone: true,
-  imports: [
-    AutocompleteSelectorComponent,
-    CommonModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTooltipModule,
-  ],
+    selector: 'app-suite',
+    templateUrl: './suite.component.html',
+    styleUrls: ['./suite.component.scss'],
+    imports: [
+        AutocompleteSelectorComponent,
+        CommonModule,
+        MatButtonModule,
+        MatIconModule,
+        MatTooltipModule,
+    ]
 })
 export class SuiteComponent implements OnChanges, OnDestroy {
   @ViewChild('testSelector') selector?: AutocompleteSelectorComponent;

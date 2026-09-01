@@ -7,9 +7,10 @@ import {startWithTap} from 'app/utils/rxjs_operator';
 import {finalize, from} from 'rxjs';
 
 @Component({
-  selector: 'app-wifi-config',
-  templateUrl: './wifi-config.component.html',
-  styleUrls: ['./wifi-config.component.scss'],
+    selector: 'app-wifi-config',
+    templateUrl: './wifi-config.component.html',
+    styleUrls: ['./wifi-config.component.scss'],
+    standalone: false
 })
 export class WifiConfigComponent implements OnInit {
   protected wifiInfo: IWifiInfo = {

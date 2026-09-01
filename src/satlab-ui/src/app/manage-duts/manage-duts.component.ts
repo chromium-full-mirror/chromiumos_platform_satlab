@@ -8,9 +8,10 @@ import {AfterViewInit, Component, OnDestroy} from '@angular/core';
 import {Subscription, finalize, from, interval} from 'rxjs';
 
 @Component({
-  selector: 'app-manage-duts',
-  templateUrl: './manage-duts.component.html',
-  styleUrls: ['./manage-duts.component.scss'],
+    selector: 'app-manage-duts',
+    templateUrl: './manage-duts.component.html',
+    styleUrls: ['./manage-duts.component.scss'],
+    standalone: false
 })
 export class ManageDutsComponent implements AfterViewInit, OnDestroy {
   // duts contains the all duts are enrolled and connected to the SatLab

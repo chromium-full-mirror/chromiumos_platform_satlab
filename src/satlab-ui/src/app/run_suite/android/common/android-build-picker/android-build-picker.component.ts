@@ -39,11 +39,10 @@ const TEST_PRODUCTS = [
 ];
 
 @Component({
-  selector: 'app-android-build-picker',
-  standalone: true,
-  imports: [AutocompleteComponent, CommonModule],
-  templateUrl: './android-build-picker.component.html',
-  styleUrls: ['./android-build-picker.component.scss'],
+    selector: 'app-android-build-picker',
+    imports: [AutocompleteComponent, CommonModule],
+    templateUrl: './android-build-picker.component.html',
+    styleUrls: ['./android-build-picker.component.scss']
 })
 export class AndroidBuildPickerComponent implements OnDestroy {
   // Input parameters.

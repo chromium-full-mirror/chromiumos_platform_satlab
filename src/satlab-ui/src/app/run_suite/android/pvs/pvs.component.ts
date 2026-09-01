@@ -45,22 +45,21 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 
 @Component({
-  selector: 'app-pvs',
-  templateUrl: './pvs.component.html',
-  styleUrls: ['./pvs.component.scss'],
-  standalone: true,
-  imports: [
-    LoadingComponent,
-    LoadingButtonComponent,
-    NgIf,
-    ProvisionFormComponent,
-    SettingsComponent,
-    TestOptionsCardComponent,
-    TestSourcePickerComponent,
-    ShowDutComponent,
-    MatFormFieldModule,
-    MatInputModule,
-  ],
+    selector: 'app-pvs',
+    templateUrl: './pvs.component.html',
+    styleUrls: ['./pvs.component.scss'],
+    imports: [
+        LoadingComponent,
+        LoadingButtonComponent,
+        NgIf,
+        ProvisionFormComponent,
+        SettingsComponent,
+        TestOptionsCardComponent,
+        TestSourcePickerComponent,
+        ShowDutComponent,
+        MatFormFieldModule,
+        MatInputModule,
+    ]
 })
 export class PvsComponent implements OnInit, OnDestroy {
   @ViewChild('settingsRef') settingsRef!: SettingsComponent;

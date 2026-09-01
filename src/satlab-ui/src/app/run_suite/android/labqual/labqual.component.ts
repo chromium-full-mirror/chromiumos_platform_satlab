@@ -41,19 +41,18 @@ import {
 } from 'rxjs';
 
 @Component({
-  selector: 'app-labqual',
-  standalone: true,
-  imports: [
-    CommonModule,
-    LoadingComponent,
-    BasicSelectorComponent,
-    AutocompleteSelectorComponent,
-    LoadingButtonComponent,
-    MatDividerModule,
-    BuildSelectorComponent,
-  ],
-  templateUrl: './labqual.component.html',
-  styleUrls: ['./labqual.component.scss'],
+    selector: 'app-labqual',
+    imports: [
+        CommonModule,
+        LoadingComponent,
+        BasicSelectorComponent,
+        AutocompleteSelectorComponent,
+        LoadingButtonComponent,
+        MatDividerModule,
+        BuildSelectorComponent,
+    ],
+    templateUrl: './labqual.component.html',
+    styleUrls: ['./labqual.component.scss']
 })
 export class LabqualComponent implements AfterViewInit, OnDestroy {
   protected isLoading = signal<{show: boolean; message: string}>({

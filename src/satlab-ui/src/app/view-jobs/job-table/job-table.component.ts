@@ -61,10 +61,11 @@ const SELECTABLE_STATUSES: JobStatus[] = [
 ];
 
 @Component({
-  selector: 'app-job-table',
-  templateUrl: './job-table.component.html',
-  styleUrls: ['./job-table.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-job-table',
+    templateUrl: './job-table.component.html',
+    styleUrls: ['./job-table.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class JobTableComponent implements OnChanges, OnInit, OnDestroy {
   @Input() query?: IJobQuery;

@@ -17,9 +17,10 @@ import {
 } from '../../models/run_suite_fields';
 
 @Component({
-  selector: 'app-stage-build',
-  templateUrl: './stage-build.component.html',
-  styleUrls: ['./stage-build.component.scss'],
+    selector: 'app-stage-build',
+    templateUrl: './stage-build.component.html',
+    styleUrls: ['./stage-build.component.scss'],
+    standalone: false
 })
 export class StageBuildComponent implements AfterViewInit {
   @ViewChild('boardSelector') boardSelector?: BasicSelectorComponent;
