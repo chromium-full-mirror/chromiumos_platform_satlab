@@ -31,7 +31,7 @@ function pull_private_containers() {
   export WATCHTOWER_MONITOR_ONLY=$(jq '.autoupdate |= not | .autoupdate' $USER_SETTINGS)
   docker-compose -f ./docker-compose.watchtower.yaml pull
 
-  docker-compose pull --include-deps drone openssh_server nginx logrotate
+  docker-compose pull --include-deps drone openssh_server nginx logrotate drone-proxy labservice
 
   if [[ ${UFS_NAMESPACE:-os} != "os-partner" ]]; then
     docker-compose pull --include-deps opentelemetry-collector
@@ -85,7 +85,7 @@ function start_private_containers () {
   fi
 
   docker rm -f nginx
-  docker-compose up -d drone openssh_server nginx logrotate
+  docker-compose up -d drone openssh_server nginx logrotate drone-proxy labservice
 
   if [[ ${UFS_NAMESPACE:-os} != "os-partner" ]]; then
     export OS_VERSION=$(echo "$(get_host_os_version)"  | grep '^version:' | cut -d '"' -f 2)
