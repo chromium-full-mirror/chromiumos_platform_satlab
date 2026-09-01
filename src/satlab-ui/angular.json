@@ -101,27 +101,27 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "satlab-partner-ui:build"
+            "buildTarget": "satlab-partner-ui:build"
           },
           "configurations": {
             "source": {
-              "browserTarget": "satlab-partner-ui:build:source"
+              "buildTarget": "satlab-partner-ui:build:source"
             },
             "dev": {
-              "browserTarget": "satlab-partner-ui:build:dev"
+              "buildTarget": "satlab-partner-ui:build:dev"
             },
             "local": {
-              "browserTarget": "satlab-partner-ui:build:local"
+              "buildTarget": "satlab-partner-ui:build:local"
             },
             "production": {
-              "browserTarget": "satlab-partner-ui:build:production"
+              "buildTarget": "satlab-partner-ui:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "satlab-partner-ui:build"
+            "buildTarget": "satlab-partner-ui:build"
           }
         },
         "test": {
