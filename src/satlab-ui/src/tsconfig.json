@@ -16,7 +16,7 @@
     ],
     "mapRoot": "./",
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "sourceMap": true,
     "target": "es2022",
     "typeRoots": [

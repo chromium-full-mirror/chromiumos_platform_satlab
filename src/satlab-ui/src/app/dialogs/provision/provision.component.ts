@@ -110,14 +110,12 @@ export class ProvisionComponent implements OnDestroy {
             this.boardSignal(),
             this.modelSignal()
           );
-        },
-        {allowSignalWrites: true}
+        }
       ),
       effect(
         () => {
           this.__onBranchChanged(this.branchSignal());
-        },
-        {allowSignalWrites: true}
+        }
       ),
       effect(
         () => {
@@ -125,8 +123,7 @@ export class ProvisionComponent implements OnDestroy {
           const branch = untracked(() => this.branchSignal());
           const target = this.targets();
           this.__onTargetChanged(board, branch, target);
-        },
-        {allowSignalWrites: true}
+        }
       ),
       effect(
         () => {
@@ -135,8 +132,7 @@ export class ProvisionComponent implements OnDestroy {
           const target = untracked(() => this.targets());
           const build = this.buildSignal();
           this.__onBuildChanged(board, branch, target, build);
-        },
-        {allowSignalWrites: true}
+        }
       ),
       effect(
         () => {
@@ -144,8 +140,7 @@ export class ProvisionComponent implements OnDestroy {
           const models = untracked(() => this.modelSignal());
           const milestone = this.milestoneSignal();
           this.__onMilestoneChanged(board, models[0], milestone);
-        },
-        {allowSignalWrites: true}
+        }
       ),
     ];
   }

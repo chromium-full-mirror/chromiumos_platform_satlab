@@ -266,14 +266,12 @@ export class AutoQualComponent implements OnInit, OnDestroy {
       effect(
         () => {
           this.__onBoardChanged(this.boardSignal());
-        },
-        {allowSignalWrites: true}
+        }
       ),
       effect(
         () => {
           this.__onBranchChanged(this.branchSignal());
-        },
-        {allowSignalWrites: true}
+        }
       ),
       effect(
         () => {
@@ -288,8 +286,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
           if (board !== '' && branch !== '' && !targets.includes('')) {
             this.__listBuilds(board, branch, targets);
           }
-        },
-        {allowSignalWrites: true}
+        }
       ),
     ];
   }

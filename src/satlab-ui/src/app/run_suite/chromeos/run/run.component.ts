@@ -208,9 +208,6 @@ export class RunComponent implements AfterViewInit, OnDestroy {
             this.__listMilestone(board, model);
             this.__getStableBuild(board, model);
           }
-        },
-        {
-          allowSignalWrites: true,
         }
       ),
       effect(
@@ -222,9 +219,6 @@ export class RunComponent implements AfterViewInit, OnDestroy {
           if (milestone) {
             this.__listBuild(board, model, milestone);
           }
-        },
-        {
-          allowSignalWrites: true,
         }
       ),
     ];

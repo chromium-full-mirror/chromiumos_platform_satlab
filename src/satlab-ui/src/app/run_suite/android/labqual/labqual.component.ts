@@ -165,9 +165,6 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
           if (dutInfo) {
             this.__listBranches([dutInfo.board, dutInfo.model]);
           }
-        },
-        {
-          allowSignalWrites: true,
         }
       ),
 
@@ -177,9 +174,6 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
           if (branch) {
             this.__listTargets(branch);
           }
-        },
-        {
-          allowSignalWrites: true,
         }
       ),
 
@@ -191,9 +185,6 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
           if (board && branch && target) {
             this.__listBuilds(board, branch, [target]);
           }
-        },
-        {
-          allowSignalWrites: true,
         }
       ),
       effect(
@@ -207,8 +198,7 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
               ? 'Please select branch and target before entering builds.'
               : ''
           );
-        },
-        {allowSignalWrites: true}
+        }
       ),
     ];
 

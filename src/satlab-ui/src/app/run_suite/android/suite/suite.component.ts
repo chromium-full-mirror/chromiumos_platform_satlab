@@ -108,9 +108,6 @@ export class SuiteComponent implements OnChanges, OnDestroy {
           if (build && t2) {
             this.__listSuites(build, t2);
           }
-        },
-        {
-          allowSignalWrites: true,
         }
       ),
 
@@ -123,9 +120,6 @@ export class SuiteComponent implements OnChanges, OnDestroy {
           if (build && target && suite) {
             this.__listTests(build, target, suite as string);
           }
-        },
-        {
-          allowSignalWrites: true,
         }
       ),
       effect(
@@ -133,8 +127,7 @@ export class SuiteComponent implements OnChanges, OnDestroy {
           if (this.suiteSignal() === '') {
             this.suiteSelector?.clear();
           }
-        },
-        {allowSignalWrites: true}
+        }
       ),
       effect(() => {
         const loading = this.isLoading();

@@ -175,8 +175,7 @@ export class AndroidBuildPickerComponent implements OnDestroy {
           const req =
             this._type === 'test' ? TEST_PRODUCTS : [...sameBoardModels, board];
           this.__listBranchesAndUpdate(req, {model, sameBoardModels});
-        },
-        {allowSignalWrites: true}
+        }
       ),
 
       // If branch changed, reset target, build, then call listTargets if branch is present.
@@ -190,8 +189,7 @@ export class AndroidBuildPickerComponent implements OnDestroy {
           const sameBoardModels = untracked(() => this.sameBoardModels());
 
           this.__listTargets(branch, {board, model, sameBoardModels});
-        },
-        {allowSignalWrites: true}
+        }
       ),
 
       // If target changed, reset build, then call listBuilds if target is present.
@@ -203,8 +201,7 @@ export class AndroidBuildPickerComponent implements OnDestroy {
 
           if (!target) return;
           this.__listBuilds(board, branch, [target]);
-        },
-        {allowSignalWrites: true}
+        }
       ),
       effect(() => {
         const loading = this.loadingSignal();

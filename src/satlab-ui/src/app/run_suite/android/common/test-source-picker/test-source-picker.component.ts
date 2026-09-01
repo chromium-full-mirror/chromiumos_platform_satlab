@@ -143,8 +143,7 @@ export class TestSourcePickerComponent implements OnDestroy {
           if (driveSuite) {
             this.__listDriveXtsPaths(driveSuite);
           }
-        },
-        {allowSignalWrites: true}
+        }
       ),
       effect(() => {
         const isLoading = this.isFormLoading();

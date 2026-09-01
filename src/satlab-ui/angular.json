@@ -201,11 +201,31 @@
       "project": "satlab-partner-ui",
       "prefix": "app",
       "style": "scss",
-      "standalone": true
+      "standalone": true,
+      "type": "component"
     },
     "@schematics/angular:directive": {
       "project": "satlab-partner-ui",
-      "prefix": "app"
+      "prefix": "app",
+      "type": "directive"
+    },
+    "@schematics/angular:service": {
+      "type": "service"
+    },
+    "@schematics/angular:guard": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:interceptor": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:module": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:pipe": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:resolver": {
+      "typeSeparator": "."
     }
   },
   "cli": {
