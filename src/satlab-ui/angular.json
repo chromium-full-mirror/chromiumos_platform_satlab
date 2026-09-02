@@ -16,6 +16,9 @@
             "index": "src/index.html",
             "main": "src/main.ts",
             "tsConfig": "src/tsconfig.json",
+            "polyfills": [
+              "zone.js",
+            ],
             "allowedCommonJsDependencies": [
               "app/services/satlabrpc_pb",
               "core-js",
