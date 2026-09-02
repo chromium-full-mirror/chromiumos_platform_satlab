@@ -10,6 +10,7 @@ import {
   effect,
   signal,
   untracked,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {toObservable} from '@angular/core/rxjs-interop';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
@@ -41,21 +42,22 @@ export enum Status {
 }
 
 @Component({
-    selector: 'app-auto-qual',
-    imports: [
-        CommonModule,
-        TableCellComponent,
-        MatProgressSpinnerModule,
-        LoadingComponent,
-        BasicSelectorComponent,
-        AutocompleteComponent,
-        RouterModule,
-        MatSlideToggleModule,
-        AndroidBuildPickerComponent,
-        AdvancedSettingsComponent,
-    ],
-    templateUrl: './auto-qual.component.html',
-    styleUrls: ['./auto-qual.component.scss']
+  selector: 'app-auto-qual',
+  imports: [
+    CommonModule,
+    TableCellComponent,
+    MatProgressSpinnerModule,
+    LoadingComponent,
+    BasicSelectorComponent,
+    AutocompleteComponent,
+    RouterModule,
+    MatSlideToggleModule,
+    AndroidBuildPickerComponent,
+    AdvancedSettingsComponent,
+  ],
+  templateUrl: './auto-qual.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrls: ['./auto-qual.component.scss'],
 })
 export class AutoQualComponent implements OnInit, OnDestroy {
   protected readonly ALL_COLUMNS = [
@@ -263,31 +265,25 @@ export class AutoQualComponent implements OnInit, OnDestroy {
     private router: Router
   ) {
     this.refs = [
-      effect(
-        () => {
-          this.__onBoardChanged(this.boardSignal());
+      effect(() => {
+        this.__onBoardChanged(this.boardSignal());
+      }),
+      effect(() => {
+        this.__onBranchChanged(this.branchSignal());
+      }),
+      effect(() => {
+        const board = untracked(() => this.boardSignal());
+        const branch = untracked(() => this.branchSignal());
+        const boardTarget = this.boardTargetSignal();
+        const testTarget = this.testTargetSignal();
+        const isCrossBranch = this.isCrossBranchSignal();
+        const targets = isCrossBranch
+          ? [boardTarget]
+          : [boardTarget, testTarget];
+        if (board !== '' && branch !== '' && !targets.includes('')) {
+          this.__listBuilds(board, branch, targets);
         }
-      ),
-      effect(
-        () => {
-          this.__onBranchChanged(this.branchSignal());
-        }
-      ),
-      effect(
-        () => {
-          const board = untracked(() => this.boardSignal());
-          const branch = untracked(() => this.branchSignal());
-          const boardTarget = this.boardTargetSignal();
-          const testTarget = this.testTargetSignal();
-          const isCrossBranch = this.isCrossBranchSignal();
-          const targets = isCrossBranch
-            ? [boardTarget]
-            : [boardTarget, testTarget];
-          if (board !== '' && branch !== '' && !targets.includes('')) {
-            this.__listBuilds(board, branch, targets);
-          }
-        }
-      ),
+      }),
     ];
   }
 

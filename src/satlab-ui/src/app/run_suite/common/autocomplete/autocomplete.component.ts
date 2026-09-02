@@ -8,6 +8,7 @@ import {
   OnDestroy,
   Output,
   signal,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {Subscription} from 'rxjs';
 import {CommonModule, NgForOf, NgIf} from '@angular/common';
@@ -21,21 +22,22 @@ import {MatSelectModule} from '@angular/material/select';
 import {MatListModule} from '@angular/material/list';
 
 @Component({
-    selector: 'app-autocomplete',
-    imports: [
-        ClickDetectorDirective,
-        CommonModule,
-        ReactiveFormsModule,
-        MatFormFieldModule,
-        MatListModule,
-        MatSelectModule,
-        MatInputModule,
-        MatTooltipModule,
-        NgForOf,
-        NgIf,
-    ],
-    templateUrl: './autocomplete.component.html',
-    styleUrls: ['./autocomplete.component.scss']
+  selector: 'app-autocomplete',
+  imports: [
+    ClickDetectorDirective,
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatListModule,
+    MatSelectModule,
+    MatInputModule,
+    MatTooltipModule,
+    NgForOf,
+    NgIf,
+  ],
+  templateUrl: './autocomplete.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrls: ['./autocomplete.component.scss'],
 })
 // TODO: Replace AutoCompleteSelectorComponent with this component in the future.
 export class AutocompleteComponent implements OnDestroy {

@@ -1,4 +1,4 @@
-import {AfterViewInit, Component} from '@angular/core';
+import {AfterViewInit, Component, ChangeDetectionStrategy} from '@angular/core';
 import {IDut} from 'app/models/dut';
 import {
   defaultBuildSelectFields,
@@ -13,10 +13,11 @@ import {checkSelectFields, isCustomBuild} from 'app/utils/validators';
 import {BehaviorSubject, finalize, from} from 'rxjs';
 
 @Component({
-    selector: 'app-pasit',
-    templateUrl: './pasit.component.html',
-    styleUrls: ['./pasit.component.scss'],
-    standalone: false
+  selector: 'app-pasit',
+  templateUrl: './pasit.component.html',
+  styleUrls: ['./pasit.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class PasitComponent implements AfterViewInit {
   loading = new BehaviorSubject<{show: boolean; message: string}>({
@@ -268,11 +269,13 @@ export class PasitComponent implements AfterViewInit {
   }
 
   private canRun() {
-    this.disabled = !this.validate() || this.isRunning || this.isUpdatingTopology;
+    this.disabled =
+      !this.validate() || this.isRunning || this.isUpdatingTopology;
   }
 
   private canUpdateTopology() {
-    this.updateTopologyDisabled = !this.fields.dims?.dut_name || this.isRunning || this.isUpdatingTopology;
+    this.updateTopologyDisabled =
+      !this.fields.dims?.dut_name || this.isRunning || this.isUpdatingTopology;
   }
 
   private validate() {

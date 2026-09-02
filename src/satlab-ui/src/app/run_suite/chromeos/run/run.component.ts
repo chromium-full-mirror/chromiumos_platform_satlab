@@ -7,6 +7,7 @@ import {
   OnDestroy,
   signal,
   untracked,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {FIRMWARE_ARTIFACT} from 'app/constants';
 import {IDut} from 'app/models/dut';
@@ -43,10 +44,11 @@ import {faftRunConfig, TestConfig} from 'app/models/config';
 import {startWithTap} from 'app/utils/rxjs_operator';
 
 @Component({
-    selector: 'app-run',
-    templateUrl: './run.component.html',
-    styleUrls: ['./run.component.scss'],
-    standalone: false
+  selector: 'app-run',
+  templateUrl: './run.component.html',
+  styleUrls: ['./run.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class RunComponent implements AfterViewInit, OnDestroy {
   // dutsSignal records the qualified duts in this component.
@@ -199,28 +201,24 @@ export class RunComponent implements AfterViewInit, OnDestroy {
     private notification: NotificationService
   ) {
     this.refs = [
-      effect(
-        () => {
-          const board = this.boardSignal();
-          const model = this.modelSignal();
+      effect(() => {
+        const board = this.boardSignal();
+        const model = this.modelSignal();
 
-          if (board && model) {
-            this.__listMilestone(board, model);
-            this.__getStableBuild(board, model);
-          }
+        if (board && model) {
+          this.__listMilestone(board, model);
+          this.__getStableBuild(board, model);
         }
-      ),
-      effect(
-        () => {
-          const board = untracked(() => this.boardSignal());
-          const model = untracked(() => this.modelSignal());
-          const milestone = this.milestoneSignal();
+      }),
+      effect(() => {
+        const board = untracked(() => this.boardSignal());
+        const model = untracked(() => this.modelSignal());
+        const milestone = this.milestoneSignal();
 
-          if (milestone) {
-            this.__listBuild(board, model, milestone);
-          }
+        if (milestone) {
+          this.__listBuild(board, model, milestone);
         }
-      ),
+      }),
     ];
 
     this.disposers = [

@@ -1,12 +1,19 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import {Observable, of, Subscription} from 'rxjs';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
 
 @Component({
-    selector: 'app-loading',
-    templateUrl: './loading.component.html',
-    styleUrls: ['./loading.component.scss'],
-    imports: [MatProgressBarModule]
+  selector: 'app-loading',
+  templateUrl: './loading.component.html',
+  styleUrls: ['./loading.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [MatProgressBarModule],
 })
 export class LoadingComponent implements OnInit, OnDestroy {
   @Input() loading$: Observable<{show: boolean; message: string}> = of({

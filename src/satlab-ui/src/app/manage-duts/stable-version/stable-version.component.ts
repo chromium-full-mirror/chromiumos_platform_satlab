@@ -1,4 +1,4 @@
-import {AfterViewInit, Component} from '@angular/core';
+import {AfterViewInit, Component, ChangeDetectionStrategy} from '@angular/core';
 import {IDut} from 'app/models/dut';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
 import {startWithTap} from 'app/utils/rxjs_operator';
@@ -6,10 +6,11 @@ import {finalize, from, tap} from 'rxjs';
 import {OSType} from '../../models/os';
 
 @Component({
-    selector: 'app-stable-version',
-    templateUrl: './stable-version.component.html',
-    styleUrls: ['./stable-version.component.scss'],
-    standalone: false
+  selector: 'app-stable-version',
+  templateUrl: './stable-version.component.html',
+  styleUrls: ['./stable-version.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class StableVersionComponent implements AfterViewInit {
   protected loading = false;

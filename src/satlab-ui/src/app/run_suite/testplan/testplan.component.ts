@@ -1,4 +1,4 @@
-import {Component, ViewChild} from '@angular/core';
+import {Component, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {SelectableItem} from 'app/models/selectable_item';
 import {ITestPlan} from 'app/models/testplan';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
@@ -14,10 +14,11 @@ import {
 } from '../../models/run_suite_fields';
 import {AutocompleteSelectorComponent} from '../common/autocomplete-selector/autocomplete-selector.component';
 @Component({
-    selector: 'app-testplan',
-    templateUrl: './testplan.component.html',
-    styleUrls: ['./testplan.component.scss'],
-    standalone: false
+  selector: 'app-testplan',
+  templateUrl: './testplan.component.html',
+  styleUrls: ['./testplan.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class TestplanComponent {
   @ViewChild(BuildSelectFormComponent) form!: BuildSelectFormComponent;

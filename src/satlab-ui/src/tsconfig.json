@@ -3,9 +3,12 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "build",
-    "baseUrl": "",
+    "paths": {
+      "app/*": [
+        "./app/*"
+      ]
+    },
     "declaration": false,
-    "downlevelIteration": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "lib": [
@@ -38,5 +41,9 @@
     "node_modules",
     "**/*.spec.ts",
     "test.ts"
-  ]
+  ],
+  "angularCompilerOptions": {
+    "strictTemplates": false
+  },
+  "ignoreDeprecations": "6.0",
 }

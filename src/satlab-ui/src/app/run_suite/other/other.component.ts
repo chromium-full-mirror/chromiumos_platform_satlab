@@ -1,4 +1,9 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import {SelectableItem} from '../../models/selectable_item';
 import {SatlabRpcService} from '../../services/satlab-rpc.service';
 import {BuildSelectFormComponent} from '../common/build-select-form/build-select-form.component';
@@ -16,10 +21,11 @@ import {FormControl} from '@angular/forms';
 import {IWifiInfo} from 'app/models/wifi';
 
 @Component({
-    selector: 'app-other',
-    templateUrl: './other.component.html',
-    styleUrls: ['./other.component.scss'],
-    standalone: false
+  selector: 'app-other',
+  templateUrl: './other.component.html',
+  styleUrls: ['./other.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class OtherComponent implements OnInit {
   @ViewChild(BuildSelectFormComponent) form!: BuildSelectFormComponent;

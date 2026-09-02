@@ -8,6 +8,7 @@ import {
   ViewChild,
   computed,
   signal,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {toObservable} from '@angular/core/rxjs-interop';
 import {IDut} from 'app/models/dut';
@@ -45,21 +46,22 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 
 @Component({
-    selector: 'app-pvs',
-    templateUrl: './pvs.component.html',
-    styleUrls: ['./pvs.component.scss'],
-    imports: [
-        LoadingComponent,
-        LoadingButtonComponent,
-        NgIf,
-        ProvisionFormComponent,
-        SettingsComponent,
-        TestOptionsCardComponent,
-        TestSourcePickerComponent,
-        ShowDutComponent,
-        MatFormFieldModule,
-        MatInputModule,
-    ]
+  selector: 'app-pvs',
+  templateUrl: './pvs.component.html',
+  styleUrls: ['./pvs.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    LoadingComponent,
+    LoadingButtonComponent,
+    NgIf,
+    ProvisionFormComponent,
+    SettingsComponent,
+    TestOptionsCardComponent,
+    TestSourcePickerComponent,
+    ShowDutComponent,
+    MatFormFieldModule,
+    MatInputModule,
+  ],
 })
 export class PvsComponent implements OnInit, OnDestroy {
   @ViewChild('settingsRef') settingsRef!: SettingsComponent;
@@ -379,14 +381,14 @@ export class PvsComponent implements OnInit, OnDestroy {
             name: testplan,
           }
         : isRunTestplan
-          ? {
-              kind: 'testplan',
-              name: testplan,
-            }
-          : {
-              kind: 'test',
-              name: this.storageTestNameSignal(),
-            };
+        ? {
+            kind: 'testplan',
+            name: testplan,
+          }
+        : {
+            kind: 'test',
+            name: this.storageTestNameSignal(),
+          };
 
     const provision = this.provisionSignal();
     const isSkipProvisioning = provision.mode === 'SKIP';

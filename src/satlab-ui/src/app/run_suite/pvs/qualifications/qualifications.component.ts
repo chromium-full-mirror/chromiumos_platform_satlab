@@ -1,4 +1,9 @@
-import {AfterViewInit, Component, ViewChild} from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import {MatCheckboxChange} from '@angular/material/checkbox';
 import {ISimpleDUT} from 'app/models/dut';
 import {
@@ -22,10 +27,11 @@ import {checkSelectFields} from 'app/utils/validators';
 import {finalize, from} from 'rxjs';
 
 @Component({
-    selector: 'app-qualifications',
-    templateUrl: './qualifications.component.html',
-    styleUrls: ['./qualifications.component.scss'],
-    standalone: false
+  selector: 'app-qualifications',
+  templateUrl: './qualifications.component.html',
+  styleUrls: ['./qualifications.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class QualificationsComponent implements AfterViewInit {
   @ViewChild(BuildSelectFormComponent) form!: BuildSelectFormComponent;

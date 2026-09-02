@@ -7,6 +7,7 @@ import {
   OnInit,
   Output,
   SimpleChanges,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {ICustomSettings} from 'app/models/run_suite_fields';
 import {BehaviorSubject, map, Subscription} from 'rxjs';
@@ -18,16 +19,17 @@ import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {SafeNumberPipe} from 'app/pipes/safe-number.pipe';
 
 @Component({
-    selector: 'app-advanced-settings',
-    templateUrl: './advanced-settings.component.html',
-    styleUrls: ['./advanced-settings.component.scss'],
-    imports: [
-        CommonModule,
-        MatExpansionModule,
-        MatIconModule,
-        MatSlideToggleModule,
-        SafeNumberPipe,
-    ]
+  selector: 'app-advanced-settings',
+  templateUrl: './advanced-settings.component.html',
+  styleUrls: ['./advanced-settings.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    CommonModule,
+    MatExpansionModule,
+    MatIconModule,
+    MatSlideToggleModule,
+    SafeNumberPipe,
+  ],
 })
 export class AdvancedSettingsComponent implements OnInit, OnChanges, OnDestroy {
   @Input() disabled = false;

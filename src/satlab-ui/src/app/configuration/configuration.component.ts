@@ -1,4 +1,4 @@
-import {AfterViewInit, Component} from '@angular/core';
+import {AfterViewInit, Component, ChangeDetectionStrategy} from '@angular/core';
 import {SatlabRpcService} from '../services/satlab-rpc.service';
 import {NotificationService} from '../services/notification.service';
 import {IBoto} from '../models/boto';
@@ -12,10 +12,11 @@ const defaultBoto: IBoto = {
 };
 
 @Component({
-    selector: 'app-configuration',
-    templateUrl: './configuration.component.html',
-    styleUrls: ['./configuration.component.scss'],
-    standalone: false
+  selector: 'app-configuration',
+  templateUrl: './configuration.component.html',
+  styleUrls: ['./configuration.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class ConfigurationComponent implements AfterViewInit {
   // boto contains the information of cloud configuration.

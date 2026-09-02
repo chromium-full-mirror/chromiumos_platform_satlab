@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import {SatlabRpcService} from '../services/satlab-rpc.service';
 import {
   ILinkInfo,
@@ -15,10 +15,11 @@ import {saveAs} from 'file-saver';
 import {UpdateService} from 'app/services/update.service';
 
 @Component({
-    selector: 'app-about',
-    templateUrl: './about.component.html',
-    styleUrls: ['./about.component.scss'],
-    standalone: false
+  selector: 'app-about',
+  templateUrl: './about.component.html',
+  styleUrls: ['./about.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class AboutComponent implements OnInit {
   protected loadingStatus = {

@@ -1,10 +1,11 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, ChangeDetectionStrategy} from '@angular/core';
 
 @Component({
-    selector: 'app-spinner-loading',
-    templateUrl: './spinner-loading.component.html',
-    styleUrls: ['./spinner-loading.component.scss'],
-    standalone: false
+  selector: 'app-spinner-loading',
+  templateUrl: './spinner-loading.component.html',
+  styleUrls: ['./spinner-loading.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class SpinnerLoadingComponent {
   @Input() public isLoading: boolean = false;

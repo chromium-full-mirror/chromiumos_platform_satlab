@@ -23,7 +23,7 @@
     "
     id="milestoneSelector"
     [autoSelect]="autoSelect"
-    [value]="defaultValue?.milestone"
+    [value]="$safeNavigationMigration(defaultValue?.milestone)"
   >
   </app-basic-selector>
 
@@ -52,7 +52,7 @@
     "
     id="buildSelector"
     [autoSelect]="autoSelect"
-    [value]="defaultValue?.build"
+    [value]="$safeNavigationMigration(defaultValue?.build)"
   >
   </app-basic-selector>
 </div>

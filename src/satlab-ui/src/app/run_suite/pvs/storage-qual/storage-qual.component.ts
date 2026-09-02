@@ -1,4 +1,4 @@
-import {Component, ViewChild} from '@angular/core';
+import {Component, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {
   defaultBuildSelectFields,
   defaultStorageQualFields,
@@ -20,10 +20,11 @@ const SUITE = 'suite';
 const TEST_PREFIX = 'tast.storage.';
 
 @Component({
-    selector: 'app-storage-qual',
-    templateUrl: './storage-qual.component.html',
-    styleUrls: ['./storage-qual.component.scss'],
-    standalone: false
+  selector: 'app-storage-qual',
+  templateUrl: './storage-qual.component.html',
+  styleUrls: ['./storage-qual.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class StorageQualComponent {
   @ViewChild(BuildSelectFormComponent) form!: BuildSelectFormComponent;

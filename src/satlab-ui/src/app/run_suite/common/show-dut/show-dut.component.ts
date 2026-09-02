@@ -8,6 +8,7 @@ import {
   signal,
   Signal,
   WritableSignal,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {IDut} from '../../../models/dut';
@@ -30,10 +31,11 @@ import {noDutsMsg} from 'app/models/error';
 export type SelectorType = 'pool' | 'hostname' | 'board' | 'model';
 
 @Component({
-    selector: 'app-show-dut',
-    imports: [BasicSelectorComponent, CommonModule, LoadingComponent],
-    templateUrl: './show-dut.component.html',
-    styleUrls: ['./show-dut.component.scss']
+  selector: 'app-show-dut',
+  imports: [BasicSelectorComponent, CommonModule, LoadingComponent],
+  templateUrl: './show-dut.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrls: ['./show-dut.component.scss'],
 })
 export class ShowDutComponent implements OnInit {
   @Input() set model(value: string) {

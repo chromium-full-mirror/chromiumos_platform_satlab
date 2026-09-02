@@ -7,6 +7,7 @@ import {
   OnInit,
   Output,
   SimpleChanges,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {MomentDateAdapter} from '@angular/material-moment-adapter';
 import {
@@ -19,14 +20,10 @@ import {
 // Since Moment.js doesn't have a default export, we normally need to import using the `* as`
 // syntax. However, rollup creates a synthetic default module and we thus need to import it using
 // the `default as` syntax.
-import * as _moment from 'moment';
-// tslint:disable-next-line:no-duplicate-imports
-import * as _rollupMoment from 'moment';
+import moment from 'moment';
 import {FormControl} from '@angular/forms';
 import {Subscription, distinctUntilChanged, map} from 'rxjs';
 import {toEndDate, toStartDate} from 'app/utils/date_helper';
-
-const moment = _rollupMoment || _moment;
 
 const MY_FORMATS = {
   parse: {
@@ -39,18 +36,19 @@ const MY_FORMATS = {
 };
 
 @Component({
-    selector: 'app-custom-datepicker',
-    templateUrl: './custom-datepicker.component.html',
-    styleUrls: ['./custom-datepicker.component.scss'],
-    providers: [
-        {
-            provide: DateAdapter,
-            useClass: MomentDateAdapter,
-            deps: [MAT_DATE_LOCALE],
-        },
-        { provide: MAT_DATE_FORMATS, useValue: MY_FORMATS },
-    ],
-    standalone: false
+  selector: 'app-custom-datepicker',
+  templateUrl: './custom-datepicker.component.html',
+  styleUrls: ['./custom-datepicker.component.scss'],
+  providers: [
+    {
+      provide: DateAdapter,
+      useClass: MomentDateAdapter,
+      deps: [MAT_DATE_LOCALE],
+    },
+    { provide: MAT_DATE_FORMATS, useValue: MY_FORMATS },
+  ],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class CustomDatepickerComponent implements OnInit, OnDestroy, OnChanges {
   @Input() value?: moment.Moment;

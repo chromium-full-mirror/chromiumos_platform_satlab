@@ -5,7 +5,7 @@ import {IItem} from '../models/selectable_item';
 import {toIterator} from 'app/utils/iterator';
 import {withinDays, toEndDate, toStartDate} from 'app/utils/date_helper';
 import {NotificationService} from 'app/services/notification.service';
-import * as moment from 'moment';
+import moment from 'moment';
 import {CustomDatepickerComponent} from 'app/custom-datepicker/custom-datepicker.component';
 import {AutocompleteSelectorComponent} from 'app/run_suite/common/autocomplete-selector/autocomplete-selector.component';
 import {

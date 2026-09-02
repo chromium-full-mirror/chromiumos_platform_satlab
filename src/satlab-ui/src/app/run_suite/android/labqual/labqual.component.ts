@@ -26,6 +26,7 @@ import {
   effect,
   signal,
   untracked,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {toObservable} from '@angular/core/rxjs-interop';
 import {MatDividerModule} from '@angular/material/divider';
@@ -41,18 +42,19 @@ import {
 } from 'rxjs';
 
 @Component({
-    selector: 'app-labqual',
-    imports: [
-        CommonModule,
-        LoadingComponent,
-        BasicSelectorComponent,
-        AutocompleteSelectorComponent,
-        LoadingButtonComponent,
-        MatDividerModule,
-        BuildSelectorComponent,
-    ],
-    templateUrl: './labqual.component.html',
-    styleUrls: ['./labqual.component.scss']
+  selector: 'app-labqual',
+  imports: [
+    CommonModule,
+    LoadingComponent,
+    BasicSelectorComponent,
+    AutocompleteSelectorComponent,
+    LoadingButtonComponent,
+    MatDividerModule,
+    BuildSelectorComponent,
+  ],
+  templateUrl: './labqual.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrls: ['./labqual.component.scss'],
 })
 export class LabqualComponent implements AfterViewInit, OnDestroy {
   protected isLoading = signal<{show: boolean; message: string}>({
@@ -159,47 +161,39 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
     private notification: NotificationService
   ) {
     this.refs = [
-      effect(
-        () => {
-          const dutInfo = this.dutInfo();
-          if (dutInfo) {
-            this.__listBranches([dutInfo.board, dutInfo.model]);
-          }
+      effect(() => {
+        const dutInfo = this.dutInfo();
+        if (dutInfo) {
+          this.__listBranches([dutInfo.board, dutInfo.model]);
         }
-      ),
+      }),
 
-      effect(
-        () => {
-          const branch = this.branchSignal();
-          if (branch) {
-            this.__listTargets(branch);
-          }
+      effect(() => {
+        const branch = this.branchSignal();
+        if (branch) {
+          this.__listTargets(branch);
         }
-      ),
+      }),
 
-      effect(
-        () => {
-          const target = this.targetSignal();
-          const board = untracked(() => this.dutInfo()?.board);
-          const branch = untracked(() => this.branchSignal());
-          if (board && branch && target) {
-            this.__listBuilds(board, branch, [target]);
-          }
+      effect(() => {
+        const target = this.targetSignal();
+        const board = untracked(() => this.dutInfo()?.board);
+        const branch = untracked(() => this.branchSignal());
+        if (board && branch && target) {
+          this.__listBuilds(board, branch, [target]);
         }
-      ),
-      effect(
-        () => {
-          const branch = this.branchSignal();
-          const target = this.targetSignal();
-          const build = this.buildSignal();
+      }),
+      effect(() => {
+        const branch = this.branchSignal();
+        const target = this.targetSignal();
+        const build = this.buildSignal();
 
-          this.noValidFormError.set(
-            build && (!branch || !target)
-              ? 'Please select branch and target before entering builds.'
-              : ''
-          );
-        }
-      ),
+        this.noValidFormError.set(
+          build && (!branch || !target)
+            ? 'Please select branch and target before entering builds.'
+            : ''
+        );
+      }),
     ];
 
     this.disposers = [

@@ -8,6 +8,7 @@ import {
   OnDestroy,
   Output,
   signal,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {IDut} from 'app/models/dut';
@@ -35,15 +36,16 @@ export type SourceValues =
     };
 
 @Component({
-    selector: 'app-test-source-picker',
-    imports: [
-        CommonModule,
-        AndroidBuildPickerComponent,
-        AutocompleteComponent,
-        BasicSelectorComponent,
-    ],
-    templateUrl: './test-source-picker.component.html',
-    styleUrls: ['./test-source-picker.component.scss']
+  selector: 'app-test-source-picker',
+  imports: [
+    CommonModule,
+    AndroidBuildPickerComponent,
+    AutocompleteComponent,
+    BasicSelectorComponent,
+  ],
+  templateUrl: './test-source-picker.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrls: ['./test-source-picker.component.scss'],
 })
 export class TestSourcePickerComponent implements OnDestroy {
   @Input() duts: IDut[] = [];
@@ -137,14 +139,12 @@ export class TestSourcePickerComponent implements OnDestroy {
     private notificationService: NotificationService
   ) {
     this.refs = [
-      effect(
-        () => {
-          const driveSuite = this.driveSelectedSuiteSignal();
-          if (driveSuite) {
-            this.__listDriveXtsPaths(driveSuite);
-          }
+      effect(() => {
+        const driveSuite = this.driveSelectedSuiteSignal();
+        if (driveSuite) {
+          this.__listDriveXtsPaths(driveSuite);
         }
-      ),
+      }),
       effect(() => {
         const isLoading = this.isFormLoading();
         queueMicrotask(() => {

@@ -1,6 +1,6 @@
 import {IBuildSelectFields} from '../../models/run_suite_fields';
 import {BuildSelectFormComponent} from '../common/build-select-form/build-select-form.component';
-import {Component, ViewChild} from '@angular/core';
+import {Component, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {FormControl} from '@angular/forms';
 import {ISimpleDUT} from 'app/models/dut';
 import {
@@ -15,10 +15,11 @@ import {checkSelectFields, isCustomBuild} from 'app/utils/validators';
 import {finalize} from 'rxjs';
 
 @Component({
-    selector: 'app-single-test',
-    templateUrl: './single-test.component.html',
-    styleUrls: ['./single-test.component.scss'],
-    standalone: false
+  selector: 'app-single-test',
+  templateUrl: './single-test.component.html',
+  styleUrls: ['./single-test.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class SingleTestComponent {
   @ViewChild(BuildSelectFormComponent) form!: BuildSelectFormComponent;

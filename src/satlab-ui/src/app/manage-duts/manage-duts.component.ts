@@ -4,14 +4,20 @@ import {IDut} from '../models/dut';
 import {NotificationService} from '../services/notification.service';
 import {SatlabRpcService} from '../services/satlab-rpc.service';
 import {startWithTap} from '../utils/rxjs_operator';
-import {AfterViewInit, Component, OnDestroy} from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  OnDestroy,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import {Subscription, finalize, from, interval} from 'rxjs';
 
 @Component({
-    selector: 'app-manage-duts',
-    templateUrl: './manage-duts.component.html',
-    styleUrls: ['./manage-duts.component.scss'],
-    standalone: false
+  selector: 'app-manage-duts',
+  templateUrl: './manage-duts.component.html',
+  styleUrls: ['./manage-duts.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class ManageDutsComponent implements AfterViewInit, OnDestroy {
   // duts contains the all duts are enrolled and connected to the SatLab

@@ -1,4 +1,9 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import {IWifiInfo} from '../models/wifi';
 import {FormControl} from '@angular/forms';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
@@ -7,10 +12,11 @@ import {startWithTap} from 'app/utils/rxjs_operator';
 import {finalize, from} from 'rxjs';
 
 @Component({
-    selector: 'app-wifi-config',
-    templateUrl: './wifi-config.component.html',
-    styleUrls: ['./wifi-config.component.scss'],
-    standalone: false
+  selector: 'app-wifi-config',
+  templateUrl: './wifi-config.component.html',
+  styleUrls: ['./wifi-config.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class WifiConfigComponent implements OnInit {
   protected wifiInfo: IWifiInfo = {

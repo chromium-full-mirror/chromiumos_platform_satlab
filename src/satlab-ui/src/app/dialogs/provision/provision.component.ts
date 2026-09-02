@@ -19,6 +19,7 @@ import {
   effect,
   signal,
   untracked,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {toObservable} from '@angular/core/rxjs-interop';
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
@@ -26,14 +27,14 @@ import {AndroidService} from 'app/services/android.service';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
 import {toIterator} from 'app/utils/iterator';
 import {startWithTap} from 'app/utils/rxjs_operator';
-import {Observable, finalize, from} from 'rxjs';
-import {text} from 'stream/consumers';
+import { Observable, finalize, from } from 'rxjs';
 
 @Component({
-    selector: 'app-provision',
-    templateUrl: './provision.component.html',
-    styleUrls: ['./provision.component.scss'],
-    standalone: false
+  selector: 'app-provision',
+  templateUrl: './provision.component.html',
+  styleUrls: ['./provision.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class ProvisionComponent implements OnDestroy {
   protected poolOptions: SelectableItem[] = [];
@@ -103,45 +104,35 @@ export class ProvisionComponent implements OnDestroy {
     this.boardSignal.set(data.board);
     this.modelSignal.set(data.models);
     this.refs = [
-      effect(
-        () => {
-          this.__onBoardChanged(
-            this.os(),
-            this.boardSignal(),
-            this.modelSignal()
-          );
-        }
-      ),
-      effect(
-        () => {
-          this.__onBranchChanged(this.branchSignal());
-        }
-      ),
-      effect(
-        () => {
-          const board = untracked(() => this.boardSignal());
-          const branch = untracked(() => this.branchSignal());
-          const target = this.targets();
-          this.__onTargetChanged(board, branch, target);
-        }
-      ),
-      effect(
-        () => {
-          const board = untracked(() => this.boardSignal());
-          const branch = untracked(() => this.branchSignal());
-          const target = untracked(() => this.targets());
-          const build = this.buildSignal();
-          this.__onBuildChanged(board, branch, target, build);
-        }
-      ),
-      effect(
-        () => {
-          const board = untracked(() => this.boardSignal());
-          const models = untracked(() => this.modelSignal());
-          const milestone = this.milestoneSignal();
-          this.__onMilestoneChanged(board, models[0], milestone);
-        }
-      ),
+      effect(() => {
+        this.__onBoardChanged(
+          this.os(),
+          this.boardSignal(),
+          this.modelSignal()
+        );
+      }),
+      effect(() => {
+        this.__onBranchChanged(this.branchSignal());
+      }),
+      effect(() => {
+        const board = untracked(() => this.boardSignal());
+        const branch = untracked(() => this.branchSignal());
+        const target = this.targets();
+        this.__onTargetChanged(board, branch, target);
+      }),
+      effect(() => {
+        const board = untracked(() => this.boardSignal());
+        const branch = untracked(() => this.branchSignal());
+        const target = untracked(() => this.targets());
+        const build = this.buildSignal();
+        this.__onBuildChanged(board, branch, target, build);
+      }),
+      effect(() => {
+        const board = untracked(() => this.boardSignal());
+        const models = untracked(() => this.modelSignal());
+        const milestone = this.milestoneSignal();
+        this.__onMilestoneChanged(board, models[0], milestone);
+      }),
     ];
   }
 

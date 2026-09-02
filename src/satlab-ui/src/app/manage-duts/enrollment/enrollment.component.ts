@@ -13,6 +13,7 @@ import {
   Output,
   computed,
   signal,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {FormControl, Validators} from '@angular/forms';
 import {MatDialog} from '@angular/material/dialog';
@@ -21,10 +22,11 @@ import {AndroidService} from 'app/services/android.service';
 import {catchError, concatAll, finalize, from, of, tap} from 'rxjs';
 
 @Component({
-    selector: 'app-enrollment',
-    templateUrl: './enrollment.component.html',
-    styleUrls: ['./enrollment.component.scss'],
-    standalone: false
+  selector: 'app-enrollment',
+  templateUrl: './enrollment.component.html',
+  styleUrls: ['./enrollment.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class EnrollmentComponent {
   @Input() DUTs: IDut[] = [];

@@ -14,6 +14,7 @@ import {
   effect,
   signal,
   untracked,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {ANDROID_TEST_PREFIX} from 'app/constants';
@@ -31,16 +32,17 @@ import {
 } from 'app/utils/operators';
 
 @Component({
-    selector: 'app-suite',
-    templateUrl: './suite.component.html',
-    styleUrls: ['./suite.component.scss'],
-    imports: [
-        AutocompleteSelectorComponent,
-        CommonModule,
-        MatButtonModule,
-        MatIconModule,
-        MatTooltipModule,
-    ]
+  selector: 'app-suite',
+  templateUrl: './suite.component.html',
+  styleUrls: ['./suite.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    AutocompleteSelectorComponent,
+    CommonModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+  ],
 })
 export class SuiteComponent implements OnChanges, OnDestroy {
   @ViewChild('testSelector') selector?: AutocompleteSelectorComponent;
@@ -100,35 +102,29 @@ export class SuiteComponent implements OnChanges, OnDestroy {
     private notification: NotificationService
   ) {
     this.effectRefs = [
-      effect(
-        () => {
-          const build = this.buildSignal();
-          const t2 = this.targetSignal();
+      effect(() => {
+        const build = this.buildSignal();
+        const t2 = this.targetSignal();
 
-          if (build && t2) {
-            this.__listSuites(build, t2);
-          }
+        if (build && t2) {
+          this.__listSuites(build, t2);
         }
-      ),
+      }),
 
-      effect(
-        () => {
-          const build = untracked(() => this.buildSignal());
-          const target = untracked(() => this.targetSignal());
-          const suite = this.suiteValid();
+      effect(() => {
+        const build = untracked(() => this.buildSignal());
+        const target = untracked(() => this.targetSignal());
+        const suite = this.suiteValid();
 
-          if (build && target && suite) {
-            this.__listTests(build, target, suite as string);
-          }
+        if (build && target && suite) {
+          this.__listTests(build, target, suite as string);
         }
-      ),
-      effect(
-        () => {
-          if (this.suiteSignal() === '') {
-            this.suiteSelector?.clear();
-          }
+      }),
+      effect(() => {
+        if (this.suiteSignal() === '') {
+          this.suiteSelector?.clear();
         }
-      ),
+      }),
       effect(() => {
         const loading = this.isLoading();
         queueMicrotask(() => {

@@ -5,6 +5,7 @@ import {
   Input,
   Output,
   signal,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {
@@ -18,10 +19,11 @@ import {AndroidBuildPickerComponent} from '../android-build-picker/android-build
 import {LoadingComponent} from 'app/run_suite/common/loading/loading.component';
 
 @Component({
-    selector: 'app-provision-form',
-    imports: [AndroidBuildPickerComponent, CommonModule, LoadingComponent],
-    templateUrl: './provision-form.component.html',
-    styleUrls: ['./provision-form.component.scss']
+  selector: 'app-provision-form',
+  imports: [AndroidBuildPickerComponent, CommonModule, LoadingComponent],
+  templateUrl: './provision-form.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrls: ['./provision-form.component.scss'],
 })
 export class ProvisionFormComponent {
   // Input parameters.

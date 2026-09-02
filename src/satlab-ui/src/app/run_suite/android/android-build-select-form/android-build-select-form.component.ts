@@ -15,6 +15,7 @@ import {
   computed,
   inject,
   signal,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {toObservable, takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {
@@ -69,6 +70,7 @@ import {toIterator} from 'app/utils/iterator';
   selector: 'app-android-build-select-form',
   templateUrl: './android-build-select-form.component.html',
   styleUrls: ['./android-build-select-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     LoadingButtonComponent,

@@ -1,4 +1,9 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import {FIRMWARE_ARTIFACT} from 'app/constants';
 import {
   defaultBuildSelectFields,
@@ -12,10 +17,11 @@ import {BehaviorSubject, concatMap, map, Subscription, tap} from 'rxjs';
 import {startWithTap} from 'app/utils/rxjs_operator';
 
 @Component({
-    selector: 'app-lab-qual',
-    templateUrl: './lab-qual.component.html',
-    styleUrls: ['./lab-qual.component.scss'],
-    standalone: false
+  selector: 'app-lab-qual',
+  templateUrl: './lab-qual.component.html',
+  styleUrls: ['./lab-qual.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class LabQualComponent implements OnInit, OnDestroy {
   // the parameters that we need to fill out.

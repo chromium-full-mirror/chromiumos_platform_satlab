@@ -1,4 +1,4 @@
-import {Component, Inject} from '@angular/core';
+import {Component, Inject, ChangeDetectionStrategy} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
 import {OpenCCDReply} from 'app/services/satlabrpc_pb';
@@ -6,10 +6,11 @@ import {ClientReadableStream} from 'grpc-web';
 import {BehaviorSubject} from 'rxjs';
 
 @Component({
-    selector: 'app-open-ccd',
-    templateUrl: './open-ccd.component.html',
-    styleUrls: ['./open-ccd.component.scss'],
-    standalone: false
+  selector: 'app-open-ccd',
+  templateUrl: './open-ccd.component.html',
+  styleUrls: ['./open-ccd.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class OpenCcdComponent {
   private readonly servoSerial: string = '';

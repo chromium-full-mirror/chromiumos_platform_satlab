@@ -11,6 +11,7 @@ import {
   Output,
   signal,
   untracked,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {IDut} from '../../../../models/dut';
@@ -39,10 +40,11 @@ const TEST_PRODUCTS = [
 ];
 
 @Component({
-    selector: 'app-android-build-picker',
-    imports: [AutocompleteComponent, CommonModule],
-    templateUrl: './android-build-picker.component.html',
-    styleUrls: ['./android-build-picker.component.scss']
+  selector: 'app-android-build-picker',
+  imports: [AutocompleteComponent, CommonModule],
+  templateUrl: './android-build-picker.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrls: ['./android-build-picker.component.scss'],
 })
 export class AndroidBuildPickerComponent implements OnDestroy {
   // Input parameters.
@@ -159,50 +161,44 @@ export class AndroidBuildPickerComponent implements OnDestroy {
 
   constructor(private androidService: AndroidService) {
     this.refs = [
-      effect(
-        () => {
-          // If board is not present, component is not active or branch options are already present, do nothing.
-          const board = this.boardSignal();
-          const active = this.activeSignal();
-          const hasBranch = untracked(
-            () => this.filteredBranchOptions().length > 0
-          );
-          if (!board || !active || (active && hasBranch)) return;
+      effect(() => {
+        // If board is not present, component is not active or branch options are already present, do nothing.
+        const board = this.boardSignal();
+        const active = this.activeSignal();
+        const hasBranch = untracked(
+          () => this.filteredBranchOptions().length > 0
+        );
+        if (!board || !active || (active && hasBranch)) return;
 
-          const model = untracked(() => this.modelSignal());
-          const sameBoardModels = untracked(() => this.sameBoardModels());
+        const model = untracked(() => this.modelSignal());
+        const sameBoardModels = untracked(() => this.sameBoardModels());
 
-          const req =
-            this._type === 'test' ? TEST_PRODUCTS : [...sameBoardModels, board];
-          this.__listBranchesAndUpdate(req, {model, sameBoardModels});
-        }
-      ),
+        const req =
+          this._type === 'test' ? TEST_PRODUCTS : [...sameBoardModels, board];
+        this.__listBranchesAndUpdate(req, {model, sameBoardModels});
+      }),
 
       // If branch changed, reset target, build, then call listTargets if branch is present.
-      effect(
-        () => {
-          const branch = this.branchSignal();
+      effect(() => {
+        const branch = this.branchSignal();
 
-          if (!branch) return;
-          const board = untracked(() => this.boardSignal());
-          const model = untracked(() => this.modelSignal());
-          const sameBoardModels = untracked(() => this.sameBoardModels());
+        if (!branch) return;
+        const board = untracked(() => this.boardSignal());
+        const model = untracked(() => this.modelSignal());
+        const sameBoardModels = untracked(() => this.sameBoardModels());
 
-          this.__listTargets(branch, {board, model, sameBoardModels});
-        }
-      ),
+        this.__listTargets(branch, {board, model, sameBoardModels});
+      }),
 
       // If target changed, reset build, then call listBuilds if target is present.
-      effect(
-        () => {
-          const target = this.targetSignal();
-          const board = untracked(() => this.boardSignal());
-          const branch = untracked(() => this.branchSignal());
+      effect(() => {
+        const target = this.targetSignal();
+        const board = untracked(() => this.boardSignal());
+        const branch = untracked(() => this.branchSignal());
 
-          if (!target) return;
-          this.__listBuilds(board, branch, [target]);
-        }
-      ),
+        if (!target) return;
+        this.__listBuilds(board, branch, [target]);
+      }),
       effect(() => {
         const loading = this.loadingSignal();
         queueMicrotask(() => {

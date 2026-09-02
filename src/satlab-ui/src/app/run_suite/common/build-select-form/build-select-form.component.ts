@@ -9,6 +9,7 @@ import {
   Output,
   SimpleChanges,
   ViewChild,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {IDut, ISimpleDUT} from '../../../models/dut';
 import {BuildStatus, SelectableItem} from '../../../models/selectable_item';
@@ -25,10 +26,11 @@ import {
 import {labelDlmSkuID} from 'app/models/dims';
 
 @Component({
-    selector: 'app-build-select-form',
-    templateUrl: './build-select-form.component.html',
-    styleUrls: ['./build-select-form.component.scss'],
-    standalone: false
+  selector: 'app-build-select-form',
+  templateUrl: './build-select-form.component.html',
+  styleUrls: ['./build-select-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class BuildSelectFormComponent
   implements AfterViewInit, OnDestroy, OnChanges, OnInit

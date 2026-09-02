@@ -6,6 +6,7 @@ import {
   OnInit,
   Output,
   SimpleChanges,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {IDut} from '../../models/dut';
 import {SelectionModel} from '@angular/cdk/collections';
@@ -21,17 +22,21 @@ import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
 import {SatlabRpcService} from '../../services/satlab-rpc.service';
 
 @Component({
-    selector: 'app-view-duts',
-    templateUrl: './view-duts.component.html',
-    styleUrls: ['./view-duts.component.scss'],
-    animations: [
-        trigger('detailExpand', [
-            state('collapsed', style({ height: '0px', minHeight: '0' })),
-            state('expanded', style({ height: '50px' })),
-            transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
-        ]),
-    ],
-    standalone: false
+  selector: 'app-view-duts',
+  templateUrl: './view-duts.component.html',
+  styleUrls: ['./view-duts.component.scss'],
+  animations: [
+    trigger('detailExpand', [
+      state('collapsed', style({height: '0px', minHeight: '0'})),
+      state('expanded', style({height: '50px'})),
+      transition(
+        'expanded <=> collapsed',
+        animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')
+      ),
+    ]),
+  ],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class ViewDutsComponent implements OnChanges, OnInit {
   @Input() DUTs: IDut[] = [];

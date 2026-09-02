@@ -9,15 +9,16 @@
       "projectType": "application",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular-devkit/build-angular:application",
           "options": {
             "aot": true,
-            "outputPath": "dist",
+            "outputPath": {
+              "base": "dist"
+            },
             "index": "src/index.html",
-            "main": "src/main.ts",
             "tsConfig": "src/tsconfig.json",
             "polyfills": [
-              "zone.js",
+              "zone.js"
             ],
             "allowedCommonJsDependencies": [
               "app/services/satlabrpc_pb",
@@ -36,7 +37,13 @@
             "styles": [
               "src/styles.scss"
             ],
-            "scripts": []
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "src"
+              ]
+            },
+            "scripts": [],
+            "browser": "src/main.ts"
           },
           "configurations": {
             "source": {
@@ -94,8 +101,6 @@
               "namedChunks": false,
               "aot": true,
               "extractLicenses": true,
-              "vendorChunk": false,
-              "buildOptimizer": true,
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
@@ -232,6 +237,6 @@
     }
   },
   "cli": {
-    "analytics": "0b3dd4e3-88fd-4f3c-b5c9-ab099c19636a",
+    "analytics": "0b3dd4e3-88fd-4f3c-b5c9-ab099c19636a"
   }
 }

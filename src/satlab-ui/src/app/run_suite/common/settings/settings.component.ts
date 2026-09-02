@@ -6,6 +6,7 @@ import {
   Input,
   Output,
   signal,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {
@@ -18,10 +19,11 @@ import {MatExpansionModule} from '@angular/material/expansion';
 import {MatIconModule} from '@angular/material/icon';
 
 @Component({
-    selector: 'app-settings',
-    imports: [CommonModule, MatExpansionModule, MatIconModule],
-    templateUrl: './settings.component.html',
-    styleUrls: ['./settings.component.scss']
+  selector: 'app-settings',
+  imports: [CommonModule, MatExpansionModule, MatIconModule],
+  templateUrl: './settings.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrls: ['./settings.component.scss'],
 })
 // TODO: replace the old advance settings component with this.
 export class SettingsComponent {

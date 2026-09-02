@@ -3,13 +3,14 @@ import {INotification} from '../models/notification';
 import {AuthService} from '../services/auth.service';
 import {NotificationService} from '../services/notification.service';
 import {UpdateService} from '../services/update.service';
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 
 @Component({
-    selector: 'app-sidebar',
-    templateUrl: './app-sidebar.component.html',
-    styleUrls: ['./app-sidebar.component.scss'],
-    standalone: false
+  selector: 'app-sidebar',
+  templateUrl: './app-sidebar.component.html',
+  styleUrls: ['./app-sidebar.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class AppSidebarComponent {
   protected navTabs: SidebarEntry[] = [

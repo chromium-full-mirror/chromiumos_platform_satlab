@@ -1,4 +1,10 @@
-import {AfterViewInit, Component, OnDestroy, OnInit} from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  OnDestroy,
+  OnInit,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import {IFirmwareDUT} from '../../models/dut';
 import {SelectionModel} from '@angular/cdk/collections';
 import {distinctUntilChanged, finalize, from, map, Subscription} from 'rxjs';
@@ -9,10 +15,11 @@ import {startWithTap} from '../../utils/rxjs_operator';
 import {NotificationService} from '../../services/notification.service';
 
 @Component({
-    selector: 'app-firmware',
-    templateUrl: './firmware.component.html',
-    styleUrls: ['./firmware.component.scss'],
-    standalone: false
+  selector: 'app-firmware',
+  templateUrl: './firmware.component.html',
+  styleUrls: ['./firmware.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class FirmwareComponent implements OnInit, AfterViewInit, OnDestroy {
   protected DUTs: IFirmwareDUT[] = [];
