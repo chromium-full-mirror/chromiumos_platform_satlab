@@ -5,3 +5,6 @@
 ARG BASE_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/base-containers
 
 FROM ${BASE_REGISTRY_URI}/alpine:3.17_alpha20220715-edge
+
+RUN apk upgrade --no-cache \
+    && apk add --no-cache socat
