@@ -374,7 +374,7 @@ services:
       - dualconduit
       - dns
       - labservice
- ###########################################################################labservice
+  ###########################################################################labservice
   labservice:
     container_name: labservice
     image: ${REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab}/labservice:${LABSERVICE:-release}
@@ -400,6 +400,16 @@ services:
       - satlab_keys:/creds/service_accounts:rw
     depends_on:
       - dns
+  ###########################################################################drone-proxy
+  drone-proxy:
+    container_name: drone-proxy
+    image: ${REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab}/satlab-helper:${SATLAB_HELPER:-release}
+    network_mode: "service:drone"
+    restart: always
+    command: "socat TCP4-LISTEN:1485,fork TCP4:labservice:1485"
+    depends_on:
+      - drone
+      - labservice
 ##############################################################################volumes
 volumes:
   logs: {}
