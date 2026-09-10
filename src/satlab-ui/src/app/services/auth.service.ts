@@ -31,6 +31,12 @@ export class AuthService {
     return this.logSub.getValue();
   }
 
+  public async reloadAuthState() {
+    this.__loaded = false;
+    await this.__isAuth();
+    return this.logSub.getValue();
+  }
+
   /**
    * __isAuth retrieves the service account from the backend.
    * If the `isAuth` is true, it means the user has logged in before.

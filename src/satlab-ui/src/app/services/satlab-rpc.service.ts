@@ -1,3 +1,4 @@
+import * as grpcWeb from 'grpc-web';
 import {RunAndroidOSRequest, RunChromeOSRequest, Test} from 'app/models/run';
 import {IBoto} from '../models/boto';
 import {IDims} from '../models/dims';
@@ -40,8 +41,11 @@ import {
   DownloadJobLogRequest,
   DownloadJobLogStatus,
   DownloadLogRequest,
+  DownloadLogResponse,
   Dut,
   GetCloudConfigurationRequest,
+  StartDeviceAuthRequest,
+  PollDeviceAuthRequest,
   GetDutDetailRequest,
   GetDutDetailResponse,
   GetNetworkInfoRequest,
@@ -61,6 +65,7 @@ import {
   ListMilestonesRequest,
   ListTestPlansRequest,
   OpenCCDRequest,
+  OpenCCDReply,
   RebootRequest,
   RepairDutsRequest,
   RepairDutsResponse,
@@ -616,13 +621,15 @@ export class SatlabRpcService {
   }
 
   /**
-   * Setup SatLab cloud configuration
-   * @param b the parameters of boto (boto_key, boto_secret, bucket_name)
+   * Setup SatLab cloud configuration.
+   * @param b the bucket to configure, plus the legacy BOTO key and secret when
+   *     the box is still being set up from a boto file. The Google OAuth flow
+   *     passes the bucket on its own.
    */
-  public async setCloudConfiguration(b: IBoto) {
+  public async setCloudConfiguration(b: Partial<IBoto> & {bucket: string}) {
     const req = new SetCloudConfigurationRequest()
-      .setBotoKeyId(b.key)
-      .setBotoKeySecret(b.secret)
+      .setBotoKeyId(b.key || '')
+      .setBotoKeySecret(b.secret || '')
       .setGcsBucketUrl(b.bucket);
 
     await this.client.setCloudConfiguration(req, {});
@@ -642,6 +649,36 @@ export class SatlabRpcService {
       key: resp.getBotoKeyId(),
       bucket: resp.getGcsBucketUrl(),
       secret: 'secret',
+      userEmail: resp.getUserEmail(),
+      isUserAuthenticated: resp.getIsUserAuthenticated(),
+    };
+  }
+
+  /**
+   * Start Google OAuth 2.0 Device Flow
+   */
+  public async startDeviceAuth() {
+    const req = new StartDeviceAuthRequest();
+    const resp = await this.client.startDeviceAuth(req, {});
+    return {
+      deviceCode: resp.getDeviceCode(),
+      userCode: resp.getUserCode(),
+      verificationUrl: resp.getVerificationUrl(),
+      expiresIn: resp.getExpiresIn(),
+      interval: resp.getInterval() || 5,
+    };
+  }
+
+  /**
+   * Poll Google OAuth 2.0 Device Flow status
+   */
+  public async pollDeviceAuth(deviceCode: string) {
+    const req = new PollDeviceAuthRequest().setDeviceCode(deviceCode);
+    const resp = await this.client.pollDeviceAuth(req, {});
+    return {
+      status: resp.getStatus(),
+      errorMessage: resp.getErrorMessage(),
+      authenticatedEmail: resp.getAuthenticatedEmail(),
     };
   }
 
@@ -840,13 +877,19 @@ export class SatlabRpcService {
   }) {
     const bytes = [];
     const req = new DownloadLogRequest();
-    this.client
-      .downloadLog(req, {})
-      .on('error', e => {
+    (
+      this.client.downloadLog(
+        req,
+        {}
+      ) as unknown as grpcWeb.ClientReadableStream<DownloadLogResponse>
+    )
+      .on('error', (e: unknown) => {
         p.onError(e);
         p.finalize();
       })
-      .on('data', resp => bytes.push(resp.getFileChunk_asU8()))
+      .on('data', (resp: DownloadLogResponse) =>
+        bytes.push(resp.getFileChunk_asU8())
+      )
       .on('end', () => {
         p.onSuccess(
           new Blob([...bytes], {
@@ -883,15 +926,19 @@ export class SatlabRpcService {
     onData: (data: string) => void;
     onError: (e: unknown) => void;
     finalize: () => void;
-  }) {
+  }): grpcWeb.ClientReadableStream<OpenCCDReply> {
     const req = new OpenCCDRequest()
       .setServoSerial(p.servoSerial)
       .setRmaAuth(p.rmaAuth);
 
-    const stream = this.client
-      .openCCD(req, {})
-      .on('error', e => p.onError(e))
-      .on('data', resp => p.onData(resp.getMessage()))
+    const stream = (
+      this.client.openCCD(
+        req,
+        {}
+      ) as unknown as grpcWeb.ClientReadableStream<OpenCCDReply>
+    )
+      .on('error', (e: unknown) => p.onError(e))
+      .on('data', (resp: OpenCCDReply) => p.onData(resp.getMessage()))
       .on('end', () => p.finalize());
 
     return stream;

@@ -8,109 +8,367 @@
 
     <div class="header">
       <p class="title">Cloud Configuration</p>
-      <span
-        (click)="editConfig()"
-        *ngIf="cloudConfigurationDisable"
-        class="material-icon edit-icon"
-        >edit_note</span
-      >
     </div>
 
-    <!-- Boto key input box-->
-    <div class="input-box-container">
-      <p>Boto Key ID*</p>
-      <mat-form-field class="input-box full-width">
-        <input
-          [(ngModel)]="boto.key"
-          [disabled]="cloudConfigurationDisable"
-          matInput
-          required
-        />
-        <mat-error>This field is required</mat-error>
-      </mat-form-field>
+    <!-- Status Section -->
+    <div class="auth-status-card" [class.authenticated]="isAuthenticated">
+      <div class="status-header">
+        <mat-icon class="status-icon">{{ isAuthenticated ? 'check_circle' : 'info' }}</mat-icon>
+        <span class="status-title">Status: {{ isAuthenticated ? 'Authenticated' : 'Not Authenticated' }}</span>
+      </div>
+      <p class="status-desc" *ngIf="isAuthenticated">
+        Satlab is configured and authenticated.
+        <span *ngIf="boto.bucket"> Partner GCS Bucket: <strong>gs://{{ boto.bucket }}/</strong></span>
+      </p>
+      <p class="status-desc" *ngIf="!isAuthenticated">
+        Satlab has not been configured with partner cloud credentials yet. Please sign in with Google below.
+      </p>
     </div>
 
-    <!-- Boto secret input box-->
-    <div class="input-box-container">
-      <p>Boto Key Secret*</p>
-      <mat-form-field class="input-box full-width">
-        <input
-          [(ngModel)]="boto.secret"
-          [disabled]="cloudConfigurationDisable"
-          matInput
-          required
-          type="password"
-        />
-        <mat-error>This field is required</mat-error>
-      </mat-form-field>
-    </div>
+    <!-- Primary Google Sign-In Card -->
+    <mat-card class="google-auth-card">
+      <mat-card-header>
+        <mat-card-title>
+          <div class="google-title-wrapper">
+            <mat-icon color="primary">account_circle</mat-icon>
+            <span>Google Account Authentication</span>
+          </div>
+        </mat-card-title>
+        <!-- Subtitles depending on state -->
+        <mat-card-subtitle *ngIf="!isAuthenticated && !isOAuthCompleted">
+          Authenticate using your partner Google account (OAuth 2.0 Device Flow) to securely provision your Service Account credentials.
+        </mat-card-subtitle>
+        <mat-card-subtitle *ngIf="!isAuthenticated && isOAuthCompleted">
+          Signed in as <strong>{{ userEmail || 'your Google account' }}</strong>. Enter your partner GCS bucket below to complete setup.
+        </mat-card-subtitle>
+        <mat-card-subtitle *ngIf="isAuthenticated && cloudConfigurationDisable">
+          <ng-container *ngIf="userEmail">
+            Configured with partner account <strong>{{ userEmail }}</strong>.
+          </ng-container>
+          <!--
+            A box on legacy BOTO keys reports itself as authenticated, so it
+            reaches this subtitle too. Claiming a Service Account there tells
+            the partner the migration is already done when it has not started.
+          -->
+          <ng-container *ngIf="!userEmail && boto.key">
+            Satlab is still using legacy BOTO credentials. Reconfigure to
+            migrate to a Google account.
+          </ng-container>
+          <ng-container *ngIf="!userEmail && !boto.key">
+            Satlab is securely provisioned with partner Service Account credentials.
+          </ng-container>
+        </mat-card-subtitle>
+        <mat-card-subtitle *ngIf="isAuthenticated && !cloudConfigurationDisable">
+          <ng-container *ngIf="isOAuthCompleted">
+            Signed in as <strong>{{ userEmail || 'your Google account' }}</strong>. Click Save &amp; Restart to download new credentials and reboot.
+          </ng-container>
+          <ng-container *ngIf="!isOAuthCompleted">
+            To change the partner GCS bucket, sign in with a Google account that has access to the bucket.
+          </ng-container>
+        </mat-card-subtitle>
+      </mat-card-header>
 
-    <!-- bucket input box-->
-    <div class="input-box-container">
-      <p>GCS Bucket*</p>
-      <mat-form-field class="input-box full-width">
-        <input
-          [(ngModel)]="boto.bucket"
-          [disabled]="cloudConfigurationDisable"
-          matInput
-          required
-        />
-        <span matPrefix>gs://</span>
-        <div class="bucket-wrapper" matSuffix>
-          <span>/</span>
-          <span>
-            <mat-icon
-              *ngIf="!cloudConfigurationDisable"
-              class="link-icon"
-              id="link-off-icon"
-              >link_off</mat-icon
-            >
-            <ng-container *ngIf="cloudConfigurationDisable">
-              <a
-                href="{{
-                  'https://console.cloud.google.com/storage/browser/' +
-                    boto.bucket +
-                    '/'
-                }}"
-                id="gcs-link"
-                target="_blank"
-                ><mat-icon class="link-icon" id="link-on-icon"
-                  >link</mat-icon
-                ></a
-              >
-            </ng-container>
-          </span>
+      <!-- Content (Bucket input): shown when user has authenticated or is configuring bucket -->
+      <mat-card-content *ngIf="isAuthenticated || isOAuthCompleted" class="authenticated-setup-content">
+        <!-- Account badge when user is logged in via OAuth in current session -->
+        <div class="user-account-badge" *ngIf="isOAuthCompleted && userEmail">
+          <mat-icon color="primary">account_circle</mat-icon>
+          <span>Signed in as <strong>{{ userEmail }}</strong></span>
         </div>
-        <mat-error>This field is required</mat-error>
-      </mat-form-field>
-    </div>
 
-    <!-- Button Group -->
-    <div class="btn-group">
-      <button
-        (click)="cancelEditing()"
-        *ngIf="
-          (editingBoto.key !== '' || internalUser) && !cloudConfigurationDisable
-        "
-        color="warn"
-        mat-raised-button
-      >
-        Cancel
-      </button>
-      <button
-        (click)="onSetCloudConfigurationClicked()"
-        [disabled]="
-          !(boto.key !== '' && boto.secret !== '' && boto.bucket !== '') ||
-          cloudConfigurationDisable
-        "
-        color="primary"
-        mat-raised-button
-      >
-        Submit
-      </button>
-    </div>
+        <div class="input-box-container">
+          <p>Partner GCS Bucket*</p>
+          <mat-form-field class="input-box full-width">
+            <input
+              [(ngModel)]="oauthBucket"
+              [disabled]="cloudConfigurationDisable"
+              matInput
+              placeholder="partner-bucket-name"
+              required
+            />
+            <span matPrefix>gs://</span>
+            <span matSuffix>/</span>
+            <mat-error>This field is required</mat-error>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions class="google-card-actions">
+        <!-- View mode when already authenticated -->
+        <ng-container *ngIf="isAuthenticated && cloudConfigurationDisable">
+          <button
+            mat-stroked-button
+            color="primary"
+            (click)="editGoogleConfig()"
+          >
+            <mat-icon>edit</mat-icon>
+            Reconfigure
+          </button>
+        </ng-container>
+
+        <!-- Initial setup: not authenticated, not logged in yet -->
+        <ng-container *ngIf="!isAuthenticated && !isOAuthCompleted">
+          <button
+            mat-raised-button
+            color="primary"
+            class="google-signin-btn"
+            (click)="onStartGoogleSignIn()"
+          >
+            <mat-icon>login</mat-icon>
+            Sign in with Google
+          </button>
+        </ng-container>
+
+        <!-- Initial setup: logged in via OAuth, entering bucket -->
+        <ng-container *ngIf="!isAuthenticated && isOAuthCompleted">
+          <button
+            mat-raised-button
+            color="primary"
+            [disabled]="!oauthBucket.trim() || cloudConfigurationLoading"
+            (click)="onCompleteOAuthSetup()"
+          >
+            <mat-icon>check_circle</mat-icon>
+            Complete Setup & Restart
+          </button>
+          <button
+            mat-button
+            color="accent"
+            [disabled]="cloudConfigurationLoading"
+            (click)="onStartGoogleSignIn()"
+          >
+            <mat-icon>sync_alt</mat-icon>
+            Switch Account
+          </button>
+        </ng-container>
+
+        <!-- Reconfiguration mode (already authenticated, editing) -->
+        <ng-container *ngIf="isAuthenticated && !cloudConfigurationDisable">
+          <!-- When user has NOT logged in via OAuth in this session -->
+          <ng-container *ngIf="!isOAuthCompleted">
+            <button
+              mat-raised-button
+              color="primary"
+              [disabled]="!oauthBucket.trim() || cloudConfigurationLoading"
+              (click)="onStartGoogleSignIn()"
+            >
+              <mat-icon>login</mat-icon>
+              Sign in with Google to Apply
+            </button>
+            <button
+              mat-button
+              (click)="cancelEditing()"
+            >
+              Cancel
+            </button>
+          </ng-container>
+
+          <!-- When user HAS logged in via OAuth in this session -->
+          <ng-container *ngIf="isOAuthCompleted">
+            <button
+              mat-raised-button
+              color="primary"
+              [disabled]="!oauthBucket.trim() || cloudConfigurationLoading"
+              (click)="onCompleteOAuthSetup()"
+            >
+              <mat-icon>check_circle</mat-icon>
+              Save & Restart
+            </button>
+            <button
+              mat-button
+              color="accent"
+              [disabled]="cloudConfigurationLoading"
+              (click)="onStartGoogleSignIn()"
+            >
+              <mat-icon>sync_alt</mat-icon>
+              Switch Account
+            </button>
+            <button
+              mat-button
+              (click)="cancelEditing()"
+            >
+              Cancel
+            </button>
+          </ng-container>
+        </ng-container>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- BOTO Credentials Accordion -->
+    <mat-expansion-panel class="boto-panel" [(expanded)]="isBotoExpanded">
+      <mat-expansion-panel-header>
+        <mat-panel-title class="boto-panel-title">
+          <span>Use BOTO credentials</span>
+        </mat-panel-title>
+        <mat-panel-description *ngIf="cloudConfigurationDisable" class="boto-panel-actions">
+          <span
+            (click)="editConfig(); $event.stopPropagation()"
+            class="material-icon edit-icon"
+            matTooltip="Edit BOTO credentials"
+            >edit_note</span
+          >
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+
+      <div class="deprecated-content">
+        <!-- Boto key input box-->
+        <div class="input-box-container">
+          <p>Boto Key ID*</p>
+          <mat-form-field class="input-box full-width">
+            <input
+              [(ngModel)]="boto.key"
+              [disabled]="cloudConfigurationDisable"
+              matInput
+              required
+            />
+            <mat-error>This field is required</mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Boto secret input box-->
+        <div class="input-box-container">
+          <p>Boto Key Secret*</p>
+          <mat-form-field class="input-box full-width">
+            <input
+              [(ngModel)]="boto.secret"
+              [disabled]="cloudConfigurationDisable"
+              matInput
+              required
+              type="password"
+            />
+            <mat-error>This field is required</mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- bucket input box-->
+        <div class="input-box-container">
+          <p>GCS Bucket*</p>
+          <mat-form-field class="input-box full-width">
+            <input
+              [(ngModel)]="boto.bucket"
+              [disabled]="cloudConfigurationDisable"
+              matInput
+              required
+            />
+            <span matPrefix>gs://</span>
+            <div class="bucket-wrapper" matSuffix>
+              <span>/</span>
+              <span>
+                <mat-icon
+                  *ngIf="!cloudConfigurationDisable"
+                  class="link-icon"
+                  id="link-off-icon"
+                  >link_off</mat-icon
+                >
+                <ng-container *ngIf="cloudConfigurationDisable">
+                  <a
+                    href="{{
+                      'https://console.cloud.google.com/storage/browser/' +
+                        boto.bucket +
+                        '/'
+                    }}"
+                    id="gcs-link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    ><mat-icon class="link-icon" id="link-on-icon"
+                      >link</mat-icon
+                    ></a
+                  >
+                </ng-container>
+              </span>
+            </div>
+            <mat-error>This field is required</mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Button Group -->
+        <div class="btn-group">
+          <!--
+            Cancel undoes an edit, so it belongs on screen exactly while one is
+            in progress. Inferring that from the stashed key missed the boxes
+            whose configuration has no BOTO key at all, and `internalUser` put
+            the button up before the user had touched anything, where clicking
+            it locked the form over unsaved input.
+          -->
+          <button
+            (click)="cancelEditing()"
+            *ngIf="isEditingBoto && !cloudConfigurationDisable"
+            color="warn"
+            mat-raised-button
+          >
+            Cancel
+          </button>
+          <button
+            (click)="onSetCloudConfigurationClicked()"
+            [disabled]="
+              !(boto.key !== '' && boto.secret !== '' && boto.bucket !== '') ||
+              cloudConfigurationDisable
+            "
+            color="primary"
+            mat-raised-button
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    </mat-expansion-panel>
   </div>
+
   <div class="configuration-wrapper">
     <app-wifi-config></app-wifi-config>
+  </div>
+</div>
+
+<!-- Google OAuth Device Flow Modal -->
+<div class="oauth-modal-backdrop" *ngIf="isOAuthModalOpen">
+  <div class="oauth-modal">
+    <div class="oauth-modal-header">
+      <h3>Sign in with Google</h3>
+      <button mat-icon-button (click)="closeOAuthModal()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Starting state -->
+    <div class="oauth-body centered" *ngIf="isOAuthStarting">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p class="loading-msg">Initiating Google Device Authorization...</p>
+    </div>
+
+    <!-- Polling / User code state -->
+    <div class="oauth-body" *ngIf="!isOAuthStarting">
+      <div class="oauth-step">
+        <span class="step-num">1</span>
+        <span>Open the Google authorization page:</span>
+      </div>
+      <div class="verify-link-box">
+        <a
+          [href]="verificationUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="verify-link"
+        >
+          {{ verificationUrl }}
+          <mat-icon class="external-icon">open_in_new</mat-icon>
+        </a>
+      </div>
+
+      <div class="oauth-step">
+        <span class="step-num">2</span>
+        <span>Enter the code:</span>
+      </div>
+      <div class="code-box-container">
+        <span class="user-code">{{ userCode }}</span>
+        <button mat-icon-button (click)="copyUserCode()" matTooltip="Copy code">
+          <mat-icon>content_copy</mat-icon>
+        </button>
+      </div>
+
+      <div class="polling-status" *ngIf="isOAuthPolling">
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        <p class="polling-text">Waiting for approval on your Google account...</p>
+      </div>
+
+      <p class="error-text" *ngIf="pollError">{{ pollError }}</p>
+    </div>
   </div>
 </div>
