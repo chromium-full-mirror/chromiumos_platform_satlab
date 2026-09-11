@@ -116,4 +116,4 @@ dhcp: export DOCKER_BUILDKIT := 1
 dhcp:
 	docker build ${EXTRA_ARGS} -t ${REGISTRY_URI}/satlab-dhcp:${LABEL} \
 		-f dockerfiles/dhcp/Dockerfile .
-	docker push ${REGISTRY_URI}/satlab-dns:${LABEL}
+	docker push ${REGISTRY_URI}/satlab-dhcp:${LABEL}
