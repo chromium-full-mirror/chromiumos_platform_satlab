@@ -4,7 +4,7 @@
 
 ARG BASE_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/base-containers
 
-FROM ${BASE_REGISTRY_URI}/debian:bullseye-slim as download
+FROM ${BASE_REGISTRY_URI}/debian:trixie-slim AS download
 
 RUN apt-get update && apt-get install --no-install-recommends -yq \
 	ca-certificates \
@@ -26,20 +26,20 @@ RUN chmod uog+x /usr/local/bin/protoc-gen-grpc-web
 
 # install bazel
 RUN \
-  curl -sL https://github.com/bazelbuild/bazel/releases/download/6.4.0/bazel-6.4.0-linux-x86_64 > /usr/local/bin/bazel && \
-  chmod +x /usr/local/bin/bazel
+	curl -sL https://github.com/bazelbuild/bazel/releases/download/6.4.0/bazel-6.4.0-linux-x86_64 > /usr/local/bin/bazel && \
+	chmod +x /usr/local/bin/bazel
 
 # build and install protoc-gen-js
 RUN \
-  git clone https://github.com/protocolbuffers/protobuf-javascript.git && \
-  cd protobuf-javascript && \
-  # b/349692635
-  git reset --hard 45fbfcb2776630f24b71ed44f0b5f7438d790d7a && \
-  bazel build //generator:protoc-gen-js && \
-  cp bazel-bin/generator/protoc-gen-js /usr/local/bin/protoc-gen-js
+	git clone https://github.com/protocolbuffers/protobuf-javascript.git && \
+	cd protobuf-javascript && \
+	# b/349692635
+	git reset --hard 45fbfcb2776630f24b71ed44f0b5f7438d790d7a && \
+	bazel build //generator:protoc-gen-js && \
+	cp bazel-bin/generator/protoc-gen-js /usr/local/bin/protoc-gen-js
 
 ##############################################################################
-FROM ${BASE_REGISTRY_URI}/debian:bullseye-slim
+FROM ${BASE_REGISTRY_URI}/debian:trixie-slim
 
 RUN mkdir -p /protoc
 COPY --from=download bin/protoc /protoc
