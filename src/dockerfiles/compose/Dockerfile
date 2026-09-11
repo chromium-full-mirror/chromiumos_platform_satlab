@@ -9,7 +9,7 @@ ARG COMMON_CORE_URI=gcr.io/chromeos-partner-moblab
 ###########################################################
 
 # TODO(prasadv): Read tag from Moblab Labels
-FROM ${COMMON_CORE_URI}/moblab_common:${COMMON_CORE_LABEL} as common
+FROM ${COMMON_CORE_URI}/moblab_common:${COMMON_CORE_LABEL} AS common
 
 ###########################################################
 

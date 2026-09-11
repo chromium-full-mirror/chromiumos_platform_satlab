@@ -9,7 +9,7 @@ ARG COMMON_CORE_URI=gcr.io/chromeos-partner-moblab
 
 ###########################################################
 
-FROM ${COMMON_CORE_URI}/chromite:${COMMON_CORE_LABEL} as chromite
+FROM ${COMMON_CORE_URI}/chromite:${COMMON_CORE_LABEL} AS chromite
 
 ###########################################################
 

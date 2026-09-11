@@ -7,7 +7,7 @@ ARG COMMON_CORE_LABEL=autopush
 ARG COMMON_CORE_URI=gcr.io/chromeos-partner-moblab
 ###########################################################
 
-FROM ${BASE_REGISTRY_URI}/alpine/git as adb
+FROM ${BASE_REGISTRY_URI}/alpine/git AS adb
 
 ARG PLATFORM_TOOLS_VER=36.0.2
 ARG PLATFORM_TOOLS_ZIP=platform-tools_r${PLATFORM_TOOLS_VER}-linux.zip
@@ -22,15 +22,15 @@ RUN python3 -c "from tradefed_constants import PRIVATE_KEY;print(PRIVATE_KEY)" >
 
 ###########################################################
 
-FROM ${COMMON_CORE_URI}/moblab_common:${COMMON_CORE_LABEL} as common
+FROM ${COMMON_CORE_URI}/moblab_common:${COMMON_CORE_LABEL} AS common
 
 ###########################################################
 
-FROM ${BASE_REGISTRY_URI}/docker:latest as docker
+FROM ${BASE_REGISTRY_URI}/docker:latest AS docker
 
 ###########################################################
 
-FROM ${COMMON_CORE_URI}/moblab-autotest-base:${COMMON_CORE_LABEL} as autotest
+FROM ${COMMON_CORE_URI}/moblab-autotest-base:${COMMON_CORE_LABEL} AS autotest
 
 ###########################################################
 
