@@ -114,7 +114,7 @@ export class ManageDutsComponent implements AfterViewInit, OnDestroy {
       .forEach(dut => {
         const d = {...dut};
         d.testlabEnabled = TESTLAB_STATUS_UNKNOWN;
-        this.DUTs = [...[d], ...this.DUTs.filter(e => e.address !== d.address)];
+        this.DUTs = [...[d], ...this.DUTs.filter(e => dutKey(e) !== dutKey(d))];
       });
 
     const futures = toIterator(duts)
@@ -128,7 +128,7 @@ export class ManageDutsComponent implements AfterViewInit, OnDestroy {
             d.testlabEnabled = r;
             this.DUTs = [
               ...[d],
-              ...this.DUTs.filter(e => e.address !== d.address),
+              ...this.DUTs.filter(e => dutKey(e) !== dutKey(d)),
             ];
           })
           .catch(e => {
@@ -137,7 +137,7 @@ export class ManageDutsComponent implements AfterViewInit, OnDestroy {
             );
             this.DUTs = [
               ...[d],
-              ...this.DUTs.filter(e => e.address !== d.address),
+              ...this.DUTs.filter(e => dutKey(e) !== dutKey(d)),
             ];
           });
       })
@@ -148,4 +148,15 @@ export class ManageDutsComponent implements AfterViewInit, OnDestroy {
 }
 function shouldGetTestlab(dut: IDut): boolean {
   return dut.isConnected;
+}
+
+/**
+ * dutKey returns a stable identity for a DUT. Enrolled DUTs are keyed by
+ * hostname, because DUTs without a DNS record share an empty address and would
+ * otherwise collide. Unenrolled DUTs have no hostname, so they use the address.
+ */
+function dutKey(dut: IDut): string {
+  return dut.hostname !== ''
+    ? `hostname:${dut.hostname}`
+    : `address:${dut.address}`;
 }
