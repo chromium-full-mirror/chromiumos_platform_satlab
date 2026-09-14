@@ -1,7 +1,5 @@
 FROM ubuntu:18.04
 
-LABEL Satlab Maintainers "xolabs-eng@google.com"
-
 RUN \
   apt-get update \
   && apt-get -y install gettext-base \
