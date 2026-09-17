@@ -356,6 +356,8 @@ services:
     image: ${ATS_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners}/ats:${ATS:-release}
     hostname: ${DRONE_HOSTNAME}
     privileged: true
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
     volumes:
       - /dev:/dev
       - satlab_keys:/creds/service_accounts:rw
