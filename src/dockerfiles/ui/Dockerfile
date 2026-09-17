@@ -24,8 +24,6 @@ RUN npm ci --ignore-scripts
 # add `/app/node_modules/.bin` to $PATH
 ENV PATH /app/node_modules/.bin:$PATH
 
-RUN ngcc
-
 # add app
 COPY ./satlab-ui /app
 
