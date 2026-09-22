@@ -53,7 +53,11 @@ export type BooleanKeys =
   | 'editTopology'
   | 'servoRequired'
   | 'testArgs'
-  | 'skipBootPrerequisite';
+  | 'skipBootPrerequisite'
+  | 'useSignedImage'
+  | 'useTestRamdisk'
+  | 'useSatlabCache'
+  | 'primaryAbiOnly';
 
 export type ICustomSettings = {
   [K in NumberKeys]?: number;
@@ -97,14 +101,15 @@ export const defaultProvisionFields: ProvisionFields = {
   targetType: '',
 };
 
-export type SettingKey = NumberKeys | 'shardingMode' | 'default';
+export type SettingKey = NumberKeys | BooleanKeys | 'shardingMode' | 'default';
 
-export type SettingFormat = 'inputBox' | 'singleChoice' | 'none';
+export type SettingFormat = 'inputBox' | 'singleChoice' | 'checkbox' | 'none';
 
 interface BaseSetting {
   key: SettingKey;
   label: string;
   format: SettingFormat;
+  description?: string;
 }
 
 export interface InputBoxSetting extends BaseSetting {
@@ -135,10 +140,21 @@ export interface SingleChoiceSetting extends BaseSetting {
   options: (InputBoxSetting | DefaultSetting)[];
 }
 
+export interface CheckboxSetting extends BaseSetting {
+  key: BooleanKeys;
+  format: 'checkbox';
+  state: {
+    value: boolean;
+    disabled: boolean;
+  };
+  description?: string;
+}
+
 export type CustomSetting =
   | InputBoxSetting
   | DefaultSetting
-  | SingleChoiceSetting;
+  | SingleChoiceSetting
+  | CheckboxSetting;
 
 type InputBoxConfig = Omit<InputBoxSetting, 'format'>;
 
@@ -146,6 +162,57 @@ export const createInputBox = (config: InputBoxConfig): InputBoxSetting => ({
   ...config,
   format: 'inputBox',
 });
+
+type CheckboxConfig = Omit<CheckboxSetting, 'format'>;
+
+export const createCheckbox = (config: CheckboxConfig): CheckboxSetting => ({
+  ...config,
+  format: 'checkbox',
+});
+
+export const getDefaultUseSignedImage = () =>
+  createCheckbox({
+    key: 'useSignedImage',
+    label: 'Use signed image',
+    state: {
+      value: false,
+      disabled: false,
+    },
+    description: 'Use signed image during provisioning',
+  });
+
+export const getDefaultUseTestRamdisk = () =>
+  createCheckbox({
+    key: 'useTestRamdisk',
+    label: 'Use test ramdisk',
+    state: {
+      value: false,
+      disabled: false,
+    },
+    description: 'Use test ramdisk during provisioning',
+  });
+
+export const getDefaultUseSatlabCache = () =>
+  createCheckbox({
+    key: 'useSatlabCache',
+    label: 'Use satlab cache',
+    state: {
+      value: false,
+      disabled: false,
+    },
+    description: 'Use satlab cache for AB downloads',
+  });
+
+export const getDefaultPrimaryAbiOnly = () =>
+  createCheckbox({
+    key: 'primaryAbiOnly',
+    label: 'Primary ABI only',
+    state: {
+      value: true,
+      disabled: false,
+    },
+    description: 'Uncheck to allow running tests on non-primary ABI',
+  });
 
 export const getDefaultCTPTimeout = () =>
   createInputBox({

@@ -238,7 +238,7 @@ message Dim {
   string value = 2;
 }
 
-// NEXT_TAG = 18
+// NEXT_TAG = 22
 message RunSuiteRequest {
   string suite = 1;
   string build_target = 2;
@@ -260,6 +260,10 @@ message RunSuiteRequest {
   bool android_desktop = 15;
   string target_type = 16;
   int64 max_shard = 17;
+  bool use_signed_image = 18;
+  bool use_test_ramdisk = 19;
+  bool use_satlab_cache = 20;
+  optional bool primary_abi_only = 21;
 }
 
 // NEXT_TAG = 2
@@ -879,7 +883,7 @@ message SendMessageToCCDSessionRequest {
 // NEXT_TAG = 1
 message SendMessageToCCDSessionResponse {}
 
-// NEXT_TAG = 8
+// NEXT_TAG = 12
 message AdvancedSettings {
   bool cft = 1;
   bool trv2 = 2;
@@ -892,6 +896,10 @@ message AdvancedSettings {
   int32 static_shard = 6;
   // CTP timeout
   int32 ctp_timeout = 7;
+  bool use_signed_image = 8;
+  bool use_test_ramdisk = 9;
+  bool use_satlab_cache = 10;
+  optional bool primary_abi_only = 11;
 }
 
 // NEXT_TAG = 9

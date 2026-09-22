@@ -299,7 +299,19 @@ export class SatlabRpcService {
       .setTagIncludesList(params.tagIncludes)
       .setTagExcludesList(params.tagExcludes)
       .setTestNameIncludesList(params.testNameIncludes)
-      .setTestNameExcludesList(params.testNameExcludes);
+      .setTestNameExcludesList(params.testNameExcludes)
+      .setUseSignedImage(
+        (params.customSettings?.useSignedImage as boolean) ?? false
+      )
+      .setUseTestRamdisk(
+        (params.customSettings?.useTestRamdisk as boolean) ?? false
+      )
+      .setUseSatlabCache(
+        (params.customSettings?.useSatlabCache as boolean) ?? false
+      )
+      .setPrimaryAbiOnly(
+        (params.customSettings?.primaryAbiOnly as boolean) ?? true
+      );
 
     const resp = await this.client.runSuite(req, {});
 
@@ -1315,7 +1327,11 @@ function __toAdvancedSettings(build: string, settings: ICustomSettings) {
   return new AdvancedSettings()
     .setCft(cft)
     .setTrv2(trv2)
-    .setUploadToCpcon(uploadToCpcon);
+    .setUploadToCpcon(uploadToCpcon)
+    .setUseSignedImage(settings.useSignedImage ?? false)
+    .setUseTestRamdisk(settings.useTestRamdisk ?? false)
+    .setUseSatlabCache(settings.useSatlabCache ?? false)
+    .setPrimaryAbiOnly(settings.primaryAbiOnly ?? true);
 }
 
 function __toTestlabStatus(status: boolean) {

@@ -106,6 +106,22 @@
               >
             </div>
           </div>
+          <div
+            class="flex flex-col gap-2 mt-2 w-fit"
+            *ngIf="setting.format === 'checkbox'"
+            [matTooltip]="setting.description || ''"
+            matTooltipPosition="below"
+          >
+            <mat-checkbox
+              id="{{ setting.key }}"
+              [checked]="setting.state.value"
+              [disabled]="setting.state.disabled"
+              (change)="onCheckboxSettingsChanged(setting.key, $event.checked)"
+              color="primary"
+            >
+              {{ setting.label }}
+            </mat-checkbox>
+          </div>
         </ng-container>
       </div>
     </mat-expansion-panel>

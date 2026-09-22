@@ -119,6 +119,10 @@ export class AndroidService {
     testExclulde: string[];
     maxInShard: number;
     dims?: IDims;
+    useSignedImage?: boolean;
+    useTestRamdisk?: boolean;
+    useSatlabCache?: boolean;
+    primaryAbiOnly?: boolean;
   }) {
     const req = new RunSuiteRequest()
       .setAndroidDesktop(true)
@@ -132,7 +136,11 @@ export class AndroidService {
       .setTestNameExcludesList(params.testExclulde)
       .setTargetType(params.targetType)
       .setMaxShard(params.maxInShard)
-      .setDimsList(this.toDims(params.dims));
+      .setDimsList(this.toDims(params.dims))
+      .setUseSignedImage(params.useSignedImage ?? false)
+      .setUseTestRamdisk(params.useTestRamdisk ?? false)
+      .setUseSatlabCache(params.useSatlabCache ?? false)
+      .setPrimaryAbiOnly(params.primaryAbiOnly ?? true);
 
     return from(
       this.client.runSuite(req, {}).then(resp => {

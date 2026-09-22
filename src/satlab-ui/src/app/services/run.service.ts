@@ -83,6 +83,10 @@ export class RunService {
         ? params.advanceSettings.ctpTimeout * 60
         : 0
     );
+    settings.setUseSignedImage(params.advanceSettings.useSignedImage ?? false);
+    settings.setUseTestRamdisk(params.advanceSettings.useTestRamdisk ?? false);
+    settings.setUseSatlabCache(params.advanceSettings.useSatlabCache ?? false);
+    settings.setPrimaryAbiOnly(params.advanceSettings.primaryAbiOnly ?? true);
 
     const servoRequired =
       (params.advanceSettings?.servoRequired as boolean) ?? false;

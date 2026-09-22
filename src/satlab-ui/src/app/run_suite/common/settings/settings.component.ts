@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   Component,
   computed,
   EventEmitter,
@@ -10,6 +9,7 @@ import {
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {
+  BooleanKeys,
   CustomSetting,
   InputBoxSetting,
   NumberKeys,
@@ -17,10 +17,18 @@ import {
 } from '../../../models/run_suite_fields';
 import {MatExpansionModule} from '@angular/material/expansion';
 import {MatIconModule} from '@angular/material/icon';
+import {MatCheckboxModule} from '@angular/material/checkbox';
+import {MatTooltipModule} from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-settings',
-  imports: [CommonModule, MatExpansionModule, MatIconModule],
+  imports: [
+    CommonModule,
+    MatExpansionModule,
+    MatIconModule,
+    MatCheckboxModule,
+    MatTooltipModule,
+  ],
   templateUrl: './settings.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./settings.component.scss'],
@@ -79,6 +87,16 @@ export class SettingsComponent {
     const newSettings = this.customSettingsSignal().map(s => {
       if (s.format === 'inputBox' && s.key === key) {
         return {...s, state: {...s.state, value: safeValue}};
+      }
+      return s;
+    }) as CustomSetting[];
+    this.settingsChanged.emit(newSettings);
+  }
+
+  protected onCheckboxSettingsChanged(key: BooleanKeys, val: boolean) {
+    const newSettings = this.customSettingsSignal().map(s => {
+      if (s.format === 'checkbox' && s.key === key) {
+        return {...s, state: {...s.state, value: val}};
       }
       return s;
     }) as CustomSetting[];

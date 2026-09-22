@@ -19,9 +19,14 @@ import {
 } from '@angular/core';
 import {toObservable, takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {
+  CheckboxSetting,
   CustomSetting,
   getDefaultCTPTimeout,
   getDefaultTrTimeout,
+  getDefaultUseSignedImage,
+  getDefaultUseTestRamdisk,
+  getDefaultUseSatlabCache,
+  getDefaultPrimaryAbiOnly,
   getShardingGroup,
   getTestplanShardingGroup,
   InputBoxSetting,
@@ -237,11 +242,19 @@ export class AndroidBuildSelectFormComponent implements OnDestroy {
 
   // The default settings for the run suite/test.
   protected settings = [
+    getDefaultUseSignedImage(),
+    getDefaultUseTestRamdisk(),
+    getDefaultUseSatlabCache(),
+    getDefaultPrimaryAbiOnly(),
     getDefaultCTPTimeout(),
     getDefaultTrTimeout(),
     getShardingGroup(),
   ];
   protected testplanSettings = [
+    getDefaultUseSignedImage(),
+    getDefaultUseTestRamdisk(),
+    getDefaultUseSatlabCache(),
+    getDefaultPrimaryAbiOnly(),
     getDefaultCTPTimeout(),
     getDefaultTrTimeout(),
     getTestplanShardingGroup(),
@@ -378,6 +391,7 @@ export class AndroidBuildSelectFormComponent implements OnDestroy {
         mode: source.mode,
         buildValues: source.buildValues,
       } as ALTestingBasicFields);
+      this.setSatlabCacheState(true);
     } else {
       this.basicFieldsSignal.set({
         mode: source.mode,
@@ -387,6 +401,7 @@ export class AndroidBuildSelectFormComponent implements OnDestroy {
         suite: source.suite,
         testModules: this.selectedDriveTestModulesSignal(),
       });
+      this.setSatlabCacheState(false);
     }
   }
 
@@ -445,10 +460,58 @@ export class AndroidBuildSelectFormComponent implements OnDestroy {
       );
     }
 
+    const currentUseSignedImage =
+      (
+        this.customSettings().find(
+          s => s.key === 'useSignedImage'
+        ) as CheckboxSetting
+      )?.state.value ?? false;
+    const currentUseTestRamdisk =
+      (
+        this.customSettings().find(
+          s => s.key === 'useTestRamdisk'
+        ) as CheckboxSetting
+      )?.state.value ?? false;
+    const currentUseSatlabCache =
+      (
+        this.customSettings().find(
+          s => s.key === 'useSatlabCache'
+        ) as CheckboxSetting
+      )?.state.value ?? false;
+    const currentPrimaryAbiOnly =
+      (
+        this.customSettings().find(
+          s => s.key === 'primaryAbiOnly'
+        ) as CheckboxSetting
+      )?.state.value ?? true;
+
+    const signedImageSetting = getDefaultUseSignedImage();
+    signedImageSetting.state.value = currentUseSignedImage;
+    const testRamdiskSetting = getDefaultUseTestRamdisk();
+    testRamdiskSetting.state.value = currentUseTestRamdisk;
+    const isGoogleDrive =
+      tab !== 'testplan' && this.basicFieldsSignal().mode === 'GOOGLE_DRIVE';
+    const satlabCacheSetting = getDefaultUseSatlabCache();
+    satlabCacheSetting.state.value = isGoogleDrive
+      ? false
+      : currentUseSatlabCache;
+    satlabCacheSetting.state.disabled = isGoogleDrive;
+    const primaryAbiOnlySetting = getDefaultPrimaryAbiOnly();
+    primaryAbiOnlySetting.state.value = currentPrimaryAbiOnly;
+
+    const baseSettings =
+      tab === 'testplan' ? this.testplanSettings : this.settings;
+    this.customSettings.set(
+      baseSettings.map(s => {
+        if (s.key === 'useSignedImage') return signedImageSetting;
+        if (s.key === 'useTestRamdisk') return testRamdiskSetting;
+        if (s.key === 'useSatlabCache') return satlabCacheSetting;
+        if (s.key === 'primaryAbiOnly') return primaryAbiOnlySetting;
+        return s;
+      })
+    );
+
     this.tabSignal.set(tab);
-    this.customSettings.set([
-      ...(tab === 'testplan' ? this.testplanSettings : this.settings),
-    ]);
   }
 
   protected onDutRelatedValueChanged(value: {[key: string]: string}) {
@@ -565,6 +628,20 @@ export class AndroidBuildSelectFormComponent implements OnDestroy {
       selectedShardingOption.key === 'default'
         ? selectedShardingOption.state.value ?? undefined
         : undefined;
+    const useSignedImage =
+      (settings.find(s => s.key === 'useSignedImage') as CheckboxSetting)?.state
+        .value ?? false;
+    const useTestRamdisk =
+      (settings.find(s => s.key === 'useTestRamdisk') as CheckboxSetting)?.state
+        .value ?? false;
+    const useSatlabCache = isSelectAndroidBuild
+      ? (settings.find(s => s.key === 'useSatlabCache') as CheckboxSetting)
+          ?.state.value ?? false
+      : false;
+    const primaryAbiOnly =
+      (settings.find(s => s.key === 'primaryAbiOnly') as CheckboxSetting)?.state
+        .value ?? true;
+
     let task: Suite | Test | Testplan;
     if (tab === 'suite' || tab === 'test') {
       task = {
@@ -614,6 +691,10 @@ export class AndroidBuildSelectFormComponent implements OnDestroy {
         ctpTimeout: ctpTimeout,
         trTimeout: trTimeout,
         nShards: nShards,
+        useSignedImage: useSignedImage,
+        useTestRamdisk: useTestRamdisk,
+        useSatlabCache: useSatlabCache,
+        primaryAbiOnly: primaryAbiOnly,
       },
     };
 
@@ -657,6 +738,24 @@ export class AndroidBuildSelectFormComponent implements OnDestroy {
           return {...s, state: {...s.state, value: ctpTimeout}};
         } else if (s.key === 'trTimeout') {
           return {...s, state: {...s.state, value: trTimeout}};
+        }
+        return s;
+      })
+    );
+  }
+
+  private setSatlabCacheState(active: boolean) {
+    this.customSettings.update(settings =>
+      settings.map(s => {
+        if (s.key === 'useSatlabCache') {
+          const checkbox = s as CheckboxSetting;
+          return {
+            ...checkbox,
+            state: {
+              value: active ? checkbox.state.value : false,
+              disabled: !active,
+            },
+          };
         }
         return s;
       })
