@@ -49,7 +49,8 @@ RUN chown -R moblab /var/cache/nginx
 RUN chmod -R uog+rw /var/run
 
 # copy artifact build from the 'build environment'
-COPY --chown=moblab --from=build /app/dist /etc/nginx/html/
+COPY --chown=moblab --from=build /app/dist/browser /etc/nginx/html/
+COPY --chown=moblab --from=build /app/dist/3rdpartylicenses.txt /etc/nginx/html/
 
 COPY --chown=moblab satlab-ui/nginx.conf /etc/nginx
 RUN rm -f /etc/nginx/conf.d/*
