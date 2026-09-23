@@ -1,0 +1,19 @@
+# The xTS test builds pinned per device and OS branch. A device is a board or
+# a model: the part of the build target before the first dash, so
+# "brya-trunk_staging-eng" is pinned under "brya". Every value is either an
+# Android build ID (7-8 digits) or the name of a .zip release in the xTS
+# shared drive. A release that ships one zip per architecture is written once
+# with an {arch} placeholder, which expands to arm64 and x86_64.
+# Run generate_xts_pinned_test_builds.py after editing.
+
+[brya.arsp-26Q2-desktop-release]
+gts = "android-gts-14-R2(14-17)-Preview7-15501425.zip"
+cts = 16222257
+vts = 16222257
+sts = "android-sts-17_sts-r55-linux-{arch}.zip"
+
+# Temporary: exercises the post-merge GCS upload; removed in a follow-up CL.
+[brya.arsp-main]
+gts = "android-gts-14-R2(14-17)-Preview7-15501425.zip"
+cts = 15901438
+vts = 15901438

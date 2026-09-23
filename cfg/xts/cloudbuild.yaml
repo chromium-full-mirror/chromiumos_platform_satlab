@@ -1,0 +1,9 @@
+steps:
+  - id: 'copy-pinned-xts-to-gcs'
+    name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    entrypoint: 'gcloud'
+    args:
+      - 'storage'
+      - 'cp'
+      - 'cfg/xts/DO_NOT_EDIT_MANUALLY_xts_pinned_test_builds.json'
+      - 'gs://chromeos-distributed-fleet-s4p/xts-pinned-test-builds/DO_NOT_EDIT_MANUALLY_xts_pinned_test_builds.json'

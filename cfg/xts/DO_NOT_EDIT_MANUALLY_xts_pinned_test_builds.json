@@ -1,0 +1,63 @@
+{
+  "brya": {
+    "arsp-26Q2-desktop-release": {
+      "cts": {
+        "test-branch": "partner-android17-tests-dev",
+        "test-build": "16222257",
+        "test-targets": [
+          "test_suites_arm64-cp2a",
+          "test_suites_x86_64-cp2a"
+        ]
+      },
+      "gts": {
+        "test-build": "1crN9JUdr5yFSj1v3HmG4gnfajpQ2zgsE",
+        "test-build-name": "android-gts-14-R2(14-17)-Preview7-15501425.zip"
+      },
+      "sts": {
+        "test-build-name": "android-sts-17_sts-r55-linux-{arch}.zip",
+        "test-build-variants": [
+          {
+            "arch": "arm64",
+            "test-build": "1hrPPQTOT6JpmdbRVNleW64NA85ejwgAY",
+            "test-build-name": "android-sts-17_sts-r55-linux-arm64.zip"
+          },
+          {
+            "arch": "x86_64",
+            "test-build": "1OtepczAJnjyF3bjxbXKYRKMxggPN4EUQ",
+            "test-build-name": "android-sts-17_sts-r55-linux-x86_64.zip"
+          }
+        ]
+      },
+      "vts": {
+        "test-branch": "partner-android17-tests-dev",
+        "test-build": "16222257",
+        "test-targets": [
+          "test_suites_arm64-cp2a",
+          "test_suites_x86_64-cp2a"
+        ]
+      }
+    },
+    "arsp-main": {
+      "cts": {
+        "test-branch": "partner-android17-tests-dev",
+        "test-build": "15901438",
+        "test-targets": [
+          "test_suites_arm64-cp2a",
+          "test_suites_x86_64-cp2a"
+        ]
+      },
+      "gts": {
+        "test-build": "1crN9JUdr5yFSj1v3HmG4gnfajpQ2zgsE",
+        "test-build-name": "android-gts-14-R2(14-17)-Preview7-15501425.zip"
+      },
+      "vts": {
+        "test-branch": "partner-android17-tests-dev",
+        "test-build": "15901438",
+        "test-targets": [
+          "test_suites_arm64-cp2a",
+          "test_suites_x86_64-cp2a"
+        ]
+      }
+    }
+  }
+}
