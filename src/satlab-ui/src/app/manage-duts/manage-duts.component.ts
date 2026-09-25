@@ -1,6 +1,6 @@
 import {toIterator} from 'app/utils/iterator';
 import {AUTO_REFRESH_INTERVAL, TESTLAB_STATUS_UNKNOWN} from '../constants';
-import {IDut} from '../models/dut';
+import { IDut, dutKey } from '../models/dut';
 import {NotificationService} from '../services/notification.service';
 import {SatlabRpcService} from '../services/satlab-rpc.service';
 import {startWithTap} from '../utils/rxjs_operator';
@@ -148,15 +148,4 @@ export class ManageDutsComponent implements AfterViewInit, OnDestroy {
 }
 function shouldGetTestlab(dut: IDut): boolean {
   return dut.isConnected;
-}
-
-/**
- * dutKey returns a stable identity for a DUT. Enrolled DUTs are keyed by
- * hostname, because DUTs without a DNS record share an empty address and would
- * otherwise collide. Unenrolled DUTs have no hostname, so they use the address.
- */
-function dutKey(dut: IDut): string {
-  return dut.hostname !== ''
-    ? `hostname:${dut.hostname}`
-    : `address:${dut.address}`;
 }

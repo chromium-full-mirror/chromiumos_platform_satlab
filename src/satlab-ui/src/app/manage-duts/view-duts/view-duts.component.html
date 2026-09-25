@@ -122,7 +122,7 @@
           <ng-container
             *ngIf="
               element.hostname === '' &&
-              element.isConnected
+              (element.isConnected || element.isMauiOnly)
             "
           >
             <mat-form-field>
@@ -134,7 +134,7 @@
                 (focusout)="onInputFocusout(element, $event)"
                 [(ngModel)]="element.inputHostname"
                 #name="ngModel"
-                name="hostname-{{ element.address }}"
+                name="hostname-{{ element.address || element.servoSerial }}"
                 minlength="1"
                 maxlength="32"
                 pattern="[a-z0-9\-]+"
@@ -156,8 +156,15 @@
             </div>
           </ng-container>
 
-          <!-- Show the Access Test Build Button when DUT hasn't been deployed and isn't connected -->
-          <ng-container *ngIf="!element.isConnected && element.hostname === ''">
+          <!-- Show the Access Test Build Button when DUT hasn't been deployed
+                                                                                                                                                                                                                       and isn't connected. For Maui connected Duts it is excluded here. -->
+          <ng-container
+            *ngIf="
+              !element.isConnected &&
+              !element.isMauiOnly &&
+              element.hostname === ''
+            "
+          >
             <button
               mat-button
               (click)="onAccessTestBuildClicked()"
@@ -173,15 +180,14 @@
       <ng-container matColumnDef="board">
         <th mat-header-cell *matHeaderCellDef>Board</th>
         <td mat-cell *matCellDef="let element">
-          <ng-container *ngIf="element.hostname !== '' || !element.isConnected">
+          <ng-container
+            *ngIf="element.hostname !== '' || !(element.isConnected || element.isMauiOnly) ">
             {{ element.board }}
           </ng-container>
-          <ng-container
-            *ngIf="
+          <ng-container *ngIf="
               element.hostname === '' &&
-              element.isConnected
-            "
-          >
+              (element.isConnected || element.isMauiOnly)
+            ">
             <mat-form-field>
               <input
                 matInput
@@ -192,7 +198,7 @@
                 (focusout)="onBoardInputFocusout(element, $event)"
                 [(ngModel)]="element.inputBoard"
                 #boardInput="ngModel"
-                name="board-{{ element.address }}"
+                name="board-{{ element.address || element.servoSerial }}"
                 required
                 minlength="1"
                 maxlength="32"
@@ -223,15 +229,17 @@
       <ng-container matColumnDef="model">
         <th mat-header-cell *matHeaderCellDef>Model</th>
         <td mat-cell *matCellDef="let element">
-          <ng-container *ngIf="element.hostname !== '' || !element.isConnected">
-            {{ element.model }}
-          </ng-container>
           <ng-container
             *ngIf="
-              element.hostname === '' &&
-              element.isConnected
+              element.hostname !== '' || !(element.isConnected || element.isMauiOnly)
             "
           >
+            {{ element.model }}
+          </ng-container>
+          <ng-container *ngIf="
+              element.hostname === '' &&
+              (element.isConnected || element.isMauiOnly)
+            ">
             <mat-form-field>
               <input
                 matInput
@@ -242,7 +250,7 @@
                 (focusout)="onModelInputFocusout(element, $event)"
                 [(ngModel)]="element.inputModel"
                 #modelInput="ngModel"
-                name="model-{{ element.address }}"
+                name="model-{{ element.address || element.servoSerial }}"
                 required
                 minlength="1"
                 maxlength="32"

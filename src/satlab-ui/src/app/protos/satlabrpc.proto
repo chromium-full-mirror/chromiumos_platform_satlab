@@ -514,7 +514,7 @@ message GetNetworkInfoResponse {
 
 // NEXT_TAG = 2
 message AddDutsRequest {
-  // NEXT_TAG = 8
+  // NEXT_TAG = 9
   message Param {
     // The IP address that connected to Satlab
     string address = 1;
@@ -531,6 +531,9 @@ message AddDutsRequest {
     // The os of the DUT
     // support 'chromeos', 'android_desktop'
     string os = 7;
+    // The DUT is intentionally physically disconnected from ethernet. It has no IP address and is not
+    // registered in the DNS. Conflicts with `address`.
+    bool skip_eth = 8;
   }
 
   repeated Param duts = 1;

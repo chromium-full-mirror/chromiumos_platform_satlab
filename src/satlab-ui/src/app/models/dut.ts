@@ -16,6 +16,11 @@ export interface IDut {
   poolString: string;
   mac: string;
   servoSerial?: string;
+
+  // isMauiOnly is for a DUT connected via Maui cable only.
+  // Such a DUT has no ethernet connection, so it cannot be `isConnected`.
+  isMauiOnly: boolean;
+
   isConnected: boolean;
   hasTestImage: boolean;
   hasAndroidDesktopImage: boolean;
@@ -80,4 +85,17 @@ export interface RepairDUTResponse {
   buildLink: string;
   taskLink: string;
   isSuccess: boolean;
+}
+
+/**
+ * dutKey returns a stable identity for a DUT, readable enough to show to the
+ * user.
+ *
+ * Enrolled DUTs are identified by hostname, because DUTs without a DNS record
+ * share an empty address and would otherwise collide. An un-enrolled DUT has no
+ * hostname yet, so it is identified by its address, and one attached only over
+ * a Maui cable has no address either, so it falls back to the cable serial.
+ */
+export function dutKey(d: IDut): string {
+  return d.hostname || d.address || d.servoSerial || '';
 }

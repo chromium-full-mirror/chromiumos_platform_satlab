@@ -1,5 +1,5 @@
 import {ProvisionComponent} from '../../dialogs/provision/provision.component';
-import {IDut} from '../../models/dut';
+import {IDut, dutKey} from '../../models/dut';
 import {DevicesService, OSRestriction} from '../../services/devices.service';
 import {NotificationService} from '../../services/notification.service';
 import {SatlabRpcService} from '../../services/satlab-rpc.service';
@@ -458,7 +458,7 @@ export class EnrollmentComponent {
       board !== '' &&
       model !== '' &&
       d.hasPermission !== false && // board/model is permitted and valid
-      d.isConnected && // DUT is connected
+      (d.isConnected || d.isMauiOnly) && // DUT is connected
       d.hostname === ''
     ); // DUT has not been deployed/enrolled already
   }
@@ -484,7 +484,7 @@ export class EnrollmentComponent {
       } else {
         // check the user is in the list of hostnames provided by the user again.
         const others = toIterator(d)
-          .filter(e => e.address !== cur.address)
+          .filter(e => dutKey(e) !== dutKey(cur))
           .collect();
 
         for (const o of others) {
@@ -498,7 +498,7 @@ export class EnrollmentComponent {
 
     for (const m of e) {
       this.notification.error(
-        `duplicate hostname: ${m.inputHostname} of DUT: ${m.address}`
+        `duplicate hostname: ${m.inputHostname} of DUT: ${dutKey(m)}`
       );
     }
 
@@ -516,7 +516,7 @@ export class EnrollmentComponent {
       .collect();
 
     e.forEach(d =>
-      this.notification.error(`Please input a hostname on ${d.address}`)
+      this.notification.error(`Please input a hostname on ${dutKey(d)}`)
     );
 
     return e.length !== 0;

@@ -353,8 +353,13 @@ export class SatlabRpcService {
 
     return (
       toIterator(resp.getDutsList())
-        // filter DUTs haven't enrolled and can't ping
-        .filter(e => !(e.getHostname() === '' && !e.getIsPingable()))
+        // filter DUTs haven't enrolled and can't ping, except for the ones
+        // attached over only a Maui cable, which can never be pinged at all
+        .filter(
+          e =>
+            __isMauiOnly(e) ||
+            !(e.getHostname() === '' && !e.getIsPingable())
+        )
         .map(__toIDut)
         .collect()
     );
@@ -498,7 +503,8 @@ export class SatlabRpcService {
           .setBoard(e.inputBoard ?? e.board ?? '')
           .setAddress(e.address)
           .setHostname(e.inputHostname)
-          .setOs(e.hasAndroidDesktopImage ? 'android_desktop' : 'chromeos');
+          .setOs(e.hasAndroidDesktopImage ? 'android_desktop' : 'chromeos')
+          .setSkipEth(e.isMauiOnly);
 
         if (e.isServoWiredCorrectly && e.servoSerial !== '') {
           p.setServoSerial(e.servoSerial);
@@ -1246,6 +1252,10 @@ function __toStatusHintText(status: string) {
   }
 }
 
+function __isMauiOnly(e: Dut): boolean {
+  return e.getAddress() === '';
+}
+
 /**
  * __toIDut is a parser to parse the proto class to an interface `IDut`
  * @param e is the class of DUT in proto file.
@@ -1262,18 +1272,21 @@ function __toIDut(e: Dut) {
     poolString: e.getPoolsList().join(', '),
     mac: e.getMacAddress(),
     servoSerial: e.getServoSerial(),
+    isMauiOnly: __isMauiOnly(e),
     isConnected:
       e.getIsPingable() &&
       (e.getHasTestImage() || e.getHasAndroidDesktopImage()),
     hasAndroidDesktopImage: e.getHasAndroidDesktopImage(),
     hasTestImage: e.getHasTestImage(),
-    isAccessible: !(
-      e.getHostname() === '' &&
+    isAccessible:
+      __isMauiOnly(e) ||
       !(
-        e.getIsPingable() &&
-        (e.getHasTestImage() || e.getHasAndroidDesktopImage())
-      )
-    ),
+        e.getHostname() === '' &&
+        !(
+          e.getIsPingable() &&
+          (e.getHasTestImage() || e.getHasAndroidDesktopImage())
+        )
+      ),
     status: status,
     isServoWiredCorrectly:
       e.getServoSerial() === '' || e.getServoSerial() !== 'NOT DETECTED',
