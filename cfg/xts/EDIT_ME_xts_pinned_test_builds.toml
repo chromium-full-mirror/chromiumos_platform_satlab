@@ -12,8 +12,8 @@ cts = 16222257
 vts = 16222257
 sts = "android-sts-17_sts-r55-linux-{arch}.zip"
 
-# Temporary: exercises the post-merge GCS upload; removed in a follow-up CL.
-[brya.arsp-main]
-gts = "android-gts-14-R2(14-17)-Preview7-15501425.zip"
-cts = 15901438
-vts = 15901438
+# Follow convention for adding new pins:
+# [device.os-branch]
+# gts = "android-gts-14-R2(14-17)-Preview7-15501425.zip"
+# cts = 15901438
+# vts = 15901438

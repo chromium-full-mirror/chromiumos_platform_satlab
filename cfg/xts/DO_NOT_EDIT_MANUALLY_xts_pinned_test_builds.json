@@ -36,28 +36,6 @@
           "test_suites_x86_64-cp2a"
         ]
       }
-    },
-    "arsp-main": {
-      "cts": {
-        "test-branch": "partner-android17-tests-dev",
-        "test-build": "15901438",
-        "test-targets": [
-          "test_suites_arm64-cp2a",
-          "test_suites_x86_64-cp2a"
-        ]
-      },
-      "gts": {
-        "test-build": "1crN9JUdr5yFSj1v3HmG4gnfajpQ2zgsE",
-        "test-build-name": "android-gts-14-R2(14-17)-Preview7-15501425.zip"
-      },
-      "vts": {
-        "test-branch": "partner-android17-tests-dev",
-        "test-build": "15901438",
-        "test-targets": [
-          "test_suites_arm64-cp2a",
-          "test_suites_x86_64-cp2a"
-        ]
-      }
     }
   }
 }
