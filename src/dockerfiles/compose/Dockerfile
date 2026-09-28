@@ -33,6 +33,7 @@ RUN apk add --no-cache --upgrade \
 
 # If the args left empty the script will leave the values in .env as is.
 ARG ATS_VER
+ARG BOLS_VER
 ARG CONF_CREATOR_VER
 ARG DNS_VER
 ARG DOWNLOADER_VER
@@ -94,6 +95,7 @@ COPY dockerfiles/compose/override_service_version.sh .
 RUN chmod u+x override_service_version.sh
 
 RUN  ./override_service_version.sh ATS ${ATS_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh BOLS ${BOLS_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh CONF_CREATOR ${CONF_CREATOR_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh DNS ${DNS_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh DOWNLOADER ${DOWNLOADER_VER:-${BUILD_VERSION}} \

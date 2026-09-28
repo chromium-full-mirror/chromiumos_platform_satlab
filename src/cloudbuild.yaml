@@ -281,6 +281,25 @@ steps:
     waitFor:
       - "ats-partner-pull"
 
+  - id: bols-pull
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "pull",
+        "${_REGISTRY_URI}/satlab-bols:${__SHARED_IMAGES_TAG}",
+      ]
+    waitFor: ['-']
+  - id: bols
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "tag",
+        "${_REGISTRY_URI}/satlab-bols:${__SHARED_IMAGES_TAG}",
+        "${_REGISTRY_URI}/satlab-bols:${__BUILD_VERSION}"
+      ]
+    waitFor:
+      - "bols-pull"
+
   - id: downloader-pull
     name: "gcr.io/cloud-builders/docker"
     args:
@@ -419,6 +438,7 @@ images:
     "${_INTERNAL_REGISTRY_URI}/ats:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/ats:${__BUILD_VERSION}",
     "${_REGISTRY_URI}/labservice:${__BUILD_VERSION}",
+    "${_REGISTRY_URI}/satlab-bols:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/conf_creator:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/downloader:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/drone:${__BUILD_VERSION}",
