@@ -6,4 +6,8 @@ steps:
       - 'storage'
       - 'cp'
       - 'cfg/xts/DO_NOT_EDIT_MANUALLY_xts_pinned_test_builds.json'
-      - 'gs://chromeos-distributed-fleet-s4p/xts-pinned-test-builds/DO_NOT_EDIT_MANUALLY_xts_pinned_test_builds.json'
+      - 'gs://cros-xts-metadata/xts-pinned-test-builds/DO_NOT_EDIT_MANUALLY_xts_pinned_test_builds.json'
+
+options:
+  # Required when the trigger runs as a user-specified service account.
+  logging: CLOUD_LOGGING_ONLY
