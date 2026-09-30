@@ -157,7 +157,7 @@ export class ViewDutsComponent implements OnChanges, OnInit {
       return false;
     }
     if (element.hostname === '') {
-      const hostname = (element.inputHostname !== undefined ? element.inputHostname : element.hostname).trim();
+      const hostname = (element.inputHostname !== undefined ? element.inputHostname : element.hostname);
       if (!hostname || !this.__validateHostname(hostname)) {
         return false;
       }
@@ -205,11 +205,11 @@ export class ViewDutsComponent implements OnChanges, OnInit {
   }
 
   protected onHostnameInput(dut: IDut, e: Event) {
-    const v = (e.target as HTMLInputElement).value.trim();
+    const v = (e.target as HTMLInputElement).value;
     dut.inputHostname = v;
     if (!this.canSelectDUT(dut) && this.checkSelectionContains(dut)) {
       this.selection.deselect(dut);
-      this.__emitSelectionChanged();
+      this.__selectionChanged();
     }
   }
 
@@ -221,7 +221,7 @@ export class ViewDutsComponent implements OnChanges, OnInit {
    * @protected
    */
   protected onInputFocusout(dut: IDut, e: Event) {
-    const v = (e.target as HTMLInputElement).value.trim();
+    const v = (e.target as HTMLInputElement).value;
     if (!this.__validateHostname(v)) {
       return;
     }
@@ -233,7 +233,7 @@ export class ViewDutsComponent implements OnChanges, OnInit {
     // make a new DUT
     const newDut = {
       ...dut,
-      inputHostname: v.trim(),
+      inputHostname: v,
     };
     // find the dut in the DUTs list
     const idx = this.duts.indexOf(dut);
