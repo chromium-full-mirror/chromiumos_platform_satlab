@@ -170,6 +170,7 @@ services:
     container_name: satlab_rpcserver
     image: ${REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab}/satlab-rpcserver:${SATLAB_RPCSERVER:-release}
     hostname: satlab-rpcserver
+    restart: unless-stopped
     networks:
       satlab:
         ipv4_address: 192.168.100.4
@@ -299,6 +300,7 @@ services:
   bols:
     container_name: bols
     image: ${REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab}/satlab-bols:${BOLS:-release}
+    restart: unless-stopped
     environment:
       - SERVOD_REGISTRY_URI=${SERVOD_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/common-core}
       - SERVOD_CONTAINER_LABEL=${SERVOD_CONTAINER_LABEL:-release}
