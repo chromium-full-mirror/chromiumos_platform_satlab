@@ -44,6 +44,15 @@ export class AutocompleteComponent implements OnDestroy {
   @Input() placeholder = '';
   @Input() title = '';
   @Input() strict = false;
+  // Show `value` in the same field as always, but fixed: no typing, no
+  // dropdown. For a value decided outside the form, so that it still looks
+  // like the fields around it.
+  @Input() readOnly = false;
+  // Pick the only option when there is exactly one and nothing is chosen yet,
+  // so a field with no real choice need not be opened. Same contract as
+  // app-basic-selector's input of the same name, but off by default: the
+  // fields that already use this component were written without it.
+  @Input() autoSelect = false;
 
   private lastEmittedValue = '';
 
@@ -77,6 +86,7 @@ export class AutocompleteComponent implements OnDestroy {
   @Input() set options(val: SelectableItem[]) {
     this.optionsSignal.set(val || []);
     this.syncDisplayValue(this.lastEmittedValue);
+    this.autoSelectSingleOption();
   }
   protected optionsSignal = signal<SelectableItem[]>([]);
 
@@ -99,6 +109,18 @@ export class AutocompleteComponent implements OnDestroy {
   constructor() {
     this.sub = this.searchFormControl.valueChanges.subscribe(val => {
       this.searchQuery.set(val || '');
+    });
+  }
+
+  // Deferred, because `value` may still be set later in the same change
+  // detection pass -- inputs are assigned in template order -- and a value
+  // already chosen must win over the guess.
+  private autoSelectSingleOption() {
+    if (!this.autoSelect || this.readOnly) return;
+    queueMicrotask(() => {
+      const options = this.optionsSignal();
+      if (this.lastEmittedValue || options.length !== 1) return;
+      this.onOptionClicked(options[0]);
     });
   }
 
@@ -140,6 +162,7 @@ export class AutocompleteComponent implements OnDestroy {
   }
 
   protected toggleDropdown() {
+    if (this.readOnly) return;
     if (!this.disabledSignal()) {
       this.isOptsOpened.update(v => !v);
     }

@@ -39,6 +39,7 @@ service SatlabRpcService {
   rpc ValidateAndroidBuild(ValidateAndroidBuildRequest) returns (ValidateAndroidBuildResponse);
   rpc RunAndroidLabqual (RunAndroidLabqualRequest) returns (RunAndroidLabqualResponse);
   rpc ListDrive (ListDriveRequest) returns (ListDriveResponse);
+  rpc GetXtsPins(GetXtsPinsRequest) returns (GetXtsPinsResponse);
 
   // Autoqual
   rpc ListTestEfforts(ListTestEffortsRequest) returns (ListTestEffortsResponse);
@@ -1460,4 +1461,56 @@ message ListDriveResponse {
   }
 
   repeated File files = 1;
+}
+
+// NEXT_TAG = 4
+message XtsAndroidBuildPin {
+  string test_build = 1;
+  string test_branch = 2;
+  repeated string test_targets = 3;
+}
+
+// NEXT_TAG = 3
+message XtsZipPin {
+  // Drive file ID.
+  string test_build = 1;
+  string test_build_name = 2;
+}
+
+// NEXT_TAG = 3
+message XtsMultiArchPin {
+  // e.g. "android-sts-17_sts-r55-linux-{arch}.zip"
+  string test_build_name = 1;
+  repeated XtsPinVariant variants = 2;
+}
+
+// NEXT_TAG = 4
+message XtsPinVariant {
+  // e.g. "arm64", "x86_64"
+  string arch = 1;
+  // Drive file ID.
+  string test_build = 2;
+  string test_build_name = 3;
+}
+
+// NEXT_TAG = 5
+message XtsPins {
+  XtsAndroidBuildPin cts = 1;
+  XtsZipPin gts = 2;
+  XtsMultiArchPin sts = 3;
+  XtsAndroidBuildPin vts = 4;
+}
+
+// NEXT_TAG = 3
+message GetXtsPinsRequest {
+  string os_branch = 1;
+  // e.g. "brya-trunk_staging-eng"
+  string target = 2;
+}
+
+// NEXT_TAG = 3
+message GetXtsPinsResponse {
+  XtsPins pins = 1;
+  // Derived from target.
+  string device = 2;
 }

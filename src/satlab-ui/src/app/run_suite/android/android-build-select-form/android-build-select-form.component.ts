@@ -135,6 +135,9 @@ export class AndroidBuildSelectFormComponent implements OnDestroy {
 
   protected testSelectionSignal = signal<TestSelection>(null);
 
+  /** The xTS type fixed by a pin, if the build came from one. */
+  protected pinnedSuiteSignal = signal<string>('');
+
   protected tabSignal = signal<'suite' | 'test' | 'testplan'>('suite');
   protected isTestPlanTab = computed(() => this.tabSignal() === 'testplan');
   protected isSuiteTab = computed(() => this.tabSignal() === 'suite');
@@ -272,6 +275,18 @@ export class AndroidBuildSelectFormComponent implements OnDestroy {
     return '';
   });
 
+  /** The OS branch being provisioned, or '' when provisioning is skipped. */
+  protected provisionBranch = computed(() => {
+    const provision = this.provisionSignal();
+    return provision.mode === 'DEFAULT' ? provision.value.branch : '';
+  });
+
+  /** The target being provisioned, or '' when provisioning is skipped. */
+  protected provisionTarget = computed(() => {
+    const provision = this.provisionSignal();
+    return provision.mode === 'DEFAULT' ? provision.value.target : '';
+  });
+
   protected provisionFormValid = computed(() => {
     const provision = this.provisionSignal();
     if (provision.mode === 'DEFAULT') {
@@ -387,6 +402,7 @@ export class AndroidBuildSelectFormComponent implements OnDestroy {
 
   protected onSourceValuesChanged(source: SourceValues) {
     if (source.mode === 'ANDROID_BUILD') {
+      this.pinnedSuiteSignal.set(source.suite ?? '');
       this.basicFieldsSignal.set({
         mode: source.mode,
         buildValues: source.buildValues,

@@ -53,6 +53,16 @@ export class SuiteComponent implements OnChanges, OnDestroy {
   @Input({required: true}) build: string;
   @Input({required: true}) target: string;
   @Input({required: true}) isTest: boolean;
+  @Input() set pinnedSuite(val: string) {
+    const next = val ?? '';
+    if (next === this.pinnedSuiteSignal()) return;
+    this.pinnedSuiteSignal.set(next);
+    // Types sharing a build change no other input, so ngOnChanges won't run.
+    queueMicrotask(() => {
+      if (this.suiteOptions().length > 0) this.selectPinnedSuite();
+    });
+  }
+  protected pinnedSuiteSignal = signal<string>('');
 
   protected testTitle = '';
   @Output() valuesChanged = new EventEmitter<{
@@ -178,6 +188,13 @@ export class SuiteComponent implements OnChanges, OnDestroy {
         this.testSignal,
       ]);
       this.testTitle = this.isTest ? 'Test Include:' : 'Test Exclude:';
+      // The reset above dropped the pinned suite, and nothing else re-applies
+      // it while the build and target stay the same. Deferred, because
+      // selecting emits valuesChanged, which the parent turns into a signal
+      // write -- and ngOnChanges still runs inside its change detection pass.
+      if (this.suiteOptions().length > 0) {
+        queueMicrotask(() => this.selectPinnedSuite());
+      }
     }
   }
 
@@ -271,11 +288,24 @@ export class SuiteComponent implements OnChanges, OnDestroy {
           .sort((a, b) => a.localeCompare(b));
         this.suiteOptions.set(uniqueSuites.map(toSelectedItem));
         this.errorsChanged.emit(e.length === 0 ? 'No suites found.' : '');
+        this.selectPinnedSuite();
       },
       error: e => {
         this.notification.error(`List suites failed: ${e}`, {dismiss: false});
       },
     });
+  }
+
+  private selectPinnedSuite() {
+    const pinned = this.pinnedSuiteSignal();
+    if (!pinned) return;
+    if (!this.suiteOptions().some(o => o.value === pinned)) {
+      this.errorsChanged.emit(
+        `The pinned test build does not contain the ${pinned} suite.`
+      );
+      return;
+    }
+    this.onSelectedChanged('suite', pinned);
   }
 
   private __listTests(build: string, target: string, suite: string) {

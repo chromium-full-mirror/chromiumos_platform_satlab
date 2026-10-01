@@ -1,6 +1,7 @@
 <div class="relative">
   <div class="relative flex gap-4 w-full flex-col">
-    <div>
+    <!-- Hidden for a pinned build: the pin already decided the xTS type. -->
+    <div *ngIf="!pinnedSuiteSignal()">
       <app-autocomplete-selector
         #suiteSelector
         id="suiteSelector"

@@ -1,65 +1,168 @@
-<div
-  class="flex w-full mb-8 border border-gray-300 rounded-md overflow-hidden"
-  *ngIf="!_isTestplan() && _showDriveOption()"
->
-  <div #sourceType class="flex w-full">
-    <button
-      type="button"
-      (click)="onModeChanged('ANDROID_BUILD')"
-      [class]="
-        isAndroidBuild()
-          ? 'flex-1 py-3 px-4 bg-blue-500 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-          : 'flex-1 py-3 px-4 bg-white text-gray-600 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-      "
-      [disabled]="isDisabled()"
-    >
-      Android Build
-    </button>
-    <div class="w-[1px] bg-gray-300"></div>
-    <button
-      type="button"
-      (click)="onModeChanged('GOOGLE_DRIVE')"
-      [class]="
-        isGoogleDrive()
-          ? 'flex-1 py-3 px-4 bg-blue-500 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-          : 'flex-1 py-3 px-4 bg-white text-gray-600 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-      "
-      [disabled]="isDisabled()"
-    >
-      Google Drive
-    </button>
+<!-- Recommended (pinned) test build for the provisioned OS branch. -->
+<div *ngIf="showPinned()">
+  <p class="mb-2 text-sm text-gray-600">
+    Using the test build recommended for
+    <span class="font-medium">{{ pinnedDeviceSignal() }}</span> on OS branch
+    <span class="font-medium">{{ osBranchSignal() }}</span>
+  </p>
+
+  <button
+    type="button"
+    class="mb-4 text-sm text-blue-500 hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+    (click)="onOverrideClicked()"
+    [disabled]="isDisabled()"
+  >
+    Use a different test build
+  </button>
+
+  <div class="flex gap-2 w-full flex-col">
+    <app-autocomplete
+      title="Select xTS type:"
+      [options]="pinnedTypeOptions()"
+      [value]="pinnedTypeSignal() ?? ''"
+      [strict]="true"
+      [autoSelect]="true"
+      [disabled]="isDisabled() || pinnedTypeOptions().length === 0"
+      (selectChanged)="onPinnedTypeChanged($event)"
+      (inputChanged)="onPinnedTypeChanged($event)"
+    ></app-autocomplete>
+
+    <app-autocomplete
+      *ngIf="selectedZipPin() as pin"
+      title="xTS zip file:"
+      [value]="pin.testBuildName"
+      [readOnly]="true"
+    ></app-autocomplete>
+
+    <app-autocomplete
+      *ngIf="selectedMultiArchPin() as pin"
+      title="xTS zip file:"
+      [value]="selectedVariant()?.testBuildName || pin.testBuildName"
+      [readOnly]="true"
+    ></app-autocomplete>
+
+    <app-autocomplete
+      *ngIf="selectedMultiArchPin()"
+      title="Select Architecture:"
+      [options]="pinnedArchOptions()"
+      [value]="pinnedArchSignal()"
+      [strict]="true"
+      [autoSelect]="true"
+      [disabled]="isDisabled() || pinnedArchOptions().length === 0"
+      (selectChanged)="onPinnedArchChanged($event)"
+      (inputChanged)="onPinnedArchChanged($event)"
+    ></app-autocomplete>
+
+    <ng-container *ngIf="selectedAndroidBuildPin() as pin">
+      <app-autocomplete
+        title="Test branch:"
+        [value]="pin.testBranch"
+        [readOnly]="true"
+      ></app-autocomplete>
+      <app-autocomplete
+        title="Test build:"
+        [value]="pin.testBuild"
+        [readOnly]="true"
+      ></app-autocomplete>
+    </ng-container>
+
+    <app-autocomplete
+      *ngIf="selectedAndroidBuildPin()"
+      title="Select Test Target:"
+      [options]="pinnedTargetOptions()"
+      [value]="pinnedTargetSignal()"
+      [strict]="true"
+      [autoSelect]="true"
+      [disabled]="isDisabled() || pinnedTargetOptions().length === 0"
+      (selectChanged)="onPinnedTargetChanged($event)"
+      (inputChanged)="onPinnedTargetChanged($event)"
+    ></app-autocomplete>
   </div>
 </div>
 
-<app-android-build-picker
-  [hidden]="isGoogleDrive()"
-  [active]="isAndroidBuild()"
-  [duts]="duts"
-  [board]="board"
-  [model]="model"
-  [type]="'test'"
-  [parentLoading]="parentLoadingSignal()"
-  (errorsChanged)="testPickerErrors.set($event)"
-  (isLoadingChanged)="onLoadingWithMsg($event)"
-  (valuesChanged)="onAndroidBuildValuesChanged($event)"
->
-</app-android-build-picker>
+<!-- Regular test source selection. -->
+<div *ngIf="!showPinned()">
+  <div
+    *ngIf="isOverridden()"
+    class="mb-4 p-3 rounded border border-amber-300 bg-amber-50 text-sm text-amber-800 flex flex-row items-center justify-between gap-4"
+  >
+    <span>
+      Note: you are not using the test build recommended for
+      {{ pinnedDeviceSignal() }} on OS branch {{ osBranchSignal() }}
+    </span>
+    <button
+      type="button"
+      class="shrink-0 text-blue-600 hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+      (click)="onUsePinnedClicked()"
+      [disabled]="isDisabled()"
+    >
+      Use the recommended test build
+    </button>
+  </div>
 
-<div #drivePickerComponent [hidden]="isAndroidBuild()">
-  <app-basic-selector
-    title="Select Suite:"
-    [options]="driveSuiteOptions"
-    (select)="onDriveSuiteSelectedChanged($event)"
-    [disabled]="isDriveDisabled()"
-  ></app-basic-selector>
+  <div
+    class="flex w-full mb-8 border border-gray-300 rounded-md overflow-hidden"
+    *ngIf="!_isTestplan() && _showDriveOption()"
+  >
+    <div #sourceType class="flex w-full">
+      <button
+        type="button"
+        (click)="onModeChanged('ANDROID_BUILD')"
+        [class]="
+          isAndroidBuild()
+            ? 'flex-1 py-3 px-4 bg-blue-500 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+            : 'flex-1 py-3 px-4 bg-white text-gray-600 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+        "
+        [disabled]="isDisabled()"
+      >
+        Android Build
+      </button>
+      <div class="w-[1px] bg-gray-300"></div>
+      <button
+        type="button"
+        (click)="onModeChanged('GOOGLE_DRIVE')"
+        [class]="
+          isGoogleDrive()
+            ? 'flex-1 py-3 px-4 bg-blue-500 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+            : 'flex-1 py-3 px-4 bg-white text-gray-600 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+        "
+        [disabled]="isDisabled()"
+      >
+        Google Drive
+      </button>
+    </div>
+  </div>
 
-  <app-autocomplete
-    title="Select xTS zip file:"
-    [options]="driveXtsPathOptions()"
-    [value]="driveXtsPathSignal()"
-    [strict]="true"
-    (selectChanged)="onDriveXtsPathChanged($event)"
-    (inputChanged)="onDriveXtsPathChanged($event)"
-    [disabled]="isDriveDisabled()"
-  ></app-autocomplete>
+  <app-android-build-picker
+    [hidden]="isGoogleDrive()"
+    [active]="isAndroidBuild()"
+    [duts]="duts"
+    [board]="board"
+    [model]="model"
+    [type]="'test'"
+    [parentLoading]="parentLoadingSignal()"
+    (errorsChanged)="testPickerErrors.set($event)"
+    (isLoadingChanged)="onLoadingWithMsg($event)"
+    (valuesChanged)="onAndroidBuildValuesChanged($event)"
+  >
+  </app-android-build-picker>
+
+  <div #drivePickerComponent [hidden]="isAndroidBuild()">
+    <app-basic-selector
+      title="Select Suite:"
+      [options]="driveSuiteOptions"
+      (select)="onDriveSuiteSelectedChanged($event)"
+      [disabled]="isDriveDisabled()"
+    ></app-basic-selector>
+
+    <app-autocomplete
+      title="Select xTS zip file:"
+      [options]="driveXtsPathOptions()"
+      [value]="driveXtsPathSignal()"
+      [strict]="true"
+      (selectChanged)="onDriveXtsPathChanged($event)"
+      (inputChanged)="onDriveXtsPathChanged($event)"
+      [disabled]="isDriveDisabled()"
+    ></app-autocomplete>
+  </div>
 </div>

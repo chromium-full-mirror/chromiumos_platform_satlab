@@ -17,6 +17,7 @@
         (click)="toggleDropdown()"
         (blur)="onBlur()"
         (keydown.enter)="unfocusedCleanup(); $any($event.target).blur()"
+        [readonly]="readOnly"
         matInput
       />
     </mat-form-field>

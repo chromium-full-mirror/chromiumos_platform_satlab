@@ -3,6 +3,7 @@ import {
   CancelTestEffortRequest,
   CreateTestEffortRequest,
   Dim,
+  GetXtsPinsRequest,
   ListAndroidBranchesRequest,
   ListAndroidBuildsRequest,
   ListAndroidSuitesRequest,
@@ -15,12 +16,100 @@ import {
   RunSuiteRequest,
   TestEffort,
   ValidateAndroidBuildRequest,
+  XtsAndroidBuildPin as XtsAndroidBuildPinPb,
+  XtsMultiArchPin as XtsMultiArchPinPb,
+  XtsPinVariant as XtsPinVariantPb,
+  XtsZipPin as XtsZipPinPb,
 } from './satlabrpc_pb';
 import {Injectable} from '@angular/core';
 import {PROVISION_JOB_NAME} from 'app/constants';
 import {IDims} from 'app/models/run_suite_fields';
 import {getRPCHost} from 'app/utils/misc';
 import {from} from 'rxjs';
+
+export const XTS_TYPES = ['cts', 'gts', 'sts', 'vts'] as const;
+
+export type XtsType = (typeof XTS_TYPES)[number];
+
+export interface XtsAndroidBuildPin {
+  testBuild: string;
+  testBranch: string;
+  testTargets: string[];
+}
+
+export interface XtsZipPin {
+  /** Drive file ID. */
+  testBuild: string;
+  testBuildName: string;
+}
+
+export interface XtsMultiArchPin {
+  /** Release file name template with `{arch}` unexpanded. */
+  testBuildName: string;
+  variants: XtsPinVariant[];
+}
+
+export interface XtsPinVariant {
+  arch: string;
+  /** Drive file ID. */
+  testBuild: string;
+  testBuildName: string;
+}
+
+export interface XtsPins {
+  cts?: XtsAndroidBuildPin;
+  gts?: XtsZipPin;
+  sts?: XtsMultiArchPin;
+  vts?: XtsAndroidBuildPin;
+}
+
+export interface XtsPinsForDevice {
+  /** Derived from the requested build target. */
+  device: string;
+  pins: XtsPins;
+}
+
+export function isDriveType(xtsType: XtsType): boolean {
+  return xtsType === 'gts' || xtsType === 'sts';
+}
+
+function androidBuildPin(
+  msg?: XtsAndroidBuildPinPb
+): XtsAndroidBuildPin | undefined {
+  return msg
+    ? {
+        testBuild: msg.getTestBuild(),
+        testBranch: msg.getTestBranch(),
+        testTargets: msg.getTestTargetsList(),
+      }
+    : undefined;
+}
+
+function zipPin(msg?: XtsZipPinPb): XtsZipPin | undefined {
+  return msg
+    ? {
+        testBuild: msg.getTestBuild(),
+        testBuildName: msg.getTestBuildName(),
+      }
+    : undefined;
+}
+
+function multiArchPin(msg?: XtsMultiArchPinPb): XtsMultiArchPin | undefined {
+  return msg
+    ? {
+        testBuildName: msg.getTestBuildName(),
+        variants: msg.getVariantsList().map(pinVariant),
+      }
+    : undefined;
+}
+
+function pinVariant(msg: XtsPinVariantPb): XtsPinVariant {
+  return {
+    arch: msg.getArch(),
+    testBuild: msg.getTestBuild(),
+    testBuildName: msg.getTestBuildName(),
+  };
+}
 
 @Injectable({
   providedIn: 'root',
@@ -95,6 +184,25 @@ export class AndroidService {
     return from(
       this.client.listTestPlans(req, {}).then(resp => {
         return resp.getNamesList();
+      })
+    );
+  }
+
+  public getXtsPins(osBranch: string, target: string) {
+    const req = new GetXtsPinsRequest().setOsBranch(osBranch).setTarget(target);
+
+    return from(
+      this.client.getXtsPins(req, {}).then(resp => {
+        const pins = resp.getPins();
+        return {
+          device: resp.getDevice(),
+          pins: {
+            cts: androidBuildPin(pins?.getCts()),
+            gts: zipPin(pins?.getGts()),
+            sts: multiArchPin(pins?.getSts()),
+            vts: androidBuildPin(pins?.getVts()),
+          },
+        } as XtsPinsForDevice;
       })
     );
   }
