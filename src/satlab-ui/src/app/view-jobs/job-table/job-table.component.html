@@ -59,7 +59,14 @@
           <th mat-header-cell *matHeaderCellDef>{{ item.header }}</th>
 
           <ng-container *ngIf="item.type === 'string'">
-            <td mat-cell *matCellDef="let element">{{ element[item.def] }}</td>
+            <td mat-cell *matCellDef="let element">
+              <span>{{ element[item.def] }}</span>
+              <span
+                *ngIf="item.def === 'name' && element.autoQual"
+                class="inline-block ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                >AutoQual</span
+              >
+            </td>
           </ng-container>
 
           <ng-container *ngIf="item.type === 'date'">
