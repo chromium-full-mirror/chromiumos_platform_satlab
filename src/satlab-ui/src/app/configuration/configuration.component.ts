@@ -1,4 +1,9 @@
-import {ChangeDetectionStrategy, Component, OnDestroy, OnInit} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import {SatlabRpcService} from '../services/satlab-rpc.service';
 import {NotificationService} from '../services/notification.service';
 import {AuthService} from '../services/auth.service';
@@ -6,6 +11,7 @@ import {IBoto} from '../models/boto';
 import {finalize, from} from 'rxjs';
 import {startWithTap} from '../utils/rxjs_operator';
 import {PollDeviceAuthResponse} from '../services/satlabrpc_pb';
+import {Clipboard} from '@angular/cdk/clipboard';
 
 const defaultBoto: IBoto = {
   key: '',
@@ -63,7 +69,8 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
   constructor(
     private service: SatlabRpcService,
     private auth: AuthService,
-    private notification: NotificationService
+    private notification: NotificationService,
+    private clipboard: Clipboard
   ) {}
 
   async ngOnInit() {
@@ -264,10 +271,14 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
     this.isOAuthModalOpen = false;
   }
 
-  protected async copyUserCode() {
+  protected copyUserCode() {
     if (this.userCode) {
-      await navigator.clipboard.writeText(this.userCode);
-      this.notification.info('Code copied to clipboard!', {dismiss: true});
+      const success = this.clipboard.copy(this.userCode);
+      if (success) {
+        this.notification.info('Code copied to clipboard!', {dismiss: true});
+      } else {
+        this.notification.error('Failed to copy code.', {dismiss: true});
+      }
     }
   }
 
