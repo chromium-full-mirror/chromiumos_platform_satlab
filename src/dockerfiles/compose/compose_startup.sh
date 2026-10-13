@@ -152,6 +152,7 @@ else
   # Required for backward compatibility.
   export DOCKER_COMPOSE_CERT_PATH=${DOCKER_CERT_PATH:-/etc/docker/certs}
   docker volume create --name=docker_tls
+  docker volume create --name=rpm_keys
 
   if [ -n "${DOCKER_CERT_PATH}" ]; then
     export DOCKER_DRONE_CERT_PATH=/home/chromeos-test/.docker/certs

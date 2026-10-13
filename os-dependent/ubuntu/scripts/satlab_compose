@@ -26,6 +26,7 @@ docker run -d --restart unless-stopped --name compose \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v docker_config:/root/.docker \
     -v satlab_keys:${VOLUME_KEYS_FOLDER} \
+    -v rpm_keys:/home/satlab/rpm_keys \
     -v cache_server:/home/satlab/cache_server \
     -v shared:/home/satlab/shared \
     -e DRONE_HOSTNAME="${DRONE_HOSTNAME}" \
