@@ -333,6 +333,7 @@ services:
   dualconduit:
     container_name: dualconduit
     image: ${SFP_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners}/dualconduit:${DUALCONDUIT:-release}
+    restart: unless-stopped
     networks:
       satlab:
         ipv4_address: 192.168.100.11
@@ -359,6 +360,7 @@ services:
     container_name: ats
     image: ${ATS_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners}/ats:${ATS:-release}
     hostname: ${DRONE_HOSTNAME}
+    restart: unless-stopped
     privileged: true
     sysctls:
       - net.ipv6.conf.all.disable_ipv6=0
