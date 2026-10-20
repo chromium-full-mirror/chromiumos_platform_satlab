@@ -1323,7 +1323,7 @@ message CreateTestEffortResponse {
   string id = 1;
 }
 
-// NEXT_TAG = 13
+// NEXT_TAG = 14
 message TestEffort {
 
   // NEXT_TAG = 10
@@ -1403,6 +1403,68 @@ message TestEffort {
     PoolType type = 2;
   }
 
+  // NEXT_TAG = 4
+  // Represents the version of a firmware target.
+  message FirmwareTestEffortVersion {
+    // Required. The major version of the firmware.
+    int32 major_version = 1;
+
+    // Required. The minor version of the firmware.
+    int32 minor_version = 2;
+
+    // Required. The patch number of the firmware.
+    int32 patch_number = 3;
+  }
+
+  // NEXT_TAG = 4
+  // Represents the version of a GSC firmware target.
+  message GscTestEffortVersion {
+    // Required. The major version of the GSC firmware.
+    int32 major_version = 1;
+
+    // Required. The minor version of the GSC firmware.
+    int32 minor_version = 2;
+
+    // Required. The generation of the GSC firmware.
+    int32 generation = 3;
+  }
+
+  // NEXT_TAG = 5
+  // Specifies the firmware target and its version.
+  message FirmwareTarget {
+    oneof fw {
+      // Embedded Controller firmware version.
+      FirmwareTestEffortVersion ec = 1;
+
+      // Application Processor firmware version.
+      FirmwareTestEffortVersion ap = 2;
+
+      // Google Security Chip firmware version.
+      GscTestEffortVersion gsc = 3;
+
+      // Fingerprint Microcontroller firmware version.
+      FirmwareTestEffortVersion fpmcu = 4;
+    }
+  }
+
+  // NEXT_TAG = 3
+  // The type of firmware (read-only or read-write).
+  enum FirmwareType {
+    FIRMWARE_TYPE_UNSPECIFIED = 0;
+    FIRMWARE_TYPE_READ_ONLY = 1;
+    FIRMWARE_TYPE_READ_WRITE = 2;
+  }
+
+  // NEXT_TAG = 3
+  // Configuration for a firmware target.
+  message FirmwareConfig {
+    // Required. The firmware target and version.
+    FirmwareTarget firmware_target = 1;
+
+    // Required. The firmware types (e.g. FIRMWARE_TYPE_READ_ONLY, FIRMWARE_TYPE_READ_WRITE).
+    repeated FirmwareType firmware_types = 2;
+  }
+
   // Output only. The ID of the test effort.
   string id = 1;
 
@@ -1444,6 +1506,9 @@ message TestEffort {
 
   // Option to make boot tests optional.
   bool skip_boot_prerequisite = 12;
+
+  // Optional. Firmware configurations to test against.
+  repeated FirmwareConfig firmware_configs = 13;
 }
 
 // NEXT_TAG = 2

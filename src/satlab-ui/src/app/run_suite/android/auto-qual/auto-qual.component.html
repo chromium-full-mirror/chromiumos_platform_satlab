@@ -209,6 +209,114 @@
           (isLoadingChanged)="onLoadingChanged($event)"
         ></app-android-build-picker>
 
+        <div class="my-2">
+          <mat-slide-toggle
+            (change)="onFirmwareVersionEnabledChanged($event.checked)"
+            [checked]="isFirmwareVersionEnabledSignal()"
+            [disabled]="isScheduleRunLoading().show"
+          >
+            Add Firmware Versions
+          </mat-slide-toggle>
+        </div>
+
+        <div
+          *ngIf="isFirmwareVersionEnabledSignal()"
+          class="flex flex-col gap-3 my-2 p-4 border border-gray-200 rounded"
+        >
+          <div
+            *ngFor="
+              let row of firmwareRowsSignal();
+              let i = index;
+              trackBy: trackByFirmwareRowIndex
+            "
+            class="flex flex-col gap-1"
+          >
+            <div class="flex flex-row items-end gap-3 w-full">
+              <div class="w-32">
+                <label class="block text-xs text-blue-500 mb-1">Target:</label>
+                <mat-select
+                  [value]="row.target"
+                  (selectionChange)="onFirmwareTargetChanged(i, $event.value)"
+                  [disabled]="isScheduleRunLoading().show"
+                  class="border-b border-gray-400 pb-1 text-sm"
+                >
+                  <mat-option
+                    *ngFor="let targetOpt of firmwareTargetOptions"
+                    [value]="targetOpt.value"
+                  >
+                    {{ targetOpt.label }}
+                  </mat-option>
+                </mat-select>
+              </div>
+
+              <div class="w-24">
+                <label class="block text-xs text-blue-500 mb-1">Type:</label>
+                <mat-select
+                  [value]="row.type"
+                  (selectionChange)="onFirmwareTypeChanged(i, $event.value)"
+                  [disabled]="isScheduleRunLoading().show"
+                  class="border-b border-gray-400 pb-1 text-sm"
+                >
+                  <mat-option
+                    *ngFor="let typeOpt of firmwareTypeOptions"
+                    [value]="typeOpt.value"
+                  >
+                    {{ typeOpt.label }}
+                  </mat-option>
+                </mat-select>
+              </div>
+
+              <div class="flex-1">
+                <label class="block text-xs text-blue-500 mb-1">Version:</label>
+                <input
+                  type="text"
+                  placeholder="e.g. 1.2.3"
+                  [value]="row.version"
+                  (input)="onFirmwareVersionInputChanged(i, $event)"
+                  [disabled]="isScheduleRunLoading().show"
+                  class="w-full block border-b border-gray-400 pb-1 focus:border-blue-500 bg-transparent outline-none text-sm font-light font-sans disabled:text-gray-300"
+                  [class.border-red-500]="firmwareRowErrors()[i] !== ''"
+                />
+              </div>
+
+              <button
+                type="button"
+                class="flex items-center justify-center w-8 h-8 rounded hover:bg-gray-100 text-gray-600 disabled:text-gray-300 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors"
+                (click)="onRemoveFirmwareRowClicked(i)"
+                [disabled]="
+                  firmwareRowsSignal().length <= 1 ||
+                  isScheduleRunLoading().show
+                "
+                title="Remove firmware version"
+              >
+                <span class="material-icon">remove</span>
+              </button>
+            </div>
+
+            <p
+              *ngIf="firmwareRowErrors()[i] !== ''"
+              class="text-red-500 text-xs m-0"
+            >
+              {{ firmwareRowErrors()[i] }}
+            </p>
+          </div>
+
+          <div class="flex justify-start mt-1">
+            <button
+              type="button"
+              class="flex items-center justify-center w-8 h-8 rounded hover:bg-gray-100 text-blue-500 disabled:text-gray-300 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors"
+              (click)="onAddFirmwareRowClicked()"
+              [disabled]="
+                firmwareRowsSignal().length >= MAX_FIRMWARE_ROWS ||
+                isScheduleRunLoading().show
+              "
+              title="Add firmware version"
+            >
+              <span class="material-icon">add</span>
+            </button>
+          </div>
+        </div>
+
         <app-basic-selector
           (select)="onPropsChanged('pool', $event)"
           [options]="poolOptions()"

@@ -31,6 +31,17 @@ export const XTS_TYPES = ['cts', 'gts', 'sts', 'vts'] as const;
 
 export type XtsType = (typeof XTS_TYPES)[number];
 
+export type FirmwareTargetType = 'ap' | 'ec' | 'gsc' | 'fpmcu';
+export type FirmwareReadabilityType = 'ro' | 'rw';
+
+export interface FirmwareConfigParam {
+  target: FirmwareTargetType;
+  type: FirmwareReadabilityType;
+  major: number;
+  minor: number;
+  patch: number;
+}
+
 export interface XtsAndroidBuildPin {
   testBuild: string;
   testBranch: string;
@@ -353,6 +364,7 @@ export class AndroidService {
     testTarget?: string;
     testBuild?: string;
     skipBootPrerequisite?: boolean;
+    firmwareConfigs?: FirmwareConfigParam[];
   }) {
     const poolLists = params.pools.map(p => {
       return new TestEffort.Pool().setLabel(p.label).setType(p.type);
@@ -379,6 +391,46 @@ export class AndroidService {
         .setBuildId(params.testBuild);
 
       testEffort.setAndroidTestTarget(androidTestTarget);
+    }
+
+    if (params.firmwareConfigs && params.firmwareConfigs.length > 0) {
+      const fwConfigs = params.firmwareConfigs.map(cfg => {
+        const fwTarget = new TestEffort.FirmwareTarget();
+        if (cfg.target === 'gsc') {
+          const gscVer = new TestEffort.GscTestEffortVersion()
+            .setMajorVersion(cfg.major)
+            .setMinorVersion(cfg.minor)
+            .setGeneration(cfg.patch);
+          fwTarget.setGsc(gscVer);
+        } else {
+          const stdVer = new TestEffort.FirmwareTestEffortVersion()
+            .setMajorVersion(cfg.major)
+            .setMinorVersion(cfg.minor)
+            .setPatchNumber(cfg.patch);
+          switch (cfg.target) {
+            case 'ap':
+              fwTarget.setAp(stdVer);
+              break;
+            case 'ec':
+              fwTarget.setEc(stdVer);
+              break;
+            case 'fpmcu':
+              fwTarget.setFpmcu(stdVer);
+              break;
+          }
+        }
+
+        const fwType =
+          cfg.type === 'ro'
+            ? TestEffort.FirmwareType.FIRMWARE_TYPE_READ_ONLY
+            : TestEffort.FirmwareType.FIRMWARE_TYPE_READ_WRITE;
+
+        return new TestEffort.FirmwareConfig()
+          .setFirmwareTarget(fwTarget)
+          .setFirmwareTypesList([fwType]);
+      });
+
+      testEffort.setFirmwareConfigsList(fwConfigs);
     }
 
     const req = new CreateTestEffortRequest().setEffort(testEffort);
