@@ -19,7 +19,12 @@ import {SelectableItem} from 'app/models/selectable_item';
 import {AutocompleteComponent} from 'app/run_suite/common/autocomplete/autocomplete.component';
 import {BasicSelectorComponent} from 'app/run_suite/common/basic-selector/basic-selector.component';
 import {LoadingComponent} from 'app/run_suite/common/loading/loading.component';
-import {AndroidService} from 'app/services/android.service';
+import {
+  AndroidService,
+  FirmwareConfigParam,
+  FirmwareReadabilityType,
+  FirmwareTargetType,
+} from 'app/services/android.service';
 import {NotificationService} from 'app/services/notification.service';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
 import {TestEffort} from 'app/services/satlabrpc_pb';
@@ -27,10 +32,17 @@ import {toIterator} from 'app/utils/iterator';
 import {resetSignals, wrapperLoading} from 'app/utils/operators';
 import {from} from 'rxjs';
 import {ActivatedRoute, Router, RouterModule} from '@angular/router';
+import {MatSelectModule} from '@angular/material/select';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {ALBuildBasic, ICustomSettings} from 'app/models/run_suite_fields';
 import {AdvancedSettingsComponent} from 'app/run_suite/common/advanced-settings/advanced-settings.component';
 import {AndroidBuildPickerComponent} from '../../android/common/android-build-picker/android-build-picker.component';
+
+export interface FirmwareRow {
+  target: FirmwareTargetType;
+  type: FirmwareReadabilityType;
+  version: string;
+}
 
 export enum Status {
   SCHEDULED = 'Scheduled',
@@ -51,6 +63,7 @@ export enum Status {
     BasicSelectorComponent,
     AutocompleteComponent,
     RouterModule,
+    MatSelectModule,
     MatSlideToggleModule,
     AndroidBuildPickerComponent,
     AdvancedSettingsComponent,
@@ -197,6 +210,66 @@ export class AutoQualComponent implements OnInit, OnDestroy {
   protected testTargetSignal = signal<string>('');
   protected testValidBuildSignal = signal<string>('');
 
+  protected readonly firmwareTargetOptions: {
+    value: FirmwareTargetType;
+    label: string;
+  }[] = [
+    {value: 'ap', label: 'AP'},
+    {value: 'ec', label: 'EC'},
+    {value: 'gsc', label: 'GSC'},
+    {value: 'fpmcu', label: 'FPMCU'},
+  ];
+  protected readonly firmwareTypeOptions: {
+    value: FirmwareReadabilityType;
+    label: string;
+  }[] = [
+    {value: 'ro', label: 'RO'},
+    {value: 'rw', label: 'RW'},
+  ];
+  protected readonly MAX_FIRMWARE_ROWS =
+    this.firmwareTargetOptions.length * this.firmwareTypeOptions.length;
+  private readonly FIRMWARE_VERSION_REGEX = /^\d+\.\d+\.\d+$/;
+  private readonly MAX_INT32 = 2147483647;
+
+  protected isFirmwareVersionEnabledSignal = signal<boolean>(false);
+  protected firmwareRowsSignal = signal<FirmwareRow[]>([
+    {target: 'ap', type: 'ro', version: ''},
+  ]);
+
+  protected firmwareRowErrors = computed<string[]>(() => {
+    const rows = this.firmwareRowsSignal();
+    const pairCounts = new Map<string, number>();
+    for (const row of rows) {
+      const key = `${row.target}:${row.type}`;
+      pairCounts.set(key, (pairCounts.get(key) || 0) + 1);
+    }
+
+    return rows.map(row => {
+      const key = `${row.target}:${row.type}`;
+      if ((pairCounts.get(key) || 0) > 1) {
+        return 'Duplicate target and type combination.';
+      }
+      const trimmed = row.version.trim();
+      if (trimmed !== '') {
+        if (!this.FIRMWARE_VERSION_REGEX.test(trimmed)) {
+          return 'Format must be major.minor.patch (e.g. 1.2.3).';
+        }
+        const parts = trimmed.split('.').map(Number);
+        if (parts.some(p => p > this.MAX_INT32)) {
+          return 'Version numbers are out of range.';
+        }
+      }
+      return '';
+    });
+  });
+
+  protected isFirmwareValid = computed<boolean>(() => {
+    if (!this.isFirmwareVersionEnabledSignal()) {
+      return true;
+    }
+    return this.firmwareRowErrors().every(err => err === '');
+  });
+
   protected notAvailableMsg = signal<string>('');
 
   protected isRunnable = computed(() => {
@@ -229,6 +302,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
       validBuild !== '' &&
       testplan !== '' &&
       crossBranchValid &&
+      this.isFirmwareValid() &&
       !errMsg
     );
   });
@@ -463,6 +537,78 @@ export class AutoQualComponent implements OnInit, OnDestroy {
     this.isCrossBranchSignal.set(value);
   }
 
+  protected onFirmwareVersionEnabledChanged(value: boolean) {
+    this.isFirmwareVersionEnabledSignal.set(value);
+    if (!value) {
+      this.firmwareRowsSignal.set([{target: 'ap', type: 'ro', version: ''}]);
+    }
+  }
+
+  protected onAddFirmwareRowClicked() {
+    const rows = this.firmwareRowsSignal();
+    if (rows.length >= this.MAX_FIRMWARE_ROWS) {
+      return;
+    }
+
+    const usedPairs = new Set(rows.map(r => `${r.target}:${r.type}`));
+    let nextTarget: FirmwareTargetType = 'ap';
+    let nextType: FirmwareReadabilityType = 'ro';
+    let found = false;
+
+    for (const targetOpt of this.firmwareTargetOptions) {
+      for (const typeOpt of this.firmwareTypeOptions) {
+        if (!usedPairs.has(`${targetOpt.value}:${typeOpt.value}`)) {
+          nextTarget = targetOpt.value;
+          nextType = typeOpt.value;
+          found = true;
+          break;
+        }
+      }
+      if (found) {
+        break;
+      }
+    }
+
+    this.firmwareRowsSignal.set([
+      ...rows,
+      {target: nextTarget, type: nextType, version: ''},
+    ]);
+  }
+
+  protected onRemoveFirmwareRowClicked(index: number) {
+    const rows = this.firmwareRowsSignal();
+    if (rows.length <= 1) {
+      return;
+    }
+    this.firmwareRowsSignal.set(rows.filter((_, i) => i !== index));
+  }
+
+  protected onFirmwareTargetChanged(index: number, target: FirmwareTargetType) {
+    this.firmwareRowsSignal.update(rows =>
+      rows.map((row, i) => (i === index ? {...row, target} : row))
+    );
+  }
+
+  protected onFirmwareTypeChanged(
+    index: number,
+    type: FirmwareReadabilityType
+  ) {
+    this.firmwareRowsSignal.update(rows =>
+      rows.map((row, i) => (i === index ? {...row, type} : row))
+    );
+  }
+
+  protected onFirmwareVersionInputChanged(index: number, event: Event) {
+    const version = (event.target as HTMLInputElement).value;
+    this.firmwareRowsSignal.update(rows =>
+      rows.map((row, i) => (i === index ? {...row, version} : row))
+    );
+  }
+
+  protected trackByFirmwareRowIndex(index: number) {
+    return index;
+  }
+
   protected onAdvancedSettingsChanged(settings: ICustomSettings) {
     this.customSettings = settings;
     this.skipBootPrerequisiteSignal.set(!!settings.skipBootPrerequisite);
@@ -481,6 +627,24 @@ export class AutoQualComponent implements OnInit, OnDestroy {
   protected onScheduleClicked() {
     const testplan = this.testplanSignal();
     const isCrossBranch = this.isCrossBranchSignal();
+    const firmwareConfigs: FirmwareConfigParam[] =
+      this.isFirmwareVersionEnabledSignal()
+        ? this.firmwareRowsSignal()
+            .filter(row => row.version.trim() !== '')
+            .map(row => {
+              const [major, minor, patch] = row.version
+                .trim()
+                .split('.')
+                .map(Number);
+              return {
+                target: row.target,
+                type: row.type,
+                major,
+                minor,
+                patch,
+              };
+            })
+        : [];
 
     this.__createTestEffort({
       board: this.boardSignal(),
@@ -496,6 +660,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
         ? this.testValidBuildSignal()
         : this.validBuildSignal(),
       skipBootPrerequisite: this.skipBootPrerequisiteSignal(),
+      firmwareConfigs: firmwareConfigs.length > 0 ? firmwareConfigs : undefined,
     });
   }
 
@@ -585,6 +750,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
     testTarget?: string;
     testBuild?: string;
     skipBootPrerequisite?: boolean;
+    firmwareConfigs?: FirmwareConfigParam[];
   }) {
     wrapperLoading(
       from(
@@ -602,6 +768,7 @@ export class AutoQualComponent implements OnInit, OnDestroy {
           testTarget: p.testTarget,
           testBuild: p.testBuild,
           skipBootPrerequisite: p.skipBootPrerequisite,
+          firmwareConfigs: p.firmwareConfigs,
         })
       ),
       this.isScheduleRunLoading,
