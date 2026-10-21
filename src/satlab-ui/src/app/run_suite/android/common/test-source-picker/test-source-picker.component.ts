@@ -156,6 +156,9 @@ export class TestSourcePickerComponent implements OnDestroy {
 
   protected isFormLoading = computed(() => {
     if (this.pinsLoadingWithMsg().show) return this.pinsLoadingWithMsg();
+    if (this.showPinned()) {
+      return {show: false, message: ''};
+    }
     if (this.androidBuildLoadingWithMsg().show)
       return this.androidBuildLoadingWithMsg();
     if (this.driveLoadingWithMsg().show) return this.driveLoadingWithMsg();
@@ -199,7 +202,11 @@ export class TestSourcePickerComponent implements OnDestroy {
 
   /** Whether to show the pinned form instead of the regular one. */
   protected showPinned = computed(
-    () => this.availableTypes().length > 0 && !this.overrideSignal()
+    () =>
+      !!this.osBranchSignal() &&
+      !!this.osTargetSignal() &&
+      this.availableTypes().length > 0 &&
+      !this.overrideSignal()
   );
 
   /** True once the user opted out of a pin that is still on offer. */
@@ -398,6 +405,7 @@ export class TestSourcePickerComponent implements OnDestroy {
   }
 
   private __setPins(device: string, pins: XtsPins) {
+    this.androidBuildLoadingWithMsg.set({show: false, message: ''});
     this.pinnedDeviceSignal.set(device);
     this.pinsSignal.set(pins);
     this.overrideSignal.set(false);
