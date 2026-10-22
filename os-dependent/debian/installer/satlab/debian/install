@@ -1,7 +1,0 @@
-# Main scripts
-./scripts/satlab* /usr/bin
-./scripts/shivas /usr/bin
-
-# Init scripts
-./scripts/systemd/* /lib/systemd/system
-./scripts/configs/* /etc/satlab
