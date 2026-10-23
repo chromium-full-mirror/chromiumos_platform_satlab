@@ -133,6 +133,7 @@ steps:
       - "DOCKER_BUILDKIT=1"
     waitFor:
      - "moblab-common"
+     - "satlab-remote-access"
 
   - id: envoy
     name: "gcr.io/cloud-builders/docker"
