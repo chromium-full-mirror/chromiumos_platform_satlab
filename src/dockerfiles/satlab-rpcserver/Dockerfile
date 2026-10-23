@@ -19,7 +19,7 @@ FROM ${REGISTRY_URI}/satlab_remote_access:${COMMON_CORE_LABEL}
 
 RUN mkdir /gcloud/
 WORKDIR /gcloud
-ARG GCLOUD_CLI_VER=452.0.1
+ARG GCLOUD_CLI_VER=567.0.0
 ARG GCLOUD_CLI_ARCHIVE=google-cloud-cli-${GCLOUD_CLI_VER}-linux-x86_64.tar.gz
 RUN curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/${GCLOUD_CLI_ARCHIVE} && \
     tar -xf ${GCLOUD_CLI_ARCHIVE} && \
