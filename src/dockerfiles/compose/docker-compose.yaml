@@ -71,6 +71,8 @@ services:
     depends_on:
       - dns
       - partner_testing_rsa
+      - labservice
+      - passport
   ##############################################################################dns
   dns:
     container_name: dns
@@ -382,6 +384,7 @@ services:
       - dualconduit
       - dns
       - labservice
+      - passport
   ###########################################################################labservice
   labservice:
     container_name: labservice
