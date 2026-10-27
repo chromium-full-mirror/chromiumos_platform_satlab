@@ -202,9 +202,9 @@ export class AutoQualComponent implements OnInit, OnDestroy {
   protected testplanSignal = signal<string>('');
 
   protected isCrossBranchSignal = signal<boolean>(false);
-  protected skipBootPrerequisiteSignal = signal<boolean>(true);
+  protected skipBootPrerequisiteSignal = signal<boolean>(false);
   protected customSettings: ICustomSettings = {
-    skipBootPrerequisite: true,
+    skipBootPrerequisite: false,
   };
   protected testBranchSignal = signal<string>('');
   protected testTargetSignal = signal<string>('');
