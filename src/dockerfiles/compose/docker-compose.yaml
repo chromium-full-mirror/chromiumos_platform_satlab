@@ -418,6 +418,23 @@ services:
     depends_on:
       - drone
       - labservice
+  ###########################################################################passport
+  passport:
+    container_name: passport
+    image: ${SFP_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners}/passport:${PASSPORT:-release}
+    restart: unless-stopped
+    networks:
+      satlab:
+        ipv4_address: 192.168.100.14
+    ports:
+      - "8300:8300"
+    privileged: true
+    dns:
+      - 192.168.100.51
+    volumes:
+      - /dev:/dev
+    depends_on:
+      - dns
 ##############################################################################volumes
 volumes:
   logs: {}
