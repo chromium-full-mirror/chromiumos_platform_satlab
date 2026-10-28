@@ -413,6 +413,25 @@ steps:
     waitFor:
       - openssh-server-pull
 
+  - id: passport-pull
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "pull",
+        "${_SFP_REGISTRY_URI}/passport:${__SHARED_IMAGES_TAG}",
+      ]
+    waitFor: ['-']
+  - id: passport
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "tag",
+        "${_SFP_REGISTRY_URI}/passport:${__SHARED_IMAGES_TAG}",
+        "${_SFP_REGISTRY_URI}/passport:${__BUILD_VERSION}"
+      ]
+    waitFor:
+      - "passport-pull"
+
 images:
   [
     # Satlab images
@@ -445,6 +464,7 @@ images:
     "${_SFP_REGISTRY_URI}/dualconduit:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/nginx:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/openssh_server:${__BUILD_VERSION}",
+    "${_SFP_REGISTRY_URI}/passport:${__BUILD_VERSION}",
   ]
 
 options:
