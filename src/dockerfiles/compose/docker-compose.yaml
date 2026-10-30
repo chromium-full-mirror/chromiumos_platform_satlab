@@ -398,6 +398,10 @@ services:
       - http://192.168.100.1:8082
       - -ufs-service
       - ufs.api.cr.dev
+      - -version-server-addr
+      - chromeos-skylab-bot-fleet.appspot.com
+      - -recovery-versions-dir
+      - /creds/service_accounts/recovery_versions/
     environment:
       GOOGLE_APPLICATION_CREDENTIALS: /creds/service_accounts/skylab-drone.json
     networks:
