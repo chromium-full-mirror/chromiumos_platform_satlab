@@ -44,6 +44,7 @@ ARG LOGROTATE_VER
 ARG NGINX_VER
 ARG OPENSSH_SERVER_VER
 ARG OPENTELEMETRY_COLLECTOR_VER
+ARG PASSPORT_VER
 ARG SATLAB_DRONE_VER
 ARG SATLAB_RPCSERVER_VER
 ARG SATLAB_UI_VER
@@ -106,6 +107,7 @@ RUN  ./override_service_version.sh ATS ${ATS_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh NGINX ${NGINX_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh OPENSSH_SERVER ${OPENSSH_SERVER_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh OPENTELEMETRY_COLLECTOR ${OPENTELEMETRY_COLLECTOR_VER:-${BUILD_VERSION}} \
+  && ./override_service_version.sh PASSPORT ${PASSPORT_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh SATLAB_DRONE ${SATLAB_DRONE_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh SATLAB_RPCSERVER ${SATLAB_RPCSERVER_VER:-${BUILD_VERSION}} \
   && ./override_service_version.sh SATLAB_UI ${SATLAB_UI_VER:-${BUILD_VERSION}}

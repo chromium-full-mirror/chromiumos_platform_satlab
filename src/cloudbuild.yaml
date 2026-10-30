@@ -414,24 +414,29 @@ steps:
     waitFor:
       - openssh-server-pull
 
-  - id: passport-pull
-    name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "pull",
-        "${_SFP_REGISTRY_URI}/passport:${__SHARED_IMAGES_TAG}",
-      ]
-    waitFor: ['-']
+  # NOTE: Testing a new tagging approach on `passport` first.
+  # Why: `passport:stable` is pushed as a multi-arch OCI Image Index
+  # (`application/vnd.oci.image.index.v1+json` with linux/amd64 + linux/arm64).
+  # Using `docker pull` + `docker tag` + `docker push` (via `images:`) on an
+  # amd64 Cloud Build worker pulls only the amd64 image and re-serializes it as
+  # a single-arch Docker V2 manifest (`application/vnd.docker.distribution.manifest.v2+json`),
+  # which changes the SHA-256 digest so the version tag is not attached to `:stable`.
+  # `gcloud container images add-tag` copies the raw manifest/index directly in
+  # Artifact Registry without pulling layers, preserving the exact `:stable` digest
+  # and multi-arch index.
+  # Action plan:
+  # - In case of any issues, delete/revert this step.
+  # - If successful, propagate this approach to all other Shared images above
+  #   (which will also skip downloading/uploading several GBs of layers during build).
   - id: passport
-    name: "gcr.io/cloud-builders/docker"
+    name: "gcr.io/cloud-builders/gcloud"
     args:
       [
-        "tag",
+        "container", "images", "add-tag", "--quiet",
         "${_SFP_REGISTRY_URI}/passport:${__SHARED_IMAGES_TAG}",
         "${_SFP_REGISTRY_URI}/passport:${__BUILD_VERSION}"
       ]
-    waitFor:
-      - "passport-pull"
+    waitFor: ['-']
 
 images:
   [
@@ -465,7 +470,9 @@ images:
     "${_SFP_REGISTRY_URI}/dualconduit:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/nginx:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/openssh_server:${__BUILD_VERSION}",
-    "${_SFP_REGISTRY_URI}/passport:${__BUILD_VERSION}",
+    # NOTE: `passport` is intentionally omitted from `images:` because it is
+    # tagged directly in Artifact Registry via `gcloud container images add-tag`
+    # above (no local image to `docker push`).
   ]
 
 options:
