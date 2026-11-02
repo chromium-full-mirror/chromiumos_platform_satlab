@@ -197,6 +197,11 @@ apt-get remove --purge -y unattended-upgrades
 apt-mark hold linux-image-generic \
   docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras
 
+# --- Disable auto-mounting partitions (to prevent blockdev busy errors while writing to a USB drive) ---
+
+systemctl stop udisks2.service
+systemctl mask udisks2.service
+
 # --- Optional: Install Graphical Environment (Xfce) ---
 
 echo -e "\n${B_WHITE}Optional: Install desktop environment${C_NC}"
