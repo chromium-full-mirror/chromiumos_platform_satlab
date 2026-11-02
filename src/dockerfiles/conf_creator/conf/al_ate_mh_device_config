@@ -1,0 +1,10 @@
+composite_dimension {
+  supported_dimension {
+    name: "pool"
+    value: "android-test-executor"
+  }
+  supported_dimension {
+    name: "cluster"
+    value: "al-ate-prod"
+  }
+}

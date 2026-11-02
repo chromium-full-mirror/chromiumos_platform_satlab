@@ -94,7 +94,18 @@ function start_private_containers () {
     docker-compose up -d opentelemetry-collector
   fi
 
-  if [[ ${ATS_ENABLED:-false} == true ]]; then
+  if [[ ${ATE_ENABLED:-false} == true ]]; then
+    if docker login -u _json_key --password-stdin https://gcr.io < "${SERVICE_ACCOUNT_KEY}"; then
+      if [ ! -f /home/satlab/keys/keystore.json ]; then
+        echo "{}" > /home/satlab/keys/keystore.json
+      fi
+      chmod 644 /home/satlab/keys/keystore.json
+      docker volume rm -f default_tf_res
+      docker-compose up -d ate-tradefed
+    else
+      echo "WARNING: Failed to authenticate docker to https://gcr.io; skipping ATE containers."
+    fi
+  elif [[ ${ATS_ENABLED:-false} == true ]]; then
     docker-compose up -d ats
   fi
 

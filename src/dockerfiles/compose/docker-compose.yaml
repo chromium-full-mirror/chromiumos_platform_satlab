@@ -14,6 +14,7 @@ services:
       - "skip.while.pruning.docker.system=yes"
     volumes:
       - nginx_configs:/mnt/conf/nginx:rw
+      - ate_tmp:/mnt/conf/ate:rw
   ##############################################################################drone
   drone:
     container_name: drone
@@ -194,6 +195,7 @@ services:
       - DOCKER_TLS_VERIFY=${DOCKER_TLS_VERIFY:-}
       - ACCOUNT_ID=${ACCOUNT_ID:-}
       - ATS_ENABLED=${ATS_ENABLED:-false}
+      - ATE_ENABLED=${ATE_ENABLED:-false}
     volumes:
       - logs:/var/log/satlab
       - /var/run/docker.sock:/var/run/docker.sock:rw
@@ -368,6 +370,87 @@ services:
       - dns
       - labservice
       - passport
+  ###########################################################################ate-labserver
+  ate-labserver:
+    container_name: ate-labserver
+    image: gcr.io/udcluser-daemon-server/lab-server/mobileharness_lab_image:${ATE_LABSERVER}
+    hostname: ${DRONE_HOSTNAME}
+    restart: unless-stopped
+    privileged: true
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
+    entrypoint:
+      [
+        '/tini',
+        '--',
+        '/tmp/cloud-ate-shared/ate_labserver_entrypoint.sh'
+      ]
+    command:
+      [
+        'java',
+        '--uid=',
+        '--enforce_kernel_ipv6_support=false',
+        '-loas_pwd_fallback_in_corp',
+        '-Xms512m',
+        '-Xmx2g',
+        '-jar',
+        'lab_server_deploy.jar',
+        '--api_config=/tmp/cloud-ate-shared/al_ate_mh_device_config',
+        '--android_tradefed_test_key_file_path=/creds/service_accounts/skylab-drone.json',
+        '--rpc_use_default_app_executor',
+        '--enable_ate_dual_stack',
+        '--rpc_security_protocol=',
+        '--prepare_device_after_test',
+        '--android_desktop_executor_devices_num=${EXECUTOR_DEVICES_NUM:-7}',
+        '--android_desktop_executor_group=${DRONE_HOSTNAME}',
+        '--nodetect_adb_device',
+        '--enable_builtin_credential_file_percentage=100'
+      ]
+    environment:
+      - UFS_NAMESPACE=${UFS_NAMESPACE:-os}
+      - SHIVAS_NAMESPACE=${UFS_NAMESPACE:-os}
+    volumes:
+      - ate_tmp:/tmp/cloud-ate-shared:rw
+      - tf_res:/usr/local/google/mobileharness/ate:rw
+      - satlab_keys:/creds/service_accounts:rw
+      - /dev:/dev
+    networks:
+      satlab:
+        ipv4_address: 192.168.100.12
+    dns:
+      - 192.168.100.51
+    depends_on:
+      - conf_creator
+      - dns
+      - labservice
+      - passport
+  ###########################################################################ate-tradefed
+  ate-tradefed:
+    container_name: ate-tradefed
+    image: gcr.io/dockerized-tradefed/tradefed:${ATE_TRADEFED}
+    network_mode: "service:ate-labserver"
+    restart: unless-stopped
+    privileged: true
+    tty: true
+    stdin_open: true
+    environment:
+      - CLUSTER=al-ate-prod
+      - ADB_REJECT_KILL_SERVER=1
+      - ENABLE_STACKDRIVER_LOGGING=true
+      - IS_CLOUD_ATE=true
+      - TF_INVOCATION_SERVER_PORT=8891
+      - TF_DEVICE_MANAGEMENT_PORT=8892
+      - TF_SANDBOX_JVM_OPTIONS=-Xmx1024m
+      - TF_JVM_OPTIONS=-Xmx6144m -XX:G1HeapWastePercent=5
+      - TF_EXTRA_ARGS=--json-key-store-file=/creds/service_accounts/keystore.json
+      - JSON_KEY_PATH=/creds/service_accounts/skylab-drone.json
+    volumes:
+      - ate_tmp:/tmp/cloud-ate-shared:rw
+      - tf_res:/tradefed:rw
+      - satlab_keys:/creds/service_accounts:rw
+      - /dev:/dev
+    depends_on:
+      - ate-labserver
   ###########################################################################labservice
   labservice:
     container_name: labservice
@@ -446,6 +529,8 @@ volumes:
   docker_tls:
     external: True
   bridge_ssh: {}
+  tf_res: {}
+  ate_tmp: {}
 ##############################################################################networks
 networks:
   satlab:

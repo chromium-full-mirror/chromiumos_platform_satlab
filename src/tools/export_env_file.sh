@@ -49,10 +49,7 @@ function export_env_from_config() {
 
 function export_ats_enabled() {
   if [[ "${CTP_SWARMING_POOL}" == "ChromeOSSkylab" ]]; then
-    export ATS_ENABLED=true
-    export ATS_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab-internal
-    export GCP_PROJECT=satlab-internal-users
-    export CLOUD_FILE_TRANSFER_BUCKET=omnilab_satlab-internal-users_file_transfer
+    export ATE_ENABLED=true
     return
   fi
 
