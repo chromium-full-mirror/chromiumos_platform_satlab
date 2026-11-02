@@ -144,23 +144,6 @@ services:
       - conf_creator
       - dns
       - downloader
-  ##############################################################################openssh_server
-  openssh_server:
-    container_name: openssh_server
-    image: ${SFP_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners}/openssh_server:${OPENSSH_SERVER:-release}
-    network_mode: host
-    cap_add:
-      - NET_ADMIN
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC
-      - SUDO_ACCESS=false
-      - USER_NAME=chromeos-test
-    ports:
-      - "2222:2222"
-    dns:
-      - 192.168.100.51
   ##############################################################################dut_key
   partner_testing_rsa:
     container_name: partner_testing_rsa

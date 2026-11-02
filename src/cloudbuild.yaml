@@ -396,24 +396,6 @@ steps:
     waitFor:
       - nginx-pull
 
-  - id: openssh-server-pull
-    name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "pull",
-        "${_SFP_REGISTRY_URI}/openssh_server:${__SHARED_IMAGES_TAG}",
-      ]
-  - id: openssh-server
-    name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "tag",
-        "${_SFP_REGISTRY_URI}/openssh_server:${__SHARED_IMAGES_TAG}",
-        "${_SFP_REGISTRY_URI}/openssh_server:${__BUILD_VERSION}"
-      ]
-    waitFor:
-      - openssh-server-pull
-
   # NOTE: Testing a new tagging approach on `passport` first.
   # Why: `passport:stable` is pushed as a multi-arch OCI Image Index
   # (`application/vnd.oci.image.index.v1+json` with linux/amd64 + linux/arm64).
@@ -469,7 +451,6 @@ images:
     "${_SFP_REGISTRY_URI}/drone:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/dualconduit:${__BUILD_VERSION}",
     "${_SFP_REGISTRY_URI}/nginx:${__BUILD_VERSION}",
-    "${_SFP_REGISTRY_URI}/openssh_server:${__BUILD_VERSION}",
     # NOTE: `passport` is intentionally omitted from `images:` because it is
     # tagged directly in Artifact Registry via `gcloud container images add-tag`
     # above (no local image to `docker push`).
