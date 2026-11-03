@@ -1,0 +1,318 @@
+<div class="wizard-wrapper">
+  <app-loading [loading$]="loading$"></app-loading>
+
+  <!-- Header -->
+  <div class="wizard-header">
+    <h2 class="wizard-title">DUT Enrollment Wizard</h2>
+    <button
+      mat-icon-button
+      type="button"
+      (click)="onCloseClicked()"
+      [disabled]="isEnrolling"
+      aria-label="Close wizard"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Scrollable Body -->
+  <div class="wizard-body">
+    <!-- Section 1: Servo, Hostname, OS, Board/Model, Asset, Pools -->
+    <div class="section-card">
+      <div class="section-title">1. Device &amp; Identity</div>
+
+      <!-- Servo Serial Dropdown + Refresh -->
+      <div class="field-row">
+        <mat-form-field appearance="outline" class="flex-1">
+          <mat-label>Servo Serial</mat-label>
+          <mat-select
+            [(ngModel)]="selectedServoSerial"
+            (selectionChange)="onServoChanged($event.value)"
+            [disabled]="isScanningServos || isVerifying || isEnrolling"
+            placeholder="Select detected servo"
+          >
+            <mat-option *ngFor="let s of servos" [value]="s.serial">
+              {{ s.serial }} ({{ s.deviceType | uppercase }} -
+              {{ s.hasGscSibling ? 'GSC detected' : 'GSC not detected' }})
+            </mat-option>
+          </mat-select>
+          <mat-hint *ngIf="!isScanningServos && servos.length === 0">
+            No servos detected. Connect a servo and click Refresh.
+          </mat-hint>
+        </mat-form-field>
+
+        <button
+          mat-stroked-button
+          type="button"
+          class="refresh-btn"
+          (click)="scanServos()"
+          [disabled]="isScanningServos || isVerifying || isEnrolling"
+        >
+          <mat-icon>refresh</mat-icon>
+          <span>{{ isScanningServos ? 'Scanning...' : 'Refresh' }}</span>
+        </button>
+      </div>
+
+      <div class="field-error" *ngIf="isServoMissingGsc">
+        No GSC (Cr50/Ti50) detected for this servo. Please check the wiring,
+        flip the plug in the DUT, or try another DUT port and click "Refresh".
+      </div>
+
+      <!-- Hostname with Prefix (Full hostname <= 32 chars) -->
+      <div class="hostname-field-wrapper">
+        <div class="hostname-label-row">
+          <span class="field-label">Hostname (required, max 32 chars total)</span>
+          <span
+            class="char-counter"
+            [class.char-counter-limit]="fullHostname.length > MAX_FULL_HOSTNAME_LENGTH"
+          >
+            {{ fullHostname.length }} / {{ MAX_FULL_HOSTNAME_LENGTH }} chars
+          </span>
+        </div>
+        <div
+          class="hostname-input-box"
+          [class.hostname-input-box-disabled]="fieldsDisabled"
+        >
+          <span class="hostname-prefix" *ngIf="hostnamePrefix">{{
+            hostnamePrefix
+          }}</span>
+          <input
+            type="text"
+            class="hostname-input"
+            [(ngModel)]="hostnameInput"
+            [attr.maxlength]="maxHostnameSuffixLength"
+            [disabled]="fieldsDisabled"
+          />
+        </div>
+        <div class="field-error" *ngIf="hostnameError">
+          {{ hostnameError }}
+        </div>
+      </div>
+
+      <!-- OS Toggle Buttons (like Run Tests page) -->
+      <div class="os-toggle-group">
+        <button
+          type="button"
+          (click)="onOSChanged('chromeos')"
+          [disabled]="isVerifying || fieldsDisabled"
+          [class]="
+            os === 'chromeos'
+              ? 'os-btn os-btn-active'
+              : 'os-btn os-btn-inactive'
+          "
+        >
+          ChromeOS
+        </button>
+        <div class="os-divider"></div>
+        <button
+          type="button"
+          (click)="onOSChanged('android')"
+          [disabled]="isVerifying || fieldsDisabled"
+          [class]="
+            os === 'android'
+              ? 'os-btn os-btn-active'
+              : 'os-btn os-btn-inactive'
+          "
+        >
+          Android
+        </button>
+      </div>
+
+      <!-- Board & Model Autocomplete Dropdowns -->
+      <div class="grid-two-cols">
+        <app-autocomplete
+          title="Board:"
+          placeholder="Type or select board"
+          [options]="boardOptions"
+          [value]="board"
+          [disabled]="loadingBoards || isVerifying || fieldsDisabled"
+          (selectChanged)="onBoardChanged($event)"
+          (inputChanged)="onBoardChanged($event)"
+        ></app-autocomplete>
+
+        <app-autocomplete
+          title="Model:"
+          placeholder="Type or select model"
+          [options]="modelOptions"
+          [value]="model"
+          [disabled]="!board || loadingModels || isVerifying || fieldsDisabled"
+          [disabledMsg]="!board ? 'Please select a board first' : ''"
+          (selectChanged)="onModelChanged($event)"
+          (inputChanged)="onModelChanged($event)"
+        ></app-autocomplete>
+      </div>
+
+      <!-- Asset Tag & Pools Row -->
+      <div class="grid-two-cols">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Asset Tag (optional)</mat-label>
+          <input
+            matInput
+            [(ngModel)]="assetInput"
+            [disabled]="fieldsDisabled"
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Pools</mat-label>
+          <mat-select
+            multiple
+            [(ngModel)]="selectedPools"
+            [disabled]="fieldsDisabled"
+            placeholder="Select pools"
+          >
+            <mat-option *ngFor="let pool of availablePools" [value]="pool">
+              {{ pool }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <!-- Add new pool inline -->
+      <div class="new-pool-row">
+        <input
+          type="text"
+          class="new-pool-input"
+          [class.new-pool-input-invalid]="!!newPoolError"
+          [(ngModel)]="newPoolInput"
+          [disabled]="fieldsDisabled"
+          placeholder="Add new pool name..."
+          (keyup.enter)="onAddNewPool()"
+        />
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="onAddNewPool()"
+          [disabled]="!newPoolInput.trim() || !!newPoolError || fieldsDisabled"
+        >
+          Add Pool
+        </button>
+      </div>
+      <div class="field-error" *ngIf="newPoolError">
+        {{ newPoolError }}
+      </div>
+    </div>
+
+    <!-- Section 2: Preparation (CCD, GBB, USB Drive) -->
+    <div class="section-card">
+      <div class="section-title-row">
+        <span class="section-title">2. DUT preparation (CCD, GBB, USB Drive)</span>
+        <span
+          class="verification-hint"
+          *ngIf="
+            !board ||
+            !model ||
+            !isServoReady ||
+            !hostnameInput.trim() ||
+            !!hostnameError
+          "
+        >
+          Select a healthy Servo, Board, and Model and provide a hostname to run the preparation steps.
+        </span>
+      </div>
+
+      <!-- CCD Mode & Prepare Button -->
+      <div class="verify-controls-row">
+        <mat-radio-group
+          [(ngModel)]="rmaAuth"
+          [disabled]="isVerifying || fieldsDisabled"
+          class="rma-radio-group"
+        >
+          <mat-radio-button [value]="false">Regular</mat-radio-button>
+          <mat-radio-button [value]="true">RMA-Auth</mat-radio-button>
+        </mat-radio-group>
+
+        <button
+          mat-raised-button
+          color="primary"
+          type="button"
+          (click)="onVerifyClicked()"
+          [disabled]="!canVerify"
+        >
+          {{
+            isVerifying
+              ? 'Preparing...'
+              : verificationCompleted
+              ? 'Retry Preparation'
+              : 'Prepare DUT'
+          }}
+        </button>
+      </div>
+
+      <!-- Verification Status Pills (CCD, GBB, USB Drive) -->
+      <div class="status-badges-row">
+        <div class="status-badge" [ngClass]="'badge-' + ccdStatus">
+          <span class="status-dot"></span>
+          <span class="status-name">CCD &amp; WP:</span>
+          <span class="status-val">{{ ccdStatus | uppercase }}</span>
+        </div>
+
+        <div class="status-badge" [ngClass]="'badge-' + gbbStatus">
+          <span class="status-dot"></span>
+          <span class="status-name">GBB Flags:</span>
+          <span class="status-val">{{ gbbStatus | uppercase }}</span>
+        </div>
+
+        <div class="status-badge" [ngClass]="'badge-' + usbStatus">
+          <span class="status-dot"></span>
+          <span class="status-name">USB Drive:</span>
+          <span class="status-val">{{
+            usbStatus === 'skipped' ? 'N/A (MAUI)' : (usbStatus | uppercase)
+          }}</span>
+        </div>
+      </div>
+
+      <!-- Streaming Console Output (like Open CCD pop-up) -->
+      <div class="console-box" *ngIf="consoleLogs">
+        <div [innerHTML]="consoleLogs"></div>
+      </div>
+
+      <!-- RMA Auth Code Input when RMA-Auth is active during CCD open -->
+      <div
+        class="rma-input-row"
+        *ngIf="rmaAuth && isCcdStreaming"
+      >
+        <input
+          type="text"
+          class="rma-code-input"
+          placeholder="Enter RMA unlock code"
+          [(ngModel)]="rmaCode"
+          (keyup.enter)="onSubmitRmaCode()"
+        />
+        <button
+          mat-raised-button
+          color="primary"
+          type="button"
+          (click)="onSubmitRmaCode()"
+        >
+          Submit RMA Code
+        </button>
+      </div>
+    </div>
+
+    <div class="field-error" *ngIf="enrollError">
+      {{ enrollError }}
+    </div>
+  </div>
+
+  <!-- Footer Actions -->
+  <div class="wizard-footer">
+    <button
+      mat-stroked-button
+      type="button"
+      (click)="onCloseClicked()"
+      [disabled]="isEnrolling"
+    >
+      Cancel
+    </button>
+    <button
+      mat-raised-button
+      color="primary"
+      type="button"
+      (click)="onEnrollClicked()"
+      [disabled]="!canEnroll"
+    >
+      {{ isEnrolling ? 'Enrolling...' : 'Enroll & Deploy DUT' }}
+    </button>
+  </div>
+</div>

@@ -11,6 +11,15 @@
 
     <button
       mat-raised-button
+      color="primary"
+      [disabled]="loading"
+      (click)="onOpenEnrollmentWizard()"
+    >
+      DUT Enrollment Wizard
+    </button>
+
+    <button
+      mat-raised-button
       [disabled]="!isDUTSelected || loading"
       (click)="onUnEnrollClicked()"
     >

@@ -9,6 +9,7 @@ import {NotificationComponent} from './common/notification/notification.componen
 import {SpinnerLoadingComponent} from './common/spinner-loading/spinner-loading.component';
 import {ConfigurationComponent} from './configuration/configuration.component';
 import {CustomDatepickerComponent} from './custom-datepicker/custom-datepicker.component';
+import {DutEnrollmentWizardComponent} from './dialogs/dut-enrollment-wizard/dut-enrollment-wizard.component';
 import {OpenCcdComponent} from './dialogs/open-ccd/open-ccd.component';
 import {ProvisionComponent} from './dialogs/provision/provision.component';
 import {StageBuildComponent} from './dialogs/stage-build/stage-build.component';
@@ -110,6 +111,7 @@ import {RouterModule} from '@angular/router';
     QualificationsComponent,
     PvsComponent,
     OpenCcdComponent,
+    DutEnrollmentWizardComponent,
     LabQualComponent,
     StableVersionComponent,
     StableVersionCardComponent,

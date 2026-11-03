@@ -1,3 +1,4 @@
+import {DutEnrollmentWizardComponent} from '../../dialogs/dut-enrollment-wizard/dut-enrollment-wizard.component';
 import {ProvisionComponent} from '../../dialogs/provision/provision.component';
 import {IDut, dutKey} from '../../models/dut';
 import {DevicesService, OSRestriction} from '../../services/devices.service';
@@ -138,6 +139,27 @@ export class EnrollmentComponent {
           });
         },
       });
+  }
+
+  /**
+   * Opens the interactive DUT Enrollment Wizard dialog.
+   * @protected
+   */
+  protected onOpenEnrollmentWizard() {
+    const dialogRef = this.dialog.open(DutEnrollmentWizardComponent, {
+      data: {
+        hostnamePrefix: this.hostnamePrefix,
+        DUTs: this.DUTs,
+      },
+      maxWidth: '95vw',
+      disableClose: true,
+    });
+
+    dialogRef.afterClosed().subscribe(res => {
+      if (res?.enrolled) {
+        this.updateDUTs.emit();
+      }
+    });
   }
 
   /**

@@ -91,6 +91,9 @@ import {
   DutWifiInfoRequest,
   SetDutWifiInfoRequest,
   IsUpdateAvailableRequest,
+  GetUnassignedServosRequest,
+  CheckDutReadinessRequest,
+  EnrollDutFromWizardRequest,
 } from './satlabrpc_pb';
 import {Injectable} from '@angular/core';
 import {
@@ -1089,6 +1092,84 @@ export class SatlabRpcService {
       id: task.getId(),
       status: toDownloadJobLogStatus(task.getStatus()),
     }));
+  }
+
+  public async getUnassignedServos(): Promise<
+    {serial: string; deviceType: string; hasGscSibling: boolean}[]
+  > {
+    const req = new GetUnassignedServosRequest();
+    const res = await this.client.getUnassignedServos(req, {});
+
+    return res.getServosList().map(s => ({
+      serial: s.getSerial(),
+      deviceType: s.getDeviceType(),
+      hasGscSibling: s.getHasGscSibling(),
+    }));
+  }
+
+  public async checkDutReadiness(p: {
+    servoSerial: string;
+    board: string;
+    model: string;
+    deviceType: string;
+    targetOs: string;
+    useRmaAuth?: boolean;
+    skipCcdOpen?: boolean;
+  }) {
+    const req = new CheckDutReadinessRequest()
+      .setServoSerial(p.servoSerial)
+      .setBoard(p.board)
+      .setModel(p.model)
+      .setDeviceType(p.deviceType)
+      .setTargetOs(p.targetOs)
+      .setUseRmaAuth(p.useRmaAuth ?? false)
+      .setSkipCcdOpen(p.skipCcdOpen ?? true);
+
+    const res = await this.client.checkDutReadiness(req, {});
+
+    return {
+      servoSerial: res.getServoSerial(),
+      deviceType: res.getDeviceType(),
+      isReady: res.getIsReady(),
+      hasGscSibling: res.getHasGscSibling(),
+      usbDevice: res.getUsbDevice(),
+      wpDisabled: res.getWpDisabled(),
+      checks: res.getChecksList().map(c => ({
+        name: c.getName(),
+        passed: c.getPassed(),
+        details: c.getDetails(),
+        hint: c.getHint(),
+      })),
+    };
+  }
+
+  public async enrollDutFromWizard(p: {
+    hostname: string;
+    board: string;
+    model: string;
+    servoSerial: string;
+    deviceType: string;
+    os: string;
+    asset?: string;
+    pools?: string[];
+  }) {
+    const req = new EnrollDutFromWizardRequest()
+      .setHostname(p.hostname)
+      .setBoard(p.board)
+      .setModel(p.model)
+      .setServoSerial(p.servoSerial)
+      .setDeviceType(p.deviceType)
+      .setOs(p.os)
+      .setAsset(p.asset ?? '')
+      .setPoolsList(p.pools ?? []);
+
+    const res = await this.client.enrollDutFromWizard(req, {});
+
+    return {
+      hostname: res.getHostname(),
+      ipAddress: res.getIpAddress(),
+      deployTaskUrl: res.getDeployTaskUrl(),
+    };
   }
 }
 

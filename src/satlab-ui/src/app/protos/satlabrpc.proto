@@ -63,6 +63,9 @@ service SatlabRpcService {
   rpc SendMessageToCCDSession(SendMessageToCCDSessionRequest) returns (SendMessageToCCDSessionResponse);
   rpc StableVersion(StableVersionRequest) returns (StableVersionResponse);
   rpc UpdateDevice(UpdateDeviceRequest) returns (UpdateDeviceResponse);
+  rpc GetUnassignedServos(GetUnassignedServosRequest) returns (GetUnassignedServosResponse);
+  rpc CheckDutReadiness(CheckDutReadinessRequest) returns (CheckDutReadinessResponse);
+  rpc EnrollDutFromWizard(EnrollDutFromWizardRequest) returns (EnrollDutFromWizardResponse);
 
   // get DUTs information
   rpc GetDutDetail (GetDutDetailRequest) returns (GetDutDetailResponse);
@@ -1579,3 +1582,75 @@ message GetXtsPinsResponse {
   // Derived from target.
   string device = 2;
 }
+
+// NEXT_TAG = 1
+message GetUnassignedServosRequest {}
+
+// NEXT_TAG = 4
+message UnassignedServo {
+  string serial = 1;
+  // "servo" or "maui"
+  string device_type = 2;
+  bool has_gsc_sibling = 3;
+}
+
+// NEXT_TAG = 2
+message GetUnassignedServosResponse {
+  repeated UnassignedServo servos = 1;
+}
+
+// NEXT_TAG = 8
+message CheckDutReadinessRequest {
+  string servo_serial = 1;
+  string board = 2;
+  string model = 3;
+  // "servo" or "maui"
+  string device_type = 4;
+  // "chromeos" or "android"
+  string target_os = 5;
+  bool use_rma_auth = 6;
+  bool skip_ccd_open = 7;
+}
+
+// NEXT_TAG = 5
+message ReadinessCheck {
+  string name = 1;
+  bool passed = 2;
+  string details = 3;
+  string hint = 4;
+}
+
+// NEXT_TAG = 8
+message CheckDutReadinessResponse {
+  string servo_serial = 1;
+  string device_type = 2;
+  bool is_ready = 3;
+  repeated ReadinessCheck checks = 4;
+  bool has_gsc_sibling = 5;
+  string usb_device = 6;
+  bool wp_disabled = 7;
+}
+
+// NEXT_TAG = 9
+message EnrollDutFromWizardRequest {
+  string hostname = 1;
+  string board = 2;
+  string model = 3;
+  string servo_serial = 4;
+  // "servo" or "maui"
+  string device_type = 5;
+  // "chromeos" or "android"
+  string os = 6;
+  // Optional: user-provided asset tag; auto-generated if empty
+  string asset = 7;
+  // Optional: pools to assign to the DUT
+  repeated string pools = 8;
+}
+
+// NEXT_TAG = 4
+message EnrollDutFromWizardResponse {
+  string hostname = 1;
+  string ip_address = 2;
+  string deploy_task_url = 3;
+}
+
