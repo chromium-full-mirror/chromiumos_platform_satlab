@@ -3,15 +3,6 @@
     <button
       mat-raised-button
       color="primary"
-      [disabled]="!isDUTSelected || loading"
-      (click)="onEnrollClicked()"
-    >
-      Enroll Selected
-    </button>
-
-    <button
-      mat-raised-button
-      color="primary"
       [disabled]="loading"
       (click)="onOpenEnrollmentWizard()"
     >

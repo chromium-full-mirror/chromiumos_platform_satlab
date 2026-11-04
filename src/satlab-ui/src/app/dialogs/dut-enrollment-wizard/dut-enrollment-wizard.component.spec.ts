@@ -166,4 +166,88 @@ describe('DutEnrollmentWizardComponent', () => {
     component['onAddNewPool']();
     expect(component['selectedPools']).not.toContain('12345678901234567890');
   });
+
+  it('should sequentially prepare and enroll selected DUTs when selectedDUTs are passed', async () => {
+    component['selectedDutsQueue'] = [
+      {
+        address: '192.168.231.101',
+        name: '',
+        hostname: '',
+        inputHostname: 'dut-cros-1',
+        board: 'brya',
+        model: 'vell',
+        pools: [],
+        poolString: '',
+        mac: '00:11:22:33:44:55',
+        servoSerial: 'SERVOV4P1-S-2305152035',
+        isMauiOnly: false,
+        isConnected: true,
+        hasAndroidDesktopImage: false,
+        hasTestImage: true,
+        isAccessible: true,
+        status: '',
+        isServoWiredCorrectly: true,
+        statusHintText: '',
+        ccdStatus: 'Opened',
+        dimensions: {},
+        hasPermission: true,
+        testlabEnabled: '',
+      },
+      {
+        address: '192.168.231.102',
+        name: '',
+        hostname: '',
+        inputHostname: '',
+        board: 'dedede',
+        model: 'drawman',
+        pools: [],
+        poolString: '',
+        mac: '00:11:22:33:44:56',
+        servoSerial: 'SERVOV4P1-S-2305152036',
+        isMauiOnly: false,
+        isConnected: true,
+        hasAndroidDesktopImage: true,
+        hasTestImage: false,
+        isAccessible: true,
+        status: '',
+        isServoWiredCorrectly: true,
+        statusHintText: '',
+        ccdStatus: 'Opened',
+        dimensions: {},
+        hasPermission: true,
+        testlabEnabled: '',
+      },
+    ];
+    component['currentDutIndex'] = 0;
+    component['loadCurrentSelectedDut']();
+
+    expect(component['isSelectedDutMode']).toBeTrue();
+    expect(component['hasNextSelectedDut']).toBeTrue();
+    expect(component['selectedServoSerial']).toBe('SERVOV4P1-S-2305152035');
+    expect(component['hostnameInput']).toBe('dut-cros-1');
+    expect(component['os']).toBe('chromeos');
+    expect(component['board']).toBe('brya');
+    expect(component['model']).toBe('vell');
+
+    // Mark first DUT verified and enroll -> should advance to second DUT
+    component['verificationCompleted'] = true;
+    component['verificationReady'] = true;
+    mockRpcService.enrollDutFromWizard.and.returnValue(
+      Promise.resolve({
+        hostname: 'satlab-0wgatfqi21488022-dut-cros-1',
+        ipAddress: '192.168.231.101',
+        deployTaskUrl: 'https://ci.chromium.org/b/1',
+      })
+    );
+
+    await component['onEnrollClicked']();
+
+    expect(component['currentDutIndex']).toBe(1);
+    expect(component['hasNextSelectedDut']).toBeFalse();
+    expect(component['selectedServoSerial']).toBe('SERVOV4P1-S-2305152036');
+    expect(component['hostnameInput']).toBe('');
+    expect(component['os']).toBe('android');
+    expect(component['board']).toBe('dedede');
+    expect(component['model']).toBe('drawman');
+  });
 });

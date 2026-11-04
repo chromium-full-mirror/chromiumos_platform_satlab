@@ -1,6 +1,5 @@
-import {toIterator} from 'app/utils/iterator';
-import {AUTO_REFRESH_INTERVAL, TESTLAB_STATUS_UNKNOWN} from '../constants';
-import { IDut, dutKey } from '../models/dut';
+import {AUTO_REFRESH_INTERVAL} from '../constants';
+import {IDut} from '../models/dut';
 import {NotificationService} from '../services/notification.service';
 import {SatlabRpcService} from '../services/satlab-rpc.service';
 import {startWithTap} from '../utils/rxjs_operator';
@@ -89,7 +88,6 @@ export class ManageDutsComponent implements AfterViewInit, OnDestroy {
       .subscribe({
         next: e => {
           this.DUTs = e;
-          this.__listTestlab(e);
         },
         error: e => {
           this.notification.error(`List DUTs failed: ${e}`, {dismiss: false});
@@ -107,45 +105,4 @@ export class ManageDutsComponent implements AfterViewInit, OnDestroy {
       },
     });
   }
-
-  private async __listTestlab(duts: IDut[]) {
-    toIterator(duts)
-      .filter(dut => !shouldGetTestlab(dut))
-      .forEach(dut => {
-        const d = {...dut};
-        d.testlabEnabled = TESTLAB_STATUS_UNKNOWN;
-        this.DUTs = [...[d], ...this.DUTs.filter(e => dutKey(e) !== dutKey(d))];
-      });
-
-    const futures = toIterator(duts)
-      .filter(dut => shouldGetTestlab(dut))
-      .map(async dut => {
-        const d = {...dut};
-        d.testlabEnabled = TESTLAB_STATUS_UNKNOWN;
-        return this.service
-          .getTestlabEnabled(dut.address)
-          .then(r => {
-            d.testlabEnabled = r;
-            this.DUTs = [
-              ...[d],
-              ...this.DUTs.filter(e => dutKey(e) !== dutKey(d)),
-            ];
-          })
-          .catch(e => {
-            console.error(
-              `get ${dut.address} testlab failed, got an error: ${e}`
-            );
-            this.DUTs = [
-              ...[d],
-              ...this.DUTs.filter(e => dutKey(e) !== dutKey(d)),
-            ];
-          });
-      })
-      .collect();
-
-    await Promise.all(futures);
-  }
-}
-function shouldGetTestlab(dut: IDut): boolean {
-  return dut.isConnected;
 }

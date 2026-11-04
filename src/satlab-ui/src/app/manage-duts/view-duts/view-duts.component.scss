@@ -154,18 +154,24 @@
       color: $color-dut-status-green;
     }
 
-    .ccd-status-wrapper {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      column-gap: 0.5rem;
+    .servo-error {
+      color: $color-error;
+      font-weight: 600;
     }
 
     .expanded-block {
       overflow: hidden;
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      align-items: flex-start;
       padding-left: 4.5rem;
+
+      .expanded-warning-line {
+        display: flex;
+        align-items: center;
+        min-height: 48px;
+        gap: 0.25rem;
+      }
 
       .model-text-wrapper {
         display: inline-block;

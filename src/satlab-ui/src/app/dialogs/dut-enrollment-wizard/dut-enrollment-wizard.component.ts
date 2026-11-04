@@ -48,6 +48,10 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
 
   protected hostnamePrefix = '';
   protected existingDuts: IDut[] = [];
+  protected selectedDutsQueue: IDut[] = [];
+  protected currentDutIndex = 0;
+  protected anyDutEnrolled = false;
+  protected enrolledHostnamesInSession: string[] = [];
 
   protected loading = new BehaviorSubject<{show: boolean; message: string}>({
     show: false,
@@ -97,7 +101,7 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
 
   constructor(
     @Inject(MAT_DIALOG_DATA)
-    data: {hostnamePrefix?: string; DUTs?: IDut[]},
+    data: {hostnamePrefix?: string; DUTs?: IDut[]; selectedDUTs?: IDut[]},
     private dialogRef: MatDialogRef<DutEnrollmentWizardComponent>,
     private service: SatlabRpcService,
     private notification: NotificationService,
@@ -105,16 +109,38 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
   ) {
     this.hostnamePrefix = data?.hostnamePrefix ?? '';
     this.existingDuts = data?.DUTs ?? [];
+    this.selectedDutsQueue = (data?.selectedDUTs ?? []).filter(
+      d => d.hostname === ''
+    );
     this.initPools();
   }
 
   ngOnInit(): void {
-    this.scanServos();
     this.loadBoards();
+    if (this.isSelectedDutMode) {
+      this.loadCurrentSelectedDut();
+    } else {
+      this.scanServos();
+    }
   }
 
   ngOnDestroy(): void {
     this.stream?.cancel();
+  }
+
+  protected get isSelectedDutMode(): boolean {
+    return this.selectedDutsQueue.length > 0;
+  }
+
+  protected get currentSelectedDut(): IDut | undefined {
+    return this.selectedDutsQueue[this.currentDutIndex];
+  }
+
+  protected get hasNextSelectedDut(): boolean {
+    return (
+      this.isSelectedDutMode &&
+      this.currentDutIndex < this.selectedDutsQueue.length - 1
+    );
   }
 
   protected get maxHostnameSuffixLength(): number {
@@ -147,9 +173,9 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
     if (full.length > this.MAX_FULL_HOSTNAME_LENGTH) {
       return `Full hostname (${full.length} chars) exceeds maximum of ${this.MAX_FULL_HOSTNAME_LENGTH} characters.`;
     }
-    const isDuplicate = this.existingDuts.some(
-      d => d.hostname !== '' && d.hostname === full
-    );
+    const isDuplicate =
+      this.existingDuts.some(d => d.hostname !== '' && d.hostname === full) ||
+      this.enrolledHostnamesInSession.includes(full);
     if (isDuplicate) {
       return `Hostname "${full}" is already enrolled.`;
     }
@@ -250,6 +276,85 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
     this.newPoolInput = '';
   }
 
+  protected loadCurrentSelectedDut(): void {
+    const dut = this.currentSelectedDut;
+    if (!dut) {
+      return;
+    }
+    this.stream?.cancel();
+    this.isVerifying = false;
+    this.isCcdStreaming = false;
+    this.verificationCompleted = false;
+    this.verificationReady = false;
+    this.ccdStatus = 'pending';
+    this.gbbStatus = 'pending';
+    this.checks = [];
+    this.consoleLogs = '';
+    this.enrollError = '';
+    this.rmaCode = '';
+    this.assetInput = '';
+
+    const serial = (dut.servoSerial || '').trim();
+    const deviceType =
+      dut.isMauiOnly || serial.toUpperCase().startsWith('MAUI')
+        ? 'maui'
+        : 'servo';
+    const servoOption: UnassignedServoOption = {
+      serial,
+      deviceType,
+      hasGscSibling:
+        serial !== '' &&
+        serial !== 'NOT DETECTED' &&
+        dut.isServoWiredCorrectly !== false,
+    };
+    this.servos = serial ? [servoOption] : [];
+    this.selectedServoSerial = serial;
+    this.usbStatus = deviceType === 'maui' ? 'skipped' : 'pending';
+
+    let rawHost = (dut.inputHostname ?? '').trim();
+    if (this.hostnamePrefix && rawHost.startsWith(this.hostnamePrefix)) {
+      rawHost = rawHost.slice(this.hostnamePrefix.length);
+    }
+    this.hostnameInput = rawHost;
+
+    this.os = dut.hasAndroidDesktopImage ? 'android' : 'chromeos';
+
+    const b = (dut.inputBoard ?? dut.board ?? '').trim();
+    const m = (dut.inputModel ?? dut.model ?? '').trim();
+    this.board = b;
+    this.model = m;
+    if (b) {
+      this.loadModelsForCurrentBoard(b);
+    } else {
+      this.modelOptions = [];
+    }
+    this.cdr.markForCheck();
+  }
+
+  protected async loadModelsForCurrentBoard(boardName: string): Promise<void> {
+    if (!boardName) {
+      this.modelOptions = [];
+      return;
+    }
+    this.loadingModels = true;
+    this.cdr.markForCheck();
+    try {
+      const models = await this.service.listModels(boardName);
+      this.modelOptions = (models || []).map(m => ({
+        text: m,
+        value: m,
+        label: '',
+      }));
+    } catch (e) {
+      this.notification.error(
+        `Failed to load models for ${boardName}: ${this.formatError(e)}`
+      );
+    } finally {
+      this.loadingModels = false;
+      this.cdr.markForCheck();
+    }
+  }
+
   protected async scanServos(): Promise<void> {
     this.isScanningServos = true;
     this.cdr.markForCheck();
@@ -315,23 +420,7 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
     if (!trimmed) {
       return;
     }
-    this.loadingModels = true;
-    this.cdr.markForCheck();
-    try {
-      const models = await this.service.listModels(trimmed);
-      this.modelOptions = (models || []).map(m => ({
-        text: m,
-        value: m,
-        label: '',
-      }));
-    } catch (e) {
-      this.notification.error(
-        `Failed to load models for ${trimmed}: ${this.formatError(e)}`
-      );
-    } finally {
-      this.loadingModels = false;
-      this.cdr.markForCheck();
-    }
+    await this.loadModelsForCurrentBoard(trimmed);
   }
 
   protected onModelChanged(newModel: string): void {
@@ -380,6 +469,13 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
       onData: data => {
         if (data.includes('https://')) {
           this.consoleLogs += `<a href="${data}" target="_blank">${data}</a>`;
+        } else if (
+          data.includes('Warning:') ||
+          data.includes('Attempting to power cycle') ||
+          data.includes('Attempting to reset servo USB hub port') ||
+          data.includes('Please unplug and replug')
+        ) {
+          this.consoleLogs += `<p class="ccd-message-warn">${data}</p>`;
         } else {
           this.consoleLogs += `<p>${data}</p>`;
         }
@@ -558,7 +654,14 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
           {dismiss: false}
         );
       }
-      this.dialogRef.close({enrolled: true, hostname: res.hostname});
+      this.anyDutEnrolled = true;
+      this.enrolledHostnamesInSession.push(res.hostname);
+      if (this.hasNextSelectedDut) {
+        this.currentDutIndex++;
+        this.loadCurrentSelectedDut();
+      } else {
+        this.dialogRef.close({enrolled: true, hostname: res.hostname});
+      }
     } catch (e) {
       const msg = this.formatError(e);
       this.enrollError = `Enrollment failed: ${msg}`;
@@ -572,7 +675,7 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
 
   protected onCloseClicked(): void {
     this.stream?.cancel();
-    this.dialogRef.close();
+    this.dialogRef.close(this.anyDutEnrolled ? {enrolled: true} : undefined);
   }
 
   private formatError(e: unknown): string {

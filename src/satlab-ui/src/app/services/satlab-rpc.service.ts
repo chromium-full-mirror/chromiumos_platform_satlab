@@ -360,8 +360,7 @@ export class SatlabRpcService {
         // attached over only a Maui cable, which can never be pinged at all
         .filter(
           e =>
-            __isMauiOnly(e) ||
-            !(e.getHostname() === '' && !e.getIsPingable())
+            __isMauiOnly(e) || !(e.getHostname() === '' && !e.getIsPingable())
         )
         .map(__toIDut)
         .collect()
@@ -1370,7 +1369,10 @@ function __toIDut(e: Dut) {
       ),
     status: status,
     isServoWiredCorrectly:
-      e.getServoSerial() === '' || e.getServoSerial() !== 'NOT DETECTED',
+      e.getServoSerial() !== '' &&
+      e.getServoSerial() !== 'NOT DETECTED' &&
+      e.getCcdStatus() !== 'GSC_NOT_DETECTED' &&
+      e.getCcdStatus() !== 'SERVO_NOT_DETECTED',
     statusHintText: __toStatusHintText(status),
     ccdStatus: e.getCcdStatus(),
     dimensions: toIterator(e.getBotInfo()?.getDimensionsList() ?? []).fold(

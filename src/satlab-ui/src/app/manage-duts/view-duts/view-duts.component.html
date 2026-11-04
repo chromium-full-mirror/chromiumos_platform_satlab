@@ -73,7 +73,7 @@
                 <div
                   *ngIf="element.isAccessible"
                   class="material-icon-base material-icon icon orange"
-                  [matTooltip]="(!element.hasPermission && element.board !== '' && element.model !== '') ? 'Permission needed for detected board/model. Please edit board/model manually if needed.' : ((element.board === '' || element.model === '') ? 'Board/Model/Hostname Needed' : 'Hostname Needed')"
+                  [matTooltip]="(!element.hasPermission && element.board !== '' && element.model !== '') ? 'Permission needed for detected board/model. Please edit board/model manually if needed.' : ((element.board === '' || element.model === '') ? 'Board/Model Needed' : (element.hasAndroidDesktopImage ? 'DUT Connected (Android Desktop)' : (element.hasTestImage ? 'DUT Connected (Chrome OS)' : 'Ready to enroll')))"
                 >
                   add
                 </div>
@@ -97,7 +97,11 @@
               >
                 <div
                   class="material-icon-base material-icon icon red"
-                  matTooltip="Servo not detected"
+                  [matTooltip]="
+                    isOnlyGscMissing(element)
+                      ? 'GSC (Cr50/Ti50) not detected'
+                      : 'Servo not detected'
+                  "
                 >
                   priority_high
                 </div>
@@ -129,14 +133,13 @@
               <span matPrefix style="white-space: nowrap;">{{ hostnamePrefix }}</span>
               <input
                 matInput
-                placeholder="Please input hostname"
+                placeholder="Please input hostname (optional)"
                 (input)="onHostnameInput(element, $event)"
                 (focusout)="onInputFocusout(element, $event)"
                 [(ngModel)]="element.inputHostname"
                 #name="ngModel"
                 name="hostname-{{ element.address || element.servoSerial }}"
-                minlength="1"
-                maxlength="32"
+                [maxlength]="32 - hostnamePrefix.length"
                 pattern="[a-z0-9\-]+"
               />
             </mat-form-field>
@@ -144,9 +147,6 @@
               *ngIf="name.errors && (name.dirty || name.touched)"
               class="invalid-hostname error"
             >
-              <div [hidden]="!name.errors.minlength">
-                Hostname must be at least 1 characters long.
-              </div>
               <div [hidden]="!name.errors.maxlength">
                 Hostname cannot be more than 32 characters long.
               </div>
@@ -280,51 +280,18 @@
       <!-- Servo serial Column -->
       <ng-container matColumnDef="servo_serial">
         <th mat-header-cell *matHeaderCellDef>Servo Serial</th>
-        <td mat-cell *matCellDef="let element">
-          {{ element.servoSerial ?? '--' }}
-        </td>
-      </ng-container>
-
-      <!-- Testlab Column -->
-      <ng-container matColumnDef="testlab">
-        <th mat-header-cell *matHeaderCellDef>Testlab</th>
-        <td mat-cell *matCellDef="let element">
-          <div class="flex">
-            <p>
-              {{ element.testlabEnabled }}
-            </p>
-            <span
-              *ngIf="
-                element.testlabEnabled === 'Disabled' ||
-                element.testlabEnabled === 'Unknown'
-              "
-              matTooltip="Check the connectivity and click the icon next to CCD status to open Testlab"
-              class="material-icon-base material-icon icon red"
-              >priority_high</span
-            >
-          </div>
-        </td>
-      </ng-container>
-
-      <!-- CCD status Column -->
-      <ng-container matColumnDef="ccd_status">
-        <th mat-header-cell *matHeaderCellDef>CCD Status</th>
-        <td mat-cell *matCellDef="let element">
-          <div class="ccd-status-wrapper">
-            <p>{{ element.ccdStatus }}</p>
-            <button
-              *ngIf="
-                element.servoSerial !== '' &&
-                element.servoSerial !== 'NOT DETECTED'
-              "
-              class="material-icon-base material-icon icon green"
-              matTooltip="Open CCD"
-              (click)="onOpenCCDClicked(element.servoSerial)"
-              [disabled]="disabledServo.includes(element.servoSerial)"
-            >
-              lock_open
-            </button>
-          </div>
+        <td
+          mat-cell
+          *matCellDef="let element"
+          [class.servo-error]="
+            !element.isServoWiredCorrectly && element.isAccessible
+          "
+        >
+          {{
+            !element.isAccessible
+              ? 'NOT APPLICABLE'
+              : element.servoSerial || 'NOT DETECTED'
+          }}
         </td>
       </ng-container>
 
@@ -369,7 +336,7 @@
       <ng-container matColumnDef="expand">
         <th mat-header-cell *matHeaderCellDef>&nbsp;</th>
         <td mat-cell *matCellDef="let element">
-          <ng-container *ngIf="!element.hasPermission && element.isAccessible">
+          <ng-container *ngIf="hasWarning(element)">
             <mat-icon *ngIf="expandInfo === element"
               >keyboard_arrow_down</mat-icon
             >
@@ -389,19 +356,45 @@
           <div
             class="expanded-block"
             [@detailExpand]="element === expandInfo ? 'expanded' : 'collapsed'"
-            *ngIf="!element.hasPermission && element.isAccessible"
+            *ngIf="hasWarning(element)"
           >
-            <mat-icon>subdirectory_arrow_right</mat-icon>
-            This account does not have permission to run tests on
-            <a class="model-text-wrapper"
-              >{{ element.inputBoard || element.board }}/{{ element.inputModel || element.model }}</a
-            >. Please request access
-            <a
-              class="text-blue font-bold"
-              href="{{ build_access_request_link }}"
-              target="_blank"
-              >here</a
-            > or provide the correct board and model if it's not detected as expected.
+            <div
+              class="expanded-warning-line"
+              *ngIf="!element.hasPermission && element.isAccessible"
+            >
+              <mat-icon>subdirectory_arrow_right</mat-icon>
+              <span>
+                This account does not have permission to run tests on
+                <a class="model-text-wrapper"
+                  >{{ element.inputBoard || element.board }}/{{
+                    element.inputModel || element.model
+                  }}</a
+                >. Please request access
+                <a
+                  class="text-blue font-bold"
+                  href="{{ build_access_request_link }}"
+                  target="_blank"
+                  >here</a
+                >
+                or provide the correct board and model if it's not detected as
+                expected.
+              </span>
+            </div>
+            <div
+              class="expanded-warning-line"
+              *ngIf="!element.isServoWiredCorrectly && element.isAccessible"
+            >
+              <mat-icon>subdirectory_arrow_right</mat-icon>
+              <span *ngIf="isOnlyGscMissing(element)">
+                GSC (Cr50/Ti50) was not detected for this DUT. Please check the
+                servo wiring, flip the USB-C plug in the DUT, or try another DUT
+                port and refresh.
+              </span>
+              <span *ngIf="!isOnlyGscMissing(element)">
+                Servo was not detected for this DUT. Please check the servo
+                wiring.
+              </span>
+            </div>
           </div>
         </td>
       </ng-container>
@@ -410,11 +403,9 @@
       <tr
         mat-row
         *matRowDef="let element; columns: displayedColumns"
-        (click)="toggleExpand(element)"
-        [class.withoutPermission]="
-          !element.hasPermission && element.isAccessible
-        "
-        [class.expandable]="!element.hasPermission && element.isAccessible"
+        (click)="hasWarning(element) && toggleExpand(element)"
+        [class.withoutPermission]="hasWarning(element)"
+        [class.expandable]="hasWarning(element)"
       ></tr>
       <tr
         mat-row

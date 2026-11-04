@@ -1,6 +1,6 @@
 import {DutEnrollmentWizardComponent} from '../../dialogs/dut-enrollment-wizard/dut-enrollment-wizard.component';
 import {ProvisionComponent} from '../../dialogs/provision/provision.component';
-import {IDut, dutKey} from '../../models/dut';
+import {IDut} from '../../models/dut';
 import {DevicesService, OSRestriction} from '../../services/devices.service';
 import {NotificationService} from '../../services/notification.service';
 import {SatlabRpcService} from '../../services/satlab-rpc.service';
@@ -74,82 +74,18 @@ export class EnrollmentComponent {
   }
 
   /**
-   * A handler handles the DUTs that user wants to enroll
-   * @protected
-   */
-  protected onEnrollClicked() {
-    const selected = this.selectedDUTs();
-    if (selected.length === 0) {
-      return;
-    }
-
-    const d = toIterator(selected)
-      .filter(this.__canBeEnrolled)
-      .collect();
-
-    const duplicateHostname = this.__checkDuplicatedHostname(d);
-    const emptyHostname = this.__checkEmptyHostname(d);
-    const isServoWired = this.__checkServoWired(d);
-
-    if (
-      d.length === 0 ||
-      duplicateHostname ||
-      emptyHostname ||
-      isServoWired
-    ) {
-      console.log('no DUTs to enroll or one of the DUTs has an issue');
-      return;
-    }
-    console.log('proceeding to trigger addDUTs');
-
-    from(this.service.addDUTs(d))
-      .pipe(
-        startWithTap(() => {
-          this.loading = true;
-        }),
-        finalize(() => {
-          this.loading = false;
-        })
-      )
-      .subscribe({
-        next: res => {
-          res.pass.map(p =>
-            this.notification.info(
-              [
-                `Start enrolling ${p.hostname} Link:`,
-                {
-                  type: 'url',
-                  url: p.url,
-                },
-              ],
-              {dismiss: false}
-            )
-          );
-          res.fail.map(f =>
-            this.notification.error(
-              `Failed to enroll ${f.hostname}. Reason: ${f.reason}`,
-              {dismiss: false}
-            )
-          );
-          this.updateDUTs.emit();
-        },
-        error: e => {
-          this.notification.error(`Something wrong with enroll: ${e}`, {
-            dismiss: false,
-          });
-        },
-      });
-  }
-
-  /**
    * Opens the interactive DUT Enrollment Wizard dialog.
    * @protected
    */
   protected onOpenEnrollmentWizard() {
+    const selectedUnenrolled = this.selectedDUTs().filter(
+      d => d.hostname === ''
+    );
     const dialogRef = this.dialog.open(DutEnrollmentWizardComponent, {
       data: {
         hostnamePrefix: this.hostnamePrefix,
         DUTs: this.DUTs,
+        selectedDUTs: selectedUnenrolled,
       },
       maxWidth: '95vw',
       disableClose: true,
@@ -466,103 +402,6 @@ export class EnrollmentComponent {
         finalize(() => (this.loading = false))
       )
       .subscribe();
-  }
-
-  /**
-   * __canBeEnrolled checks the DUT can be enrolled.
-   * @param d the information of DUT
-   * @private
-   */
-  private __canBeEnrolled(d: IDut) {
-    const board = (d.inputBoard ?? d.board ?? '').trim();
-    const model = (d.inputModel ?? d.model ?? '').trim();
-    return (
-      board !== '' &&
-      model !== '' &&
-      d.hasPermission !== false && // board/model is permitted and valid
-      (d.isConnected || d.isMauiOnly) && // DUT is connected
-      d.hostname === ''
-    ); // DUT has not been deployed/enrolled already
-  }
-
-  /**
-   * check a user input a duplicated hostname
-   * @param d the list of DUTs that a user wants to deploy
-   * @private
-   */
-  private __checkDuplicatedHostname(d: IDut[]) {
-    const e: IDut[] = [];
-    const hostnames = toIterator(this.DUTs)
-      .filter(e => e.hostname !== '')
-      .map(e => e.hostname)
-      .collect();
-
-    for (let i = 0; i < d.length; i++) {
-      const cur = d[i];
-
-      // check the user input hostname is in the list of deployed
-      if (hostnames.includes(`${this.hostnamePrefix}${cur.inputHostname}`)) {
-        e.push(cur);
-      } else {
-        // check the user is in the list of hostnames provided by the user again.
-        const others = toIterator(d)
-          .filter(e => dutKey(e) !== dutKey(cur))
-          .collect();
-
-        for (const o of others) {
-          if (o.inputHostname === cur.inputHostname) {
-            e.push(cur);
-            break;
-          }
-        }
-      }
-    }
-
-    for (const m of e) {
-      this.notification.error(
-        `duplicate hostname: ${m.inputHostname} of DUT: ${dutKey(m)}`
-      );
-    }
-
-    return e.length !== 0;
-  }
-
-  /**
-   * check a user input a hostname is empty
-   * @param d the list of DUTs that a user wants to deploy
-   * @private
-   */
-  private __checkEmptyHostname(d: IDut[]) {
-    const e = toIterator(d)
-      .filter(e => !e.inputHostname)
-      .collect();
-
-    e.forEach(d =>
-      this.notification.error(`Please input a hostname on ${dutKey(d)}`)
-    );
-
-    return e.length !== 0;
-  }
-
-
-
-  /**
-   * check the DUTs' servo is wired
-   * @param d the list of DUTs that a user wants to deploy
-   * @private
-   */
-  private __checkServoWired(d: IDut[]) {
-    const e = toIterator(d)
-      .filter(e => !e.isServoWiredCorrectly)
-      .collect();
-
-    e.forEach(d =>
-      this.notification.error(
-        `Please make sure you are connecting Servo to the right port for ${d.address} : ${d.hostname}`
-      )
-    );
-
-    return e.length !== 0;
   }
 
   /**

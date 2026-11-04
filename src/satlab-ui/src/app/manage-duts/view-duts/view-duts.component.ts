@@ -14,8 +14,6 @@ import {MatCheckboxChange} from '@angular/material/checkbox';
 import {toIterator} from '../../utils/iterator';
 import {MatDialog} from '@angular/material/dialog';
 import {StageBuildComponent} from '../../dialogs/stage-build/stage-build.component';
-import {OpenCcdComponent} from 'app/dialogs/open-ccd/open-ccd.component';
-import {delay} from 'rxjs';
 import {trigger, state, transition, style, animate} from '@angular/animations';
 import {BUILD_ACCESS_REQUEST_URL} from 'app/constants';
 import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
@@ -28,7 +26,7 @@ import {SatlabRpcService} from '../../services/satlab-rpc.service';
   animations: [
     trigger('detailExpand', [
       state('collapsed', style({height: '0px', minHeight: '0'})),
-      state('expanded', style({height: '50px'})),
+      state('expanded', style({height: '*'})),
       transition(
         'expanded <=> collapsed',
         animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')
@@ -51,7 +49,6 @@ export class ViewDutsComponent implements OnChanges, OnInit {
 
   protected duts: IDut[] = [];
 
-  protected disabledServo: string[] = [];
   protected boardsList: string[] = [];
   protected modelsCache: Map<string, string[]> = new Map();
   protected loadingBoards = false;
@@ -66,8 +63,6 @@ export class ViewDutsComponent implements OnChanges, OnInit {
     'board',
     'model',
     'servo_serial',
-    'testlab',
-    'ccd_status',
     'status',
     'pools',
     'mac',
@@ -85,7 +80,7 @@ export class ViewDutsComponent implements OnChanges, OnInit {
   }
 
   protected trackByAddress(index: number, item: IDut): string {
-    return item.address;
+    return item.address || item.servoSerial;
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -113,7 +108,7 @@ export class ViewDutsComponent implements OnChanges, OnInit {
   protected initInputFields() {
     if (!this.duts) return;
     for (const dut of this.duts) {
-      if (dut.hostname === '' && dut.isConnected) {
+      if (dut.hostname === '' && (dut.isConnected || dut.isMauiOnly)) {
         if (dut.inputBoard === undefined) {
           dut.inputBoard = dut.board || '';
         }
@@ -127,7 +122,7 @@ export class ViewDutsComponent implements OnChanges, OnInit {
   protected async validateAllDutsPermissions() {
     await this.loadBoards();
     for (const dut of [...this.duts]) {
-      if (dut.hostname === '' && dut.isConnected) {
+      if (dut.hostname === '' && (dut.isConnected || dut.isMauiOnly)) {
         await this.validatePermission(dut);
       }
     }
@@ -152,13 +147,27 @@ export class ViewDutsComponent implements OnChanges, OnInit {
     this.__selectionChanged();
   }
 
+  protected hasWarning(element: IDut): boolean {
+    return (
+      (!element.hasPermission || !element.isServoWiredCorrectly) &&
+      element.isAccessible
+    );
+  }
+
+  protected isOnlyGscMissing(element: IDut): boolean {
+    return element.ccdStatus === 'GSC_NOT_DETECTED';
+  }
+
   protected canSelectDUT(element: IDut): boolean {
     if (!element.isAccessible || element.hasPermission !== true) {
       return false;
     }
     if (element.hostname === '') {
-      const hostname = (element.inputHostname !== undefined ? element.inputHostname : element.hostname);
-      if (!hostname || !this.__validateHostname(hostname)) {
+      if (!element.isServoWiredCorrectly) {
+        return false;
+      }
+      const hostname = (element.inputHostname ?? '').trim();
+      if (hostname !== '' && !this.__validateHostname(hostname)) {
         return false;
       }
       if (this.isInvalidBoard(element) || this.isInvalidModel(element)) {
@@ -196,8 +205,9 @@ export class ViewDutsComponent implements OnChanges, OnInit {
    * @private
    */
   private checkSelectionContains(dut: IDut) {
+    const key = dut.address || dut.servoSerial;
     for (const d of this.selection.selected) {
-      if (d.address === dut.address) {
+      if ((d.address || d.servoSerial) === key) {
         return true;
       }
     }
@@ -222,7 +232,7 @@ export class ViewDutsComponent implements OnChanges, OnInit {
    */
   protected onInputFocusout(dut: IDut, e: Event) {
     const v = (e.target as HTMLInputElement).value;
-    if (!this.__validateHostname(v)) {
+    if (v !== '' && !this.__validateHostname(v)) {
       return;
     }
 
@@ -259,7 +269,9 @@ export class ViewDutsComponent implements OnChanges, OnInit {
   }
 
   private __validateHostname(s: string) {
-    return /^[a-z0-9-]{1,32}$/.test(s);
+    return (
+      /^[a-z0-9-]{1,32}$/.test(s) && `${this.hostnamePrefix}${s}`.length <= 32
+    );
   }
 
   /**
@@ -312,22 +324,33 @@ export class ViewDutsComponent implements OnChanges, OnInit {
   }
 
   protected isLoadingModel(dut: IDut): boolean {
-    const b = (dut.inputBoard !== undefined ? dut.inputBoard : dut.board).trim();
+    const b = (
+      dut.inputBoard !== undefined ? dut.inputBoard : dut.board
+    ).trim();
     if (!b) return this.isLoadingBoard(dut);
-    return this.isLoadingBoard(dut) || (this.loadingModels.has(b) && !this.modelsCache.has(b));
+    return (
+      this.isLoadingBoard(dut) ||
+      (this.loadingModels.has(b) && !this.modelsCache.has(b))
+    );
   }
 
   protected isInvalidBoard(dut: IDut): boolean {
     if (this.isLoadingBoard(dut)) return false;
-    const b = (dut.inputBoard !== undefined ? dut.inputBoard : dut.board).trim();
+    const b = (
+      dut.inputBoard !== undefined ? dut.inputBoard : dut.board
+    ).trim();
     if (!b) return true;
     return this.boardsList.length > 0 && !this.boardsList.includes(b);
   }
 
   protected isInvalidModel(dut: IDut): boolean {
     if (this.isLoadingModel(dut)) return false;
-    const b = (dut.inputBoard !== undefined ? dut.inputBoard : dut.board).trim();
-    const m = (dut.inputModel !== undefined ? dut.inputModel : dut.model).trim();
+    const b = (
+      dut.inputBoard !== undefined ? dut.inputBoard : dut.board
+    ).trim();
+    const m = (
+      dut.inputModel !== undefined ? dut.inputModel : dut.model
+    ).trim();
     if (!b || !m) return true;
     const models = this.modelsCache.get(b);
     if (!models) return false;
@@ -366,8 +389,12 @@ export class ViewDutsComponent implements OnChanges, OnInit {
   }
 
   protected async validatePermission(dut: IDut) {
-    const board = (dut.inputBoard !== undefined ? dut.inputBoard : dut.board).trim();
-    const model = (dut.inputModel !== undefined ? dut.inputModel : dut.model).trim();
+    const board = (
+      dut.inputBoard !== undefined ? dut.inputBoard : dut.board
+    ).trim();
+    const model = (
+      dut.inputModel !== undefined ? dut.inputModel : dut.model
+    ).trim();
 
     if (!board || !model) {
       if (dut.hasPermission !== false) {
@@ -388,13 +415,18 @@ export class ViewDutsComponent implements OnChanges, OnInit {
         return;
       }
 
-      const currentBoard = (dut.inputBoard !== undefined ? dut.inputBoard : dut.board).trim();
-      const currentModel = (dut.inputModel !== undefined ? dut.inputModel : dut.model).trim();
+      const currentBoard = (
+        dut.inputBoard !== undefined ? dut.inputBoard : dut.board
+      ).trim();
+      const currentModel = (
+        dut.inputModel !== undefined ? dut.inputModel : dut.model
+      ).trim();
       if (currentBoard !== board || currentModel !== model) {
         return;
       }
 
-      const isBoardValid = this.boardsList.length === 0 || this.boardsList.includes(board);
+      const isBoardValid =
+        this.boardsList.length === 0 || this.boardsList.includes(board);
       const isModelValid = models.includes(model);
 
       const hasPerm = isBoardValid && isModelValid;
@@ -458,7 +490,9 @@ export class ViewDutsComponent implements OnChanges, OnInit {
   protected revalidateDutsForBoard(board: string) {
     if (!this.duts) return;
     for (const dut of this.duts) {
-      const b = (dut.inputBoard !== undefined ? dut.inputBoard : dut.board).trim();
+      const b = (
+        dut.inputBoard !== undefined ? dut.inputBoard : dut.board
+      ).trim();
       if (b === board) {
         this.validatePermission(dut);
       }
@@ -474,7 +508,9 @@ export class ViewDutsComponent implements OnChanges, OnInit {
   }
 
   protected getFilteredModels(dut: IDut): string[] {
-    const board = (dut.inputBoard !== undefined ? dut.inputBoard : dut.board).trim();
+    const board = (
+      dut.inputBoard !== undefined ? dut.inputBoard : dut.board
+    ).trim();
     if (!board) {
       return [];
     }
@@ -486,37 +522,23 @@ export class ViewDutsComponent implements OnChanges, OnInit {
     return models.filter(m => m.toLowerCase().includes(query));
   }
 
-  protected onBoardOptionSelected(dut: IDut, event: MatAutocompleteSelectedEvent) {
+  protected onBoardOptionSelected(
+    dut: IDut,
+    event: MatAutocompleteSelectedEvent
+  ) {
     const v = event.option.value;
     dut.inputBoard = v;
     this.loadModelsForBoard(v);
     this.validatePermission(dut);
   }
 
-  protected onModelOptionSelected(dut: IDut, event: MatAutocompleteSelectedEvent) {
+  protected onModelOptionSelected(
+    dut: IDut,
+    event: MatAutocompleteSelectedEvent
+  ) {
     const v = event.option.value;
     dut.inputModel = v;
     this.validatePermission(dut);
-  }
-
-  /**
-   * Open CCD and testlab of DUT
-   * @param servoSerial
-   */
-  protected onOpenCCDClicked(servoSerial: string) {
-    this.disabledServo = [...this.disabledServo, servoSerial];
-    const dialogRef = this.dialog.open(OpenCcdComponent, {
-      data: {servoSerial: servoSerial},
-      disableClose: true,
-    });
-    dialogRef
-      .afterClosed()
-      .pipe(delay(5000))
-      .subscribe(() => {
-        this.disabledServo = this.disabledServo.filter(
-          ele => ele !== servoSerial
-        );
-      });
   }
 
   toggleExpand(dut: IDut) {
@@ -540,17 +562,17 @@ function merge(from: IDut[], to: IDut[]) {
 
   // filter the DUTs are not enrolled and do not have test image.
   const withOutTestImage = toIterator(to)
-    .filter(e => e.hostname === '' && !e.isConnected)
+    .filter(e => e.hostname === '' && !(e.isConnected || e.isMauiOnly))
     .collect();
 
   // filter the DUTs that are not enrolled from old, we need copy the state from here.
   const old = toIterator(from)
-    .filter(e => e.hostname === '' && e.isConnected)
+    .filter(e => e.hostname === '' && (e.isConnected || e.isMauiOnly))
     .collect();
 
   // filter the DUTs that are not enrolled from new, we need to update the state from old.
   const updated = toIterator(to)
-    .filter(e => e.hostname === '' && e.isConnected)
+    .filter(e => e.hostname === '' && (e.isConnected || e.isMauiOnly))
     .collect();
 
   // update the new DUTs.
@@ -559,7 +581,7 @@ function merge(from: IDut[], to: IDut[]) {
       return updateState(
         old.find(
           e =>
-            e.address === n.address &&
+            (e.address || e.servoSerial) === (n.address || n.servoSerial) &&
             e.board === n.board &&
             e.model === n.model
         ),
@@ -586,8 +608,10 @@ function updateState(from: IDut | undefined, to: IDut) {
   return {
     ...to,
     inputHostname: from?.inputHostname,
-    inputBoard: from?.inputBoard !== undefined ? from.inputBoard : (to.board || ''),
-    inputModel: from?.inputModel !== undefined ? from.inputModel : (to.model || ''),
+    inputBoard:
+      from?.inputBoard !== undefined ? from.inputBoard : to.board || '',
+    inputModel:
+      from?.inputModel !== undefined ? from.inputModel : to.model || '',
   };
 }
 
@@ -604,7 +628,7 @@ function find(selection: SelectionModel<IDut>, from: IDut[]) {
           if (obj.hostname === e.hostname && obj.hostname !== '') {
             return true;
           } else if (
-            obj.address === e.address &&
+            (obj.address || obj.servoSerial) === (e.address || e.servoSerial) &&
             obj.board === e.board &&
             obj.model === e.model
           ) {

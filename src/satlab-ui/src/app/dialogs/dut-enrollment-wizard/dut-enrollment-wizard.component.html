@@ -17,6 +17,33 @@
 
   <!-- Scrollable Body -->
   <div class="wizard-body">
+    <!-- Queue Stepper Banner when selected DUTs are passed -->
+    <div class="queue-banner" *ngIf="isSelectedDutMode">
+      <div class="queue-header">
+        <span class="queue-title">
+          Preparing Selected DUT {{ currentDutIndex + 1 }} of
+          {{ selectedDutsQueue.length }}
+        </span>
+        <span class="queue-current-addr" *ngIf="currentSelectedDut">
+          {{
+            currentSelectedDut.address ||
+              currentSelectedDut.servoSerial
+          }}
+        </span>
+      </div>
+      <div class="queue-pills">
+        <span
+          *ngFor="let d of selectedDutsQueue; let idx = index"
+          class="queue-pill"
+          [class.queue-pill-done]="idx < currentDutIndex"
+          [class.queue-pill-active]="idx === currentDutIndex"
+        >
+          {{ idx < currentDutIndex ? '✓ ' : '' }}#{{ idx + 1 }}:
+          {{ d.address || d.servoSerial }}
+        </span>
+      </div>
+    </div>
+
     <!-- Section 1: Servo, Hostname, OS, Board/Model, Asset, Pools -->
     <div class="section-card">
       <div class="section-title">1. Device &amp; Identity</div>
@@ -28,7 +55,12 @@
           <mat-select
             [(ngModel)]="selectedServoSerial"
             (selectionChange)="onServoChanged($event.value)"
-            [disabled]="isScanningServos || isVerifying || isEnrolling"
+            [disabled]="
+              isSelectedDutMode ||
+              isScanningServos ||
+              isVerifying ||
+              isEnrolling
+            "
             placeholder="Select detected servo"
           >
             <mat-option *ngFor="let s of servos" [value]="s.serial">
@@ -42,6 +74,7 @@
         </mat-form-field>
 
         <button
+          *ngIf="!isSelectedDutMode"
           mat-stroked-button
           type="button"
           class="refresh-btn"
@@ -312,7 +345,17 @@
       (click)="onEnrollClicked()"
       [disabled]="!canEnroll"
     >
-      {{ isEnrolling ? 'Enrolling...' : 'Enroll & Deploy DUT' }}
+      {{
+        isEnrolling
+          ? 'Enrolling...'
+          : hasNextSelectedDut
+          ? 'Enroll & Next DUT (' +
+            (currentDutIndex + 1) +
+            '/' +
+            selectedDutsQueue.length +
+            ') →'
+          : 'Enroll & Deploy DUT'
+      }}
     </button>
   </div>
 </div>
