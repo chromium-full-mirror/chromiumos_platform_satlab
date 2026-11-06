@@ -371,6 +371,18 @@ describe('ConfigurationComponent', () => {
       component.ngOnDestroy();
       expect(component['stopPolling']).toHaveBeenCalled();
     });
+
+    it('should render the Google G icon inside the Sign in with Google button', fakeAsync(() => {
+      fixture.detectChanges();
+      tick();
+
+      const host = fixture.nativeElement as HTMLElement;
+      const googleGIcon = host.querySelector(
+        '.google-signin-btn .google-g-badge svg'
+      );
+      expect(googleGIcon).not.toBeNull();
+      expect(googleGIcon?.querySelectorAll('path').length).toBe(4);
+    }));
   });
 
   describe('Completing Setup', () => {

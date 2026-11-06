@@ -143,10 +143,27 @@
         .google-signin-btn {
           display: inline-flex;
           align-items: center;
-          gap: 0.5rem;
-          padding: 0 1.5rem;
+          padding: 0 1.25rem 0 0.65rem;
           height: 40px;
           font-weight: 500;
+
+          .google-g-badge {
+            position: relative;
+            z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: $color-white;
+            margin-right: 0.6rem;
+            flex-shrink: 0;
+          }
+
+          &:disabled .google-g-badge {
+            opacity: 0.55;
+          }
         }
       }
     }
