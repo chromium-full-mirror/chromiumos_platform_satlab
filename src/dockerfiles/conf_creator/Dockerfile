@@ -21,8 +21,9 @@ COPY dockerfiles/conf_creator/conf/nginx.conf .
 # Copy ATE configuration and entrypoint files into this image.
 COPY dockerfiles/conf_creator/conf/al_ate_mh_device_config .
 COPY dockerfiles/conf_creator/conf/ate_labserver_entrypoint.sh .
+COPY dockerfiles/conf_creator/conf/ate_tradefed_entrypoint.sh .
 
 COPY  dockerfiles/conf_creator/override-env.sh .
-RUN chmod a+x override-env.sh ate_labserver_entrypoint.sh
+RUN chmod a+x override-env.sh ate_labserver_entrypoint.sh ate_tradefed_entrypoint.sh
 # Overrides the GCS bucket from env variable.
 ENTRYPOINT ["/root/override-env.sh"]

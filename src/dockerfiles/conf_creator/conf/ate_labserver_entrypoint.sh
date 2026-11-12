@@ -5,13 +5,15 @@
 
 set -e
 
-if ! command -v socat >/dev/null 2>&1; then
-  { cat ~/passwd 2>/dev/null || true; } | sudo -S sh -e -c '
+{ cat ~/passwd 2>/dev/null || true; } | sudo -S sh -e -c '
+  mount -o remount,exec /tmp/cloud-ate-shared
+  mount -o remount,exec /usr/local/google/mobileharness/ate
+  if ! command -v socat >/dev/null 2>&1; then
     apt-get install -y --no-install-recommends socat || (
       apt-get update && apt-get install -y --no-install-recommends socat
     )
-  '
-fi
+  fi
+'
 
 # Forward localhost:1485 (IPv4 and IPv6) to labservice:1485 for dt-converter
 # and foil-provision running inside the shared ate-labserver network namespace.

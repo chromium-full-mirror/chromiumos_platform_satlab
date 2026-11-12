@@ -383,6 +383,7 @@ services:
       [
         '/tini',
         '--',
+        '/bin/bash',
         '/tmp/cloud-ate-shared/ate_labserver_entrypoint.sh'
       ]
     command:
@@ -404,7 +405,8 @@ services:
         '--android_desktop_executor_devices_num=${EXECUTOR_DEVICES_NUM:-7}',
         '--android_desktop_executor_group=${DRONE_HOSTNAME}',
         '--nodetect_adb_device',
-        '--enable_builtin_credential_file_percentage=100'
+        '--enable_builtin_credential_file_percentage=100',
+        '--logger_console_handler_min_log_record_importance=150'
       ]
     environment:
       - UFS_NAMESPACE=${UFS_NAMESPACE:-os}
@@ -433,6 +435,13 @@ services:
     privileged: true
     tty: true
     stdin_open: true
+    entrypoint:
+      [
+        '/tini',
+        '--',
+        '/bin/bash',
+        '/tmp/cloud-ate-shared/ate_tradefed_entrypoint.sh'
+      ]
     environment:
       - CLUSTER=al-ate-prod
       - ADB_REJECT_KILL_SERVER=1
@@ -448,7 +457,6 @@ services:
       - ate_tmp:/tmp/cloud-ate-shared:rw
       - tf_res:/tradefed:rw
       - satlab_keys:/creds/service_accounts:rw
-      - /dev:/dev
     depends_on:
       - ate-labserver
   ###########################################################################labservice
