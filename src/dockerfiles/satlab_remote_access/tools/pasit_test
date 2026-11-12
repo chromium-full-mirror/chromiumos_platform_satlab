@@ -87,6 +87,7 @@ PASIT_CROS_IMAGE="${PASIT_CROS_IMAGE:-${PASSPORT_INTERNAL_DOCKER_REGISTRY}/testb
 PASIT_VOLUME_NAME="pasit_volume"
 PASIT_PERSISTENT_CONTAINER_NAME="pasit_persistent_container"
 PASIT_PERSISTENT_LOG_CONTAINER_NAME="pasit_persistent_log_upload_container"
+PASSPORT_CONTAINER="passport"
 
 # Define ANSI color codes
 # Note: \e or \x1B both represent the ESC character
@@ -448,10 +449,9 @@ function start_servod() {
 }
 
 start_passport() {
-  local PASSPORT_CONTAINER="passport-dev"
   local PASSPORT_DOCKER_IMAGE="${PASSPORT_DOCKER_REGISTRY}/passport/passport:latest"
   # stop any existing passport container
-  docker rm -f "${PASSPORT_CONTAINER}" > /dev/null 2>&1
+  docker rm -f "${PASSPORT_CONTAINER}" passport-dev > /dev/null 2>&1
 
   if ! docker exec -i compose sh -c \
     "/usr/local/bin/docker pull ${PASSPORT_DOCKER_IMAGE}"; then
@@ -463,7 +463,7 @@ start_passport() {
   if ! docker run \
     -d \
     --rm \
-    --name ${PASSPORT_CONTAINER} \
+    --name "${PASSPORT_CONTAINER}" \
     --privileged \
     -p 8300:8300 \
     "${PASSPORT_DOCKER_IMAGE}" ; then
@@ -806,7 +806,7 @@ if [[ "${UPLOAD_LOGS}" -eq 1 ]]; then
   upload_logs
   exit 0
 elif [[ "${PASSPORT_CLIENT}" -eq 1 ]]; then
-  if ! docker ps | grep "passport-dev"; then
+  if ! docker ps --format '{{.Names}}' | grep -q "^${PASSPORT_CONTAINER}$"; then
     start_passport
   fi
   docker run --rm -it --volume ${PASIT_VOLUME_NAME}:/workdir -w /workdir \
@@ -863,7 +863,7 @@ else
     log_color ERROR "Servod container is not running, please run this script without --quick|-q to setup the container."
     exit 1
   fi
-  if ! docker ps | grep "passport-dev"; then
+  if ! docker ps --format '{{.Names}}' | grep -q "^${PASSPORT_CONTAINER}$"; then
     log_color ERROR "Passport container is not running, please run this script without --quick|-q to setup the container."
     exit 1
   fi
