@@ -194,8 +194,6 @@ services:
       - DOCKER_HOST=${DOCKER_HOST:-}
       - DOCKER_TLS_VERIFY=${DOCKER_TLS_VERIFY:-}
       - ACCOUNT_ID=${ACCOUNT_ID:-}
-      - ATS_ENABLED=${ATS_ENABLED:-false}
-      - ATE_ENABLED=${ATE_ENABLED:-false}
     volumes:
       - logs:/var/log/satlab
       - /var/run/docker.sock:/var/run/docker.sock:rw
@@ -345,7 +343,7 @@ services:
   ###########################################################################ats
   ats:
     container_name: ats
-    image: ${ATS_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners}/ats:${ATS:-release}
+    image: ${SFP_REGISTRY_URI:-us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners}/ats:${ATS:-release}
     hostname: ${DRONE_HOSTNAME}
     restart: unless-stopped
     privileged: true
@@ -405,12 +403,12 @@ services:
         '--android_desktop_executor_devices_num=${EXECUTOR_DEVICES_NUM:-7}',
         '--android_desktop_executor_group=${DRONE_HOSTNAME}',
         '--nodetect_adb_device',
-        '--enable_builtin_credential_file_percentage=100',
         '--logger_console_handler_min_log_record_importance=150'
       ]
     environment:
       - UFS_NAMESPACE=${UFS_NAMESPACE:-os}
       - SHIVAS_NAMESPACE=${UFS_NAMESPACE:-os}
+      - GOOGLE_APPLICATION_CREDENTIALS=/creds/service_accounts/skylab-drone.json
     volumes:
       - ate_tmp:/tmp/cloud-ate-shared:rw
       - tf_res:/usr/local/google/mobileharness/ate:rw
