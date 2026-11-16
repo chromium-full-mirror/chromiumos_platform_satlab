@@ -53,15 +53,9 @@ function export_ats_enabled() {
     return
   fi
 
-  case "${ACCOUNT_ID}" in
-    2|4|6|84) # Allowed partner accounts
-      export ATS_ENABLED=true
-      export ATS_REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab-for-partners
-      export GCP_PROJECT=distributed-fleet-s4p
-      export CLOUD_FILE_TRANSFER_BUCKET=omnilab_crostest_file_transfer
-      return
-      ;;
-  esac
+  export ATS_ENABLED=true
+  export GCP_PROJECT=distributed-fleet-s4p
+  export CLOUD_FILE_TRANSFER_BUCKET=omnilab_crostest_file_transfer
 }
 
 if [[ -f "${SATLAB_CONFIG_FILENAME}" ]]; then
