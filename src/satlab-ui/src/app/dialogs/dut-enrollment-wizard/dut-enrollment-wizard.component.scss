@@ -392,9 +392,24 @@
     font-weight: 600;
   }
 
+  ::ng-deep .ccd-message-skip {
+    color: #93c5fd;
+    font-weight: 600;
+  }
+
   ::ng-deep .ccd-message-warn {
     color: #fbbf24;
   }
+}
+
+.connected-dut-hint {
+  padding: 8px 12px;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  background-color: #eff6ff;
+  color: #1e40af;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .rma-input-row {
