@@ -63,6 +63,7 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
   protected servos: UnassignedServoOption[] = [];
   protected selectedServoSerial = '';
   protected isScanningServos = false;
+  protected connectedDutHint = '';
 
   // 2. Hostname, Asset, Pools
   protected hostnameInput = '';
@@ -98,6 +99,7 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
   protected enrollError = '';
 
   private stream?: ClientReadableStream<OpenCCDReply>;
+  private connectivityCheckSeq = 0;
 
   constructor(
     @Inject(MAT_DIALOG_DATA)
@@ -318,6 +320,10 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
     this.hostnameInput = rawHost;
 
     this.os = dut.hasAndroidDesktopImage ? 'android' : 'chromeos';
+    this.connectedDutHint =
+      dut.hasTestImage || dut.hasAndroidDesktopImage
+        ? this.formatConnectedDutHint(dut)
+        : '';
 
     const b = (dut.inputBoard ?? dut.board ?? '').trim();
     const m = (dut.inputModel ?? dut.model ?? '').trim();
@@ -359,15 +365,22 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
     this.isScanningServos = true;
     this.cdr.markForCheck();
     try {
+      const prevSerial = this.selectedServoSerial;
       const list = await this.service.getUnassignedServos();
       this.servos = list || [];
-      if (
-        this.servos.length > 0 &&
+      if (this.servos.length === 0) {
+        this.selectedServoSerial = '';
+      } else if (
         !this.servos.some(s => s.serial === this.selectedServoSerial)
       ) {
         this.selectedServoSerial = this.servos[0].serial;
       }
+      const serialChanged = prevSerial !== this.selectedServoSerial;
+      if (serialChanged) {
+        this.resetVerificationState();
+      }
       this.updateUsbBadgeForDeviceType();
+      this.syncConnectedDutForSelectedServo(serialChanged && prevSerial !== '');
     } catch (e) {
       this.notification.error(`Failed to scan servos: ${this.formatError(e)}`);
     } finally {
@@ -377,8 +390,109 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
   }
 
   protected onServoChanged(serial: string): void {
+    const changed = this.selectedServoSerial !== serial;
     this.selectedServoSerial = serial;
     this.updateUsbBadgeForDeviceType();
+    if (changed) {
+      this.resetVerificationState();
+      this.syncConnectedDutForSelectedServo(true);
+    }
+  }
+
+  private findConnectedDutForServo(serial: string): IDut | undefined {
+    const norm = (serial || '').trim().toLowerCase();
+    if (!norm) {
+      return undefined;
+    }
+    const matches = this.existingDuts.filter(
+      d =>
+        (d.servoSerial || '').trim().toLowerCase() === norm &&
+        (d.hasTestImage || d.hasAndroidDesktopImage)
+    );
+    return matches.find(d => !d.hostname) ?? matches[0];
+  }
+
+  private formatConnectedDutHint(dut: IDut): string {
+    const protocol = dut.hasAndroidDesktopImage ? 'ADB' : 'SSH';
+    const osLabel = dut.hasAndroidDesktopImage ? 'Android' : 'ChromeOS';
+    const addr = (dut.address || '').trim();
+    const addrSuffix = addr ? ` (${addr})` : '';
+    return `Connected ${osLabel} DUT detected via ${protocol}${addrSuffix} — auto-filled OS, Board, and Model.`;
+  }
+
+  private applyConnectedDutToForm(dut: IDut, overwriteNonEmpty: boolean): void {
+    const detectedOs: OS = dut.hasAndroidDesktopImage ? 'android' : 'chromeos';
+    const b = (dut.inputBoard ?? dut.board ?? '').trim();
+    const m = (dut.inputModel ?? dut.model ?? '').trim();
+
+    if (overwriteNonEmpty || (!this.board && !this.model)) {
+      this.os = detectedOs;
+    }
+    if (b && (overwriteNonEmpty || !this.board)) {
+      const boardChanged = this.board !== b;
+      this.board = b;
+      if (m) {
+        this.model = m;
+      } else if (boardChanged && overwriteNonEmpty) {
+        this.model = '';
+      }
+      this.loadModelsForCurrentBoard(b);
+    } else if (
+      m &&
+      (overwriteNonEmpty || (!this.model && (!b || this.board === b)))
+    ) {
+      this.model = m;
+    }
+    this.connectedDutHint = this.formatConnectedDutHint(dut);
+    this.cdr.markForCheck();
+  }
+
+  private syncConnectedDutForSelectedServo(overwriteNonEmpty: boolean): void {
+    if (this.isSelectedDutMode || !this.selectedServoSerial) {
+      this.connectedDutHint = '';
+      return;
+    }
+    const existingMatch = this.findConnectedDutForServo(
+      this.selectedServoSerial
+    );
+    if (existingMatch) {
+      this.applyConnectedDutToForm(existingMatch, overwriteNonEmpty);
+      return;
+    }
+    this.connectedDutHint = '';
+    if (typeof this.service.listDUTs !== 'function') {
+      return;
+    }
+    const seq = ++this.connectivityCheckSeq;
+    const targetSerial = this.selectedServoSerial;
+    this.refreshConnectedDutsInBackground(seq, targetSerial);
+  }
+
+  private async refreshConnectedDutsInBackground(
+    seq: number,
+    targetSerial: string
+  ): Promise<void> {
+    try {
+      const duts = await this.service.listDUTs();
+      if (Array.isArray(duts)) {
+        this.existingDuts = duts;
+      }
+      if (
+        seq !== this.connectivityCheckSeq ||
+        this.isSelectedDutMode ||
+        this.selectedServoSerial !== targetSerial ||
+        this.isVerifying ||
+        this.isEnrolling
+      ) {
+        return;
+      }
+      const match = this.findConnectedDutForServo(targetSerial);
+      if (match) {
+        this.applyConnectedDutToForm(match, false);
+      }
+    } catch {
+      // Opportunistic connectivity probe; ignore background errors.
+    }
   }
 
   private updateUsbBadgeForDeviceType(): void {
@@ -409,6 +523,19 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
     }
   }
 
+  private resetVerificationState(): void {
+    if (!this.verificationCompleted && this.ccdStatus === 'pending') {
+      return;
+    }
+    this.verificationCompleted = false;
+    this.verificationReady = false;
+    this.checks = [];
+    this.ccdStatus = 'pending';
+    this.gbbStatus = 'pending';
+    this.usbStatus =
+      this.selectedDeviceType.toLowerCase() === 'maui' ? 'skipped' : 'pending';
+  }
+
   protected async onBoardChanged(newBoard: string): Promise<void> {
     const trimmed = (newBoard || '').trim();
     if (trimmed === this.board) {
@@ -417,6 +544,7 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
     this.board = trimmed;
     this.model = '';
     this.modelOptions = [];
+    this.resetVerificationState();
     if (!trimmed) {
       return;
     }
@@ -429,6 +557,7 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
       return;
     }
     this.model = trimmed;
+    this.resetVerificationState();
     this.cdr.markForCheck();
   }
 
@@ -437,6 +566,7 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
       return;
     }
     this.os = newOS;
+    this.resetVerificationState();
     this.cdr.markForCheck();
   }
 
@@ -507,7 +637,7 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
         if (!ccdHadError) {
           this.ccdStatus = 'pass';
           this.consoleLogs +=
-            '<p>CCD Open complete. Running GBB flags & USB drive readiness checks via servod...</p>';
+            '<p>CCD Open complete. Running SW WP, GBB flags & USB drive readiness checks...</p>';
           this.cdr.markForCheck();
           this.runReadinessChecks();
         }
@@ -567,20 +697,33 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
         (ccdCheck ? ccdCheck.passed : true)
           ? 'pass'
           : 'fail';
-      this.gbbStatus = gbbCheck ? (gbbCheck.passed ? 'pass' : 'fail') : 'pass';
+      this.gbbStatus = gbbCheck
+        ? this.isCheckSkipped(gbbCheck)
+          ? 'skipped'
+          : gbbCheck.passed
+          ? 'pass'
+          : 'fail'
+        : 'pass';
       if (this.selectedDeviceType.toLowerCase() === 'maui') {
         this.usbStatus = 'skipped';
       } else {
         this.usbStatus = usbCheck
-          ? usbCheck.passed
+          ? this.isCheckSkipped(usbCheck)
+            ? 'skipped'
+            : usbCheck.passed
             ? 'pass'
             : 'fail'
           : 'fail';
       }
 
       for (const chk of this.checks) {
-        const badge = chk.passed ? '[PASS]' : '[FAIL]';
-        const cls = chk.passed ? 'ccd-message-pass' : 'ccd-message-error';
+        const skipped = this.isCheckSkipped(chk);
+        const badge = skipped ? '[SKIP]' : chk.passed ? '[PASS]' : '[FAIL]';
+        const cls = skipped
+          ? 'ccd-message-skip'
+          : chk.passed
+          ? 'ccd-message-pass'
+          : 'ccd-message-error';
         this.consoleLogs += `<p class="${cls}">${badge} ${chk.name}: ${chk.details}</p>`;
         if (!chk.passed && chk.hint) {
           this.consoleLogs += `<p class="ccd-message-warn">Hint: ${chk.hint}</p>`;
@@ -676,6 +819,14 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
   protected onCloseClicked(): void {
     this.stream?.cancel();
     this.dialogRef.close(this.anyDutEnrolled ? {enrolled: true} : undefined);
+  }
+
+  private isCheckSkipped(chk?: ReadinessCheckItem): boolean {
+    return (
+      !!chk &&
+      chk.passed &&
+      chk.details.trim().toLowerCase().startsWith('skipped')
+    );
   }
 
   private formatError(e: unknown): string {
