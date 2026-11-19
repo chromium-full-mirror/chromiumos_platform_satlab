@@ -25,7 +25,24 @@ import {Injectable} from '@angular/core';
 import {PROVISION_JOB_NAME} from 'app/constants';
 import {IDims} from 'app/models/run_suite_fields';
 import {getRPCHost} from 'app/utils/misc';
-import {from} from 'rxjs';
+import {
+  catchError,
+  defer,
+  from,
+  map,
+  Observable,
+  of,
+  shareReplay,
+  throwError,
+} from 'rxjs';
+
+const METADATA_CACHE_TTL_MS = 5 * 60 * 1000;
+const MAX_METADATA_CACHE_ENTRIES = 128;
+
+interface CachedMetadataEntry {
+  expiresAt: number;
+  observable$: Observable<string[]>;
+}
 
 export const XTS_TYPES = ['cts', 'gts', 'sts', 'vts'] as const;
 
@@ -127,29 +144,95 @@ function pinVariant(msg: XtsPinVariantPb): XtsPinVariant {
 })
 export class AndroidService {
   private client: SatlabRpcServiceClient;
+  private branchesCache = new Map<string, CachedMetadataEntry>();
+  private targetsCache = new Map<string, CachedMetadataEntry>();
 
   constructor() {
     this.client = new SatlabRpcServiceClient(getRPCHost());
   }
 
-  public listBranches(targets: string[]) {
-    const req = new ListAndroidBranchesRequest().setTargetsList(targets);
+  public clearCache(): void {
+    this.branchesCache.clear();
+    this.targetsCache.clear();
+  }
 
-    return from(
-      this.client.listAndroidBranches(req, {}).then(resp => {
-        return resp.getBranchesList();
-      })
-    );
+  public listBranches(targets: string[]) {
+    const normalizedTargets = Array.from(
+      new Set(targets.map(t => t.trim()).filter(t => t !== ''))
+    ).sort();
+    if (normalizedTargets.length === 0) {
+      return of([]);
+    }
+
+    const key = normalizedTargets.join('\0');
+    return this.getCachedList(this.branchesCache, key, () => {
+      const req = new ListAndroidBranchesRequest().setTargetsList(
+        normalizedTargets
+      );
+      return this.client
+        .listAndroidBranches(req, {})
+        .then(resp => resp.getBranchesList());
+    });
   }
 
   public listTargets(branch: string) {
-    const req = new ListAndroidTargetsRequest().setBranch(branch);
+    const normalizedBranch = branch.trim();
+    if (!normalizedBranch) {
+      return of([]);
+    }
 
-    return from(
-      this.client.listAndroidTargets(req, {}).then(resp => {
-        return resp.getTargetsList();
-      })
+    return this.getCachedList(this.targetsCache, normalizedBranch, () => {
+      const req = new ListAndroidTargetsRequest().setBranch(normalizedBranch);
+      return this.client
+        .listAndroidTargets(req, {})
+        .then(resp => resp.getTargetsList());
+    });
+  }
+
+  private getCachedList(
+    cache: Map<string, CachedMetadataEntry>,
+    key: string,
+    loader: () => Promise<string[]>
+  ): Observable<string[]> {
+    const now = Date.now();
+    const existing = cache.get(key);
+    if (existing && existing.expiresAt > now) {
+      return existing.observable$.pipe(map(items => [...items]));
+    }
+    if (existing) {
+      cache.delete(key);
+    }
+
+    if (cache.size >= MAX_METADATA_CACHE_ENTRIES) {
+      for (const [k, entry] of cache.entries()) {
+        if (entry.expiresAt <= now) {
+          cache.delete(k);
+        }
+      }
+      if (cache.size >= MAX_METADATA_CACHE_ENTRIES) {
+        const oldestKey = cache.keys().next().value;
+        if (oldestKey !== undefined) {
+          cache.delete(oldestKey);
+        }
+      }
+    }
+
+    const observable$ = defer(() => from(loader())).pipe(
+      map(items => Array.from(new Set(items))),
+      catchError(err => {
+        if (cache.get(key)?.observable$ === observable$) {
+          cache.delete(key);
+        }
+        return throwError(() => err);
+      }),
+      shareReplay({bufferSize: 1, refCount: false})
     );
+
+    cache.set(key, {
+      expiresAt: now + METADATA_CACHE_TTL_MS,
+      observable$,
+    });
+    return observable$.pipe(map(items => [...items]));
   }
 
   public listBuilds(board: string, branch: string, targets: string[]) {

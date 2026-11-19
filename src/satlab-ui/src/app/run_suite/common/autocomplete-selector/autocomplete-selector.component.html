@@ -20,11 +20,11 @@
   </div>
 
   <ng-container *ngIf="isOpened()">
-    <div class="items-wrapper">
+    <div class="items-wrapper" (scroll)="onOptionsScroll($event)">
       <mat-list role="list">
         <mat-list-item
           (click)="onOptionClicked(option.label === 'Failed' ? null : option)"
-          *ngFor="let option of filteredOptions"
+          *ngFor="let option of visibleOptions(); trackBy: trackByOption"
           [disabled]="option.label === 'Failed'"
           class="item"
           role="listitem"

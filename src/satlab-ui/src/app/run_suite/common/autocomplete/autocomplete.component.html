@@ -25,10 +25,11 @@
   <ng-container *ngIf="isOptsOpened()">
     <div
       class="absolute w-full top-[60px] left-0 z-[2] bg-[#fafafa] shadow-[0_10px_20px_0_rgb(160,160,170)] rounded-[4px] max-h-[132px] min-h-[48px] overflow-y-scroll"
+      (scroll)="onOptionsScroll($event)"
     >
       <mat-list>
         <mat-list-item
-          *ngFor="let option of filteredOptions()"
+          *ngFor="let option of visibleOptions(); trackBy: trackByOption"
           (mousedown)="onOptionClicked(option); $event.preventDefault()"
           [disabled]="option.label === 'Failed'"
           class="cursor-pointer hover:bg-[#ebebeb]"

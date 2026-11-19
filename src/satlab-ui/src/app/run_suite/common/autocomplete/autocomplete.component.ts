@@ -1,8 +1,6 @@
 import {
   Component,
   computed,
-  effect,
-  EffectRef,
   EventEmitter,
   Input,
   OnDestroy,
@@ -20,6 +18,9 @@ import {MatInputModule} from '@angular/material/input';
 import {ClickDetectorDirective} from 'app/click-detector.directive';
 import {MatSelectModule} from '@angular/material/select';
 import {MatListModule} from '@angular/material/list';
+
+const RENDER_BATCH_SIZE = 50;
+const SCROLL_LOAD_THRESHOLD_PX = 48;
 
 @Component({
   selector: 'app-autocomplete',
@@ -85,6 +86,7 @@ export class AutocompleteComponent implements OnDestroy {
 
   @Input() set options(val: SelectableItem[]) {
     this.optionsSignal.set(val || []);
+    this.renderLimit.set(RENDER_BATCH_SIZE);
     this.syncDisplayValue(this.lastEmittedValue);
     this.autoSelectSingleOption();
   }
@@ -92,6 +94,7 @@ export class AutocompleteComponent implements OnDestroy {
 
   protected isOptsOpened = signal(false);
   protected searchQuery = signal('');
+  protected renderLimit = signal(RENDER_BATCH_SIZE);
 
   @Output() inputChanged = new EventEmitter<string>();
   @Output() selectChanged = new EventEmitter<string>();
@@ -103,12 +106,17 @@ export class AutocompleteComponent implements OnDestroy {
     return items.filter(opt => opt.text.toLowerCase().includes(text));
   });
 
+  protected visibleOptions = computed(() =>
+    this.filteredOptions().slice(0, this.renderLimit())
+  );
+
   protected searchFormControl = new FormControl('', {nonNullable: true});
   private sub: Subscription;
 
   constructor() {
     this.sub = this.searchFormControl.valueChanges.subscribe(val => {
       this.searchQuery.set(val || '');
+      this.renderLimit.set(RENDER_BATCH_SIZE);
     });
   }
 
@@ -129,6 +137,7 @@ export class AutocompleteComponent implements OnDestroy {
     const displayVal = option ? option.text : value;
     this.searchFormControl.setValue(displayVal, {emitEvent: false});
     this.searchQuery.set(displayVal);
+    this.renderLimit.set(RENDER_BATCH_SIZE);
   }
 
   private toggleFormDisable(disabled: boolean) {
@@ -164,8 +173,31 @@ export class AutocompleteComponent implements OnDestroy {
   protected toggleDropdown() {
     if (this.readOnly) return;
     if (!this.disabledSignal()) {
+      if (!this.isOptsOpened()) {
+        this.renderLimit.set(RENDER_BATCH_SIZE);
+      }
       this.isOptsOpened.update(v => !v);
     }
+  }
+
+  protected onOptionsScroll(event: Event) {
+    const el = event.target as HTMLElement | null;
+    if (!el) return;
+    if (
+      el.scrollTop + el.clientHeight >=
+      el.scrollHeight - SCROLL_LOAD_THRESHOLD_PX
+    ) {
+      const total = this.filteredOptions().length;
+      if (this.renderLimit() < total) {
+        this.renderLimit.update(limit =>
+          Math.min(total, limit + RENDER_BATCH_SIZE)
+        );
+      }
+    }
+  }
+
+  protected trackByOption(_index: number, option: SelectableItem): string {
+    return `${option.value ?? ''}:${option.text}`;
   }
 
   protected unfocusedCleanup() {

@@ -11,6 +11,7 @@ import {
   Output,
   signal,
   untracked,
+  WritableSignal,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
@@ -52,16 +53,18 @@ export class AndroidBuildPickerComponent implements OnDestroy {
     if (val === this.boardSignal()) {
       return;
     }
-    resetSignals([
+    const signalsToReset: WritableSignal<unknown>[] = [
       this.branchSignal,
       this.targetSignal,
       this.buildSignal,
-      this.branchOptions,
-      this.filteredBranchOptions,
       this.targetOptions,
       this.buildOptions,
       this.validBuild,
-    ]);
+    ];
+    if (this.typeSignal() !== 'test' || !val) {
+      signalsToReset.push(this.branchOptions, this.filteredBranchOptions);
+    }
+    resetSignals(signalsToReset);
     this.resetValuesAndErrors();
     this.boardSignal.set(val);
   }
@@ -70,32 +73,37 @@ export class AndroidBuildPickerComponent implements OnDestroy {
     if (val === this.modelSignal()) {
       return;
     }
-    const branch = untracked(() => this.branchSignal());
-    // If model is present and branch doesn't include model, reset branch, target, build.
-    // If branch is already empty, no need to reset again.
-    if (val && branch !== '' && !branch.includes(val)) {
-      resetSignals([
-        this.branchSignal,
-        this.targetSignal,
-        this.buildSignal,
-        this.targetOptions,
-        this.buildOptions,
-        this.validBuild,
-      ]);
-      this.resetValuesAndErrors();
+    if (this.typeSignal() !== 'test') {
+      const branch = untracked(() => this.branchSignal());
+      // If model is present and branch doesn't include model, reset branch, target, build.
+      // If branch is already empty, no need to reset again.
+      if (val && branch !== '' && !branch.includes(val)) {
+        resetSignals([
+          this.branchSignal,
+          this.targetSignal,
+          this.buildSignal,
+          this.targetOptions,
+          this.buildOptions,
+          this.validBuild,
+        ]);
+        this.resetValuesAndErrors();
+      }
+      const filtered = this.updateBranchOptions(
+        val,
+        this.sameBoardModels(),
+        this.branchOptions()
+      );
+      this.filteredBranchOptions.set([...filtered]);
     }
-    const filtered = this.updateBranchOptions(
-      val,
-      this.sameBoardModels(),
-      this.branchOptions()
-    );
-    this.filteredBranchOptions.set([...filtered]);
     this.modelSignal.set(val);
   }
 
-  private _type: 'provision' | 'test' = 'test';
+  protected typeSignal = signal<'provision' | 'test'>('test');
   @Input() set type(val: 'provision' | 'test') {
-    this._type = val;
+    if (val !== this.typeSignal()) {
+      resetSignals([this.branchOptions, this.filteredBranchOptions]);
+      this.typeSignal.set(val);
+    }
     this.label = val === 'provision' ? 'OS' : 'Test';
   }
 
@@ -165,6 +173,7 @@ export class AndroidBuildPickerComponent implements OnDestroy {
         // If board is not present, component is not active or branch options are already present, do nothing.
         const board = this.boardSignal();
         const active = this.activeSignal();
+        const type = this.typeSignal();
         const hasBranch = untracked(
           () => this.filteredBranchOptions().length > 0
         );
@@ -174,7 +183,7 @@ export class AndroidBuildPickerComponent implements OnDestroy {
         const sameBoardModels = untracked(() => this.sameBoardModels());
 
         const req =
-          this._type === 'test' ? TEST_PRODUCTS : [...sameBoardModels, board];
+          type === 'test' ? TEST_PRODUCTS : [...sameBoardModels, board];
         this.__listBranchesAndUpdate(req, {model, sameBoardModels});
       }),
 
@@ -434,7 +443,7 @@ export class AndroidBuildPickerComponent implements OnDestroy {
     sameBoardModels: string[],
     branchOptions: SelectableItem[]
   ) {
-    if (!model) return branchOptions;
+    if (this.typeSignal() === 'test' || !model) return branchOptions;
     const notSelectedModels = sameBoardModels.filter(e => e !== model);
 
     return branchOptions.filter(e =>
@@ -452,7 +461,7 @@ export class AndroidBuildPickerComponent implements OnDestroy {
     sameBoardModels: string[],
     targetOptions: SelectableItem[]
   ) {
-    if (this._type === 'test') {
+    if (this.typeSignal() === 'test') {
       return targetOptions.filter(e => e.text.includes('test_suites'));
     }
     if (model) {
