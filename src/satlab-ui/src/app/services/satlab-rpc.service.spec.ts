@@ -5,6 +5,7 @@ import {
   PollDeviceAuthResponse,
   GetCloudConfigurationResponse,
   SetCloudConfigurationResponse,
+  TaskBuildLinkResponse,
 } from './satlabrpc_pb';
 
 describe('SatlabRpcService', () => {
@@ -18,6 +19,7 @@ describe('SatlabRpcService', () => {
       'setCloudConfiguration',
       'getCloudConfiguration',
       'isAuth',
+      'taskBuildLink',
     ]);
 
     TestBed.configureTestingModule({
@@ -118,5 +120,28 @@ describe('SatlabRpcService', () => {
       // placeholder, and the configuration page relies on that.
       expect(result.secret).toBe('secret');
     }));
+  });
+
+  describe('taskBuildLink', () => {
+    it('maps buildLink and isReady from response', async () => {
+      const taskUrl =
+        'https://chromeos-swarming.appspot.com/tasklist?f=scheduke-admin-task:dut-123';
+      const mockResp = new TaskBuildLinkResponse()
+        .setBuildLink('https://ci.chromium.org/p/chromeos/builders/repair/b123')
+        .setIsReady(true);
+
+      mockClient.taskBuildLink.and.resolveTo(mockResp);
+
+      const result = await service.taskBuildLink(taskUrl);
+
+      expect(mockClient.taskBuildLink).toHaveBeenCalledTimes(1);
+      expect(
+        mockClient.taskBuildLink.calls.mostRecent().args[0].getTaskUrl()
+      ).toBe(taskUrl);
+      expect(result).toEqual({
+        buildLink: 'https://ci.chromium.org/p/chromeos/builders/repair/b123',
+        isReady: true,
+      });
+    });
   });
 });

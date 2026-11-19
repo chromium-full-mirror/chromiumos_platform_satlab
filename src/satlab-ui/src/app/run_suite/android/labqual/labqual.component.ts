@@ -12,6 +12,7 @@ import {
   wrapperLoading,
 } from '../../../utils/operators';
 import {startWithTap} from '../../../utils/rxjs_operator';
+import {notifyWithSchedukeBuildLink} from '../../../utils/scheduke_task_link';
 import {AutocompleteSelectorComponent} from '../../common/autocomplete-selector/autocomplete-selector.component';
 import {BasicSelectorComponent} from '../../common/basic-selector/basic-selector.component';
 import {BuildSelectorComponent} from '../../common/build-selector/build-selector.component';
@@ -321,9 +322,11 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
       }
     }
 
+    const hostname = this.hostnameSignal();
+
     wrapperLoading(
       this.androidService.runLabqual(
-        this.hostnameSignal(),
+        hostname,
         this.dutInfo()!.board,
         this.dutInfo()!.model,
         this.buildSignal(),
@@ -339,13 +342,14 @@ export class LabqualComponent implements AfterViewInit, OnDestroy {
       )
       .subscribe({
         next: buildLink => {
-          this.notification.info(
-            [
-              `Triggering a Labqual succeed! Link:`,
-              {type: 'url', url: buildLink},
-            ],
-            {dismiss: false}
-          );
+          notifyWithSchedukeBuildLink({
+            service: this.service,
+            notification: this.notification,
+            taskUrl: buildLink,
+            pendingMessage: `Labqual for ${hostname} scheduled. Waiting for LUCI build link...`,
+            readyMessagePrefix: 'Triggering a Labqual succeeded! Link: ',
+            timeoutMessage: `Labqual for ${hostname} is queued in Scheduke. LUCI build link will appear in View Jobs once dispatched.`,
+          });
         },
         error: e => {
           this.notification.error(`Trigger job failed: ${e}`, {

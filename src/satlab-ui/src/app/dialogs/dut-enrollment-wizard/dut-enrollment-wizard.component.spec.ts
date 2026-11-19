@@ -1,4 +1,9 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {
+  ComponentFixture,
+  TestBed,
+  fakeAsync,
+  tick,
+} from '@angular/core/testing';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {DutEnrollmentWizardComponent} from './dut-enrollment-wizard.component';
@@ -30,6 +35,7 @@ describe('DutEnrollmentWizardComponent', () => {
       'sendMessageToCCDSession',
       'checkDutReadiness',
       'enrollDutFromWizard',
+      'taskBuildLink',
     ]);
     mockRpcService.getUnassignedServos.and.returnValue(
       Promise.resolve([
@@ -43,7 +49,12 @@ describe('DutEnrollmentWizardComponent', () => {
     mockNotificationService = jasmine.createSpyObj('NotificationService', [
       'info',
       'error',
+      'has',
+      'replace',
     ]);
+    mockNotificationService.info.and.returnValue('notif-1');
+    mockNotificationService.has.and.returnValue(true);
+    mockNotificationService.replace.and.returnValue('notif-2');
 
     await TestBed.configureTestingModule({
       declarations: [DutEnrollmentWizardComponent],
@@ -518,4 +529,49 @@ describe('DutEnrollmentWizardComponent', () => {
     expect(component['board']).toBe('dedede');
     expect(component['model']).toBe('');
   });
+
+  it('polls TaskBuildLink when enrollDutFromWizard returns a Scheduke URL', fakeAsync(() => {
+    const schedukeUrl =
+      'https://chromeos-swarming.appspot.com/tasklist?f=scheduke-admin-task:satlab-0wgatfqi21488022-dut1-123';
+    const buildUrl =
+      'https://ci.chromium.org/p/chromeos/builders/external-4-crostest/deploy/b999';
+
+    component['selectedServoSerial'] = 'C2203190091';
+    component['hostnameInput'] = 'dut1';
+    component['board'] = 'brya';
+    component['model'] = 'vell';
+    component['verificationCompleted'] = true;
+    component['verificationReady'] = true;
+
+    mockRpcService.enrollDutFromWizard.and.resolveTo({
+      hostname: 'satlab-0wgatfqi21488022-dut1',
+      ipAddress: '192.168.231.101',
+      deployTaskUrl: schedukeUrl,
+    });
+    mockRpcService.taskBuildLink.and.resolveTo({
+      buildLink: buildUrl,
+      isReady: true,
+    });
+
+    void component['onEnrollClicked']();
+    tick();
+
+    expect(mockNotificationService.info).toHaveBeenCalledWith(
+      'Enrolled satlab-0wgatfqi21488022-dut1 (192.168.231.101). Deploy/Repair task scheduled, waiting for LUCI build link...',
+      {dismiss: false}
+    );
+
+    tick(2000);
+    tick();
+
+    expect(mockRpcService.taskBuildLink).toHaveBeenCalledWith(schedukeUrl);
+    expect(mockNotificationService.replace).toHaveBeenCalledWith(
+      'notif-1',
+      [
+        'Enrolled satlab-0wgatfqi21488022-dut1 (192.168.231.101). Deploy/Repair task: ',
+        {type: 'url', url: buildUrl},
+      ],
+      {dismiss: false}
+    );
+  }));
 });
