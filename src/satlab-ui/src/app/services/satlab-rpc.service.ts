@@ -92,6 +92,7 @@ import {
   SetDutWifiInfoRequest,
   IsUpdateAvailableRequest,
   GetUnassignedServosRequest,
+  TaskBuildLinkRequest,
   CheckDutReadinessRequest,
   EnrollDutFromWizardRequest,
 } from './satlabrpc_pb';
@@ -791,6 +792,23 @@ export class SatlabRpcService {
     const resp = await this.client.repairDuts(req, {});
 
     return toRepairDUTsResponse(resp.getResultList());
+  }
+
+  /**
+   * Resolves a Scheduke Swarming tasklist URL to its LUCI Buildbucket build
+   * URL once Scheduke dispatches the build.
+   */
+  async taskBuildLink(
+    taskUrl: string
+  ): Promise<{buildLink: string; isReady: boolean}> {
+    const req = new TaskBuildLinkRequest().setTaskUrl(taskUrl);
+
+    const resp = await this.client.taskBuildLink(req, {});
+
+    return {
+      buildLink: resp.getBuildLink(),
+      isReady: resp.getIsReady(),
+    };
   }
 
   /** list jobs by query

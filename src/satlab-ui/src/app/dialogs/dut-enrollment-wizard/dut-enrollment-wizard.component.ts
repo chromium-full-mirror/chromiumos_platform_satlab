@@ -13,6 +13,7 @@ import {SelectableItem} from 'app/models/selectable_item';
 import {NotificationService} from 'app/services/notification.service';
 import {SatlabRpcService} from 'app/services/satlab-rpc.service';
 import {OpenCCDReply} from 'app/services/satlabrpc_pb';
+import {notifyWithSchedukeBuildLink} from 'app/utils/scheduke_task_link';
 import {ClientReadableStream} from 'grpc-web';
 import {BehaviorSubject} from 'rxjs';
 
@@ -779,18 +780,15 @@ export class DutEnrollmentWizardComponent implements OnInit, OnDestroy {
       });
 
       if (res.deployTaskUrl) {
-        this.notification.info(
-          [
-            `Enrolled ${res.hostname} (${
-              res.ipAddress || 'USB'
-            }). Deploy/Repair task: `,
-            {
-              type: 'url',
-              url: res.deployTaskUrl,
-            },
-          ],
-          {dismiss: false}
-        );
+        const targetAddr = res.ipAddress || 'USB';
+        notifyWithSchedukeBuildLink({
+          service: this.service,
+          notification: this.notification,
+          taskUrl: res.deployTaskUrl,
+          pendingMessage: `Enrolled ${res.hostname} (${targetAddr}). Deploy/Repair task scheduled, waiting for LUCI build link...`,
+          readyMessagePrefix: `Enrolled ${res.hostname} (${targetAddr}). Deploy/Repair task: `,
+          timeoutMessage: `Enrolled ${res.hostname} (${targetAddr}). Deploy/Repair task is queued in Scheduke.`,
+        });
       } else {
         this.notification.info(
           `Successfully enrolled ${res.hostname} (${res.ipAddress || 'USB'}).`,

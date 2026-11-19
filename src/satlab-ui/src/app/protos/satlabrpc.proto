@@ -96,6 +96,7 @@ service SatlabRpcService {
   rpc CheckDownloadJobLogStatus(CheckDownloadJobLogStatusRequest) returns (CheckDownloadJobLogStatusResponse);
   rpc JobLogLink(JobLogLinkRequest) returns (JobLogLinkResponse);
   rpc ListJobLogTasks(ListJobLogTasksRequest) returns (ListJobLogTasksResponse);
+  rpc TaskBuildLink(TaskBuildLinkRequest) returns (TaskBuildLinkResponse);
   // Jobs operation
   rpc AbortJobs (AbortJobsRequest) returns (AbortJobsResponse);
 }
@@ -1654,3 +1655,21 @@ message EnrollDutFromWizardResponse {
   string deploy_task_url = 3;
 }
 
+// NEXT_TAG = 2
+message TaskBuildLinkRequest {
+  // The Scheduke Swarming tasklist URL (with f=scheduke-admin-task:<tag>), raw
+  // `scheduke-admin-task:<tag>`, or an http(s) LUCI Buildbucket URL on
+  // `ci.chromium.org` / `*.ci.chromium.org`.
+  string task_url = 1;
+}
+
+// NEXT_TAG = 3
+message TaskBuildLinkResponse {
+  // Direct http(s) LUCI Buildbucket URL (`ci.chromium.org` /
+  // `*.ci.chromium.org`) once Scheduke has created the build (or echoed from
+  // task_url if it is already a Buildbucket URL); empty while queued.
+  string build_link = 1;
+  // True once build_link is populated and polling can stop; false while the
+  // task is still queued in Scheduke.
+  bool is_ready = 2;
+}

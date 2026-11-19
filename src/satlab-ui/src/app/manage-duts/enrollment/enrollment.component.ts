@@ -7,6 +7,7 @@ import {SatlabRpcService} from '../../services/satlab-rpc.service';
 import {toIterator} from '../../utils/iterator';
 import {runProvisionOnIndividualDUT} from '../../utils/run_tests_helper';
 import {startWithTap} from '../../utils/rxjs_operator';
+import {notifyWithSchedukeBuildLink} from '../../utils/scheduke_task_link';
 import {
   Component,
   EventEmitter,
@@ -341,13 +342,14 @@ export class EnrollmentComponent {
         next: res => {
           toIterator(res).forEach(e => {
             if (e.isSuccess) {
-              this.notification.info(
-                [
-                  `Repair ${e.hostname} succeed: `,
-                  {type: 'url', url: e.buildLink},
-                ],
-                {dismiss: false}
-              );
+              notifyWithSchedukeBuildLink({
+                service: this.service,
+                notification: this.notification,
+                taskUrl: e.buildLink,
+                pendingMessage: `Repair ${e.hostname} scheduled. Waiting for LUCI build link...`,
+                readyMessagePrefix: `Repair ${e.hostname} succeeded: `,
+                timeoutMessage: `Repair ${e.hostname} is queued in Scheduke. LUCI build link will appear in DUT tasks once dispatched.`,
+              });
             } else {
               this.notification.error(`failed to repair ${e.hostname}`, {
                 dismiss: false,

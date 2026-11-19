@@ -23,13 +23,15 @@ export class NotificationService {
    * @param message the message we want to show
    * @param options the options of control dismiss a message.
    * Otherwise, it will keep on the UI.
+   * @return the notification id.
    */
   public info(
     message: NotificationNodes,
     options: {ms?: number; dismiss: boolean} = {ms: 5000, dismiss: true}
-  ) {
+  ): string {
     const n = this.__addAndEmit(message, 'info');
     this.__dismiss(n.id, options);
+    return n.id;
   }
 
   /**
@@ -37,16 +39,18 @@ export class NotificationService {
    * @param e the error
    * @param options the options of control dismiss a message.
    * Otherwise, it will keep on the UI.
+   * @return the notification id, or empty string if e could not be formatted.
    */
   public error(
     e: unknown,
     options: {ms?: number; dismiss: boolean} = {ms: 5000, dismiss: true}
-  ) {
-    let s: string;
+  ): string {
+    let s = '';
     if (typeof e === 'string') {
       s = e;
     } else if (
       typeof e === 'object' &&
+      e !== null &&
       'message' in e &&
       typeof e.message === 'string'
     ) {
@@ -56,7 +60,54 @@ export class NotificationService {
     if (s) {
       const n = this.__addAndEmit(s, 'error');
       this.__dismiss(n.id, options);
+      return n.id;
     }
+    return '';
+  }
+
+  /**
+   * Returns true if a notification with the given id is currently visible.
+   */
+  has(id: string): boolean {
+    if (!id) {
+      return false;
+    }
+    return this.__n.value.some(e => e.id === id);
+  }
+
+  /**
+   * Replaces an active notification in place by id if it has not been dismissed.
+   * Returns the new notification id, or null if the original id was already gone.
+   */
+  replace(
+    id: string,
+    message: NotificationNodes,
+    options: {
+      type?: INotification['type'];
+      ms?: number;
+      dismiss?: boolean;
+    } = {}
+  ): string | null {
+    if (!id) {
+      return null;
+    }
+    const idx = this.__n.value.findIndex(e => e.id === id);
+    if (idx === -1) {
+      return null;
+    }
+    const existing = this.__n.value[idx];
+    const replacement = createNotification(
+      message,
+      options.type ?? existing.type
+    );
+    const notifications = [...this.__n.value];
+    notifications[idx] = replacement;
+    this.__n.next(notifications);
+    this.__dismiss(replacement.id, {
+      ms: options.ms,
+      dismiss: options.dismiss ?? true,
+    });
+    return replacement.id;
   }
 
   /**
