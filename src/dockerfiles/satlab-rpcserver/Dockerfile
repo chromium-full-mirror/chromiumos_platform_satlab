@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 ARG REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab
+ARG LABEL=autopush
 ARG COMMON_CORE_LABEL=autopush
 ARG COMMON_CORE_URI=gcr.io/chromeos-partner-moblab
 ARG GCLOUD_CLI_VER=594.0.0
@@ -20,7 +21,7 @@ FROM gcr.io/google.com/cloudsdktool/google-cloud-cli:${GCLOUD_CLI_VER}-alpine AS
 # Set default OAuth Scopes
 ENV OAUTH_SCOPES "https://www.googleapis.com/auth/userinfo.email"
 
-FROM ${REGISTRY_URI}/satlab_remote_access:${COMMON_CORE_LABEL}
+FROM ${REGISTRY_URI}/satlab_remote_access:${LABEL}
 
 # Copy gcloud CLI from the official Alpine image (which ships musl-compiled
 # bundled Python 3.14) because satlab_remote_access is based on Alpine 3.13
