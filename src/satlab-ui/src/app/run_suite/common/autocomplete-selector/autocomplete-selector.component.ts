@@ -26,6 +26,9 @@ import {
   distinctUntilChanged,
 } from 'rxjs';
 
+const RENDER_BATCH_SIZE = 50;
+const SCROLL_LOAD_THRESHOLD_PX = 48;
+
 @Component({
   selector: 'app-autocomplete-selector',
   templateUrl: './autocomplete-selector.component.html',
@@ -68,11 +71,16 @@ export class AutocompleteSelectorComponent
   @Output() inputValueChanged = new EventEmitter();
 
   protected filteredOptions: SelectableItem[] = [];
+  protected renderLimit = signal(RENDER_BATCH_SIZE);
   protected searchFormControl = new FormControl('');
   private disposer: Subscription[] = [];
   private _build$ = new BehaviorSubject('');
 
   protected isOpened = signal(false);
+
+  protected visibleOptions(): SelectableItem[] {
+    return this.filteredOptions.slice(0, this.renderLimit());
+  }
 
   ngOnInit() {
     if (this.disabled) {
@@ -83,6 +91,7 @@ export class AutocompleteSelectorComponent
         .pipe(debounceTime(200), distinctUntilChanged())
         .subscribe(v => {
           this.inputChanged.emit(v);
+          this.renderLimit.set(RENDER_BATCH_SIZE);
           if (!v) {
             this.filteredOptions = this.options;
             return;
@@ -110,6 +119,7 @@ export class AutocompleteSelectorComponent
     ) {
       this.options = changes['options'].currentValue;
       this.filteredOptions = changes['options'].currentValue;
+      this.renderLimit.set(RENDER_BATCH_SIZE);
       this.searchFormControl.reset();
     }
   }
@@ -123,7 +133,30 @@ export class AutocompleteSelectorComponent
   }
 
   protected onInputClicked() {
+    if (!this.isOpened()) {
+      this.renderLimit.set(RENDER_BATCH_SIZE);
+    }
     this.isOpened.update(cur => !cur);
+  }
+
+  protected onOptionsScroll(event: Event) {
+    const el = event.target as HTMLElement | null;
+    if (!el) return;
+    if (
+      el.scrollTop + el.clientHeight >=
+      el.scrollHeight - SCROLL_LOAD_THRESHOLD_PX
+    ) {
+      const total = this.filteredOptions.length;
+      if (this.renderLimit() < total) {
+        this.renderLimit.update(limit =>
+          Math.min(total, limit + RENDER_BATCH_SIZE)
+        );
+      }
+    }
+  }
+
+  protected trackByOption(_index: number, option: SelectableItem): string {
+    return `${option.value ?? ''}:${option.text}`;
   }
 
   protected onInputChanged(e: Event & {currentTarget: HTMLInputElement}) {
