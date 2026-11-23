@@ -35,9 +35,9 @@ steps:
     name: "gcr.io/cloud-builders/docker"
     args: ["pull", "${_BASE_REGISTRY_URI}/blacklabelops/logrotate:latest"]
     waitFor: ['-']
-  - id: opentelemetry-collector-contrib
+  - id: otelcol-google
     name: "gcr.io/cloud-builders/docker"
-    args: ["pull", "${_BASE_REGISTRY_URI}/opentelemetry-collector-contrib:0.116.1"]
+    args: ["pull", "us-docker.pkg.dev/cloud-ops-agents-artifacts/google-cloud-opentelemetry-collector/otelcol-google:0.165.2-r.1"]
     waitFor: ['-']
   - id: ubuntu
     name: "gcr.io/cloud-builders/docker"
@@ -214,9 +214,7 @@ steps:
     args:
       [
         "build",
-        "--build-arg", "REGISTRY_URI=${_REGISTRY_URI}",
-        "--build-arg", "LABEL=${__LABEL}",
-        "--build-arg", "BASE_REGISTRY_URI=${_BASE_REGISTRY_URI}",
+        "--pull",
         "-t", "${_REGISTRY_URI}/opentelemetry-collector:${__BUILD_VERSION}",
         "-t", "${_REGISTRY_URI}/opentelemetry-collector:${__LABEL}",
         "-f", "dockerfiles/opentelemetry-collector/Dockerfile",
@@ -225,7 +223,25 @@ steps:
     env:
       - "DOCKER_BUILDKIT=1"
     waitFor:
-     - "opentelemetry-collector-contrib"
+      - "otelcol-google"
+
+  - id: validate-opentelemetry-collector-config
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "run",
+        "--rm",
+        "-v", "/:/hostfs:ro",
+        "-e", "HOST_IDENTIFIER=test-satlab",
+        "-e", "SATLAB_VERSION=test",
+        "-e", "OS_VERSION=test",
+        "-e", "TRACK=test",
+        "${_REGISTRY_URI}/opentelemetry-collector:${__LABEL}",
+        "validate",
+        "--config=/etc/otelcol-google/config.yaml"
+      ]
+    waitFor:
+      - "opentelemetry-collector"
 
   - id: conf_creator
     name: "gcr.io/cloud-builders/docker"
