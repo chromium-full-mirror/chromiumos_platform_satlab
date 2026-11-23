@@ -40,7 +40,7 @@ receivers:
         enabled: false
       container.network.io.usage.tx_dropped:
         enabled: false
-  hostmetrics:
+  host_metrics:
     root_path: /hostfs
     initial_delay: 1m
     collection_interval: 5m
@@ -102,7 +102,7 @@ processors:
     - key: host.id
       value:  ${HOST_IDENTIFIER}
       action: insert
-  metricstransform:
+  metrics_transform:
     transforms:
     - include: .*
       match_type: regexp
@@ -123,17 +123,17 @@ processors:
       conditions:
       - instrumentation_scope.name == "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dockerstatsreceiver"
       statements:
-      - set(attributes["container_name"], resource.attributes["container.name"])
+      - set(datapoint.attributes["container_name"], resource.attributes["container.name"])
     - context: datapoint
       conditions:
       - instrumentation_scope.name == "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/internal/scraper/processscraper"
       statements:
-      - set(attributes["process_name"], resource.attributes["process.executable.name"])
-      - set(attributes["process_id"], resource.attributes["process.pid"])
+      - set(datapoint.attributes["process_name"], resource.attributes["process.executable.name"])
+      - set(datapoint.attributes["process_id"], resource.attributes["process.pid"])
 
 service:
   pipelines:
     metrics:
-      receivers: [hostmetrics, docker_stats, otlp]
-      processors: [resource, metricstransform, transform]
+      receivers: [host_metrics, docker_stats, otlp]
+      processors: [resource, metrics_transform, transform]
       exporters: [googlecloud]
