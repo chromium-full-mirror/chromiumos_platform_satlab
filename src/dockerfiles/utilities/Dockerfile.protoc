@@ -41,7 +41,11 @@ RUN \
 ##############################################################################
 FROM ${BASE_REGISTRY_URI}/debian:trixie-slim
 
-RUN mkdir -p /protoc
+RUN apt-get update \
+	&& DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
+	&& rm -rf /var/lib/apt/lists/* \
+	&& mkdir -p /protoc
+
 COPY --from=download bin/protoc /protoc
 COPY --from=download /include /protoc/include
 COPY --from=download /usr/local/bin/protoc-gen-grpc-web /protoc
