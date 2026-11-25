@@ -5,10 +5,15 @@
 ARG REGISTRY_URI=us-docker.pkg.dev/chromeos-partner-moblab/satlab
 ARG COMMON_CORE_LABEL=autopush
 ARG COMMON_CORE_URI=gcr.io/chromeos-partner-moblab
+ARG GCLOUD_CLI_VER=594.0.0
 
 ###########################################################
 
 FROM ${COMMON_CORE_URI}/chromite:${COMMON_CORE_LABEL} AS chromite
+
+###########################################################
+
+FROM gcr.io/google.com/cloudsdktool/google-cloud-cli:${GCLOUD_CLI_VER}-alpine AS gcloud
 
 ###########################################################
 
@@ -17,14 +22,16 @@ ENV OAUTH_SCOPES "https://www.googleapis.com/auth/userinfo.email"
 
 FROM ${REGISTRY_URI}/satlab_remote_access:${COMMON_CORE_LABEL}
 
-RUN mkdir /gcloud/
-WORKDIR /gcloud
-ARG GCLOUD_CLI_VER=567.0.0
-ARG GCLOUD_CLI_ARCHIVE=google-cloud-cli-${GCLOUD_CLI_VER}-linux-x86_64.tar.gz
-RUN curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/${GCLOUD_CLI_ARCHIVE} && \
-    tar -xf ${GCLOUD_CLI_ARCHIVE} && \
-    ./google-cloud-sdk/install.sh --path-update true -q && \
-    rm ${GCLOUD_CLI_ARCHIVE}
+# Copy gcloud CLI from the official Alpine image (which ships musl-compiled
+# bundled Python 3.14) because satlab_remote_access is based on Alpine 3.13
+# (musl 1.2.2 + Python 3.8.15), where the standard tarball's glibc bundled
+# Python 3.14 fails with missing symbols (dladdr1, qsort_r). Symlink
+# bundledpythonunix -> bundledpythonunixmusl because /etc/alpine-release is
+# absent in the base image (so gcloud's wrapper skips bundledpythonunixmusl) and
+# callers strip environment variables (so ENV CLOUDSDK_PYTHON would not apply).
+COPY --from=gcloud /google-cloud-sdk /gcloud/google-cloud-sdk
+RUN ln -s bundledpythonunixmusl /gcloud/google-cloud-sdk/platform/bundledpythonunix
+ENV PATH="${PATH}:/gcloud/google-cloud-sdk/bin"
 
 # Set up CIPD and run CIPD ensure.
 WORKDIR /
